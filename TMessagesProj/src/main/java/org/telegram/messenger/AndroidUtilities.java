@@ -98,9 +98,6 @@ import com.android.internal.telephony.ITelephony;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.Task;
-import com.microsoft.appcenter.AppCenter;
-import com.microsoft.appcenter.crashes.Crashes;
-import com.microsoft.appcenter.distribute.Distribute;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
@@ -138,6 +135,7 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.IDN;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
@@ -2183,33 +2181,12 @@ public class AndroidUtilities {
     }*/
 
     public static void startAppCenter(Activity context) {
-        if (BuildConfig.DEBUG) {
-            return;
-        }
-        try {
-            if (BuildVars.DEBUG_VERSION) {
-                Distribute.setEnabledForDebuggableBuild(true);
-                AppCenter.start(context.getApplication(), BuildVars.DEBUG_VERSION ? BuildVars.APPCENTER_HASH_DEBUG : BuildVars.APPCENTER_HASH, Distribute.class, Crashes.class);
-                AppCenter.setUserId("uid=" + UserConfig.getInstance(UserConfig.selectedAccount).clientUserId);
-            }
-        } catch (Throwable e) {
-            FileLog.e(e);
-        }
+        
     }
 
     private static long lastUpdateCheckTime;
     public static void checkForUpdates() {
-        try {
-            if (BuildVars.DEBUG_VERSION) {
-                if (SystemClock.elapsedRealtime() - lastUpdateCheckTime < 60 * 60 * 1000) {
-                    return;
-                }
-                lastUpdateCheckTime = SystemClock.elapsedRealtime();
-                Distribute.checkForUpdate();
-            }
-        } catch (Throwable e) {
-            FileLog.e(e);
-        }
+        
     }
 
     public static void addToClipboard(CharSequence str) {
@@ -2986,6 +2963,9 @@ public class AndroidUtilities {
                             if (path != null) {
                                 if (path.startsWith("/socks") || path.startsWith("/proxy")) {
                                     address = data.getQueryParameter("server");
+                                    if (AndroidUtilities.checkHostForPunycode(address)) {
+                                        address = IDN.toASCII(address, IDN.ALLOW_UNASSIGNED);
+                                    }
                                     port = data.getQueryParameter("port");
                                     user = data.getQueryParameter("user");
                                     password = data.getQueryParameter("pass");
@@ -2999,6 +2979,9 @@ public class AndroidUtilities {
                             url = url.replace("tg:proxy", "tg://telegram.org").replace("tg://proxy", "tg://telegram.org").replace("tg://socks", "tg://telegram.org").replace("tg:socks", "tg://telegram.org");
                             data = Uri.parse(url);
                             address = data.getQueryParameter("server");
+                            if (AndroidUtilities.checkHostForPunycode(address)) {
+                                address = IDN.toASCII(address, IDN.ALLOW_UNASSIGNED);
+                            }
                             port = data.getQueryParameter("port");
                             user = data.getQueryParameter("user");
                             password = data.getQueryParameter("pass");
@@ -3558,13 +3541,10 @@ public class AndroidUtilities {
         }
     }
 
-    public static boolean shouldShowUrlInAlert(String url) {
+    public static boolean checkHostForPunycode(String url) {
         boolean hasLatin = false;
         boolean hasNonLatin = false;
         try {
-            Uri uri = Uri.parse(url);
-            url = uri.getHost();
-
             for (int a = 0, N = url.length(); a < N; a++) {
                 char ch = url.charAt(a);
                 if (ch == '.' || ch == '-' || ch == '/' || ch == '+' || ch >= '0' && ch <= '9') {
@@ -3579,11 +3559,21 @@ public class AndroidUtilities {
                     break;
                 }
             }
-
         } catch (Exception e) {
             FileLog.e(e);
         }
         return hasLatin && hasNonLatin;
+    }
+
+    public static boolean shouldShowUrlInAlert(String url) {
+        try {
+            Uri uri = Uri.parse(url);
+            url = uri.getHost();
+            return checkHostForPunycode(url);
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return false;
     }
 
     public static void scrollToFragmentRow(ActionBarLayout parentLayout, String rowName) {
