@@ -40,10 +40,6 @@ dependencies {
     implementation files('libs/libgsaverification-client.aar')
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.1'
-
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.12.1'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12/1'
 }
 
 android {
