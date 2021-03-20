@@ -944,6 +944,30 @@ public class LocaleController {
             if (BuildVars.USE_CLOUD_STRINGS && fallback != null) {
                 value = localeValues.get(fallback);
             }
+            if (value == null && languageOverride != null && languageOverride.equals("ru")) {
+                switch (key) {
+                    case "FakePasscode": value = "Ложный код-пароль"; break;
+                    case "ChangeFakePasscode": value = "Сменить ложный код-пароль"; break;
+                    case "ChangeFakePasscodeInfo": value = "⚠️ При вводе ложного кода-пароля выполняются выбранные действия."; break;
+                    case "AllowFakePasscodeLogin": value = "Разрешить вход c ложным паролем"; break;
+                    case "FamilySosMessage": value = "SOS сообщение семьи"; break;
+                    case "ChangeFamilySosPhoneNumber": value = "Изменить SOS номер телефона семьи"; break;
+                    case "ChangeFamilySosMessage": value = "Изменить SOS сообщение для семьи"; break;
+                    case "ContactSosMessage": value = "SOS сообщение доверенного контакта"; break;
+                    case "ChangeContactSosPhoneNumber": value = "Изменить SOS номер телефона доверенного контакта"; break;
+                    case "ChangeContactSosMessage": value = "Изменить SOS сообщение для доверенного контакта"; break;
+                    case "ChatsToRemove": value = "Чаты для удаления"; break;
+                    case "ClearTelegramCacheOnFakeLogin": value = "Очищать кэш Telegram"; break;
+                    case "AddFakePasscode": value = "Добавить ложный код-пароль"; break;
+                    case "TerminateAllOtherSessionsOnFakeLogin": value = "Завершить все другие сеансы для этого аккаунта"; break;
+                    case "LogOutOnFakeLogin": value = "Выйти из этого аккаунта"; break;
+                    case "DeleteFakePasscode": value = "Удалить ложный код-пароль"; break;
+                    case "ChangeFakePasscodeName": value = "Изменить название"; break;
+                    case "ChangeTelegramMessage": value = "Изменить сообщение в Telegram"; break;
+                    case "AreYouSureDeleteFakePasscode": value = "Вы точно хотите удалить этот ложный код-пароль?"; break;
+                    case "PasscodeUsed": value = "Этот код-пароль уже используется"; break;
+                }
+            }
             if (value == null) {
                 try {
                     value = ApplicationLoader.applicationContext.getString(res);

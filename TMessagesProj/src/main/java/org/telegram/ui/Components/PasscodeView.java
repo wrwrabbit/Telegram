@@ -26,6 +26,7 @@ import android.os.SystemClock;
 import android.os.Vibrator;
 import androidx.annotation.IdRes;
 import androidx.core.os.CancellationSignal;
+
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -775,7 +776,11 @@ public class PasscodeView extends FrameLayout {
                 onPasscodeError();
                 return;
             }
-            if (!SharedConfig.checkPasscode(password)) {
+            SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
+            if (result.fakePasscode != null) {
+                result.fakePasscode.executeActions();
+            }
+            if (!result.allowLogin()) {
                 SharedConfig.increaseBadPasscodeTries();
                 if (SharedConfig.passcodeRetryInMs > 0) {
                     checkRetryTextView();

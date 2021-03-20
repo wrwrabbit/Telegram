@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -118,7 +119,10 @@ public class SessionCell extends FrameLayout {
 
         if (object instanceof TLRPC.TL_authorization) {
             TLRPC.TL_authorization session = (TLRPC.TL_authorization) object;
-            nameTextView.setText(String.format(Locale.US, "%s %s", session.app_name, session.app_version));
+            boolean isSessionOfThisApp = session.api_id == BuildVars.APP_ID;
+            nameTextView.setText(String.format(Locale.US, "%s %s",
+                    isSessionOfThisApp ? "Telegram Android" : session.app_name , session.app_version));
+
             if ((session.flags & 1) != 0) {
                 setTag(Theme.key_windowBackgroundWhiteValueText);
                 onlineTextView.setText(LocaleController.getString("Online", R.string.Online));
@@ -164,7 +168,8 @@ public class SessionCell extends FrameLayout {
                 }
             }
 
-            if (!session.official_app) {
+
+            if (!session.official_app && !isSessionOfThisApp) {
                 if (stringBuilder.length() != 0) {
                     stringBuilder.append(", ");
                 }

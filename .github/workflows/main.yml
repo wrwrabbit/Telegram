@@ -1,0 +1,45 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      - name: Build docker image
+        run: docker build -t telegram-build .
+      - name: Build app
+        run: docker run --rm -v "$PWD":/home/source telegram-build
+      - name: Print Hash
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: sha256sum TMessagesProj/build/outputs/apk/afat/release/app.apk
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: X.X.X
+          release_name: X.X.X
+          body: |
+            CHANGE ME
+          draft: false
+          prerelease: false
+      - name: Upload APK
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: TMessagesProj/build/outputs/apk/afat/release/app.apk
+          asset_name: PTelegram-vX_X_X.apk
+          asset_content_type: application/vnd.android.package-archive

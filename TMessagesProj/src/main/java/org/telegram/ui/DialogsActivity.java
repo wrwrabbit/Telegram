@@ -166,6 +166,7 @@ import org.telegram.ui.Components.ViewPagerFixed;
 import org.telegram.ui.Components.RecyclerItemsEnterAnimator;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DialogsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -1803,7 +1804,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (!dialogsLoaded[currentAccount]) {
             MessagesController messagesController = accountInstance.getMessagesController();
             messagesController.loadGlobalNotificationsSettings();
-            messagesController.loadDialogs(0, 0, 100, true);
+            for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+                if (!dialogsLoaded[i]) {
+                    MessagesController controller = AccountInstance.getInstance(i).getMessagesController();
+                    controller.loadDialogs(0, 0, 100, true);
+                }
+            }
             messagesController.loadHintDialogs();
             messagesController.loadUserInfo(accountInstance.getUserConfig().getCurrentUser(), false, 0);
             accountInstance.getContactsController().checkInviteText();

@@ -3812,6 +3812,10 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
             if (granted) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.locationPermissionGranted);
             }
+        } else if (requestCode == 1000) {
+            if (!granted) {
+                showPermissionErrorAlert(LocaleController.getString("PermissionNoSmsSend", R.string.PermissionNoSmsSend));
+            }
         }
         if (actionBarLayout.fragmentsStack.size() != 0) {
             BaseFragment fragment = actionBarLayout.fragmentsStack.get(actionBarLayout.fragmentsStack.size() - 1);

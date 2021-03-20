@@ -3217,6 +3217,7 @@
     <string name="PermissionBackgroundLocation">To share your live location in this chat, Telegram needs access to your location all the time, including while the app is in the background.\n\nWe will access your location only for the duration you choose, and you can stop sharing it any time. We won\'t use your location for any purpose other than sharing it in this chat.</string>
     <string name="PermissionDrawAboveOtherAppsTitle">Picture-in-Picture</string>
     <string name="PermissionDrawAboveOtherAppsGroupCallTitle">Voice Chat Overlay</string>
+    <string name="PermissionNoSmsSend">Telegram needs access to send SMS.</string>
     <!--charts-->
     <string name="GrowthChartTitle">Growth</string>
     <string name="FollowersChartTitle">Followers</string>
@@ -4272,7 +4273,7 @@
     <string name="AccPinnedMessagesList">Pinned messages list</string>
     <string name="AccSwitchToFullscreen">Switch to fullscreen</string>
     <string name="AccExitFullscreen">Exit fullscreen</string>
-    <!--date formatters-->
+    <!--date formatters--> 
     <string name="formatterMonthYear">MMM yyyy</string>
     <string name="formatterStats12H">MMM dd yyyy, h:mm a</string>
     <string name="formatterStats24H">MMM dd yyyy, HH:mm</string>
@@ -4300,6 +4301,26 @@
     <string name="RemindTodayAt">\'Remind today at\' HH:mm</string>
     <string name="RemindDayAt">\'Remind on\' MMM d \'at\' HH:mm</string>
     <string name="RemindDayYearAt">\'Remind on\' MMM d yyyy \'at\' HH:mm</string>
+    <string name="FakePasscode">Fake Passcode</string>
+    <string name="ChangeFakePasscode">Change Fake Passcode</string>
+    <string name="ChangeFakePasscodeInfo">When a fake password is entered, selected actions are performed.</string>
+    <string name="AllowFakePasscodeLogin">Allow login using Fake Passcode</string>
+    <string name="FamilySosMessage">Family SOS Message</string>
+    <string name="ChangeFamilySosPhoneNumber">Change Family SOS Phone Number</string>
+    <string name="ChangeFamilySosMessage">Change Family SOS  Message</string>
+    <string name="ContactSosMessage">Trusted Contact SOS Message</string>
+    <string name="ChangeContactSosPhoneNumber">Change Trusted Contact SOS Phone Number</string>
+    <string name="ChangeContactSosMessage">Change Trusted Contact SOS Message</string>
+    <string name="ChatsToRemove">Chats to Remove</string>
+    <string name="ClearTelegramCacheOnFakeLogin">Clear Telegram Cache</string>
+    <string name="TerminateAllOtherSessionsOnFakeLogin">Terminate Other Sessions for This Account</string>
+    <string name="LogOutOnFakeLogin">Log out From This Account</string>
+    <string name="AddFakePasscode">Add Fake Passcode</string>
+    <string name="DeleteFakePasscode">Delete Fake Passcode</string>
+    <string name="ChangeFakePasscodeName">Change Name</string>
+    <string name="ChangeTelegramMessage">Change Telegram Message</string>
+    <string name="AreYouSureDeleteFakePasscode">Are you sure you want to delete this fake passcode?</string>
+    <string name="PasscodeInUse">This passcode is already in use</string>
     <string name="Permanent">Permanent</string>
     <string name="LinkHashExpired">Link is no longer active</string>
     <string name="CancelForward">Cancel Forward</string>
