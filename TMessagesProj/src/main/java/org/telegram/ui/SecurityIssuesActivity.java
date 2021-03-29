@@ -201,6 +201,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                             } else if (currentIssue == SecurityIssue.TWO_STEP_VERIFICATION) {
                                 TwoStepVerificationSetupActivity twoStepVerification = new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_INTRO, null);
                                 twoStepVerification.setFromRegistration(false);
+                                twoStepVerification.returnToSecurityIssuesActivity = true;
                                 presentFragment(twoStepVerification, true);
                             }
                         }
