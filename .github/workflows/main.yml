@@ -7,9 +7,6 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - name: Move Project
-        working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: "[ -d ../Partisan-Telegram-Android ] && mv ../Partisan-Telegram-Android ../Partisan-Telegram-Android_$(date +%y_%m_%d-%H_%M_%S) || (exit 0)"
       - uses: actions/checkout@v2
       - name: Build docker image
         run: docker build -t telegram-build .
