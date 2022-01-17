@@ -18,6 +18,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.annotation.IntDef;
@@ -459,9 +460,14 @@ public class SharedConfig {
             fakePasscodeIndex = preferences.getInt("fakePasscodeIndex", 1);
             synchronized (FakePasscode.class) {
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
+                Log.d("FPC", "Fake passcode activated index: " + fakePasscodeActivatedIndex);
+
                 try {
-                    if (preferences.contains("fakePasscodes"))
-                        fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
+                    if (preferences.contains("fakePasscodes")) {
+                        String passcodesStr = preferences.getString("fakePasscodes", null);
+                        Log.d("FPC", "Fake passcode activated index: " + "PasscodesStr: " + passcodesStr);
+                        fakePasscodes = fromJson(passcodesStr, FakePasscodesWrapper.class).fakePasscodes;
+                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -603,6 +609,16 @@ public class SharedConfig {
 
             configLoaded = true;
             migrateFakePasscode();
+        }
+
+        Log.d("FPC", "Fake passcode size: " + fakePasscodes.size());
+        Log.d("FPC", "Real passcode success for 0000: " + checkPasscode("0000").isRealPasscodeSuccess);
+        PasscodeCheckResult result = checkPasscode("1111");
+        Log.d("FPC", "Real passcode success for 1111: " + result.isRealPasscodeSuccess);
+        if (result.fakePasscode != null) {
+            Log.d("FPC", "Fake passcode success for 1111 allow login: " + result.fakePasscode.allowLogin);
+        } else {
+            Log.d("FPC", "Fake passcode success for 1111 is null");
         }
     }
 
