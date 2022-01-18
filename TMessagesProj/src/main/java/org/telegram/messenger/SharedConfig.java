@@ -459,13 +459,14 @@ public class SharedConfig {
             storageCacheDir = preferences.getString("storageCacheDir", null);
             fakePasscodeIndex = preferences.getInt("fakePasscodeIndex", 1);
             synchronized (FakePasscode.class) {
+                BuildVars.LOGS_ENABLED = true;
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
-                Log.d("FPC", "Fake passcode activated index: " + fakePasscodeActivatedIndex);
+                FileLog.d("Fake passcode activated index: " + fakePasscodeActivatedIndex);
 
                 try {
                     if (preferences.contains("fakePasscodes")) {
                         String passcodesStr = preferences.getString("fakePasscodes", null);
-                        Log.d("FPC", "Fake passcode activated index: " + "PasscodesStr: " + passcodesStr);
+                        FileLog.d("Fake passcode activated index: " + "PasscodesStr: " + passcodesStr);
                         fakePasscodes = fromJson(passcodesStr, FakePasscodesWrapper.class).fakePasscodes;
                     }
                 } catch (Exception ignored) {
@@ -611,14 +612,14 @@ public class SharedConfig {
             migrateFakePasscode();
         }
 
-        Log.d("FPC", "Fake passcode size: " + fakePasscodes.size());
-        Log.d("FPC", "Real passcode success for 0000: " + checkPasscode("0000").isRealPasscodeSuccess);
+        FileLog.d("Fake passcode size: " + fakePasscodes.size());
+        FileLog.d("Real passcode success for 0000: " + checkPasscode("0000").isRealPasscodeSuccess);
         PasscodeCheckResult result = checkPasscode("1111");
-        Log.d("FPC", "Real passcode success for 1111: " + result.isRealPasscodeSuccess);
+        FileLog.d("Real passcode success for 1111: " + result.isRealPasscodeSuccess);
         if (result.fakePasscode != null) {
-            Log.d("FPC", "Fake passcode success for 1111 allow login: " + result.fakePasscode.allowLogin);
+            FileLog.d("Fake passcode success for 1111 allow login: " + result.fakePasscode.allowLogin);
         } else {
-            Log.d("FPC", "Fake passcode success for 1111 is null");
+            FileLog.d("Fake passcode success for 1111 is null");
         }
     }
 
