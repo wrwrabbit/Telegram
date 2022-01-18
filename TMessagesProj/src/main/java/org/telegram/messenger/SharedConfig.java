@@ -382,10 +382,12 @@ public class SharedConfig {
     }
 
     private static void migrateFakePasscode() {
+        FileLog.d("Migrate fake passcode");
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
         String fakePasscodeHash = preferences.getString("fakePasscodeHash", "");
         boolean hasNonJsonPasscode = !fakePasscodeHash.isEmpty();
 
+        FileLog.d("Has non json passcode: " + hasNonJsonPasscode);
         if (hasNonJsonPasscode)
         {
             FakePasscode fakePasscode = new FakePasscode();
@@ -438,6 +440,7 @@ public class SharedConfig {
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
+            FileLog.d("Original passcode hash: " + passcodeHash);
             appLocked = preferences.getBoolean("appLocked", false);
             passcodeType = preferences.getInt("passcodeType", 0);
             passcodeRetryInMs = preferences.getLong("passcodeRetryInMs", 0);
@@ -469,7 +472,8 @@ public class SharedConfig {
                         FileLog.d("Fake passcode activated index: " + "PasscodesStr: " + passcodesStr);
                         fakePasscodes = fromJson(passcodesStr, FakePasscodesWrapper.class).fakePasscodes;
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    FileLog.e("Fake passcodes parsing exception ", e);
                 }
             }
             try {
@@ -477,6 +481,7 @@ public class SharedConfig {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
             } catch (Exception ignored) {
             }
+            FileLog.d("Fake passcode count:" + fakePasscodes.size());
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
             takePhotoWithBadPasscodeBack = preferences.getBoolean("takePhotoOnBadPasscodeBack", false);
             takePhotoMuteAudio = preferences.getBoolean("takePhotoMuteAudio", true);
@@ -501,6 +506,7 @@ public class SharedConfig {
             }
 
             String passcodeSaltString = preferences.getString("passcodeSalt", "");
+            FileLog.d("Passcode salt string: " + passcodeSaltString);
             if (passcodeSaltString.length() > 0) {
                 passcodeSalt = Base64.decode(passcodeSaltString, Base64.DEFAULT);
             } else {
@@ -610,6 +616,7 @@ public class SharedConfig {
 
             configLoaded = true;
             migrateFakePasscode();
+            FileLog.d("Fake passcode size after migration: " + fakePasscodes.size());
         }
 
         FileLog.d("Fake passcode size: " + fakePasscodes.size());
