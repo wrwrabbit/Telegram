@@ -18,6 +18,7 @@ import android.widget.FrameLayout;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -82,7 +83,7 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
 
     public PrivacyUsersActivity(int type, ArrayList<Long> users, boolean group, boolean always) {
         super();
-        uidArray = users;
+        uidArray = new ArrayList<>(FakePasscode.filterDialogIds(users, currentAccount));
         isAlwaysShare = always;
         isGroup = group;
         blockedUsersActivity = false;

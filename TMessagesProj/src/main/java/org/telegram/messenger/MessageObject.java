@@ -30,6 +30,7 @@ import androidx.collection.LongSparseArray;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -98,9 +99,9 @@ public class MessageObject {
     public CharSequence caption;
     public MessageObject replyMessageObject;
     public int type = 1000;
-    public boolean reactionsVisibleOnScreen;
     public long reactionsLastCheckTime;
     public String customName;
+    public boolean reactionsChanged;
     private int isRoundVideoCached;
     public long eventId;
     public int contentType;
@@ -901,7 +902,7 @@ public class MessageObject {
         currentAccount = accountNum;
         localName = name;
         localUserName = userName;
-        messageText = formattedMessage;
+        messageText = Utils.fixMessage(formattedMessage);
         messageOwner = message;
         localChannel = isChannel;
         localSupergroup = supergroup;
@@ -976,7 +977,7 @@ public class MessageObject {
                 paint = Theme.chat_msgTextPaint;
             }
             int[] emojiOnly = allowsBigEmoji() ? new int[1] : null;
-            messageText = Emoji.replaceEmoji(messageText, paint.getFontMetricsInt(), AndroidUtilities.dp(20), false, emojiOnly);
+            messageText = Emoji.replaceEmoji(Utils.fixMessage(messageText.toString()), paint.getFontMetricsInt(), AndroidUtilities.dp(20), false, emojiOnly);
             checkEmojiOnly(emojiOnly);
             emojiAnimatedSticker = null;
             if (emojiOnlyCount == 1 && !(message.media instanceof TLRPC.TL_messageMediaWebPage) && !(message.media instanceof TLRPC.TL_messageMediaInvoice) && message.entities.isEmpty()) {
@@ -3735,7 +3736,7 @@ public class MessageObject {
         }
         int hashtagsType = 0;
         if (messageOwner.media instanceof TLRPC.TL_messageMediaWebPage && messageOwner.media.webpage instanceof TLRPC.TL_webPage && messageOwner.media.webpage.description != null) {
-            linkDescription = Spannable.Factory.getInstance().newSpannable(messageOwner.media.webpage.description);
+            linkDescription = Spannable.Factory.getInstance().newSpannable(Utils.fixMessage(messageOwner.media.webpage.description));
             String siteName = messageOwner.media.webpage.site_name;
             if (siteName != null) {
                 siteName = siteName.toLowerCase();
@@ -6275,6 +6276,7 @@ public class MessageObject {
                     }
                 }
             }
+            reactionsChanged = true;
             return false;
         }
 
@@ -6308,6 +6310,7 @@ public class MessageObject {
             action.user_id = UserConfig.getInstance(currentAccount).getClientUserId();
             action.reaction = reaction;
         }
+        reactionsChanged = true;
         return true;
     }
 }

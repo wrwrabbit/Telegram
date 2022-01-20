@@ -37,6 +37,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -55,12 +56,15 @@ import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.FlickerLoadingView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PullForegroundDrawable;
+import org.telegram.ui.Components.ReactionTabHolderView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.DialogsActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 public class DialogsAdapter extends RecyclerListView.SelectionAdapter {
 
@@ -822,6 +826,18 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter {
         this.forceShowEmptyCell = forceShowEmptyCell;
     }
 
+    private boolean hasArchive() {
+        if (dialogsType != 0) {
+            return false;
+        }
+        MessagesController controller = MessagesController.getInstance(currentAccount);
+        if (controller.dialogs_dict.get(DialogObject.makeFolderDialogId(1)) == null) {
+            return false;
+        }
+        List<TLRPC.Dialog> dialogs = controller.getDialogs(1);
+        return dialogs != null && !FakePasscode.filterDialogs(dialogs, Optional.of(currentAccount)).isEmpty();
+    }
+
     public class LastEmptyView extends View {
 
         public boolean moving;
@@ -832,7 +848,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter {
 
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             int size = parentFragment.getDialogsArray(currentAccount, dialogsType, folderId, dialogsListFrozen).size();
-            boolean hasArchive = dialogsType == 0 && MessagesController.getInstance(currentAccount).dialogs_dict.get(DialogObject.makeFolderDialogId(1)) != null;
+            boolean hasArchive = hasArchive();
             View parent = (View) getParent();
             int height;
             int paddingTop = parent.getPaddingTop();

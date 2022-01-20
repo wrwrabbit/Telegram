@@ -319,25 +319,9 @@ public class ContactsController extends BaseController {
         }
     }
 
-    private Map<Integer, Boolean> getFakePasscodeLogoutOrHideMap() {
-        Map<Integer, Boolean> result = new HashMap<>();
-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
-            result.put(i, UserConfig.getInstance(i).isClientActivated() ? false : null);
-        }
-        for (FakePasscode fakePasscode: SharedConfig.fakePasscodes) {
-            for (LogOutAction action: fakePasscode.logOutActions) {
-                result.put(action.accountNum, true);
-            }
-            for (HideAccountAction action: fakePasscode.hideAccountActions) {
-                result.put(action.accountNum, true);
-            }
-        }
-        return result;
-    }
-
     public void checkAppAccount() {
         AccountManager am = AccountManager.get(ApplicationLoader.applicationContext);
-        Map<Integer, Boolean> logoutMap = getFakePasscodeLogoutOrHideMap();
+        Map<Integer, Boolean> logoutMap = FakePasscode.getLogoutOrHideAccountMap();
         try {
             Account[] accounts = am.getAccountsByType("org.telegram.messenger");
             systemAccount = null;

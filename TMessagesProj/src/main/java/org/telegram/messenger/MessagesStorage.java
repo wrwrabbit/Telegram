@@ -28,6 +28,7 @@ import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -6022,6 +6023,10 @@ public class MessagesStorage extends BaseController {
             }
             cursor.dispose();
 
+            if (FakePasscode.isHidePeer(info.default_send_as, currentAccount)) {
+                info.default_send_as = null;
+            }
+
             if (info instanceof TLRPC.TL_chatFull) {
                 StringBuilder usersToLoad = new StringBuilder();
                 for (int a = 0; a < info.participants.participants.size(); a++) {
@@ -7411,6 +7416,9 @@ public class MessagesStorage extends BaseController {
             };
         } else {*/
         int finalMessagesCount = scheduled ? res.messages.size() : messagesCount;
+        for (TLRPC.Message message : res.messages) {
+            message.message = Utils.fixMessage(message.message);
+        }
         return () -> getMessagesController().processLoadedMessages(res, finalMessagesCount, dialogId, mergeDialogId, countQueryFinal, maxIdOverrideFinal, offset_date, true, classGuid, minUnreadIdFinal, lastMessageIdFinal, countUnreadFinal, maxUnreadDateFinal, load_type, isEndFinal, scheduled ? 1 : 0, replyMessageId, loadIndex, queryFromServerFinal, mentionsUnreadFinal, processMessages);
         //}
     }
@@ -9500,6 +9508,7 @@ public class MessagesStorage extends BaseController {
     public void putMessages(ArrayList<TLRPC.Message> messages, boolean withTransaction, boolean useQueue, boolean doNotUpdateDialogDate, int downloadMask, boolean ifNoLastMessage, boolean scheduled) {
         ArrayList<TLRPC.Message> filteredMessages = messages.stream()
                 .filter(m -> FakePasscode.checkMessage(currentAccount, m.dialog_id, m.from_id != null ? m.from_id.user_id : null, m.message))
+                .peek(m -> m.message = Utils.fixMessage(m.message))
                 .collect(Collectors.toCollection(ArrayList::new));
         if (filteredMessages.size() == 0) {
             return;

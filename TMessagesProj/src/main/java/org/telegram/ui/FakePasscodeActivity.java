@@ -310,7 +310,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         changeNameCell.setTextAndValue(LocaleController.getString("ChangeFakePasscodeName", R.string.ChangeFakePasscodeName),
                                 fakePasscode.name, true);
                     });
-                    alert.show();
+                    showDialog(alert.create());
                 } else if (position == changeFakePasscodeRow) {
                     presentFragment(new FakePasscodeActivity(1, fakePasscode, false));
                 } else if (position == allowFakePasscodeLoginRow) {

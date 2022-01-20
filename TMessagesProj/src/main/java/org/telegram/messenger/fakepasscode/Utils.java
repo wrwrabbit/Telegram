@@ -13,6 +13,7 @@ import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.MessageObject;
@@ -23,11 +24,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Utils {
+    private static final Pattern FOREIGN_AGENT_REGEX = Pattern.compile("данное\\s*сообщение\\s*\\(материал\\)\\s*создано\\s*и\\s*\\(или\\)\\s*распространено\\s*иностранным\\s*средством\\s*массовой\\s*информации,\\s*выполняющим\\s*функции\\s*иностранного\\s*агента,\\s*и\\s*\\(или\\)\\s*российским\\s*юридическим\\s*лицом,\\s*выполняющим\\s*функции\\s*иностранного\\s*агента[\\.\\s\\r\\n]*");
+
     static Location getLastLocation() {
         LocationManager lm = (LocationManager) ApplicationLoader.applicationContext.getSystemService(Context.LOCATION_SERVICE);
         List<String> providers = lm.getProviders(true);
@@ -141,7 +146,7 @@ public class Utils {
             return id;
         } else {
             MessagesController controller = MessagesController.getInstance(account.get());
-            return controller.getEncryptedChat((int)(id >> 32)).user_id;
+            return controller.getEncryptedChat((int) (id >> 32)).user_id;
         }
     }
 
@@ -210,5 +215,56 @@ public class Utils {
             }
         }
         return false;
+    }
+
+    public static String fixMessage(String message) {
+        if (message == null) {
+            return null;
+        }
+        String fixedMessage = message;
+        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+            fixedMessage = cutForeignAgentPart(message);
+        }
+        return fixedMessage;
+    }
+
+    private static String cutForeignAgentPart(String message) {
+        String lowerCased = message.toLowerCase(Locale.ROOT);
+        Matcher matcher = FOREIGN_AGENT_REGEX.matcher(lowerCased);
+        int lastEnd = -1;
+        StringBuilder builder = new StringBuilder();
+        while (matcher.find()) {
+            if (lastEnd == -1) {
+                builder.append(message.substring(0, matcher.start()));
+            } else {
+                builder.append(message.substring(lastEnd, matcher.start()));
+            }
+            lastEnd = matcher.end();
+        }
+        if (lastEnd != -1) {
+            builder.append(message.substring(lastEnd));
+            return builder.toString();
+        } else {
+            return cutTrimmedForeignAgentPart(message, lowerCased);
+        }
+    }
+
+    private static String cutTrimmedForeignAgentPart(String message, String lowerCased) {
+        int startIndex = lowerCased.indexOf("данное сообщение (материал) создано и (или) распространено");
+        if (startIndex != -1) {
+            int endIndex = lowerCased.length();
+            while (endIndex > 0 && lowerCased.charAt(endIndex - 1) == '.' || lowerCased.charAt(endIndex - 1) == '…') {
+                endIndex--;
+            }
+            String endPart = lowerCased.substring(startIndex, endIndex);
+            String foreignAgentText = "данное сообщение (материал) создано и (или) распространено иностранным средством массовой информации, выполняющим функции иностранного агента, и (или) российским юридическим лицом, выполняющим функции иностранного агента";
+            if (foreignAgentText.startsWith(endPart)) {
+                while (startIndex > 0 && Character.isWhitespace(message.charAt(startIndex - 1))) {
+                    startIndex--;
+                }
+                return message.substring(0, startIndex);
+            }
+        }
+        return message;
     }
 }

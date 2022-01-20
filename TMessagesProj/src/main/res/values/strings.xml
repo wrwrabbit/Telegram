@@ -1022,7 +1022,6 @@
     <string name="DeleteReportSpam">Report spam</string>
     <string name="TranslateMessage">Translate</string>
     <string name="AutomaticTranslation">Automatic Translation</string>
-    <string name="TranslateMore">Translate more...</string>
     <string name="CloseTranslation">Close Translation</string>
     <string name="TranslationFailedAlert1">Translation failed. Try again later.</string>
     <string name="TranslationFailedAlert2">Translation failed.</string>
@@ -4937,7 +4936,6 @@
     <string name="DoubleTapPreviewSenderName">Dino</string>
     <string name="DoubleTapSetting">Quick Reactions</string>
     <string name="DoubleTapPreviewRational">Double tap this message for a quck reaction.</string>
-    <string name="DebugDrawSnowInChat">Snow in chat</string>
     <string name="ActionReactionsChanged">un1 changed chat reactions \nfrom: %1$s \nto: %2$s</string>
     <string name="NobodyViewed">Nobody viewed</string>
     <string name="QrCode">QR Code</string>
@@ -5084,4 +5082,27 @@
     <string name="AccountHiddenDescription">The account will be hidden in some fake passcodes. If you want to hide other accounts, set up a passcodes.</string>
     <string name="TooManyAccountsHiddenTitle">Too Many Accounts are Hidden</string>
     <string name="TooManyAccountsHiddenDescription">More than %d accounts are hidden. This lowers the masking of the application. It is recommended to remove hiding from some accounts.</string>
+    <string name="SavedChannels">Saved Channels</string>
+    <string name="Saved">Saved</string>
+    <string name="PartisanSettings">Partisan Settings</string>
+    <string name="PartisanSettingsInfo">Configure other application options.</string>
+    <string name="ShowVersion">Show Version</string>
+    <string name="ShowVersionInfo">Show PTelegram version in settings.</string>
+    <string name="ShowId">Show ID</string>
+    <string name="ShowIdInfo">Show ID in user, chat, channel, bot profiles.</string>
+    <string name="AvatarDisabling">Avatar Disabling</string>
+    <string name="AvatarDisablingInfo">Show disable avatar button. If you disable this feature, disabled avatars will be reset. </string>
+    <string name="ChatRenaming">Chat Renaming</string>
+    <string name="ChatRenamingInfo">Show button for renaming chats and channels. If you disable this feature, the chat names will be reset.</string>
+    <string name="DeletingMyMessages">Deleting My Messages</string>
+    <string name="DeletingMyMessagesInfo">Show buttons to delete your messages in the chat.</string>
+    <string name="DeletingAfterRead">Deleting After Read</string>
+    <string name="DeletingAfterReadInfo">Show send message button with deletion after reading.</string>
+    <string name="SavedChannelsSetting">Saved Channels</string>
+    <string name="SavedChannelsSettingInfo">Show the buttons for saving channels and the button for opening the list of saved channels. If you disable this option, all saved channels will be deleted.</string>
+    <string name="ReactToMessages">React to Messages</string>
+    <string name="ReactToMessagesInfo">Allow to react to messages. If this option is disabled, reactions can be viewed, but you cannot click it.</string>
+    <string name="CutForeignAgentsText">Cut out text about foreign agents </string>
+    <string name="CutForeignAgentsTextInfo">If this option is enabled, the notification about the foreign agent will be cut from the text of messages and posts. If the post text is displayed incorrectly, disable this option. It is advisable to clear the cache after switching.</string>
+    <string name="ClearSavedChannels">Clear Saved Channels</string>
 </resources>

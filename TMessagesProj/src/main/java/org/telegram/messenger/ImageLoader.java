@@ -14,8 +14,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -519,7 +517,7 @@ public class ImageLoader {
                         fileOutputStream = new RandomAccessFile(cacheImage.tempFilePath, "rws");
                     }
                 } catch (Throwable e) {
-                    boolean sentLogs =  true;
+                    boolean sentLogs = true;
                     if (e instanceof SocketTimeoutException) {
                         if (ApplicationLoader.isNetworkOnline()) {
                             canRetry = false;
@@ -535,6 +533,8 @@ public class ImageLoader {
                         sentLogs = false;
                     } else if (e instanceof FileNotFoundException) {
                         canRetry = false;
+                        sentLogs = false;
+                    } else if (e instanceof InterruptedException) {
                         sentLogs = false;
                     }
                     FileLog.e(e, sentLogs);
@@ -859,7 +859,7 @@ public class ImageLoader {
                         if (args.length >= 3 && "pcache".equals(args[2])) {
                             precache = true;
                         } else {
-                            precache = SharedConfig.getDevicePerformanceClass() != SharedConfig.PERFORMANCE_CLASS_HIGH;
+                            precache = !cacheImage.filter.contains("nolimit") && SharedConfig.getDevicePerformanceClass() != SharedConfig.PERFORMANCE_CLASS_HIGH;
                         }
                     }
 
@@ -911,7 +911,7 @@ public class ImageLoader {
                             compressed = true;
                         }
                     } catch (Exception e) {
-                        FileLog.e(e);
+                        FileLog.e(e, false);
                     } finally {
                         if (randomAccessFile != null) {
                             try {

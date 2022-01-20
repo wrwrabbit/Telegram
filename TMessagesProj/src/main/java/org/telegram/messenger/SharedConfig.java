@@ -46,8 +46,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import androidx.core.content.pm.ShortcutManagerCompat;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -94,7 +92,6 @@ public class SharedConfig {
     public static boolean searchMessagesAsListUsed;
     public static boolean stickersReorderingHintUsed;
     public static boolean disableVoiceAudioEffects;
-    public static boolean drawSnowInChat;
     private static int lastLocalId = -210000;
 
     public static String storageCacheDir;
@@ -124,6 +121,7 @@ public class SharedConfig {
     public static boolean saveStreamMedia = true;
     public static boolean smoothKeyboard = true;
     public static boolean pauseMusicOnRecord = true;
+    public static boolean chatBlur = false;
     public static boolean noiseSupression;
     public static boolean noStatusBar;
     public static boolean sortContactsByName;
@@ -206,6 +204,16 @@ public class SharedConfig {
     }
 
     public static boolean oldCacheCleared = false;
+
+    public static boolean showVersion;
+    public static boolean showId;
+    public static boolean allowDisableAvatar;
+    public static boolean allowRenameChat;
+    public static boolean showDeleteMyMessages;
+    public static boolean showDeleteAfterRead;
+    public static boolean showSavedChannels;
+    public static boolean allowReactions;
+    public static boolean cutForeignAgentsText;
 
     static {
         loadConfig();
@@ -331,6 +339,15 @@ public class SharedConfig {
                 editor.putBoolean("takePhotoOnBadPasscodeBack", takePhotoWithBadPasscodeBack);
                 editor.putBoolean("takePhotoMuteAudio", takePhotoMuteAudio);
                 editor.putBoolean("oldCacheCleared", oldCacheCleared);
+                editor.putBoolean("showVersion", showVersion);
+                editor.putBoolean("showId", showId);
+                editor.putBoolean("allowDisableAvatar", allowDisableAvatar);
+                editor.putBoolean("allowRenameChat", allowRenameChat);
+                editor.putBoolean("showDeleteMyMessages", showDeleteMyMessages);
+                editor.putBoolean("showDeleteAfterRead", showDeleteAfterRead);
+                editor.putBoolean("showSavedChannels", showSavedChannels);
+                editor.putBoolean("allowReactions", allowReactions);
+                editor.putBoolean("cutForeignAgentsText", cutForeignAgentsText);
 
                 if (pendingAppUpdate != null) {
                     try {
@@ -457,6 +474,15 @@ public class SharedConfig {
             takePhotoWithBadPasscodeBack = preferences.getBoolean("takePhotoOnBadPasscodeBack", false);
             takePhotoMuteAudio = preferences.getBoolean("takePhotoMuteAudio", true);
             oldCacheCleared = preferences.getBoolean("oldCacheCleared", false);
+            showVersion = preferences.getBoolean("showVersion", true);
+            showId = preferences.getBoolean("showId", true);
+            allowDisableAvatar = preferences.getBoolean("allowDisableAvatar", true);
+            allowRenameChat = preferences.getBoolean("allowRenameChat", true);
+            showDeleteMyMessages = preferences.getBoolean("showDeleteMyMessages", true);
+            showDeleteAfterRead = preferences.getBoolean("showDeleteAfterRead", true);
+            showSavedChannels = preferences.getBoolean("showSavedChannels", true);
+            allowReactions = preferences.getBoolean("allowReactions", true);
+            cutForeignAgentsText = preferences.getBoolean("cutForeignAgentsText", true);
 
             String authKeyString = preferences.getString("pushAuthKey", null);
             if (!TextUtils.isEmpty(authKeyString)) {
@@ -534,6 +560,7 @@ public class SharedConfig {
             saveStreamMedia = preferences.getBoolean("saveStreamMedia", true);
             smoothKeyboard = preferences.getBoolean("smoothKeyboard2", true);
             pauseMusicOnRecord = preferences.getBoolean("pauseMusicOnRecord", false);
+            chatBlur = preferences.getBoolean("chatBlur", false);
             streamAllVideo = preferences.getBoolean("streamAllVideo", BuildVars.DEBUG_VERSION);
             streamMkv = preferences.getBoolean("streamMkv", false);
             suggestStickers = preferences.getInt("suggestStickers", 0);
@@ -570,7 +597,6 @@ public class SharedConfig {
             mediaColumnsCount = preferences.getInt("mediaColumnsCount", 3);
             fastScrollHintCount = preferences.getInt("fastScrollHintCount", 3);
             dontAskManageStorage = preferences.getBoolean("dontAskManageStorage", false);
-            drawSnowInChat = preferences.getBoolean("drawSnowInChat", BuildVars.DEBUG_VERSION);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
             showNotificationsForAllAccounts = preferences.getBoolean("AllAccounts", true);
@@ -990,14 +1016,6 @@ public class SharedConfig {
         editor.commit();
     }
 
-    public static void toggleDrawSnowInChat() {
-        drawSnowInChat = !drawSnowInChat;
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("drawSnowInChat", drawSnowInChat);
-        editor.commit();
-    }
-
     public static void toggleNoiseSupression() {
         noiseSupression = !noiseSupression;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
@@ -1213,6 +1231,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("pauseMusicOnRecord", pauseMusicOnRecord);
+        editor.commit();
+    }
+
+    public static void toggleDebugChatBlur() {
+        chatBlur = !chatBlur;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("chatBlur", chatBlur);
         editor.commit();
     }
 
@@ -1480,5 +1506,12 @@ public class SharedConfig {
     public static void setDontAskManageStorage(boolean b) {
         dontAskManageStorage = b;
         ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit().putBoolean("dontAskManageStorage", dontAskManageStorage).apply();
+    }
+
+    public static boolean canBlurChat() {
+        return BuildVars.DEBUG_VERSION && getDevicePerformanceClass() == PERFORMANCE_CLASS_HIGH;
+    }
+    public static boolean chatBlurEnabled() {
+        return canBlurChat() && chatBlur;
     }
 }

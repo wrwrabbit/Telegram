@@ -18,7 +18,7 @@ public class TerminateOtherSessionsAction extends AccountAction {
         TLRPC.TL_auth_resetAuthorizations req = new TLRPC.TL_auth_resetAuthorizations();
         ConnectionsManager.getInstance(accountNum).sendRequest(req, (response, error) -> {
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-                UserConfig userConfig = UserConfig.getInstance(a);
+                UserConfig userConfig = getUserConfig();
                 if (!userConfig.isClientActivated()) {
                     continue;
                 }

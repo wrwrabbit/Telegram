@@ -40,6 +40,7 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.LayoutHelper;
@@ -245,7 +246,7 @@ public class SharedLinkCell extends FrameLayout {
             if (title == null) {
                 title = webPage.site_name;
             }
-            description = webPage.description;
+            description = Utils.fixMessage(webPage.description);
             webPageLink = webPage.url;
         }
         if (message != null && !message.messageOwner.entities.isEmpty()) {

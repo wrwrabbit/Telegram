@@ -45,6 +45,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -60,6 +61,7 @@ import org.telegram.ui.GroupCreateActivity;
 import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class InviteMembersBottomSheet extends UsersAlertBase implements NotificationCenter.NotificationCenterDelegate {
 
@@ -143,7 +145,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
         ArrayList<TLRPC.TL_contact> arrayList = ContactsController.getInstance(account).contacts;
         for (int a = 0; a < arrayList.size(); a++) {
             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(arrayList.get(a).user_id);
-            if (user == null || user.self || user.deleted) {
+            if (user == null || user.self || user.deleted || FakePasscode.isHideChat(user.id, currentAccount)) {
                 continue;
             }
             contacts.add(user);
@@ -548,7 +550,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.dialogsNeedReload) {
             if (dialogsDelegate != null && dialogsServerOnly.isEmpty()) {
-                dialogsServerOnly = new ArrayList<>(MessagesController.getInstance(currentAccount).dialogsServerOnly);
+                dialogsServerOnly = new ArrayList<>(FakePasscode.filterDialogs(MessagesController.getInstance(currentAccount).dialogsServerOnly, Optional.of(currentAccount)));
                 listViewAdapter.notifyDataSetChanged();
             }
         }
@@ -1309,7 +1311,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
     public void setDelegate(InviteMembersBottomSheetDelegate inviteMembersBottomSheetDelegate, ArrayList<Long> selectedDialogs) {
         dialogsDelegate = inviteMembersBottomSheetDelegate;
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.dialogsNeedReload);
-        dialogsServerOnly = new ArrayList<>(MessagesController.getInstance(currentAccount).dialogsServerOnly);
+        dialogsServerOnly = new ArrayList<>(FakePasscode.filterDialogs(MessagesController.getInstance(currentAccount).dialogsServerOnly, Optional.of(currentAccount)));
         updateRows();
     }
 

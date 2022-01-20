@@ -122,6 +122,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private int lastFakePasscodeRow;
     private int addFakePasscodeRow;
     private int fakePasscodeDetailRow;
+    private int partisanSettingsRow;
+    private int partisanSettingsDetailRow;
     private int rowCount;
 
     TextCheckCell frontPhotoTextCell;
@@ -468,6 +470,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
                     fakePasscode.autoAddAccountHidings();
                     presentFragment(new FakePasscodeActivity(1, fakePasscode, true));
+                } else if (position == partisanSettingsRow) {
+                    presentFragment(new PartisanSettingsActivity());
                 }
             });
         }
@@ -545,6 +549,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         badPasscodePhotoBackRow = -1;
         badPasscodeMuteAudioRow = -1;
         badPasscodeAttemptsDetailRow = -1;
+        partisanSettingsRow = -1;
+        partisanSettingsDetailRow = -1;
 
         passcodeRow = rowCount++;
         changePasscodeRow = rowCount++;
@@ -588,6 +594,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 }
                 addFakePasscodeRow = rowCount++;
                 fakePasscodeDetailRow = rowCount++;
+                partisanSettingsRow = rowCount++;
+                partisanSettingsDetailRow = rowCount++;
             }
         } else {
             captureRow = -1;
@@ -826,7 +834,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     || position == bruteForceProtectionRow || position == clearCacheOnLockRow
                     || position == captureRow || SharedConfig.passcodeEnabled() && position == changePasscodeRow
                     || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
-                    || position == addFakePasscodeRow;
+                    || position == addFakePasscodeRow
+                    || position == partisanSettingsRow;
         }
 
         @Override
@@ -923,6 +932,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setText(LocaleController.getString("AddFakePasscode", R.string.AddFakePasscode), false);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlueText4);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                    } else if (position == partisanSettingsRow) {
+                        textCell.setText(LocaleController.getString("PartisanSettings", R.string.PartisanSettings), false);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     }
                     break;
                 }
@@ -961,6 +974,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     } else if (position == fakePasscodeDetailRow) {
                         cell.setText(LocaleController.getString("FakePasscodeActionsInfo", R.string.FakePasscodeActionsInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == partisanSettingsDetailRow) {
+                        cell.setText(LocaleController.getString("PartisanSettingsInfo", R.string.PartisanSettingsInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
                 }
@@ -982,12 +998,13 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 return 0;
             } else if (position == changePasscodeRow || position == autoLockRow
                     || position == addFakePasscodeRow || position == badPasscodeAttemptsRow
-                    || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)) {
+                    || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
+                    || position == partisanSettingsRow) {
                 return 1;
             } else if (position == autoLockDetailRow || position == captureDetailRow
                     || position == bruteForceProtectionDetailRow || position == clearCacheOnLockDetailRow
                     || position == badPasscodeAttemptsDetailRow || position == fakePasscodeDetailRow
-                    || position == passcodeDetailRow) {
+                    || position == passcodeDetailRow || position == partisanSettingsDetailRow) {
                 return 2;
             } else if (position == fakePasscodesHeaderRow) {
                 return 3;

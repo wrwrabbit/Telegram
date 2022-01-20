@@ -27,9 +27,6 @@ import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.Keep;
-
 import android.os.SystemClock;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
@@ -48,6 +45,8 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.Keep;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -78,6 +77,7 @@ import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.GroupCallActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LocationActivity;
+import org.telegram.ui.SavedChannelsActivity;
 
 import java.util.ArrayList;
 
@@ -89,6 +89,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private AudioPlayerAlert.ClippingTextViewSwitcher subtitleTextView;
     private AnimatorSet animatorSet;
     private BaseFragment fragment;
+    private ChatActivity chatActivity;
     private View applyingView;
     private FrameLayout frameLayout;
     private View shadow;
@@ -215,6 +216,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         this.resourcesProvider = resourcesProvider;
 
         fragment = parentFragment;
+        if (fragment instanceof ChatActivity) {
+            chatActivity = (ChatActivity) fragment;
+        }
         applyingView = paddingView;
         visible = true;
         isLocation = location;
@@ -223,7 +227,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         }
 
         setTag(1);
-        frameLayout = new FrameLayout(context) {
+        frameLayout = new ChatBlurredFrameLayout(context, chatActivity) {
+
             @Override
             public void invalidate() {
                 super.invalidate();
@@ -554,7 +559,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             if (currentStyle == 2) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getParentActivity(), resourcesProvider);
                 builder.setTitle(LocaleController.getString("StopLiveLocationAlertToTitle", R.string.StopLiveLocationAlertToTitle));
-                if (fragment instanceof DialogsActivity) {
+                if (fragment instanceof DialogsActivity || fragment instanceof SavedChannelsActivity) {
                     builder.setMessage(LocaleController.getString("StopLiveLocationAlertAllText", R.string.StopLiveLocationAlertAllText));
                 } else {
                     ChatActivity activity = (ChatActivity) fragment;
@@ -573,7 +578,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     }
                 }
                 builder.setPositiveButton(LocaleController.getString("Stop", R.string.Stop), (dialogInterface, i) -> {
-                    if (fragment instanceof DialogsActivity) {
+                    if (fragment instanceof DialogsActivity || fragment instanceof SavedChannelsActivity) {
                         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
                             LocationController.getInstance(a).removeAllLocationSharings();
                         }
@@ -752,7 +757,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private void checkVisibility() {
         boolean show = false;
         if (isLocation) {
-            if (fragment instanceof DialogsActivity) {
+            if (fragment instanceof DialogsActivity || fragment instanceof SavedChannelsActivity) {
                 show = LocationController.getLocationsCount() != 0;
             } else {
                 show = LocationController.getInstance(fragment.getCurrentAccount()).isSharingLocation(((ChatActivity) fragment).getDialogId());
@@ -1179,7 +1184,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             }
         }
         boolean show;
-        if (fragment instanceof DialogsActivity) {
+        if (fragment instanceof DialogsActivity || fragment instanceof SavedChannelsActivity) {
             show = LocationController.getLocationsCount() != 0;
         } else {
             show = LocationController.getInstance(fragment.getCurrentAccount()).isSharingLocation(((ChatActivity) fragment).getDialogId());
@@ -1243,7 +1248,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 setVisibility(VISIBLE);
             }
 
-            if (fragment instanceof DialogsActivity) {
+            if (fragment instanceof DialogsActivity || fragment instanceof SavedChannelsActivity) {
                 String liveLocation = LocaleController.getString("LiveLocationContext", R.string.LiveLocationContext);
                 String param;
                 String str;

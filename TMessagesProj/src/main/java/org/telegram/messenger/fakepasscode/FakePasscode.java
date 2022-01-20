@@ -2,6 +2,7 @@ package org.telegram.messenger.fakepasscode;
 
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.AndroidUtilities;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +41,7 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
     public List<DeleteStickersAction> deleteStickersActions = Collections.synchronizedList(new ArrayList<>());
     public List<ClearSearchHistoryAction> clearSearchHistoryActions = Collections.synchronizedList(new ArrayList<>());
     public List<ClearBlackListAction> clearBlackListActions = Collections.synchronizedList(new ArrayList<>());
+    public List<ClearSavedChannelsAction> clearSavedChannelsActions = Collections.synchronizedList(new ArrayList<>());
     public List<TerminateOtherSessionsAction> terminateOtherSessionsActions = Collections.synchronizedList(new ArrayList<>());
     public List<LogOutAction> logOutActions = Collections.synchronizedList(new ArrayList<>());
     public List<HideAccountAction> hideAccountActions = Collections.synchronizedList(new ArrayList<>());
@@ -60,6 +63,7 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
         result.addAll(deleteStickersActions);
         result.addAll(clearSearchHistoryActions);
         result.addAll(clearBlackListActions);
+        result.addAll(clearSavedChannelsActions);
         result.addAll(terminateOtherSessionsActions);
         result.addAll(logOutActions);
         result.addAll(hideAccountActions);
@@ -113,6 +117,7 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
         deleteStickersActions = Collections.synchronizedList(new ArrayList<>());
         clearSearchHistoryActions = Collections.synchronizedList(new ArrayList<>());
         clearBlackListActions = Collections.synchronizedList(new ArrayList<>());
+        clearSavedChannelsActions = Collections.synchronizedList(new ArrayList<>());
         terminateOtherSessionsActions = Collections.synchronizedList(new ArrayList<>());
         logOutActions = Collections.synchronizedList(new ArrayList<>());
         SharedConfig.saveConfig();
@@ -140,6 +145,7 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
         deleteStickersActions.removeIf(a -> a.accountNum == accountNum);
         clearSearchHistoryActions.removeIf(a -> a.accountNum == accountNum);
         clearBlackListActions.removeIf(a -> a.accountNum == accountNum);
+        clearSavedChannelsActions.removeIf(a -> a.accountNum == accountNum);
         terminateOtherSessionsActions.removeIf(a -> a.accountNum == accountNum);
         logOutActions.removeIf(a -> a.accountNum == accountNum);
         hideAccountActions.removeIf(a -> a.accountNum == accountNum);
@@ -248,6 +254,32 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
             && !action.isHideChat(peer.peer.user_id));
     }
 
+    public static List<TLRPC.Peer> filterPeers(List<TLRPC.Peer> peers, int account) {
+        return filterItems(peers, Optional.of(account), (peer, action) -> !isHidePeer(peer, action));
+    }
+
+    public static boolean isHidePeer(TLRPC.Peer peer, int account) {
+        if (SharedConfig.fakePasscodeActivatedIndex == -1 || peer == null) {
+            return false;
+        }
+        FakePasscode passcode = SharedConfig.fakePasscodes.get(SharedConfig.fakePasscodeActivatedIndex);
+        for (RemoveChatsAction action : passcode.removeChatsActions) {
+            if (action.accountNum == account) {
+                return isHidePeer(peer, action);
+            }
+        }
+        return false;
+    }
+
+    public static boolean isHidePeer(TLRPC.Peer peer, RemoveChatsAction action) {
+        return action.isHideChat(peer.chat_id)
+                || action.isHideChat(peer.channel_id)
+                || action.isHideChat(peer.user_id)
+                || action.isRemovedChat(peer.chat_id)
+                || action.isRemovedChat(peer.channel_id)
+                || action.isRemovedChat(peer.user_id);
+    }
+
     public static List<TLRPC.TL_contact> filterContacts(List<TLRPC.TL_contact> contacts, int account) {
         return filterItems(contacts, Optional.of(account), (contact, action) -> !action.isHideChat(contact.user_id));
     }
@@ -312,6 +344,12 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
         return hiddenAccounts.size();
     }
 
+    public int getHideAccountCount() {
+        Set<Integer> hiddenAccounts = hideAccountActions.stream().map(a -> a.accountNum)
+                .collect(Collectors.toSet());
+        return hiddenAccounts.size();
+    }
+
     public boolean autoAddAccountHidings() {
         int targetCount = UserConfig.getActivatedAccountsCount() - UserConfig.FAKE_PASSCODE_MAX_ACCOUNT_COUNT;
         if (targetCount > getHideOrLogOutCount()) {
@@ -342,6 +380,16 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
         return result;
     }
 
+    public static void cleanupHiddenAccountSystemNotifications() {
+        Map<Integer, Boolean> hideMap = getLogoutOrHideAccountMap();
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+            Boolean hidden = hideMap.get(i);
+            if (hidden != null && hidden) {
+                NotificationsController.getInstance(i).cleanupSystemSettings();
+            }
+        }
+    }
+
     public static void checkPendingRemovalChats() {
         if (RemoveChatsAction.pendingRemovalChatsChecked) {
             return;
@@ -353,5 +401,21 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
             }
         }
         RemoveChatsAction.pendingRemovalChatsChecked = true;
+    }
+
+    public static Map<Integer, Boolean> getLogoutOrHideAccountMap() {
+        Map<Integer, Boolean> result = new HashMap<>();
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+            result.put(i, UserConfig.getInstance(i).isClientActivated() ? false : null);
+        }
+        for (FakePasscode fakePasscode: SharedConfig.fakePasscodes) {
+            for (LogOutAction action: fakePasscode.logOutActions) {
+                result.put(action.accountNum, true);
+            }
+            for (HideAccountAction action: fakePasscode.hideAccountActions) {
+                result.put(action.accountNum, true);
+            }
+        }
+        return result;
     }
 }

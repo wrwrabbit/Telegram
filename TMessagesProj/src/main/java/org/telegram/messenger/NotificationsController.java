@@ -60,6 +60,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -69,11 +70,14 @@ import org.telegram.ui.PopupNotificationActivity;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -163,7 +167,7 @@ public class NotificationsController extends BaseController {
     public NotificationsController(int instance) {
         super(instance);
         notificationId = currentAccount + 1;
-        notificationGroup = "messages" + (currentAccount == 0 ? "" : currentAccount);
+        notificationGroup = "messages" + (getNotHiddenAccountNum() == 0 ? "" : getNotHiddenAccountNum());
         SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
         inChatSoundEnabled = preferences.getBoolean("EnableInChatSound", true);
         showBadgeNumber = preferences.getBoolean("badgeNumber", true);
@@ -279,6 +283,53 @@ public class NotificationsController extends BaseController {
 
             if (Build.VERSION.SDK_INT >= 26) {
                 try {
+                    systemNotificationManager.deleteNotificationChannelGroup("channels" + currentAccount);
+                    systemNotificationManager.deleteNotificationChannelGroup("groups" + currentAccount);
+                    systemNotificationManager.deleteNotificationChannelGroup("private" + currentAccount);
+                    systemNotificationManager.deleteNotificationChannelGroup("other" + currentAccount);
+
+                    String keyStart = currentAccount + "channel";
+                    List<NotificationChannel> list = systemNotificationManager.getNotificationChannels();
+                    int count = list.size();
+                    for (int a = 0; a < count; a++) {
+                        NotificationChannel channel = list.get(a);
+                        String id = channel.getId();
+                        if (id.startsWith(keyStart)) {
+                            try {
+                                systemNotificationManager.deleteNotificationChannel(id);
+                            } catch (Exception e) {
+                                FileLog.e(e);
+                            }
+                            if (BuildVars.LOGS_ENABLED) {
+                                FileLog.d("delete channel cleanup " + id);
+                            }
+                        }
+                    }
+                } catch (Throwable e) {
+                    FileLog.e(e);
+                }
+            }
+        });
+    }
+
+    public void cleanupSystemSettings() {
+        notificationsQueue.postRunnable(() -> {
+            if (Build.VERSION.SDK_INT >= 26) {
+                try {
+                    groupsCreated = null;
+                    SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.remove("groupsCreated4");
+                    final Set<String> prefixes = new HashSet<>(Arrays.asList("silent", "channels", "groups", "private", "org.telegram.key"));
+                    for (String key : preferences.getAll().keySet()) {
+                        for (String prefix : prefixes) {
+                            if (key.startsWith(prefix)) {
+                                editor.remove(key);
+                            }
+                        }
+                    }
+                    editor.commit();
+                    channelGroupsCreated = false;
                     systemNotificationManager.deleteNotificationChannelGroup("channels" + currentAccount);
                     systemNotificationManager.deleteNotificationChannelGroup("groups" + currentAccount);
                     systemNotificationManager.deleteNotificationChannelGroup("private" + currentAccount);
@@ -740,6 +791,7 @@ public class NotificationsController extends BaseController {
                 ) {
                     continue;
                 }
+                messageObject.messageText = Utils.fixMessage(messageObject.messageText.toString());
                 int mid = messageObject.getId();
                 long randomId = messageObject.isFcmMessage() ? messageObject.messageOwner.random_id : 0;
                 long dialogId = messageObject.getDialogId();
@@ -2940,9 +2992,10 @@ public class NotificationsController extends BaseController {
         if (groupsCreated == null) {
             groupsCreated = preferences.getBoolean("groupsCreated4", false);
         }
+        int notHiddenAccount = getNotHiddenAccountNum();
         if (!groupsCreated) {
             try {
-                String keyStart = currentAccount + "channel";
+                String keyStart = notHiddenAccount + "channel";
                 List<NotificationChannel> list = systemNotificationManager.getNotificationChannels();
                 int count = list.size();
                 SharedPreferences.Editor editor = null;
@@ -2994,10 +3047,10 @@ public class NotificationsController extends BaseController {
         }
         if (!channelGroupsCreated) {
             List<NotificationChannelGroup> list = systemNotificationManager.getNotificationChannelGroups();
-            String channelsId = "channels" + currentAccount;
-            String groupsId = "groups" + currentAccount;
-            String privateId = "private" + currentAccount;
-            String otherId = "other" + currentAccount;
+            String channelsId = "channels" + notHiddenAccount;
+            String groupsId = "groups" + notHiddenAccount;
+            String privateId = "private" + notHiddenAccount;
+            String otherId = "other" + notHiddenAccount;
             for (int a = 0, N = list.size(); a < N; a++) {
                 String id = list.get(a).getId();
                 if (channelsId != null && channelsId.equals(id)) {
@@ -3015,7 +3068,7 @@ public class NotificationsController extends BaseController {
             }
 
             if (channelsId != null || groupsId != null || privateId != null || otherId != null) {
-                TLRPC.User user = getMessagesController().getUser(getUserConfig().getClientUserId());
+                TLRPC.User user = getMessagesController().getUser(UserConfig.getInstance(notHiddenAccount).getClientUserId());
                 if (user == null) {
                     getUserConfig().getCurrentUser();
                 }
@@ -3056,18 +3109,19 @@ public class NotificationsController extends BaseController {
         String key;
         String groupId;
         String overwriteKey;
+        int notHiddenAccount = getNotHiddenAccountNum();
         if (isSilent) {
-            groupId = "other" + currentAccount;
+            groupId = "other" + notHiddenAccount;
             overwriteKey = null;
         } else {
             if (type == TYPE_CHANNEL) {
-                groupId = "channels" + currentAccount;
+                groupId = "channels" + notHiddenAccount;
                 overwriteKey = "overwrite_channel";
             } else if (type == TYPE_GROUP) {
-                groupId = "groups" + currentAccount;
+                groupId = "groups" + notHiddenAccount;
                 overwriteKey = "overwrite_group";
             } else {
-                groupId = "private" + currentAccount;
+                groupId = "private" + notHiddenAccount;
                 overwriteKey = "overwrite_private";
             }
         }
@@ -3321,9 +3375,9 @@ public class NotificationsController extends BaseController {
         }
         if (channelId == null) {
             if (isDefault) {
-                channelId = currentAccount + "channel_" + key + "_" + Utilities.random.nextLong();
+                channelId = notHiddenAccount + "channel_" + key + "_" + Utilities.random.nextLong();
             } else {
-                channelId = currentAccount + "channel_" + dialogId + "_" + Utilities.random.nextLong();
+                channelId = notHiddenAccount + "channel_" + dialogId + "_" + Utilities.random.nextLong();
             }
             NotificationChannel notificationChannel = new NotificationChannel(channelId, secretChat ? LocaleController.getString("SecretChatName", R.string.SecretChatName) : name, importance);
             notificationChannel.setGroup(groupId);
@@ -4402,7 +4456,7 @@ public class NotificationsController extends BaseController {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(ApplicationLoader.applicationContext)
                     .setContentTitle(name)
                     .setSmallIcon(R.drawable.notification)
-                    .setContentText(text.toString())
+                    .setContentText(Utils.fixMessage(text.toString()))
                     .setAutoCancel(true)
                     .setNumber(messageObjects.size())
                     .setColor(0xff11acfa)
@@ -4772,5 +4826,27 @@ public class NotificationsController extends BaseController {
         List<MessageObject> filteredChats = FakePasscode.filterItems(pushMessages, Optional.of(currentAccount),
                 (m, action) -> !action.isHideChat(m.getDialogId()));
         return filteredChats.stream().filter(m -> !FakePasscode.isHideAccount(m.currentAccount)).collect(Collectors.toList());
+    }
+
+    private int getNotHiddenAccountNum() {
+        Map<Integer, Boolean> hideMap = FakePasscode.getLogoutOrHideAccountMap();
+        Boolean currentAccountHidden = hideMap.get(currentAccount);
+        if (currentAccountHidden != null && !currentAccountHidden) {
+            Boolean hidden = hideMap.get(currentAccount);
+            if (hidden != null && !hidden)
+            return currentAccount;
+        }
+        for (int acc = 0; acc < UserConfig.MAX_ACCOUNT_COUNT; acc++) {
+            Boolean hidden = hideMap.get(acc);
+            if (hidden != null && !hidden) {
+                return acc;
+            }
+        }
+        for (int acc = 0; acc < UserConfig.MAX_ACCOUNT_COUNT; acc++) { // if all accounts hidden
+            if (UserConfig.getInstance(acc).isClientActivated()) {
+                return acc;
+            }
+        }
+        return 0;
     }
 }

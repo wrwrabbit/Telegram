@@ -76,6 +76,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -4648,7 +4649,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
     private void openWebView(TLRPC.WebPage webPage, MessageObject message) {
-        EmbedBottomSheet.show(profileActivity.getParentActivity(), message, provider, webPage.site_name, webPage.description, webPage.url, webPage.embed_url, webPage.embed_width, webPage.embed_height, false);
+        EmbedBottomSheet.show(profileActivity.getParentActivity(), message, provider, webPage.site_name, Utils.fixMessage(webPage.description), webPage.url, webPage.embed_url, webPage.embed_width, webPage.embed_height, false);
     }
 
     private void recycleAdapter(RecyclerView.Adapter adapter) {

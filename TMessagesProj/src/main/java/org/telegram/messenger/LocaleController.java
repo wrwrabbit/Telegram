@@ -414,10 +414,10 @@ public class LocaleController {
         }
         return languagesDict.get(key.toLowerCase().replace("-", "_"));
     }
-    public LocaleInfo getLanguageByPlural(String plural) {
+    public LocaleInfo getBuiltinLanguageByPlural(String plural) {
         Collection<LocaleInfo> values = languagesDict.values();
         for (LocaleInfo l : values)
-            if (l.pluralLangCode != null && l.pluralLangCode.equals(plural))
+            if (l.pathToFile != null && l.pathToFile.equals("remote") && l.pluralLangCode != null && l.pluralLangCode.equals(plural))
                 return l;
         return null;
     }
@@ -1065,6 +1065,29 @@ public class LocaleController {
                         case "AccountHiddenDescription": value = "Аккаунт будет скрываться в некоторых код-паролях. Если хотите, чтобы скрывались другие аккаунты, настройте код-пароли."; break;
                         case "TooManyAccountsHiddenTitle": value = "Скрыто слишком много аккаунтов"; break;
                         case "TooManyAccountsHiddenDescription": value = "Скрыто более %d аккаунтов. Это понижает маскировку приложения. Рекомендуется убрать скрытие с некоторых аккаунтов."; break;
+                        case "SavedChannels": value = "Сохранённые каналы"; break;
+                        case "Saved": value = "Сохранено"; break;
+                        case "PartisanSettings": value = "Партизанские настройки"; break;
+                        case "ShowVersion": value = "Показывать версию"; break;
+                        case "ShowVersionInfo": value = "Показывать версию PTelegram в настройках."; break;
+                        case "ShowId": value = "Показывать ID"; break;
+                        case "ShowIdInfo": value = "Показывать ID в профилях пользователей, чатов, каналов, ботов."; break;
+                        case "AvatarDisabling": value = "Отключение аватаров"; break;
+                        case "AvatarDisablingInfo": value = "Показывать кнопку отключения аватара. При отключении этой функции, отключённые аватары сбросятся."; break;
+                        case "ChatRenaming": value = "Переименование чатов"; break;
+                        case "ChatRenamingInfo": value = "Показывать кнопку переименования чатов и каналов. При отключении этой функции, имена чатов сбросятся."; break;
+                        case "DeletingMyMessages": value = "Удаление моих сообщений"; break;
+                        case "DeletingMyMessagesInfo": value = "Показывать кнопки удаления своих сообщений в чате."; break;
+                        case "DeletingAfterRead": value = "Удаление после прочтения"; break;
+                        case "DeletingAfterReadInfo": value = "Показывать кнопку отправки сообщения с удалением после прочтения."; break;
+                        case "SavedChannelsSetting": value = "Сохранённые каналы"; break;
+                        case "SavedChannelsSettingInfo": value = "Показывать кнопки сохранения каналов и кнопку открытия списка сохранённых каналов. При отключении этой опции  все сохранённые каналы удалятся."; break;
+                        case "ReactToMessages": value = "Реагирование на сообщения"; break;
+                        case "ReactToMessagesInfo": value = "Разрешить реагировать на сообщения. Если эта опция отключена, реакции можно будет посмотреть, но нельзя будет кликнуть по ним."; break;
+                        case "CutForeignAgentsText": value = "Вырезать текст об иноагентах"; break;
+                        case "CutForeignAgentsTextInfo": value = "Если данная опция включена, из текста сообщений и постов будет вырезаться уведомление об иноагенте. Если текст постов отображается некорректно, отключите эту опцию. После переключения желательно очистить кэш."; break;
+                        case "PartisanSettingsInfo": value = "Настройте другие опции приложения."; break;
+                        case "ClearSavedChannels": value = "Очищать сохранённые каналы"; break;
                     }
                 } else if (languageOverride.equals("be")) {
                     switch (key) {
@@ -1178,6 +1201,29 @@ public class LocaleController {
                         case "AccountHiddenDescription": value = "Акаўнт будзе хавацца ў некаторых код-паролях. Калі жадаеце, каб хаваліся іншыя акаўнты, наладзьце код-паролі."; break;
                         case "TooManyAccountsHiddenTitle": value = "Схавана занадта шмат акаўнтаў"; break;
                         case "TooManyAccountsHiddenDescription": value = "Схавана больш за %d акаўнты. Гэта паніжае маскіроўку прыкладання. Рэкамендуецца прыбраць утойванне з некаторых акаўнтаў."; break;
+                        case "SavedChannels": value = "Захаваныя каналы"; break;
+                        case "Saved": value = "Захавана"; break;
+                        case "PartisanSettings": value = "Партызанскія налады"; break;
+                        case "ShowVersion": value = "Паказываць версію"; break;
+                        case "ShowVersionInfo": value = "Паказываць версію PTelegram у наладах."; break;
+                        case "ShowId": value = "Паказываць ID"; break;
+                        case "ShowIdInfo": value = "Паказываць ID у профілях карыстальнікаў, чатаў, каналаў, ботаў."; break;
+                        case "AvatarDisabling": value = "Адключэнне аватараў"; break;
+                        case "AvatarDisablingInfo": value = "Паказываць кнопку адключэння аватара. Пры адключэнні гэтай функцыі, адключаныя аватары скінуцца."; break;
+                        case "ChatRenaming": value = "Змена назваў чатаў"; break;
+                        case "ChatRenamingInfo": value = "Паказваць кнопку перайменавання чатаў і каналаў. Пры адключэнні гэтай функцыі, імёны чатаў скінуцца."; break;
+                        case "DeletingMyMessages": value = "Выдаленне маіх паведамленняў"; break;
+                        case "DeletingMyMessagesInfo": value = "Паказваць кнопкі выдалення сваіх паведамленняў у чаце."; break;
+                        case "DeletingAfterRead": value = "Выдаленне пасля чытання"; break;
+                        case "DeletingAfterReadInfo": value = "Паказваць кнопку адпраўкі паведамлення з выдаленнем пасля чытання."; break;
+                        case "SavedChannelsSetting": value = "Захаваныя каналы"; break;
+                        case "SavedChannelsSettingInfo": value = "Паказваць кнопкі захавання каналаў і кнопку адкрыцця спісу захаваных каналаў. Пры адключэнні гэтай опцыі ўсе захаваныя каналы выдаляцца."; break;
+                        case "ReactToMessages": value = "Рэагаванне на паведамленні"; break;
+                        case "ReactToMessagesInfo": value = "Дазволіць рэагаваць на паведамленні. Калі гэтая опцыя адключана, рэакцыі можна будзе глядзець, але немагчыма будзе націснуць на іх."; break;
+                        case "CutForeignAgentsText": value = "Выразаць тэкст пра іншаагентаў"; break;
+                        case "CutForeignAgentsTextInfo": value = "Калі дадзеная опцыя ўключаная, з тэксту паведамленняў і пастоў будзе выразацца апавяшчэнне аб інагенце. Калі тэкст пастоў адлюстроўваецца некарэктна, адключыце гэтую опцыю. Пасля пераключэння пажадана ачысціць кэш."; break;
+                        case "PartisanSettingsInfo": value = "Наладзьце іншыя опцыі дадатка."; break;
+                        case "ClearSavedChannels": value = "Ачышчаць захаваныя каналы"; break;
                     }
                 }
             }

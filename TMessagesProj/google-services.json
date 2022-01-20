@@ -120,6 +120,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127113305710:android:b2a5cd5a52e69a0331507f",
+        "android_client_info": {
+          "package_name": "org.telegram.messenger.gamma"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "127113305710-6po10ip8e5203blp2go1u89crb9u18rs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTmRCAvCpc7y17TnfzBQsrFXjS-UineYU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "127113305710-6po10ip8e5203blp2go1u89crb9u18rs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

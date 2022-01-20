@@ -42,6 +42,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -1430,7 +1431,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
     }
 
     private void openWebView(TLRPC.WebPage webPage, MessageObject message) {
-        EmbedBottomSheet.show(parentActivity, message, provider, webPage.site_name, webPage.description, webPage.url, webPage.embed_url, webPage.embed_width, webPage.embed_height, false);
+        EmbedBottomSheet.show(parentActivity, message, provider, webPage.site_name, Utils.fixMessage(webPage.description), webPage.url, webPage.embed_url, webPage.embed_width, webPage.embed_height, false);
     }
 
     int lastAccount;

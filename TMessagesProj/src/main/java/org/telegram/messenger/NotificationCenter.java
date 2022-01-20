@@ -193,6 +193,7 @@ public class NotificationCenter {
     public static final int dialogHiddenByAction = totalEvents++;
     public static final int foldersHiddenByAction = totalEvents++;
     public static final int appHiddenByAction = totalEvents++;
+    public static final int searchCleared = totalEvents++;
 
 
     //global
