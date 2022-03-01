@@ -150,6 +150,7 @@ public class SharedConfig {
     public static int maxIgnoredVersionMinor;
     public static int maxIgnoredVersionPatch;
     public static boolean showUpdates;
+    public static boolean showCallButton;
 
     public static boolean drawDialogIcons;
     public static boolean useThreeLinesLayout;
@@ -594,6 +595,7 @@ public class SharedConfig {
             noiseSupression = preferences.getBoolean("noiseSupression", false);
             chatSwipeAction = preferences.getInt("ChatSwipeAction", -1);
             showUpdates = preferences.getBoolean("showUpdates", true);
+            showCallButton = preferences.getBoolean("showCallButton", true);
             maxIgnoredVersionMajor = preferences.getInt("maxIgnoredVersionMajor", 0);
             maxIgnoredVersionMinor = preferences.getInt("maxIgnoredVersionMinor", 0);
             maxIgnoredVersionPatch = preferences.getInt("maxIgnoredVersionPatch", 0);
@@ -617,6 +619,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("showUpdates", showUpdates);
+        editor.commit();
+    }
+
+    public static void toggleShowCallButton() {
+        showCallButton = !showCallButton;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("showCallButton", showCallButton);
         editor.commit();
     }
 

@@ -1100,6 +1100,8 @@ public class LocaleController {
                         case "NotReset": value = "Не сбрасывать"; break;
                         case "ShowUpdates": value = "Показывать обновления"; break;
                         case "ShowUpdatesInfo": value = "Показывать уведомление, когда доступно новое обновление приложения."; break;
+                        case "ShowCallButton": value = "Показывать кнопку звонка"; break;
+                        case "ShowCallButtonInfo": value = "Показывать кнопку звонка в окне чата."; break;
                     }
                 } else if (languageOverride.equals("be")) {
                     switch (key) {
@@ -1246,8 +1248,10 @@ public class LocaleController {
                         case "ResetChangedTitlesTitle": value = "Скінуць зменяныя назвы чатаў?"; break;
                         case "NotClear": value = "Не ачышчаць"; break;
                         case "NotReset": value = "Не скідваць"; break;
-                        case "ShowUpdates": value = "Показваць абнаўленне"; break;
+                        case "ShowUpdates": value = "Паказваць абнаўленне"; break;
                         case "ShowUpdatesInfo": value = "Паказваць апавяшчэнне, калі даступна новае абнаўленне прыкладання."; break;
+                        case "ShowCallButton": value = "Паказваць кнопку званка"; break;
+                        case "ShowCallButtonInfo": value = "Паказваць кнопку званка ў экране чата."; break;
                     }
                 }
             }

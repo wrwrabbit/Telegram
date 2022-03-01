@@ -71,6 +71,8 @@ public class PartisanSettingsActivity extends BaseFragment {
     private int onScreenLockActionDetailRow;
     private int showUpdatesRow;
     private int showUpdatesDetailRow;
+    private int showCallButtonRow;
+    private int showCallButtonDetailRow;
 
     private class DangerousSettingSwitcher {
         public Context context;
@@ -253,6 +255,9 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == showUpdatesRow) {
                 SharedConfig.toggleShowUpdates();
                 ((TextCheckCell) view).setChecked(SharedConfig.showUpdates);
+            } else if (position == showCallButtonRow) {
+                SharedConfig.toggleShowCallButton();
+                ((TextCheckCell) view).setChecked(SharedConfig.showCallButton);
             }
         });
 
@@ -301,6 +306,8 @@ public class PartisanSettingsActivity extends BaseFragment {
         onScreenLockActionDetailRow = rowCount++;
         showUpdatesRow = rowCount++;
         showUpdatesDetailRow = rowCount++;
+        showCallButtonRow = rowCount++;
+        showCallButtonDetailRow = rowCount++;
     }
 
     @Override
@@ -332,7 +339,7 @@ public class PartisanSettingsActivity extends BaseFragment {
             return position != versionDetailRow && position != idDetailRow && position != disableAvatarDetailRow
                     && position != renameChatDetailRow && position != deleteMyMessagesDetailRow && position != deleteAfterReadDetailRow
                     && position != savedChannelsDetailRow && position != reactionsDetailRow && position != foreignAgentsDetailRow
-                    && position != onScreenLockActionDetailRow && position != showUpdatesDetailRow;
+                    && position != onScreenLockActionDetailRow && position != showUpdatesDetailRow && position != showCallButtonDetailRow;
         }
 
         @Override
@@ -396,6 +403,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     }  else if (position == showUpdatesRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ShowUpdates", R.string.ShowUpdates),
                                 SharedConfig.showUpdates, false);
+                    }  else if (position == showCallButtonRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("ShowCallButton", R.string.ShowCallButton),
+                                SharedConfig.showCallButton, false);
                     }
                     break;
                 }
@@ -434,6 +444,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     } else if (position == showUpdatesDetailRow) {
                         cell.setText(LocaleController.getString("ShowUpdatesInfo", R.string.ShowUpdatesInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == showCallButtonDetailRow) {
+                        cell.setText(LocaleController.getString("ShowCallButtonInfo", R.string.ShowCallButtonInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
                 }
@@ -463,12 +476,12 @@ public class PartisanSettingsActivity extends BaseFragment {
             if (position == versionRow || position == idRow || position == disableAvatarRow
                     || position == renameChatRow || position == deleteMyMessagesRow || position == deleteAfterReadRow
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
-                    || position == showUpdatesRow) {
+                    || position == showUpdatesRow || position == showCallButtonRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow || position == deleteAfterReadDetailRow
                     || position == savedChannelsDetailRow || position == reactionsDetailRow || position == foreignAgentsDetailRow
-                    || position == onScreenLockActionDetailRow || position == showUpdatesDetailRow) {
+                    || position == onScreenLockActionDetailRow || position == showUpdatesDetailRow || position == showCallButtonDetailRow) {
                 return 1;
             } else if (position == onScreenLockActionRow) {
                 return 2;

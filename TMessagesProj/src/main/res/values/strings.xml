@@ -5127,4 +5127,6 @@
     <string name="NotReset">Not Reset</string>
     <string name="ShowUpdates">Show Updates</string>
     <string name="ShowUpdatesInfo">Show a notification when a new app update is available</string>
+    <string name="ShowCallButton">Show Call Button</string>
+    <string name="ShowCallButtonInfo">Show call button in chat</string>
 </resources>
