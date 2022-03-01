@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # [self-hosted, ptg]
+    runs-on: self-hosted
     steps:
       - name: Create Release
         id: create_release
