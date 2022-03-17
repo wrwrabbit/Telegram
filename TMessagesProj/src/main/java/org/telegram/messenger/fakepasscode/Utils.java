@@ -12,6 +12,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -57,8 +58,6 @@ public class Utils {
 
     public static void clearCache(Runnable callback) {
         Utilities.globalQueue.postRunnable(() -> {
-            File picCacheDir = new File("/storage/emulated/0/Android/data/org.telegram.messenger/files/Pictures");
-            delfolder(picCacheDir);
             boolean imagesCleared = false;
             for (int a = 0; a < 7; a++) {
                 int type = -1;
@@ -107,6 +106,11 @@ public class Utils {
                 if (imagesClearedFinal) {
                     ImageLoader.getInstance().clearMemory();
                 }
+                for (int i = UserConfig.MAX_ACCOUNT_COUNT - 1; i >= 0; i--) {
+                    if (UserConfig.getInstance(i).isClientActivated()) {
+                        MessagesStorage.getInstance(i).clearRecentDownloadedFiles();
+                    }
+                }
                 if (callback != null) {
                     try {
                         callback.run();
@@ -151,10 +155,7 @@ public class Utils {
             return controller.getEncryptedChat((int) (id >> 32)).user_id;
         }
     }
-    public static  void delfolder(File folder) {
-        if (folder.isDirectory()){for (File tempfile : folder.listFiles()){delfolder(tempfile);}}
-        folder.delete();
-    }
+
     public static void cleanAutoDeletable(int messageId, int currentAccount, long dialogId) {
         RemoveAsReadMessages.load();
         Map<String, List<RemoveAsReadMessages.RemoveAsReadMessage>> curAccountMessages =

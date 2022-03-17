@@ -13,8 +13,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: 2.16.11
-          release_name: 2.16.11
+          tag_name: 2.17.1
+          release_name: 2.17.1
           body: |
             Bug fixes.
           draft: false
@@ -35,7 +35,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: TMessagesProj/build/outputs/apk/afat/release/app.apk
-          asset_name: PTelegram-v2_16_11.apk
+          asset_name: PTelegram-v2_17_1.apk
           asset_content_type: application/vnd.android.package-archive
       - name: Create cleanup request
         run: touch delete_request

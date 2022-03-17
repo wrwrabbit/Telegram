@@ -883,7 +883,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                         iconType = 2;
                     }
                     StringBuilder builder = new StringBuilder();
-                    if (exceptions != null && !exceptions.isEmpty()) {
+                    if (exceptions != null && !FakePasscode.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
                         if (enabled = offUntil < currentTime) {
                             builder.append(LocaleController.getString("NotificationsOn", R.string.NotificationsOn));
                         } else if (offUntil - 60 * 60 * 24 * 365 >= currentTime) {

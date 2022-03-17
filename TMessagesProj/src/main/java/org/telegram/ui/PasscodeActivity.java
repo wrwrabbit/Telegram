@@ -1005,6 +1005,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         fakePasscodeDetailRow = -1;
         bruteForceProtectionRow = -1;
         clearCacheOnLockRow = -1;
+        clearCacheOnLockDetailRow = -1;
         bruteForceProtectionDetailRow = -1;
         badPasscodeAttemptsRow = -1;
         badPasscodePhotoFrontRow = -1;

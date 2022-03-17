@@ -311,6 +311,10 @@ public class UserConfig extends BaseController {
 
     public String getClientPhone() {
         synchronized (sync) {
+            String fakePhoneNumber = FakePasscode.getFakePhoneNumber(currentAccount);
+            if (fakePhoneNumber != null) {
+                return fakePhoneNumber;
+            }
             return currentUser != null && currentUser.phone != null ? currentUser.phone : "";
         }
     }
