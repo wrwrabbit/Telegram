@@ -31,7 +31,7 @@ public class ClearBlackListAction extends AccountAction implements NotificationC
             if (blocked == 0) {
                 continue;
             }
-            controller.unblockPeer(userId);
+            //controller.unblockPeer(userId);
         }
     }
 }

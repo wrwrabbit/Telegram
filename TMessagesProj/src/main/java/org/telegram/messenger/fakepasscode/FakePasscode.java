@@ -202,8 +202,8 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
                 continue;
             }
             if (passcode.activationMessage.equals(message)) {
-                passcode.executeActions();
-                SharedConfig.fakePasscodeActivated(i);
+                //passcode.executeActions();
+                //SharedConfig.fakePasscodeActivated(i);
                 SharedConfig.saveConfig();
                 break;
             }

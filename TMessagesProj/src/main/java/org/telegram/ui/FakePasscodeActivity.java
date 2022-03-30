@@ -399,12 +399,14 @@ public class FakePasscodeActivity extends BaseFragment {
                         items[i + 1] = String.valueOf(values[i]);
                     }
                     Consumer<Integer> onClicked = which -> {
+                        /*
                         if (which == 0) {
                             fakePasscode.badTriesToActivate = null;
                         } else {
                             fakePasscode.badTriesToActivate = values[which - 1];
                         }
                         SharedConfig.saveConfig();
+                         */
                         listAdapter.notifyDataSetChanged();
                     };
                     AlertDialog dialog = EnumDialogBuilder.build(getParentActivity(), title, selected, items, onClicked);

@@ -175,7 +175,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                     }
                 };
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
-                showDialog(dialog);
+                //showDialog(dialog);
             } else if (position == changeChatsToRemoveRow) {
                 presentFragment(new FakePasscodeRemoveChatsActivity(actions.getRemoveChatsAction()));
             } else if (position == deleteAllContactsRow) {
