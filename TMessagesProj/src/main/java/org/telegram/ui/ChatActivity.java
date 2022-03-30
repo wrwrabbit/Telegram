@@ -2505,7 +2505,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         chat = getMessagesController().getChat(-did);
                         if (chat != null) {
                             UserConfig userConfig = getUserConfig();
-                            userConfig.savedChannels.add(chat.username);
+                            //userConfig.savedChannels.add(chat.username);
                             userConfig.saveConfig(true);
                             Toast.makeText(getParentActivity(), LocaleController.getString("Saved", R.string.Saved), Toast.LENGTH_SHORT).show();
                         }

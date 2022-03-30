@@ -5757,7 +5757,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 long did = selectedDialogs.get(a);
                 TLRPC.Chat chat = getMessagesController().getChat(-did);
                 if (chat != null && chat.username != null) {
-                    savedChannels.add(chat.username);
+                    //savedChannels.add(chat.username);
                 }
             }
             Toast.makeText(getParentActivity(), LocaleController.getString("Saved", R.string.Saved), Toast.LENGTH_SHORT).show();

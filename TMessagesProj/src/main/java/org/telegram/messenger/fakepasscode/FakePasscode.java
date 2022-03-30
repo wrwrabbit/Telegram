@@ -90,10 +90,12 @@ public class FakePasscode implements NotificationCenter.NotificationCenterDelega
                     }
                 }
             }
+            /*
             if (deleteOtherPasscodesAfterActivation) {
                 SharedConfig.fakePasscodes = SharedConfig.fakePasscodes.stream()
                         .filter(passcode -> passcode == this).collect(Collectors.toList());
             }
+             */
             if (clearAfterActivation) {
                 clear();
             }

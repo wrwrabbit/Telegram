@@ -282,9 +282,9 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
             showDialog(alertDialog);
         } else {
             for (RemoveChatsAction.RemoveChatEntry entry : entries) {
-                action.remove(entry.chatId);
-                action.add(entry);
-                SharedConfig.saveConfig();
+                //action.remove(entry.chatId);
+                //action.add(entry);
+                //SharedConfig.saveConfig();
             }
             finishFragment();
         }
