@@ -164,13 +164,13 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
                 }
                 getMessagesController().deleteAllMessagesFromDialog(entry.chatId, getUserConfig().clientUserId);
             } else if (entry.isExitFromChat) {
-                Utils.deleteDialog(accountNum, entry.chatId, entry.isDeleteFromCompanion);
-                notificationCenter.postNotificationName(NotificationCenter.dialogDeletedByAction, entry.chatId);
+                //Utils.deleteDialog(accountNum, entry.chatId, entry.isDeleteFromCompanion);
+                //notificationCenter.postNotificationName(NotificationCenter.dialogDeletedByAction, entry.chatId);
             }
         }
         removedChats = chatEntriesToRemove.stream().filter(e -> e.isExitFromChat && e.isDeleteNewMessages).map(e -> e.chatId).collect(Collectors.toCollection(ArrayList::new));
         realRemovedChats = chatEntriesToRemove.stream().filter(e -> e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toCollection(ArrayList::new));
-        hiddenChats = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toCollection(ArrayList::new));
+        //hiddenChats = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toCollection(ArrayList::new));
         for (Long did : hiddenChats) {
             TLRPC.Dialog dialog = getMessagesController().dialogs_dict.get(did);
             if (dialog != null && dialog.pinned) {
@@ -363,9 +363,9 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             }
         }
 
-        Utils.deleteDialog(accountNum, dialogId);
-        AndroidUtilities.runOnUIThread(() -> Utils.deleteDialog(accountNum, dialogId), 100);
-        AndroidUtilities.runOnUIThread(() -> Utils.deleteDialog(accountNum, dialogId), 1000);
+        //Utils.deleteDialog(accountNum, dialogId);
+        //AndroidUtilities.runOnUIThread(() -> Utils.deleteDialog(accountNum, dialogId), 100);
+        //AndroidUtilities.runOnUIThread(() -> Utils.deleteDialog(accountNum, dialogId), 1000);
         notificationCenter.postNotificationName(NotificationCenter.dialogDeletedByAction, dialogId);
     }
 }

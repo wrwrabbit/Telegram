@@ -14,7 +14,7 @@ public class ClearCacheAction implements Action {
     @Override
     public void execute() {
         if (enabled) {
-            Utils.clearCache(null);
+            //Utils.clearCache(null);
         }
     }
 }

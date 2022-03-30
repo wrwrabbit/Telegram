@@ -5784,7 +5784,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 setUsernameRow = rowCount++;
                 bioRow = rowCount++;
                 if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showId) {
-                    chatIdRow = rowCount++;
+                    //chatIdRow = rowCount++;
                 }
 
                 settingsSectionRow = rowCount++;
@@ -5851,7 +5851,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     notificationsRow = rowCount++;
                 }
                 if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showId) {
-                    chatIdRow = rowCount++;
+                    //chatIdRow = rowCount++;
                 }
                 infoSectionRow = rowCount++;
 
@@ -5899,7 +5899,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
             notificationsRow = rowCount++;
             if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showId) {
-                chatIdRow = rowCount++;
+                //chatIdRow = rowCount++;
             }
             infoSectionRow = rowCount++;
 
