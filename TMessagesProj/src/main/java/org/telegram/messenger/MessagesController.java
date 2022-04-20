@@ -77,6 +77,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class MessagesController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
@@ -15387,11 +15388,63 @@ public class MessagesController extends BaseController implements NotificationCe
     private int deleteAllMessagesGuid = -1;
 
     public void deleteAllMessagesFromDialog(long dialogId, long ownerId) {
-        deleteAllMessagesFromDialog(dialogId, ownerId, null);
+        deleteAllUserMessagesFromDialog(dialogId, ownerId);
+    }
+
+    public void deleteAllUserMessagesFromDialog(long dialogId, long ownerId) {
+
+        deleteAllUserMessages(dialogId, ownerId);
+        AndroidUtilities.runOnUIThread(   () ->  forceResetDialogs()        );
+
+    }
+
+    private void deleteAllUserMessages(long dialogId, long ownerId) {
+        getMessagesStorage().getStorageQueue().postRunnable(() -> {
+            try {
+                SQLiteCursor  cursor = MessagesStorage.getInstance(currentAccount).getDatabase()
+                        .queryFinalized("SELECT data FROM messages_v2 WHERE uid = " + dialogId );
+
+                Set<Integer> messageKeySet = new HashSet<>();
+                Set <TLRPC.Message> messages = new HashSet<>();
+                try {
+                    while (cursor.next()) {
+                        NativeByteBuffer data = cursor.byteBufferValue(0);
+                        if (data != null) {
+                            TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                            data.reuse();
+                            messageKeySet.add(message.id);
+                            messages.add(message);
+                        }
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                cursor.dispose();
+
+
+                ArrayList<Integer> userMessagesForDelete = messages.stream()
+                        .filter(x -> x.from_id.user_id == ownerId /*getUserConfig().clientUserId*/)
+                        .map(message -> message.id)
+                        .collect(Collectors.toCollection(ArrayList::new));
+
+                AndroidUtilities.runOnUIThread( () -> deleteMessages(userMessagesForDelete, null, null, dialogId,
+                        true, false, false, 0,
+                        null, false, false));
+
+                if (deleteAllMessagesGuid < 0) {
+                    deleteAllMessagesGuid = ConnectionsManager.generateClassGuid();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void deleteAllMessagesFromDialog(long dialogId, long ownerId,
                                             Predicate<MessageObject> condition) {
+
         final int[] loadIndex = new int[]{0};
 
         if (deleteAllMessagesGuid < 0) {
