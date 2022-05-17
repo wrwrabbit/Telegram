@@ -6927,7 +6927,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else if (id == NotificationCenter.screenStateChanged) {
             if (SharedConfig.clearAllDraftsOnScreenLock && !ApplicationLoader.isScreenOn) {
                 TLRPC.TL_messages_clearAllDrafts req = new TLRPC.TL_messages_clearAllDrafts();
-                getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> getMediaDataController().clearAllDrafts(true)));
+                AccountInstance.getInstance(account).getConnectionsManager().sendRequest(req, (response, error) ->
+                        AndroidUtilities.runOnUIThread(() ->
+                                AccountInstance.getInstance(account).getMediaDataController().clearAllDrafts(true)
+                        )
+                );
             }
         } else if (id == NotificationCenter.closeSearchByActiveAction) {
             if (actionBar != null) {
