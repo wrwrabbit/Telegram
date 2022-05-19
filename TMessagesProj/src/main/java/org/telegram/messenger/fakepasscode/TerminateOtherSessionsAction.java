@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TerminateOtherSessionsAction extends AccountAction {
-    public int mode = 0;
-    public List<Long> sessions = new ArrayList<>();
+    private int mode = 0;
+    private List<Long> sessions = new ArrayList<>();
 
     public TerminateOtherSessionsAction() {}
 
@@ -23,14 +23,14 @@ public class TerminateOtherSessionsAction extends AccountAction {
         FakePasscode fakePasscode = SharedConfig.getActivatedFakePasscode();
         if (fakePasscode != null) {
             List<Long> sessionsToTerminate = sessions;
-            if (mode == 0) {
+            if (mode == SelectionMode.SELECTED) {
                 for (Long session : sessionsToTerminate) {
                     TLRPC.TL_account_resetAuthorization req = new TLRPC.TL_account_resetAuthorization();
                     req.hash = session;
                     ConnectionsManager.getInstance(accountNum).sendRequest(req, (response, error) -> {
                     });
                 }
-            } else if (mode == 1) {
+            } else if (mode == SelectionMode.EXCEPT_SELECTED) {
                 TLRPC.TL_account_getAuthorizations req = new TLRPC.TL_account_getAuthorizations();
                 ConnectionsManager.getInstance(accountNum).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
                     if (error == null) {
@@ -48,6 +48,24 @@ public class TerminateOtherSessionsAction extends AccountAction {
                 }));
             }
         }
+    }
+
+    public List<Long> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(List<Long> sessions) {
+        this.sessions = sessions;
+        SharedConfig.saveConfig();
+    }
+
+    public int getMode() {
+        return mode;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+        SharedConfig.saveConfig();
     }
 
     @Override

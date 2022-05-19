@@ -189,6 +189,8 @@ public class NotificationCenter {
     public static final int filterSettingsUpdated = totalEvents++;
     public static final int suggestedFiltersLoaded = totalEvents++;
 
+    public static final int updateBotMenuButton = totalEvents++;
+
     //fake passcode
     public static final int dialogDeletedByAction = totalEvents++;
     public static final int dialogCleared = totalEvents++;

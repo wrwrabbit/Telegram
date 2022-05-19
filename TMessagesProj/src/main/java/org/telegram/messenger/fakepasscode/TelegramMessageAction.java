@@ -50,8 +50,9 @@ public class TelegramMessageAction extends AccountAction implements Notification
 
     @JsonIgnore
     private final Set<Integer> oldMessageIds = new HashSet<>();
+
     @JsonIgnore
-    private final Map<String, FakePasscodeMessages.FakePasscodeMessage> unDeleted = new HashMap<>();
+    public List<Entry> sentEntries = new ArrayList<>();
 
     public TelegramMessageAction() {
     }
@@ -64,45 +65,62 @@ public class TelegramMessageAction extends AccountAction implements Notification
         FakePasscodeMessages.hasUnDeletedMessages.clear();
         FakePasscodeMessages.saveMessages();
 
-        SendMessagesHelper messageSender = SendMessagesHelper.getInstance(accountNum);
-        MessagesController controller = AccountInstance.getInstance(accountNum).getMessagesController();
-        controller.forceResetDialogs();
+        getMessagesController().forceResetDialogs();
 
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.messageReceivedByServer);
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.dialogDeletedByAction);
-        String geolocation = Utils.getLastLocationString();
+        getNotificationCenter().addObserver(this, NotificationCenter.messageReceivedByServer);
+        getNotificationCenter().addObserver(this, NotificationCenter.dialogDeletedByAction);
+        Map<String, FakePasscodeMessages.FakePasscodeMessage> unDeleted = new HashMap<>();
         for (Entry entry : entries) {
-            String text = entry.text;
-            if (entry.addGeolocation) {
-                text += geolocation;
-            }
-            TLRPC.Dialog dialog = controller.dialogs_dict.get(entry.userId);
-            TLRPC.Message oldMessage = dialog == null ? null : controller.dialogMessagesByIds.get(dialog.top_message).messageOwner;
-            messageSender.sendMessage(text, entry.userId, null, null, null, false,
-                        null, null, null, true, 0, null);
-            entry.dialogDeleted = false;
-            MessageObject msg = null;
-            for (int i = 0; i < controller.dialogMessage.size(); ++i) {
-                if (controller.dialogMessage.valueAt(i).messageText != null &&
-                        text.contentEquals(controller.dialogMessage.valueAt(i).messageText)) {
-                    msg = controller.dialogMessage.valueAt(i);
-                    break;
-                }
-            }
-
-            if (msg != null) {
-                oldMessageIds.add(msg.getId());
-                unDeleted.put("" + entry.userId, new FakePasscodeMessages.FakePasscodeMessage(entry.text, msg.messageOwner.date,
-                        oldMessage));
-                deleteMessage(entry.userId, msg.getId());
+            FakePasscodeMessages.FakePasscodeMessage message = sendMessage(entry);
+            if (message != null) {
+                unDeleted.put("" + entry.userId, message);
             }
         }
         FakePasscodeMessages.hasUnDeletedMessages.put("" + accountNum, new HashMap<>(unDeleted));
         FakePasscodeMessages.saveMessages();
+        sentEntries = entries;
+        entries = new ArrayList<>();
+        SharedConfig.saveConfig();
+    }
+
+    private FakePasscodeMessages.FakePasscodeMessage sendMessage(Entry entry) {
+        FakePasscodeMessages.FakePasscodeMessage result = null;
+        MessagesController controller = getMessagesController();
+        String geolocation = Utils.getLastLocationString();
+        String text = entry.text;
+        if (entry.addGeolocation) {
+            text += geolocation;
+        }
+        TLRPC.Dialog dialog = controller.dialogs_dict.get(entry.userId);
+        TLRPC.Message oldMessage = null;
+        if (dialog != null) {
+            MessageObject messageObject = controller.dialogMessagesByIds.get(dialog.top_message);
+            if (messageObject != null) {
+                oldMessage = messageObject.messageOwner;
+            }
+        }
+        getSendMessagesHelper().sendMessage(text, entry.userId, null, null, null, false,
+                null, null, null, true, 0, null);
+        entry.dialogDeleted = false;
+        MessageObject msg = null;
+        for (int i = 0; i < controller.dialogMessage.size(); ++i) {
+            if (controller.dialogMessage.valueAt(i).messageText != null &&
+                    text.contentEquals(controller.dialogMessage.valueAt(i).messageText)) {
+                msg = controller.dialogMessage.valueAt(i);
+                break;
+            }
+        }
+
+        if (msg != null) {
+            oldMessageIds.add(msg.getId());
+            result = new FakePasscodeMessages.FakePasscodeMessage(entry.text, msg.messageOwner.date, oldMessage);
+            deleteMessage(entry.userId, msg.getId());
+        }
+        return result;
     }
 
     private void deleteMessage(long chatId, int messageId) {
-        MessagesController controller = AccountInstance.getInstance(accountNum).getMessagesController();
+        MessagesController controller = getMessagesController();
         ArrayList<Integer> messages = new ArrayList<>();
         messages.add(messageId);
         if (ChatObject.isChannel(chatId, accountNum)) {
@@ -112,6 +130,22 @@ public class TelegramMessageAction extends AccountAction implements Notification
             controller.deleteMessages(messages, null, null, chatId,
                     false, false, false, 0, null, false, true);
         }
+    }
+
+    AccountInstance getAccountInstance() {
+        return AccountInstance.getInstance(accountNum);
+    }
+
+    MessagesController getMessagesController() {
+        return getAccountInstance().getMessagesController();
+    }
+
+    SendMessagesHelper getSendMessagesHelper() {
+        return getAccountInstance().getSendMessagesHelper();
+    }
+
+    NotificationCenter getNotificationCenter() {
+        return getAccountInstance().getNotificationCenter();
     }
 
     @Override
@@ -134,7 +168,7 @@ public class TelegramMessageAction extends AccountAction implements Notification
             return;
         }
         deleteMessage(message.dialog_id, message.id);
-        Optional<Entry> entry = entries.stream()
+        Optional<Entry> entry = sentEntries.stream()
                 .filter(e -> e.userId == message.dialog_id && e.dialogDeleted)
                 .findFirst();
         if (entry.isPresent()) {
@@ -145,7 +179,7 @@ public class TelegramMessageAction extends AccountAction implements Notification
     }
 
     private void dialogDeletedByAction(Object[] args) {
-        entries.stream()
+        sentEntries.stream()
                 .filter(entry -> entry.userId == (long)args[0])
                 .forEach(entry -> entry.dialogDeleted = true);
     }

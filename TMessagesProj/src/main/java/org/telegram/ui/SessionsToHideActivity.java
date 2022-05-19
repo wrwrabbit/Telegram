@@ -10,13 +10,13 @@ public class SessionsToHideActivity extends CheckableSessionsActivity {
     private final AccountActions actions;
 
     SessionsToHideActivity(AccountActions actions) {
-        super(actions.accountNum);
+        super(actions.getAccountNum());
         this.actions = actions;
     }
 
     @Override
     protected List<Long> loadCheckedSessions() {
-        return actions.getSessionsToHide();
+        return actions.getSessionsToHide().getSessions();
     }
 
     @Override
@@ -31,12 +31,12 @@ public class SessionsToHideActivity extends CheckableSessionsActivity {
 
     @Override
     public void didSelectedMode(int mode) {
-        actions.setSessionsToHideMode(mode);
+        actions.getSessionsToHide().setMode(mode);
         super.didSelectedMode(mode);
     }
 
     @Override
     public int getSelectedMode() {
-        return actions.getSessionsToHideMode();
+        return actions.getSessionsToHide().getMode();
     }
 }

@@ -32,6 +32,9 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         public String title;
 
         public RemoveChatEntry() {}
+        public RemoveChatEntry(long chatId) {
+            this(chatId, "Unknown");
+        }
         public RemoveChatEntry(long chatId, String title) {
             this.chatId = chatId;
             isClearChat = false;
@@ -347,8 +350,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
     private void deletePendingChat(long dialogId) {
         FakePasscode fakePasscode = SharedConfig.getActivatedFakePasscode();
-        if (fakePasscode == null || fakePasscode.removeChatsActions == null
-                || !fakePasscode.removeChatsActions.contains(this)) {
+        if (fakePasscode == null || fakePasscode.getAllAccountActions().stream().noneMatch(a -> a.getRemoveChatsAction() == this)) {
             return;
         }
 

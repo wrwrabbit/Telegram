@@ -39,7 +39,6 @@ import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeMessages;
 import org.telegram.messenger.fakepasscode.Utils;
-import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.support.LongSparseIntArray;
@@ -81,6 +80,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class MessagesController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
@@ -845,7 +845,7 @@ public class MessagesController extends BaseController implements NotificationCe
         showFiltersTooltip = mainPreferences.getBoolean("showFiltersTooltip", false);
         autoarchiveAvailable = mainPreferences.getBoolean("autoarchiveAvailable", false);
         groupCallVideoMaxParticipants = mainPreferences.getInt("groipCallVideoMaxParticipants", 30);
-        chatReadMarkSizeThreshold = mainPreferences.getInt("chatReadMarkSizeThreshold", 50);
+        chatReadMarkSizeThreshold = mainPreferences.getInt("chatReadMarkSizeThreshold", 100);
         chatReadMarkExpirePeriod = mainPreferences.getInt("chatReadMarkExpirePeriod", 7 * 86400);
         ringtoneDurationMax = mainPreferences.getInt("ringtoneDurationMax", 5);
         ringtoneSizeMax = mainPreferences.getInt("ringtoneSizeMax", 1024_00);
@@ -6592,6 +6592,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 }
                             }
                         }
+                        res.messages = filterMessages(res.messages, dialogId);
                         for (TLRPC.Message m : res.messages) {
                             Utils.fixTlrpcMessage(m);
                         }
@@ -6835,6 +6836,10 @@ public class MessagesController extends BaseController implements NotificationCe
             if (mode == 1 && count == 1) {
                 getNotificationCenter().postNotificationName(NotificationCenter.scheduledMessagesUpdated, dialogId, objects.size());
             }
+
+            ArrayList<MessageObject> messArr = (ArrayList<MessageObject>) objects;
+
+            Utils.startDeleteProcess(currentAccount, dialogId, messArr);
 
             if (!DialogObject.isEncryptedDialog(dialogId)) {
                 int finalFirst_unread_final = first_unread_final;
@@ -7464,7 +7469,7 @@ public class MessagesController extends BaseController implements NotificationCe
                             }
 
                             if (messages.getValue().getMessage().equals(message.message) && Math.abs(message.date - messages.getValue().getDate()) <= 1000
-                                    && idOfSender == Integer.parseInt(messages.getKey())) {
+                                    && idOfSender == Long.parseLong(messages.getKey())) {
                                 if (messages.getValue().getTopMessageForDialog() != null) {
                                     int index = resetDialogsPinned.messages.indexOf(message);
                                     resetDialogsPinned.messages.set(index, null);
@@ -7511,7 +7516,7 @@ public class MessagesController extends BaseController implements NotificationCe
                             }
 
                             if (messages.getValue().getMessage().equals(message.message) && Math.abs(message.date - messages.getValue().getDate()) <= 1000
-                                    && idOfSender == Integer.parseInt(messages.getKey())) {
+                                    && idOfSender == Long.parseLong(messages.getKey())) {
                                 if (messages.getValue().getTopMessageForDialog() != null) {
                                     int index = resetDialogsAll.messages.indexOf(message);
                                     resetDialogsAll.messages.set(index, null);
@@ -10884,19 +10889,22 @@ public class MessagesController extends BaseController implements NotificationCe
                                     arr.add(obj);
                                 }
 
-                                AndroidUtilities.runOnUIThread(() -> {
-                                    for (int a = 0; a < messages.size(); a++) {
-                                        long key = messages.keyAt(a);
-                                        ArrayList<MessageObject> value = messages.valueAt(a);
-                                        updateInterfaceWithMessages(key, value, false);
-                                    }
-                                    getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
-                                });
                                 getMessagesStorage().getStorageQueue().postRunnable(() -> {
                                     if (!pushMessages.isEmpty()) {
                                         AndroidUtilities.runOnUIThread(() -> getNotificationsController().processNewMessages(pushMessages, !(res instanceof TLRPC.TL_updates_differenceSlice), false, null));
                                     }
                                     getMessagesStorage().putMessages(res.new_messages, true, false, false, getDownloadController().getAutodownloadMask(), false);
+
+                                    for (int a = 0; a < messages.size(); a++) {
+                                        long dialogId = messages.keyAt(a);
+                                        ArrayList<MessageObject> arr = messages.valueAt(a);
+                                        getMediaDataController().loadReplyMessagesForMessages(arr, dialogId, false, () -> {
+                                            AndroidUtilities.runOnUIThread(() -> {
+                                                updateInterfaceWithMessages(dialogId, arr, false);
+                                                getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                                            });
+                                        });
+                                    }
                                 });
 
                                 getSecretChatHelper().processPendingEncMessages();
@@ -12347,6 +12355,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 ImageLoader.saveMessageThumbs(message);
 
                 MessageObject.getDialogId(message);
+                if (!FakePasscode.checkMessage(currentAccount, message.dialog_id, message.from_id != null ? message.from_id.user_id : null, message.message)) {
+                    continue;
+                }
                 if (baseUpdate instanceof TLRPC.TL_updateNewChannelMessage && message.reply_to != null && !(message.action instanceof TLRPC.TL_messageActionPinMessage)) {
                     if (channelReplies == null) {
                         channelReplies = new LongSparseArray<>();
@@ -12431,7 +12442,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     ArrayList<MessageObject> arr = messages.get(message.dialog_id);
                     if (arr == null) {
                         arr = new ArrayList<>();
-                        messages.put(message.dialog_id, arr);
+                        messages.put(message.dialog_id, filterMessageObjects(arr));
                     }
                     arr.add(obj);
                     if ((!obj.isOut() || obj.messageOwner.from_scheduled) && obj.isUnread() && (chat == null || !ChatObject.isNotInChat(chat) && !chat.min)) {
@@ -12727,7 +12738,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     ArrayList<MessageObject> arr = messages.get(uid);
                     if (arr == null) {
                         arr = new ArrayList<>();
-                        messages.put(uid, arr);
+                        messages.put(uid, filterMessageObjects(arr));
                     }
                     for (int a = 0, size = decryptedMessages.size(); a < size; a++) {
                         TLRPC.Message message = decryptedMessages.get(a);
@@ -12863,7 +12874,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     ArrayList<MessageObject> arr = messages.get(newMessage.dialog_id);
                     if (arr == null) {
                         arr = new ArrayList<>();
-                        messages.put(newMessage.dialog_id, arr);
+                        messages.put(newMessage.dialog_id, filterMessageObjects(arr));
                     }
                     arr.add(obj);
                     if (pushMessages == null) {
@@ -13274,6 +13285,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 updatesOnMainThread.add(baseUpdate);
             } else if (baseUpdate instanceof TLRPC.TL_updateAttachMenuBots) {
+                if (updatesOnMainThread == null) {
+                    updatesOnMainThread = new ArrayList<>();
+                }
+                updatesOnMainThread.add(baseUpdate);
+            } else if (baseUpdate instanceof TLRPC.TL_updateBotMenuButton) {
                 if (updatesOnMainThread == null) {
                     updatesOnMainThread = new ArrayList<>();
                 }
@@ -13913,6 +13929,9 @@ public class MessagesController extends BaseController implements NotificationCe
                         getNotificationCenter().postNotificationName(NotificationCenter.webViewResultSent, resultSent.query_id);
                     } else if (baseUpdate instanceof TLRPC.TL_updateAttachMenuBots) {
                         getMediaDataController().loadAttachMenuBots(false, true);
+                    } else if (baseUpdate instanceof TLRPC.TL_updateBotMenuButton) {
+                        TLRPC.TL_updateBotMenuButton updateBotMenuButton = (TLRPC.TL_updateBotMenuButton) baseUpdate;
+                        getNotificationCenter().postNotificationName(NotificationCenter.updateBotMenuButton, updateBotMenuButton.bot_id, updateBotMenuButton.button);
                     } else if (baseUpdate instanceof TLRPC.TL_updateReadChannelDiscussionInbox) {
                         TLRPC.TL_updateReadChannelDiscussionInbox update = (TLRPC.TL_updateReadChannelDiscussionInbox) baseUpdate;
                         getNotificationCenter().postNotificationName(NotificationCenter.threadMessagesRead, -update.channel_id, update.top_msg_id, update.read_max_id, 0);
@@ -14149,6 +14168,7 @@ public class MessagesController extends BaseController implements NotificationCe
             int updateMask = 0;
             if (markAsReadMessagesInboxFinal != null || markAsReadMessagesOutboxFinal != null) {
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesRead, markAsReadMessagesInboxFinal, markAsReadMessagesOutboxFinal);
+                List<MessageObject> autoDeleteMessages = new ArrayList<>();
                 if (markAsReadMessagesInboxFinal != null) {
                     getNotificationsController().processReadMessages(markAsReadMessagesInboxFinal, 0, 0, 0, false);
                     SharedPreferences.Editor editor = notificationsPreferences.edit();
@@ -14162,6 +14182,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 obj.setIsRead();
                                 updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
                             }
+                            autoDeleteMessages.add(obj);
                         }
                         if (key != getUserConfig().getClientUserId()) {
                             editor.remove("diditem" + key);
@@ -14180,10 +14201,12 @@ public class MessagesController extends BaseController implements NotificationCe
                             if (obj != null && obj.isOut()) {
                                 obj.setIsRead();
                                 updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
+                                autoDeleteMessages.add(obj);
                             }
                         }
                     }
                 }
+                Utils.startDeleteProcess(currentAccount, autoDeleteMessages);
             }
             if (markAsReadEncryptedFinal != null) {
                 for (int a = 0, size = markAsReadEncryptedFinal.size(); a < size; a++) {

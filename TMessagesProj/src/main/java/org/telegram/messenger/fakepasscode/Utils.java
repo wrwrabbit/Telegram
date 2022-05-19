@@ -186,6 +186,20 @@ public class Utils {
         RemoveAsReadMessages.save();
     }
 
+    public static void startDeleteProcess(int currentAccount, List<MessageObject> messages) {
+        Map<Long, List<MessageObject>> dialogMessages = new HashMap<>();
+        for (MessageObject message : messages) {
+            long dialogId = message.messageOwner.dialog_id;
+            if (!dialogMessages.containsKey(dialogId)) {
+                dialogMessages.put(dialogId, new ArrayList<>());
+            }
+            dialogMessages.get(dialogId).add(message);
+        }
+        for (Map.Entry<Long, List<MessageObject>> entry : dialogMessages.entrySet()) {
+            startDeleteProcess(currentAccount, entry.getKey(), entry.getValue());
+        }
+    }
+
     public static void startDeleteProcess(int currentAccount, long currentDialogId,
                                           List<MessageObject> messages) {
         RemoveAsReadMessages.load();

@@ -15,7 +15,7 @@ public class SessionsToTerminateActivity extends CheckableSessionsActivity {
     private final AccountActions actions;
 
     SessionsToTerminateActivity(AccountActions actions) {
-        super(actions.accountNum);
+        super(actions.getAccountNum());
         this.actions = actions;
     }
 
@@ -38,12 +38,12 @@ public class SessionsToTerminateActivity extends CheckableSessionsActivity {
 
     @Override
     protected List<Long> loadCheckedSessions() {
-        return actions.getSessionsToTerminate();
+        return actions.getTerminateOtherSessionsAction().getSessions();
     }
 
     @Override
     protected void saveCheckedSession(List<Long> checkedSessions) {
-        actions.setSessionsToTerminate(checkedSessions);
+        actions.getTerminateOtherSessionsAction().setSessions(checkedSessions);
     }
 
     @Override
@@ -53,12 +53,12 @@ public class SessionsToTerminateActivity extends CheckableSessionsActivity {
 
     @Override
     public void didSelectedMode(int mode) {
-        actions.setSessionsToTerminateMode(mode);
+        actions.getTerminateOtherSessionsAction().setMode(mode);
         super.didSelectedMode(mode);
     }
 
     @Override
     public int getSelectedMode() {
-        return actions.getSessionsToTerminateMode();
+        return actions.getTerminateOtherSessionsAction().getMode();
     }
 }

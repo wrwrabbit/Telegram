@@ -36,6 +36,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.tgnet.ConnectionsManager;
@@ -609,13 +610,14 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			builder.setTitle(LocaleController.getString("DeleteCalls", R.string.DeleteCalls));
 			builder.setMessage(LocaleController.getString("DeleteSelectedCallsText", R.string.DeleteSelectedCallsText));
 		}
-		final boolean[] checks = new boolean[]{false};
+		final boolean[] checks = new boolean[]{ !SharedConfig.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault};
 		FrameLayout frameLayout = new FrameLayout(getParentActivity());
 		CheckBoxCell cell = new CheckBoxCell(getParentActivity(), 1);
 		cell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
 		cell.setText(LocaleController.getString("DeleteCallsForEveryone", R.string.DeleteCallsForEveryone), "", false, false);
 		cell.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(8) : 0, 0, LocaleController.isRTL ? 0 : AndroidUtilities.dp(8), 0);
 		frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 8, 0, 8, 0));
+		cell.setChecked(!SharedConfig.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault, false);
 		cell.setOnClickListener(v -> {
 			CheckBoxCell cell1 = (CheckBoxCell) v;
 			checks[0] = !checks[0];

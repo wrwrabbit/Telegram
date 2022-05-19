@@ -1,19 +1,11 @@
 package org.telegram.ui;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
-import android.animation.StateListAnimator;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
-import android.graphics.Outline;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.SpannableStringBuilder;
@@ -30,16 +22,19 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
 import android.view.inputmethod.EditorInfo;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.ScrollView;
+
+import androidx.annotation.Keep;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -57,8 +52,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Adapters.SearchAdapterHelper;
-import org.telegram.ui.Cells.GroupCreateUserCell;
-import org.telegram.ui.Components.CombinedDrawable;
+import org.telegram.ui.Cells.SendMessageChatCell;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.EmptyTextProgressView;
@@ -74,12 +68,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import androidx.annotation.Keep;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 public class FakePasscodeTelegramMessagesActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     private ScrollView scrollView;
@@ -88,12 +76,12 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
     private RecyclerListView listView;
     private EmptyTextProgressView emptyView;
     private TelegramMessageAdapter adapter;
-    private ImageView floatingButton;
     private boolean ignoreScrollEvent;
 
     private int containerHeight;
 
     TelegramMessageAction action;
+    int accountNum;
 
     private boolean searchWas;
     private boolean searching;
@@ -200,25 +188,26 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         }
     }
 
-    public FakePasscodeTelegramMessagesActivity(TelegramMessageAction action) {
+    public FakePasscodeTelegramMessagesActivity(TelegramMessageAction action, int accountNum) {
         super();
         this.action = action;
+        this.accountNum = accountNum;
     }
 
     @Override
     public boolean onFragmentCreate() {
-        NotificationCenter.getInstance(action.accountNum).addObserver(this, NotificationCenter.contactsDidLoad);
-        NotificationCenter.getInstance(action.accountNum).addObserver(this, NotificationCenter.updateInterfaces);
-        NotificationCenter.getInstance(action.accountNum).addObserver(this, NotificationCenter.chatDidCreated);
+        getNotificationCenter().addObserver(this, NotificationCenter.contactsDidLoad);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().addObserver(this, NotificationCenter.chatDidCreated);
         return super.onFragmentCreate();
     }
 
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
-        NotificationCenter.getInstance(action.accountNum).removeObserver(this, NotificationCenter.contactsDidLoad);
-        NotificationCenter.getInstance(action.accountNum).removeObserver(this, NotificationCenter.updateInterfaces);
-        NotificationCenter.getInstance(action.accountNum).removeObserver(this, NotificationCenter.chatDidCreated);
+        getNotificationCenter().removeObserver(this, NotificationCenter.contactsDidLoad);
+        getNotificationCenter().removeObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().removeObserver(this, NotificationCenter.chatDidCreated);
     }
 
     @Override
@@ -255,10 +244,6 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                 scrollView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(maxSize, MeasureSpec.AT_MOST));
                 listView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height - scrollView.getMeasuredHeight(), MeasureSpec.EXACTLY));
                 emptyView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height - scrollView.getMeasuredHeight(), MeasureSpec.EXACTLY));
-                if (floatingButton != null) {
-                    int w = AndroidUtilities.dp(Build.VERSION.SDK_INT >= 21 ? 56 : 60);
-                    floatingButton.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY));
-                }
             }
 
             @Override
@@ -266,12 +251,6 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                 scrollView.layout(0, 0, scrollView.getMeasuredWidth(), scrollView.getMeasuredHeight());
                 listView.layout(0, scrollView.getMeasuredHeight(), listView.getMeasuredWidth(), scrollView.getMeasuredHeight() + listView.getMeasuredHeight());
                 emptyView.layout(0, scrollView.getMeasuredHeight(), emptyView.getMeasuredWidth(), scrollView.getMeasuredHeight() + emptyView.getMeasuredHeight());
-
-                if (floatingButton != null) {
-                    int l = LocaleController.isRTL ? AndroidUtilities.dp(14) : (right - left) - AndroidUtilities.dp(14) - floatingButton.getMeasuredWidth();
-                    int t = bottom - top - AndroidUtilities.dp(14) - floatingButton.getMeasuredHeight();
-                    floatingButton.layout(l, t, l + floatingButton.getMeasuredWidth(), t + floatingButton.getMeasuredHeight());
-                }
             }
 
             @Override
@@ -409,7 +388,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         });
 
         emptyView = new EmptyTextProgressView(context);
-        if (ContactsController.getInstance(action.accountNum).isLoadingContacts()) {
+        if (getContactsController().isLoadingContacts()) {
             emptyView.showProgress();
         } else {
             emptyView.showTextView();
@@ -430,8 +409,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         listView.addItemDecoration(new ItemDecoration());
         frameLayout.addView(listView);
         listView.setOnItemClickListener((view, position) -> {
-            if (view instanceof GroupCreateUserCell) {
-                GroupCreateUserCell cell = (GroupCreateUserCell) view;
+            if (view instanceof SendMessageChatCell) {
+                SendMessageChatCell cell = (SendMessageChatCell) view;
                 Object object = cell.getObject();
                 long id;
                 if (object instanceof TLRPC.User) {
@@ -453,24 +432,34 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         entry.addGeolocation = ((DialogCheckBox)views.get(1)).isChecked();
                         SharedConfig.saveConfig();
                         cell.setChecked(true, true);
+                        if (editText.length() > 0) {
+                            editText.setText(null);
+                        }
                     };
                     template.negativeListener = (dlg, whichButton) -> {
                         action.entries.remove(entry);
                         SharedConfig.saveConfig();
                         cell.setChecked(false, true);
+                        if (editText.length() > 0) {
+                            editText.setText(null);
+                        }
                     };
                     AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
-                    showDialog(dialog);
+                    showDialog(dialog, (dlg) -> {
+                        if (editText.length() > 0) {
+                            editText.setText(null);
+                        }
+                    });
                 } else {
                     if (action.entries.size() >= 100) {
                         return;
                     }
                     if (object instanceof TLRPC.User) {
                         TLRPC.User user = (TLRPC.User) object;
-                        MessagesController.getInstance(action.accountNum).putUser(user, !searching);
+                        getMessagesController().putUser(user, !searching);
                     } else if (object instanceof TLRPC.Chat) {
                         TLRPC.Chat chat = (TLRPC.Chat) object;
-                        MessagesController.getInstance(action.accountNum).putChat(chat, !searching);
+                        getMessagesController().putChat(chat, !searching);
                     }
                     DialogTemplate template = new DialogTemplate();
                     template.type = DialogType.ADD;
@@ -483,16 +472,20 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         action.entries.add(new TelegramMessageAction.Entry(id, message, addGeolocation));
                         SharedConfig.saveConfig();
                         cell.setChecked(true, true);
+                        if (editText.length() > 0) {
+                            editText.setText(null);
+                        }
                     };
                     AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
-                    showDialog(dialog);
+                    showDialog(dialog, (dlg) -> {
+                        if (editText.length() > 0) {
+                            editText.setText(null);
+                        }
+                    });
                 }
                 updateHint();
                 if (searching || searchWas) {
                     AndroidUtilities.showKeyboard(editText);
-                }
-                if (editText.length() > 0) {
-                    editText.setText(null);
                 }
             }
         });
@@ -533,8 +526,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                 if ((mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_NAME) != 0 || (mask & MessagesController.UPDATE_MASK_STATUS) != 0) {
                     for (int a = 0; a < count; a++) {
                         View child = listView.getChildAt(a);
-                        if (child instanceof GroupCreateUserCell) {
-                            ((GroupCreateUserCell) child).update(mask);
+                        if (child instanceof SendMessageChatCell) {
+                            ((SendMessageChatCell) child).update(mask);
                         }
                     }
                 }
@@ -546,7 +539,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
 
     @Override
     public AccountInstance getAccountInstance() {
-        return AccountInstance.getInstance(action.accountNum);
+        return AccountInstance.getInstance(accountNum);
     }
 
     @Keep
@@ -566,8 +559,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         int count = listView.getChildCount();
         for (int a = 0; a < count; a++) {
             View child = listView.getChildAt(a);
-            if (child instanceof GroupCreateUserCell) {
-                GroupCreateUserCell cell = (GroupCreateUserCell) child;
+            if (child instanceof SendMessageChatCell) {
+                SendMessageChatCell cell = (SendMessageChatCell) child;
                 Object object = cell.getObject();
                 long id;
                 if (object instanceof TLRPC.User) {
@@ -631,7 +624,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
 
             Set<Long> selectedIds = action.entries.stream().map(e -> (long) e.userId).collect(Collectors.toSet());
             for (Long id: selectedIds) {
-                if (id > 0) {
+                if (DialogObject.isUserDialog(id)) {
                     TLRPC.User user = getMessagesController().getUser(id);
                     if (user != null) {
                         contacts.add(user);
@@ -639,7 +632,12 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                             hasSelf = true;
                         }
                     }
-                } else {
+                } else if (DialogObject.isEncryptedDialog(id)) {
+                    TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(id));
+                    if (encryptedChat != null) {
+                        contacts.add(encryptedChat);
+                    }
+                } else if (DialogObject.isChatDialog(id)) {
                     TLRPC.Chat chat = getMessagesController().getChat(-id);
                     if (chat != null) {
                         if (!chat.broadcast || (chat.admin_rights != null && chat.admin_rights.post_messages)) {
@@ -654,7 +652,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                 if (dialog.id == 0 || selectedIds.contains(dialog.id)) {
                     continue;
                 }
-                if (dialog.id > 0) {
+                if (DialogObject.isUserDialog(dialog.id)) {
                     TLRPC.User user = getMessagesController().getUser(dialog.id);
                     if (user != null) {
                         contacts.add(user);
@@ -662,7 +660,12 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                             hasSelf = true;
                         }
                     }
-                } else {
+                } else if (DialogObject.isEncryptedDialog(dialog.id)) {
+                    TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(dialog.id));
+                    if (encryptedChat != null) {
+                        contacts.add(encryptedChat);
+                    }
+                } else if (DialogObject.isChatDialog(dialog.id)) {
                     TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
                     if (chat != null) {
                         if (!chat.broadcast || (chat.admin_rights != null && chat.admin_rights.post_messages)) {
@@ -718,7 +721,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
             switch (viewType) {
                 case 1:
                 default:
-                    view = new GroupCreateUserCell(context, 1, 0, true);
+                    view = new SendMessageChatCell(context);
                     break;
             }
             return new RecyclerListView.Holder(view);
@@ -728,9 +731,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
                 case 1: {
-                    GroupCreateUserCell cell = (GroupCreateUserCell) holder.itemView;
+                    SendMessageChatCell cell = (SendMessageChatCell) holder.itemView;
                     Object object;
-                    CharSequence username = null;
                     CharSequence name = null;
                     if (searching) {
                         int localCount = searchResult.size();
@@ -757,7 +759,6 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                                 name = searchResultNames.get(position);
                                 if (name != null && !TextUtils.isEmpty(objectUserName)) {
                                     if (name.toString().startsWith("@" + objectUserName)) {
-                                        username = name;
                                         name = null;
                                     }
                                 }
@@ -780,9 +781,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                                         }
                                         spannableStringBuilder.setSpan(new ForegroundColorSpan(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4)), index, index + len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     }
-                                    username = spannableStringBuilder;
-                                } catch (Exception e) {
-                                    username = objectUserName;
+                                } catch (Exception ignored) {
                                 }
                             }
                         }
@@ -797,24 +796,12 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         id = ((TLRPC.User) object).id;
                     } else if (object instanceof TLRPC.Chat) {
                         id = -((TLRPC.Chat) object).id;
+                    } else if (object instanceof TLRPC.EncryptedChat) {
+                        id = -((TLRPC.EncryptedChat) object).id;
                     } else {
                         id = 0;
                     }
-                    if (!searching) {
-                        StringBuilder builder = new StringBuilder();
-                        ArrayList<MessagesController.DialogFilter> filters = getMessagesController().dialogFilters;
-                        for (int a = 0, N = filters.size(); a < N; a++) {
-                            MessagesController.DialogFilter filter = filters.get(a);
-                            if (filter.includesDialog(getAccountInstance(), id)) {
-                                if (builder.length() > 0) {
-                                    builder.append(", ");
-                                }
-                                builder.append(filter.name);
-                            }
-                        }
-                        username = builder;
-                    }
-                    cell.setObject(object, name, username);
+                    cell.setObject(object, name, true);
                     if (id != 0) {
                         cell.setChecked(action.entries.stream().anyMatch(e -> e.userId == id), false);
                         cell.setCheckBoxEnabled(true);
@@ -837,8 +824,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
 
         @Override
         public void onViewRecycled(RecyclerView.ViewHolder holder) {
-            if (holder.itemView instanceof GroupCreateUserCell) {
-                ((GroupCreateUserCell) holder.itemView).recycle();
+            if (holder.itemView instanceof SendMessageChatCell) {
+                ((SendMessageChatCell) holder.itemView).recycle();
             }
         }
 
@@ -925,7 +912,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
                                         } else {
                                             TLRPC.Chat chat = (TLRPC.Chat) object;
-                                            String title = UserConfig.getChatTitleOverride(action.accountNum, chat.id);
+                                            String title = UserConfig.getChatTitleOverride(accountNum, chat.id);
                                             if (title == null) {
                                                 title = chat.title;
                                             }
@@ -971,8 +958,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                 int count = listView.getChildCount();
                 for (int a = 0; a < count; a++) {
                     View child = listView.getChildAt(a);
-                    if (child instanceof GroupCreateUserCell) {
-                        ((GroupCreateUserCell) child).update(0);
+                    if (child instanceof SendMessageChatCell) {
+                        ((SendMessageChatCell) child).update(0);
                     }
                 }
             }
@@ -1003,13 +990,13 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         themeDescriptions.add(new ThemeDescription(editText, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_groupcreate_hintText));
         themeDescriptions.add(new ThemeDescription(editText, ThemeDescription.FLAG_CURSORCOLOR, null, null, null, null, Theme.key_groupcreate_cursor));
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{GroupCreateUserCell.class}, new String[]{"textView"}, null, null, null, Theme.key_groupcreate_sectionText));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{GroupCreateUserCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkbox));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{GroupCreateUserCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkboxDisabled));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{GroupCreateUserCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkboxCheck));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{GroupCreateUserCell.class}, new String[]{"statusTextView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueText));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{GroupCreateUserCell.class}, new String[]{"statusTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{GroupCreateUserCell.class}, null, Theme.avatarDrawables, null, Theme.key_avatar_text));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{SendMessageChatCell.class}, new String[]{"textView"}, null, null, null, Theme.key_groupcreate_sectionText));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{SendMessageChatCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkbox));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{SendMessageChatCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkboxDisabled));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR, new Class[]{SendMessageChatCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkboxCheck));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{SendMessageChatCell.class}, new String[]{"statusTextView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueText));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{SendMessageChatCell.class}, new String[]{"statusTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SendMessageChatCell.class}, null, Theme.avatarDrawables, null, Theme.key_avatar_text));
         themeDescriptions.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_avatar_backgroundRed));
         themeDescriptions.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_avatar_backgroundOrange));
         themeDescriptions.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_avatar_backgroundViolet));

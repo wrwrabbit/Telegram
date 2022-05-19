@@ -73,6 +73,8 @@ public class PartisanSettingsActivity extends BaseFragment {
     private int showUpdatesDetailRow;
     private int showCallButtonRow;
     private int showCallButtonDetailRow;
+    private int isClearAllDraftsOnScreenLockRow;
+    private int isClearAllDraftsOnScreenLockDetailRow;
     private int isDeleteMessagesForAllByDefaultRow;
     private int isDeleteMessagesForAllByDefaultDetailRow;
 
@@ -260,7 +262,10 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == showCallButtonRow) {
                 SharedConfig.toggleShowCallButton();
                 ((TextCheckCell) view).setChecked(SharedConfig.showCallButton);
-            }else if (position == isDeleteMessagesForAllByDefaultRow) {
+            } else if (position == isClearAllDraftsOnScreenLockRow) {
+                SharedConfig.toggleClearAllDraftsOnScreenLock();
+                ((TextCheckCell) view).setChecked(SharedConfig.clearAllDraftsOnScreenLock);
+            } else if (position == isDeleteMessagesForAllByDefaultRow) {
                 SharedConfig.setIsDeleteMsgForAll();
                 ((TextCheckCell) view).setChecked(SharedConfig.deleteMessagesForAllByDefault);
             }
@@ -313,6 +318,8 @@ public class PartisanSettingsActivity extends BaseFragment {
         showUpdatesDetailRow = rowCount++;
         showCallButtonRow = rowCount++;
         showCallButtonDetailRow = rowCount++;
+        isClearAllDraftsOnScreenLockRow = rowCount++;
+        isClearAllDraftsOnScreenLockDetailRow = rowCount++;
         isDeleteMessagesForAllByDefaultRow = rowCount++;
         isDeleteMessagesForAllByDefaultDetailRow = rowCount++;
     }
@@ -347,7 +354,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     && position != renameChatDetailRow && position != deleteMyMessagesDetailRow && position != deleteAfterReadDetailRow
                     && position != savedChannelsDetailRow && position != reactionsDetailRow && position != foreignAgentsDetailRow
                     && position != onScreenLockActionDetailRow && position != showUpdatesDetailRow && position != showCallButtonDetailRow
-                    && position != isDeleteMessagesForAllByDefaultDetailRow;
+                    && position != isClearAllDraftsOnScreenLockDetailRow && position != isDeleteMessagesForAllByDefaultDetailRow;
         }
 
         @Override
@@ -414,7 +421,10 @@ public class PartisanSettingsActivity extends BaseFragment {
                     }  else if (position == showCallButtonRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ShowCallButton", R.string.ShowCallButton),
                                 SharedConfig.showCallButton, false);
-                    } else if (position == isDeleteMessagesForAllByDefaultRow) {
+                    }  else if (position == isClearAllDraftsOnScreenLockRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("IsClearAllDraftsOnScreenLock", R.string.IsClearAllDraftsOnScreenLock),
+                                SharedConfig.clearAllDraftsOnScreenLock, false);
+                    }  else if (position == isDeleteMessagesForAllByDefaultRow) {
                         textCell.setTextAndCheck(LocaleController.getString("IsDeleteMessagesForAllByDefault", R.string.IsDeleteMessagesForAllByDefault),
                                 SharedConfig.deleteMessagesForAllByDefault, false);
                     }
@@ -458,7 +468,10 @@ public class PartisanSettingsActivity extends BaseFragment {
                     } else if (position == showCallButtonDetailRow) {
                         cell.setText(LocaleController.getString("ShowCallButtonInfo", R.string.ShowCallButtonInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    }else if (position == isDeleteMessagesForAllByDefaultDetailRow) {
+                    } else if (position == isClearAllDraftsOnScreenLockDetailRow) {
+                        cell.setText(LocaleController.getString("IsClearAllDraftsOnScreenLockInfo", R.string.IsClearAllDraftsOnScreenLockInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == isDeleteMessagesForAllByDefaultDetailRow) {
                         cell.setText(LocaleController.getString("IsDeleteMessagesForAllByDefaultInfo", R.string.IsDeleteMessagesForAllByDefaultInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     }
@@ -490,13 +503,14 @@ public class PartisanSettingsActivity extends BaseFragment {
             if (position == versionRow || position == idRow || position == disableAvatarRow
                     || position == renameChatRow || position == deleteMyMessagesRow || position == deleteAfterReadRow
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
-                    || position == showUpdatesRow || position == showCallButtonRow || position == isDeleteMessagesForAllByDefaultRow) {
+                    || position == showUpdatesRow || position == showCallButtonRow
+                    || position == isClearAllDraftsOnScreenLockRow || position == isDeleteMessagesForAllByDefaultRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow || position == deleteAfterReadDetailRow
                     || position == savedChannelsDetailRow || position == reactionsDetailRow || position == foreignAgentsDetailRow
                     || position == onScreenLockActionDetailRow || position == showUpdatesDetailRow || position == showCallButtonDetailRow
-                    || position == isDeleteMessagesForAllByDefaultDetailRow) {
+                    || position == isClearAllDraftsOnScreenLockDetailRow || position == isDeleteMessagesForAllByDefaultDetailRow) {
                 return 1;
             } else if (position == onScreenLockActionRow) {
                 return 2;

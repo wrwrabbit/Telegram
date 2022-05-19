@@ -279,7 +279,7 @@ public class ChatRemoveCell extends FrameLayout {
                 }
             }
         } else if (currentStatus.toString().equals("")) {
-            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == currentUser.id)){
+            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == getDialogId())){
                 currentStatus = LocaleController.getString("ChatRemoved", R.string.ChatRemoved);
             }
         }
@@ -353,7 +353,7 @@ public class ChatRemoveCell extends FrameLayout {
                 }
             }
         } else if (currentStatus.toString().equals("")) {
-            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == currentUser.id)){
+            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == getDialogId())){
                 currentStatus = LocaleController.getString("ChatRemoved", R.string.ChatRemoved);
             }
         }

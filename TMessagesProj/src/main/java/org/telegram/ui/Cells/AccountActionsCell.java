@@ -20,9 +20,13 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationsController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -30,17 +34,15 @@ import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.GroupCreateCheckBox;
 import org.telegram.ui.Components.LayoutHelper;
 
-public class DrawerUserCell extends FrameLayout {
+public class AccountActionsCell extends FrameLayout {
 
-    private TextView textView;
-    private BackupImageView imageView;
-    private AvatarDrawable avatarDrawable;
-    private GroupCreateCheckBox checkBox;
+    private final TextView textView;
+    private final BackupImageView imageView;
+    private final AvatarDrawable avatarDrawable;
 
-    private int accountNumber;
-    private RectF rect = new RectF();
+    private boolean needDivider;
 
-    public DrawerUserCell(Context context) {
+    public AccountActionsCell(Context context) {
         super(context);
 
         avatarDrawable = new AvatarDrawable();
@@ -61,13 +63,6 @@ public class DrawerUserCell extends FrameLayout {
         textView.setEllipsize(TextUtils.TruncateAt.END);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP, 72, 0, 60, 0));
 
-        checkBox = new GroupCreateCheckBox(context);
-        checkBox.setChecked(true, false);
-        checkBox.setCheckScale(0.9f);
-        checkBox.setInnerRadDiff(AndroidUtilities.dp(1.5f));
-        checkBox.setColorKeysOverrides(Theme.key_chats_unreadCounterText, Theme.key_chats_unreadCounter, Theme.key_chats_menuBackground);
-        addView(checkBox, LayoutHelper.createFrame(18, 18, Gravity.LEFT | Gravity.TOP, 37, 27, 0, 0));
-
         setWillNotDraw(false);
     }
 
@@ -82,44 +77,37 @@ public class DrawerUserCell extends FrameLayout {
         textView.setTextColor(Theme.getColor(Theme.key_chats_menuItemText));
     }
 
-    public void setAccount(int account) {
-        accountNumber = account;
-        TLRPC.User user = UserConfig.getInstance(accountNumber).getCurrentUser();
-        if (user == null) {
-            return;
-        }
-        avatarDrawable.setInfo(user);
-        textView.setText(ContactsController.formatName(user.first_name, user.last_name));
-        imageView.getImageReceiver().setCurrentAccount(account);
-        imageView.setForUserOrChat(user, avatarDrawable);
-        checkBox.setVisibility(account == UserConfig.selectedAccount ? VISIBLE : INVISIBLE);
+    public void setDivider(boolean divider) {
+        needDivider = divider;
+        setWillNotDraw(!divider);
     }
 
-    public int getAccountNumber() {
-        return accountNumber;
+    public void setAccount(Integer account, AccountActions actions, boolean divider) {
+        if (account != null) {
+            TLRPC.User user = UserConfig.getInstance(account).getCurrentUser();
+            if (user == null) {
+                return;
+            }
+            avatarDrawable.setInfo(user);
+            textView.setText(ContactsController.formatName(user.first_name, user.last_name));
+            imageView.getImageReceiver().setCurrentAccount(account);
+            imageView.setForUserOrChat(user, avatarDrawable);
+        } else if (actions != null && actions.getIdHash() != null) {
+            byte[] bytes = Utilities.hexToBytes(actions.getIdHash());
+            avatarDrawable.setInfo(bytes[0], "?", "");
+            textView.setText(LocaleController.getString("LoggedOutAccount", R.string.LoggedOutAccount));
+            imageView.getImageReceiver().setCurrentAccount(UserConfig.selectedAccount);
+            imageView.setForUserOrChat(null, avatarDrawable);
+        }
+        needDivider = divider;
+        setWillNotDraw(!divider);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (UserConfig.getActivatedAccountsCount() <= 1 || !NotificationsController.getInstance(accountNumber).showBadgeNumber) {
-            return;
+        if (needDivider) {
+            canvas.drawLine(LocaleController.isRTL ? 0 : AndroidUtilities.dp(20), getMeasuredHeight() - 1, getMeasuredWidth() - (LocaleController.isRTL ? AndroidUtilities.dp(20) : 0), getMeasuredHeight() - 1, Theme.dividerPaint);
         }
-        int counter = MessagesStorage.getInstance(accountNumber).getMainUnreadCount();
-        if (counter <= 0) {
-            return;
-        }
-
-        String text = String.format("%d", counter);
-        int countTop = AndroidUtilities.dp(12.5f);
-        int textWidth = (int) Math.ceil(Theme.dialogs_countTextPaint.measureText(text));
-        int countWidth = Math.max(AndroidUtilities.dp(10), textWidth);
-        int countLeft = getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
-
-        int x = countLeft - AndroidUtilities.dp(5.5f);
-        rect.set(x, countTop, x + countWidth + AndroidUtilities.dp(14), countTop + AndroidUtilities.dp(23));
-        canvas.drawRoundRect(rect, 11.5f * AndroidUtilities.density, 11.5f * AndroidUtilities.density, Theme.dialogs_countPaint);
-
-        canvas.drawText(text, rect.left + (rect.width() - textWidth) / 2, countTop + AndroidUtilities.dp(16), Theme.dialogs_countTextPaint);
     }
 
     @Override

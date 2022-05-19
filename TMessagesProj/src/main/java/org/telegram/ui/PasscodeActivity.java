@@ -171,6 +171,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private int firstFakePasscodeRow;
     private int lastFakePasscodeRow;
     private int addFakePasscodeRow;
+    private int restoreFakePasscodeRow;
     private int fakePasscodeDetailRow;
     private int partisanSettingsRow;
     private int partisanSettingsDetailRow;
@@ -462,12 +463,17 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                             AlertsCreator.showSimpleAlert(PasscodeActivity.this, LocaleController.getString("ScreenCaptureAlert", R.string.ScreenCaptureAlert));
                         }
                     } else if (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
-                        presentFragment(new FakePasscodeActivity(0, SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow), false));
+                        presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_FAKE_PASSCODE_SETTINGS, SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow), false));
                     } else if (position == addFakePasscodeRow) {
                         FakePasscode fakePasscode = new FakePasscode();
                         fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
                         fakePasscode.autoAddAccountHidings();
-                        presentFragment(new FakePasscodeActivity(1, fakePasscode, true));
+                        presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_SETUP_FAKE_PASSCODE, fakePasscode, true));
+                    } else if (position == restoreFakePasscodeRow) {
+                        FakePasscode fakePasscode = new FakePasscode();
+                        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
+                        fakePasscode.autoAddAccountHidings();
+                        presentFragment(new FakePasscodeRestoreActivity());
                     } else if (position == partisanSettingsRow) {
                         presentFragment(new PartisanSettingsActivity());
                     }
@@ -1004,6 +1010,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         firstFakePasscodeRow = -1;
         lastFakePasscodeRow = -1;
         addFakePasscodeRow = -1;
+        restoreFakePasscodeRow = -1;
         fakePasscodeDetailRow = -1;
         bruteForceProtectionRow = -1;
         clearCacheOnLockRow = -1;
@@ -1061,6 +1068,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 rowCount = lastFakePasscodeRow + 1;
             }
             addFakePasscodeRow = rowCount++;
+            restoreFakePasscodeRow = rowCount++;
             fakePasscodeDetailRow = rowCount++;
             partisanSettingsRow = rowCount++;
             partisanSettingsDetailRow = rowCount++;
@@ -1347,7 +1355,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     || position == bruteForceProtectionRow || position == clearCacheOnLockRow
                     || position == captureRow || SharedConfig.passcodeEnabled() && position == changePasscodeRow
                     || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
-                    || position == addFakePasscodeRow
+                    || position == addFakePasscodeRow || position == restoreFakePasscodeRow
                     || position == partisanSettingsRow || position == disablePasscodeRow;
         }
 
@@ -1449,7 +1457,11 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == addFakePasscodeRow) {
-                        textCell.setText(LocaleController.getString("AddFakePasscode", R.string.AddFakePasscode), false);
+                        textCell.setText(LocaleController.getString("AddFakePasscode", R.string.AddFakePasscode), true);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlueText4);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                    } else if (position == restoreFakePasscodeRow) {
+                        textCell.setText(LocaleController.getString("FakePasscodeRestore", R.string.FakePasscodeRestore), false);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlueText4);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
                     } else if (position == partisanSettingsRow) {
@@ -1523,7 +1535,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     || position == badPasscodeMuteAudioRow) {
                 return VIEW_TYPE_CHECK;
             } else if (position == changePasscodeRow || position == autoLockRow || position == disablePasscodeRow
-                    || position == addFakePasscodeRow || position == badPasscodeAttemptsRow
+                    || position == addFakePasscodeRow || position == restoreFakePasscodeRow
+                    || position == badPasscodeAttemptsRow
                     || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
                     || position == partisanSettingsRow) {
                 return VIEW_TYPE_SETTING;

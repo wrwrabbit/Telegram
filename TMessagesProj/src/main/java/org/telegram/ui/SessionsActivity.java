@@ -576,7 +576,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             loading = true;
         }
         if (currentType == 0) {
-            List<Long> sessionsToHide = loadSessionsToHide();
+            List<Long> sessionsToHide = getSessionsToHide();
             int sessionsToHideMode = getSessionsToHideMode();
 
             TLRPC.TL_account_getAuthorizations req = new TLRPC.TL_account_getAuthorizations();
@@ -632,11 +632,11 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         }
     }
 
-    private List<Long> loadSessionsToHide() {
+    private List<Long> getSessionsToHide() {
         FakePasscode activatedPasscode = SharedConfig.getActivatedFakePasscode();
-        if (activatedPasscode != null) {
-            CheckedSessions sessionsToHide = activatedPasscode.sessionsToHide.get(currentAccount);
-            return sessionsToHide != null ? sessionsToHide.sessions : null;
+        if (activatedPasscode != null && activatedPasscode.getAccountActions(currentAccount) != null) {
+            CheckedSessions sessionsToHide = activatedPasscode.getAccountActions(currentAccount).getSessionsToHide();
+            return sessionsToHide.getSessions();
         } else {
             return null;
         }
@@ -644,9 +644,9 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
 
     private int getSessionsToHideMode() {
         FakePasscode activatedPasscode = SharedConfig.getActivatedFakePasscode();
-        if (activatedPasscode != null) {
-            CheckedSessions sessionsToHide = activatedPasscode.sessionsToHide.get(currentAccount);
-            return sessionsToHide != null ? sessionsToHide.mode : 0;
+        if (activatedPasscode != null && activatedPasscode.getAccountActions(currentAccount) != null) {
+            CheckedSessions sessionsToHide = activatedPasscode.getAccountActions(currentAccount).getSessionsToHide();
+            return sessionsToHide.getMode();
         } else {
             return 0;
         }
@@ -935,11 +935,6 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
 
             colors[6] = 0x212020;
             colors[7] = Theme.getColor(Theme.key_windowBackgroundWhite);
-
-//            imageView.replaceColors(colors);
-//            imageView.setAnimation(R.raw.qr_login, 230, 230, colors);
-//            imageView.setScaleType(ImageView.ScaleType.CENTER);
-//            imageView.playAnimation();
 
             textView = new TextView(context);
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 36, 152, 36, 0));
