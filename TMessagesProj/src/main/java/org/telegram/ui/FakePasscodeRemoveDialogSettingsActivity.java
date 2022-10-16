@@ -175,6 +175,10 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
             } else if (position == hideDialogRow) {
+                if (SharedConfig.showHideDialogIsNotSafeWarning) {
+                    showHideDialogIsNotSafeWarning();
+                }
+
                 if (hasDeleteDialog()) {
                     changed = true;
                 }
@@ -190,6 +194,18 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         });
 
         return fragmentView;
+    }
+
+    private void showHideDialogIsNotSafeWarning() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("Warning", R.string.Warning));
+        builder.setMessage(LocaleController.getString("HideDialogIsNotSafeWarningMessage", R.string.HideDialogIsNotSafeWarningMessage));
+        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+        builder.setNegativeButton(LocaleController.getString("DoNotShowAgain", R.string.DoNotShowAgain), (dialog, whichButton) -> {
+            SharedConfig.showHideDialogIsNotSafeWarning = false;
+            SharedConfig.saveConfig();
+        });
+        showDialog(builder.create());
     }
 
     @Override

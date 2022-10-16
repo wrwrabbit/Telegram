@@ -5719,6 +5719,7 @@
     <string name="DeleteAllMyMessages">Delete All My Messages</string>
     <string name="DeleteAllMyMessagesDetails">All your messages will be deleted before leaving the chat. This option only applies to chats.\n\nWarning! Until all messages in the chat have been checked, the chat will not be deleted, it will be hidden. If there are a lot of messages in the chat, it may not be deleted for a long time. Old messages may not be deleted if there are many messages in the chat. If there is no network, messages will not be deleted.</string>
     <string name="HideDialogDetails">If the "Hide" option is selected, the dialogs (chats, channels) will not be deleted. They will be hidden from the dialog list. Their notifications will also be hidden. After logging in with the original passcode, the dialog will appear in the list. It is safer to use delete.</string>
+    <string name="HideDialogIsNotSafeWarningMessage">"Hide" option is not safe. It is safer to use delete</string>
     <string name="RemoveDialogFromListTitle">Remove Dialog from the List</string>
     <string name="RemoveDialogFromListAlert">Are you sure you want to remove the dialog from the list?</string>
     <string name="DebugSendLogcat">Send Logcat</string>

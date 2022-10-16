@@ -250,6 +250,7 @@ public class SharedConfig {
     public static int onScreenLockAction;
     public static boolean onScreenLockActionClearCache;
     public static boolean showSessionsTerminateActionWarning;
+    public static boolean showHideDialogIsNotSafeWarning;
     public static int activatedTesterSettingType;
     public static long updateChannelIdOverride;
     public static String updateChannelUsernameOverride;
@@ -397,6 +398,7 @@ public class SharedConfig {
                 editor.putInt("onScreenLockAction", onScreenLockAction);
                 editor.putBoolean("onScreenLockActionClearCache", onScreenLockActionClearCache);
                 editor.putBoolean("showSessionsTerminateActionWarning", showSessionsTerminateActionWarning);
+                editor.putBoolean("showHideDialogIsNotSafeWarning", showHideDialogIsNotSafeWarning);
                 editor.putInt("activatedTesterSettingType", activatedTesterSettingType);
                 editor.putLong("updateChannelIdOverride", updateChannelIdOverride);
                 editor.putString("updateChannelUsernameOverride", updateChannelUsernameOverride);
@@ -544,6 +546,7 @@ public class SharedConfig {
             onScreenLockAction = preferences.getInt("onScreenLockAction", 0);
             onScreenLockActionClearCache = preferences.getBoolean("onScreenLockActionClearCache", false);
             showSessionsTerminateActionWarning = preferences.getBoolean("showSessionsTerminateActionWarning", true);
+            showHideDialogIsNotSafeWarning = preferences.getBoolean("showHideDialogIsNotSafeWarning", true);
             activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
@@ -977,6 +980,7 @@ public class SharedConfig {
         emojiInteractionsHintCount = 3;
         dayNightThemeSwitchHintCount = 3;
         showSessionsTerminateActionWarning = true;
+        showHideDialogIsNotSafeWarning = true;
         saveConfig();
     }
 

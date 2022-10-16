@@ -83,6 +83,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int disablePremiumRow;
     private int simpleDataStartRow;
     private int simpleDataEndRow;
+    private int hideDialogIsNotSafeWarningRow;
 
     public static boolean showPlainBackup;
 
@@ -188,6 +189,10 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.premiumDisabled = !SharedConfig.premiumDisabled;
                 SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.premiumDisabled);
+            } else if (position == hideDialogIsNotSafeWarningRow) {
+                SharedConfig.showHideDialogIsNotSafeWarning = !SharedConfig.showHideDialogIsNotSafeWarning;
+                SharedConfig.saveConfig();
+                ((TextCheckCell) view).setChecked(SharedConfig.showHideDialogIsNotSafeWarning);
             }
         });
 
@@ -216,6 +221,7 @@ public class TesterSettingsActivity extends BaseFragment {
         simpleDataStartRow = rowCount;
         rowCount += simpleDataArray.length;
         simpleDataEndRow = rowCount;
+        hideDialogIsNotSafeWarningRow = rowCount++;
     }
 
     @Override
@@ -316,6 +322,9 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setTextAndCheck("Show plain backup", showPlainBackup, true);
                     } else if (position == disablePremiumRow) {
                         textCell.setTextAndCheck("Disable Premiun", SharedConfig.premiumDisabled, true);
+                    } else if (position == hideDialogIsNotSafeWarningRow) {
+                        textCell.setTextAndCheck("Show hide dialog is not safe warning",
+                                SharedConfig.showHideDialogIsNotSafeWarning, true);
                     }
                     break;
                 } case 1: {
@@ -339,7 +348,7 @@ public class TesterSettingsActivity extends BaseFragment {
         @Override
         public int getItemViewType(int position) {
             if (position == sessionTerminateActionWarningRow || position == showPlainBackupRow
-                || position == disablePremiumRow) {
+                || position == disablePremiumRow || position == hideDialogIsNotSafeWarningRow) {
                 return 0;
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
                     || position == resetUpdateRow || (simpleDataStartRow <= position && position < simpleDataEndRow)) {
