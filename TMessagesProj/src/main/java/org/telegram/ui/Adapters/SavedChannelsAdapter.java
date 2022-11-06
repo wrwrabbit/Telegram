@@ -102,7 +102,7 @@ public class SavedChannelsAdapter extends RecyclerListView.SelectionAdapter {
     private void addChat(TLRPC.Chat chat) {
         int position = getInsertPosition(chats, chat);
         if (position < 0) {
-            MessagesController.getInstance(currentAccount).loadMessages(-chat.id, 0, false, 1, 0, 0, false, 0, 0, 2, 0, 0, 0, 0, 1);
+            MessagesController.getInstance(currentAccount).loadMessages(-chat.id, 0, false, 1, 0, 0, false, 0, 0, 2, 0, 0, 0, 0, 1, false);
 
             int insertPosition = -(position + 1);
             int oldSize = chats.size();

@@ -1237,7 +1237,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         showNextSupportedSuggestion();
         Bulletin.addDelegate(this, new Bulletin.Delegate() {
             @Override
-            public void onOffsetChange(float offset) {
+            public void onBottomOffsetChange(float offset) {
                 if (undoView[0] != null && undoView[0].getVisibility() == View.VISIBLE) {
                     return;
                 }
@@ -1277,7 +1277,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
     }
 
     @Override
-    protected void onBecomeFullyHidden() {
+    public void onBecomeFullyHidden() {
         if (undoView[0] != null) {
             undoView[0].hide(true, 0);
         }
@@ -1467,7 +1467,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
     }
 
     @Override
-    protected void onTransitionAnimationProgress(boolean isOpen, float progress) {
+    public void onTransitionAnimationProgress(boolean isOpen, float progress) {
         if (blurredView != null && blurredView.getVisibility() == View.VISIBLE) {
             if (isOpen) {
                 blurredView.setAlpha(1.0f - progress);
@@ -1478,7 +1478,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
     }
 
     @Override
-    protected void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+    public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
         if (isOpen && blurredView != null && blurredView.getVisibility() == View.VISIBLE) {
             blurredView.setVisibility(View.GONE);
             blurredView.setBackground(null);
@@ -2262,7 +2262,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
     }
 
     @Override
-    protected void prepareFragmentToSlide(boolean topFragment, boolean beginSlide) {
+    public void prepareFragmentToSlide(boolean topFragment, boolean beginSlide) {
         if (!topFragment && beginSlide) {
             isSlideBackTransition = true;
             setFragmentIsSliding(true);
@@ -2312,7 +2312,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
     }
 
     @Override
-    protected void onSlideProgress(boolean isOpen, float progress) {
+    public void onSlideProgress(boolean isOpen, float progress) {
         if (SharedConfig.getDevicePerformanceClass() == SharedConfig.PERFORMANCE_CLASS_LOW) {
             return;
         }

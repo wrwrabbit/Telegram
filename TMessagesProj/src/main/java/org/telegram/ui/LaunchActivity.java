@@ -6019,7 +6019,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             switchToAvailableAccountIfCurrentAccountIsHidden();
             if (SharedConfig.getActivatedFakePasscode() != null) {
                 Utilities.globalQueue.postRunnable(() -> {
-                    ArrayList<BaseFragment> fragmentsStack = actionBarLayout.fragmentsStack;
+                    List<BaseFragment> fragmentsStack = actionBarLayout.getFragmentStack();
                     if (fragmentsStack.stream().noneMatch(f -> f instanceof DialogsActivity)) {
                         return;
                     }

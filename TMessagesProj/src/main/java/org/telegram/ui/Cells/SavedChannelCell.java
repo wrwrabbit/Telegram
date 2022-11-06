@@ -1438,7 +1438,8 @@ public class SavedChannelCell extends BaseCell {
         List<TLRPC.Chat> chatsArray = adapter.getChatsArray();
         if (index < chatsArray.size()) {
             TLRPC.Chat chat = chatsArray.get(index);
-            MessageObject newMessageObject = MessagesController.getInstance(currentAccount).dialogMessage.get(chat.id);
+            ArrayList<MessageObject> groupMessages = MessagesController.getInstance(currentAccount).dialogMessage.get(chat.id);
+            MessageObject newMessageObject = groupMessages != null && groupMessages.size() > 0 ? groupMessages.get(0) : null;
             if (currentDialogId != -chat.id ||
                     newMessageObject != null && newMessageObject.messageOwner.edit_date != currentEditDate ||
                     adapter.getMessage(currentDialogId) != newMessageObject ||
@@ -1591,7 +1592,7 @@ public class SavedChannelCell extends BaseCell {
         encryptedChat = null;
 
         long dialogId = currentDialogId;
-        dialogMuted = MessagesController.getInstance(currentAccount).isDialogMuted(currentDialogId);
+        dialogMuted = MessagesController.getInstance(currentAccount).isDialogMuted(currentDialogId, 0);
 
         if (dialogId != 0) {
             if (DialogObject.isEncryptedDialog(dialogId)) {

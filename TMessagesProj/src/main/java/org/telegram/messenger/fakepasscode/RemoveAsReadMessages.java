@@ -101,7 +101,7 @@ public class RemoveAsReadMessages {
                     continue;
                 }
                 for (RemoveAsReadMessage message : dialogEntry.getValue()) {
-                    controller.loadMessages(dialogId, 0, false, 1, message.id + 1, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1);
+                    controller.loadMessages(dialogId, 0, false, 1, message.id + 1, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
                 }
             }
             if (dialogsToLoad.isEmpty()) {

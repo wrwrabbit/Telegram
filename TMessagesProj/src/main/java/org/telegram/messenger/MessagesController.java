@@ -15481,10 +15481,10 @@ public class MessagesController extends BaseController implements NotificationCe
                                     if (obj != null && !obj.isOut()) {
                                         obj.setIsRead();
                                         updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
+                                        autoDeleteMessages.add(obj);
                                     }
                                 }
                             }
-                            autoDeleteMessages.add(obj);
                         }
                         if (key != getUserConfig().getClientUserId()) {
                             editor.remove("diditem" + key);
@@ -16963,7 +16963,7 @@ public class MessagesController extends BaseController implements NotificationCe
         loadMessages(dialogId, 0, false,
                 100, 0, 0, true, 0 ,
                 deleteAllMessagesGuid, 0, 0,
-                0, 0, 0, loadIndex[0]++);
+                0, 0, 0, loadIndex[0]++, false);
     }
 
     private int clearMessages(long dialogId, long ownerId, int classGuid, int loadIndex,
@@ -17003,7 +17003,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 loadMessages(dialogId, 0, false,
                         100, maxId, 0, true, minDate,
                         classGuid, 0, 0,
-                        0, 0, 0, loadIndex);
+                        0, 0, 0, loadIndex, false);
             } else {
                 getNotificationCenter().removeObserver(deleteMessagesDelegate, NotificationCenter.messagesDidLoad);
             }

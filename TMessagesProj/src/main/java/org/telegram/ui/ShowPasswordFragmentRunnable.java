@@ -4,11 +4,12 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.ActionBarLayout;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.INavigationLayout;
 
 public class ShowPasswordFragmentRunnable  implements Runnable {
     private BaseFragment parentFragment;
     private BaseFragment passwordFragment;
-    private ActionBarLayout parentLayout;
+    private INavigationLayout parentLayout;
     private int delay;
 
     public ShowPasswordFragmentRunnable(BaseFragment parentFragment, BaseFragment passwordFragment, int delay) {
