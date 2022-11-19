@@ -263,7 +263,7 @@ public class ClearHistoryAlert extends BottomSheet {
             if (user != null) {
                 messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithUser", R.string.AreYouSureClearHistoryWithUser, UserObject.getUserName(user))));
             } else {
-                if (!ChatObject.isChannel(chat) || chat.megagroup && TextUtils.isEmpty(chat.username)) {
+                if (!ChatObject.isChannel(chat) || chat.megagroup && !ChatObject.isPublic(chat)) {
                     String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
                     if (title == null) {
                         title = chat.title;

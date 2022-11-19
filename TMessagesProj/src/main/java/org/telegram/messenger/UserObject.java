@@ -43,6 +43,14 @@ public class UserObject {
         return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
     }
 
+    public static String getUserName(TLRPC.User user) {
+        if (user == null || isDeleted(user)) {
+            return LocaleController.getString("HiddenName", R.string.HiddenName);
+        }
+        String name = ContactsController.formatName(user.first_name, user.last_name);
+        return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
+    }
+
     public static String getUserName(TLRPC.User user, UserConfig config) {
         if (user == null || isDeleted(user)) {
             return LocaleController.getString("HiddenName", R.string.HiddenName);
@@ -57,6 +65,28 @@ public class UserObject {
 
     public static String getUserName(TLRPC.User user, int accountNum) {
         return getUserName(user, UserConfig.getInstance(accountNum));
+    }
+
+    public static String getPublicUsername(TLRPC.User user, boolean editable) {
+        if (user == null) {
+            return null;
+        }
+        if (!TextUtils.isEmpty(user.username)) {
+            return user.username;
+        }
+        if (user.usernames != null) {
+            for (int i = 0; i < user.usernames.size(); ++i) {
+                TLRPC.TL_username u = user.usernames.get(i);
+                if (u != null && (u.active && !editable || u.editable) && !TextUtils.isEmpty(u.username)) {
+                    return u.username;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String getPublicUsername(TLRPC.User user) {
+        return getPublicUsername(user, false);
     }
 
     public static String getFirstName(TLRPC.User user) {
