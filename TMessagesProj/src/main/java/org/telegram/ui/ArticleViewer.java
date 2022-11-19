@@ -10558,7 +10558,7 @@ public class ArticleViewer implements NotificationCenter.NotificationCenterDeleg
                 if (title == null) {
                     title = currentBlock.channel.title;
                 }
-                textLayout = createLayoutForText(this, title, null, width - AndroidUtilities.dp(36 + 16) - buttonWidth, textY, currentBlock, StaticLayoutEx.ALIGN_LEFT(), parentAdapter);
+                textLayout = createLayoutForText(this, title, null, width - AndroidUtilities.dp(36 + 16) - buttonWidth, textY, currentBlock, StaticLayoutEx.ALIGN_LEFT(), 1, parentAdapter);
                 if (parentAdapter.isRtl) {
                     textX2 = textX;
                 } else {

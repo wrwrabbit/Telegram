@@ -281,9 +281,11 @@ public class GroupCallPipAlertView extends LinearLayout implements VoIPService.S
         super.onAttachedToWindow();
         VoIPService service = VoIPService.getSharedInstance();
         if (service != null && service.groupCall != null) {
-            int color2 = AvatarDrawable.getColorForId(service.getChat().id);
             AvatarDrawable avatarDrawable = new AvatarDrawable();
-            avatarDrawable.setColor(color2);
+            avatarDrawable.setColor(
+                Theme.getColor(Theme.keys_avatar_background[AvatarDrawable.getColorIndex(service.getChat().id)]),
+                Theme.getColor(Theme.keys_avatar_background2[AvatarDrawable.getColorIndex(service.getChat().id)])
+            );
             avatarDrawable.setInfo(service.getChat(), currentAccount);
             avatarImageView.setImage(UserConfig.isAvatarEnabled(currentAccount, service.getChat().id) ? ImageLocation.getForLocal(service.getChat().photo.photo_small) : null, "50_50", avatarDrawable, null);
 
