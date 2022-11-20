@@ -8056,7 +8056,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         int maxVersionPatch = 0;
         int maxVersionPostId = -1;
         MessageObject maxMessageObject = null;
-        Pattern regex = Pattern.compile("PTelegram-v(\\d+)_(\\d+)_(\\d+)(_b)?\\.apk");
+        Pattern regex = Pattern.compile("PTelegram-v(\\d+)_(\\d+)_(\\d+)(_b|_w)?\\.apk");
         for (MessageObject message : messages) {
             TLRPC.Document doc = message.getDocument();
             if (doc == null) {
