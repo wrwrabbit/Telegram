@@ -43,14 +43,6 @@ public class UserObject {
         return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
     }
 
-    public static String getUserName(TLRPC.User user) {
-        if (user == null || isDeleted(user)) {
-            return LocaleController.getString("HiddenName", R.string.HiddenName);
-        }
-        String name = ContactsController.formatName(user.first_name, user.last_name);
-        return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
-    }
-
     public static String getUserName(TLRPC.User user, UserConfig config) {
         if (user == null || isDeleted(user)) {
             return LocaleController.getString("HiddenName", R.string.HiddenName);

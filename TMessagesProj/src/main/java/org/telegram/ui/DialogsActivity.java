@@ -4097,7 +4097,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (SharedConfig.update30Step != null) {
                 AndroidUtilities.runOnUIThread(() -> presentFragment(new Update30Activity()), 200);
             }
-            getMessagesController().loadMessages(getUpdateTgChannelId(), 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1);
+            getMessagesController().loadMessages(getUpdateTgChannelId(), 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
         }
         if (FakePasscode.autoAddHidingsToAllFakePasscodes() && !SharedConfig.isFakePasscodeActivated()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
@@ -7930,7 +7930,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if ((Long)args[0] == getUpdateTgChannelId()) {
                     if (!partisanTgChannelLastMessageLoaded) {
                         partisanTgChannelLastMessageLoaded = true;
-                        getMessagesController().loadMessages(getUpdateTgChannelId(), 0, false, 50, 0, 0, false, 0, classGuid, 2, (int)args[5], 0, 0, 0, 1);
+                        getMessagesController().loadMessages(getUpdateTgChannelId(), 0, false, 50, 0, 0, false, 0, classGuid, 2, (int)args[5], 0, 0, 0, 1, false);
                     } else {
                         appUpdatesChecked = true;
                         getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
@@ -7961,7 +7961,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                 MessagesController.getInstance(currentAccount).putUsers(res.users, false);
                                 MessagesController.getInstance(currentAccount).putChats(res.chats, false);
                                 MessagesStorage.getInstance(currentAccount).putUsersAndChats(res.users, res.chats, true, true);
-                                getMessagesController().loadMessages(getUpdateTgChannelId(), 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1);
+                                getMessagesController().loadMessages(getUpdateTgChannelId(), 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
                             } else {
                                 getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
                             }

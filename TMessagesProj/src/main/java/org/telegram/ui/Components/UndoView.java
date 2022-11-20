@@ -1074,13 +1074,13 @@ public class UndoView extends FrameLayout {
                                 if (title == null) {
                                     title = chat.title;
                                 }
-                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessageToGroup", R.string.FwdMessageToGroup,  topic != null ? title)));
+                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessageToGroup", R.string.FwdMessageToGroup,  topic != null ? title : null)));
                             } else {
                                 String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
                                 if (title == null) {
                                     title = chat.title;
                                 }
-                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessagesToGroup", R.string.FwdMessagesToGroup, topic != null ? title)));
+                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessagesToGroup", R.string.FwdMessagesToGroup, topic != null ? title : null)));
                             }
                         } else {
                             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);

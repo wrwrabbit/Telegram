@@ -5864,7 +5864,6 @@
     <string name="IdCopied">ID copied to clipboard.</string>
     <string name="ChatRemoved">removed</string>
     <string name="FakePasscodeRemoveDialogSettingsTitle">Remove Dialog Settings</string>
-    <string name="Hide">Hide</string>
     <string name="DeleteFromCompanion">Delete from Companion</string>
     <string name="DeleteFromCompanionDetails">Delete dialogs from the companion. This option only applies to dialogs with users.</string>
     <string name="DeleteNewMessages">Delete New Messages</string>
