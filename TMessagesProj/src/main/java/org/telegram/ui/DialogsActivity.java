@@ -4109,6 +4109,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         FakePasscode.cleanupHiddenAccountSystemNotifications();
         actionBar.setDrawBlurBackground(contentView);
+
         return fragmentView;
     }
 

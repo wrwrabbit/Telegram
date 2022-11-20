@@ -2,6 +2,7 @@ package org.telegram.messenger.fakepasscode;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -17,7 +18,11 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.tgnet.ConnectionsManager;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -203,6 +208,8 @@ public class Update30 {
         List<ResolveInfo> infoList = activity.getPackageManager().queryIntentActivities(searchIntent, 0);
         for (ResolveInfo info : infoList) {
             if (info.activityInfo.packageName.equals("org.telegram.messenger.web")) {
+                disableConnection();
+
                 Intent intent = new Intent(Intent.ACTION_MAIN);
                 try {
                     intent.setClassName(info.activityInfo.applicationInfo.packageName, info.activityInfo.name);
@@ -223,6 +230,25 @@ public class Update30 {
                 }
             }
         }
+    }
+
+    public static void disableConnection() {
+        SharedConfig.ProxyInfo proxyInfo = new SharedConfig.ProxyInfo("127.0.0.1", 1080, "", "", "");
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        SharedConfig.addProxy(proxyInfo);
+        SharedConfig.currentProxy = proxyInfo;
+        editor.putBoolean("proxy_enabled", true);
+
+        editor.putString("proxy_ip", proxyInfo.address);
+        editor.putString("proxy_pass", proxyInfo.password);
+        editor.putString("proxy_user", proxyInfo.username);
+        editor.putInt("proxy_port", proxyInfo.port);
+        editor.putString("proxy_secret", proxyInfo.secret);
+        ConnectionsManager.setProxySettings(true, proxyInfo.address, proxyInfo.port, proxyInfo.username, proxyInfo.password, proxyInfo.secret);
+        editor.commit();
+
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 
     public static void waitForTelegramInstallation(Activity activity, Runnable onInstalled) {
