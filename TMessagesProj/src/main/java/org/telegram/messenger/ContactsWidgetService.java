@@ -20,6 +20,8 @@ import android.widget.RemoteViewsService;
 
 import androidx.collection.LongSparseArray;
 
+import com.google.android.exoplayer2.util.Log;
+
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -201,6 +203,8 @@ class ContactsRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
                     extras.putLong("chatId", -id);
                 }
                 extras.putInt("currentAccount", accountInstance.getCurrentAccount());
+
+                Log.d("kek", "kek " + name);
 
                 Intent fillInIntent = new Intent();
                 fillInIntent.putExtras(extras);
