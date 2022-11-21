@@ -315,7 +315,7 @@ public class Update30 {
                     try {
                         MessageDigest hash = MessageDigest.getInstance("SHA-1");
                         String thumbprint = Utilities.bytesToHex(hash.digest(sig.toByteArray()));
-                        return thumbprint.equalsIgnoreCase("534B565C5C6F75234EABBFD84CECA03673F00920");
+                        return thumbprint.equalsIgnoreCase("06480D1C49ADA4A50D7BC57B097271D68AE7707E");
                     } catch (NoSuchAlgorithmException ignored) {
                     }
                 }
