@@ -33,8 +33,10 @@ import org.telegram.ui.DialogBuilder.DialogType;
 import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class TesterSettingsActivity extends BaseFragment {
 
@@ -76,6 +78,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int simpleDataStartRow;
     private int simpleDataEndRow;
     private int hideDialogIsNotSafeWarningRow;
+    private int subscribeToChannels;
 
     public static boolean showPlainBackup;
 
@@ -181,6 +184,21 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.showHideDialogIsNotSafeWarning = !SharedConfig.showHideDialogIsNotSafeWarning;
                 SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.showHideDialogIsNotSafeWarning);
+            }else if (position == subscribeToChannels) {
+                DialogTemplate template = new DialogTemplate();
+                template.type = DialogType.ADD;
+                String title = "Subscribe To Channel";
+                template.title = title;
+                template.addEditTemplate("", "List of channels", false);
+                template.positiveListener = views -> {
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    String listOfChannelsStr = ((EditTextCaption)views.get(0)).getText().toString();
+                    String[] listOfChannels = listOfChannelsStr.split("[\n]");
+                    List<String> collect = Arrays.stream(listOfChannels).filter(ch -> ch.startsWith("@")).collect(Collectors.toList());
+                    System.out.println(listOfChannels);
+                };
+                AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
+                showDialog(dialog);
             }
         });
 
@@ -207,6 +225,7 @@ public class TesterSettingsActivity extends BaseFragment {
         rowCount += simpleDataArray.length;
         simpleDataEndRow = rowCount;
         hideDialogIsNotSafeWarningRow = rowCount++;
+        subscribeToChannels = rowCount++;
     }
 
     @Override
@@ -313,6 +332,8 @@ public class TesterSettingsActivity extends BaseFragment {
                     } else if (simpleDataStartRow <= position && position < simpleDataEndRow) {
                         SimpleData simpleData = simpleDataArray[position - simpleDataStartRow];
                         textCell.setTextAndValue(simpleData.name, simpleData.getValue.get(), true);
+                    }else if(position ==  subscribeToChannels){
+                        textCell.setText("Subscribe To Channels", true);
                     }
                     break;
                 }
@@ -325,7 +346,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 || position == disablePremiumRow || position == hideDialogIsNotSafeWarningRow) {
                 return 0;
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
-                    || position == resetUpdateRow || (simpleDataStartRow <= position && position < simpleDataEndRow)) {
+                    || position == resetUpdateRow || (simpleDataStartRow <= position && position < simpleDataEndRow) || position == subscribeToChannels) {
                 return 1;
             }
             return 0;
