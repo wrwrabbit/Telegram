@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
@@ -192,10 +194,17 @@ public class TesterSettingsActivity extends BaseFragment {
                 template.addEditTemplate("", "List of channels", false);
                 template.positiveListener = views -> {
                     TextSettingsCell cell = (TextSettingsCell) view;
-                    String listOfChannelsStr = ((EditTextCaption)views.get(0)).getText().toString();
-                    String[] listOfChannels = listOfChannelsStr.split("[\n]");
-                    List<String> collect = Arrays.stream(listOfChannels).filter(ch -> ch.startsWith("@")).collect(Collectors.toList());
-                    System.out.println(listOfChannels);
+                    String listOfInputsStr = ((EditTextCaption)views.get(0)).getText().toString();
+                    String[] listOfInputs = listOfInputsStr.split("[\n]");
+                    List<String> listOfChannels = Arrays.stream(listOfInputs).filter(ch -> ch.startsWith("@")).collect(Collectors.toList());
+                    for(String chName: listOfChannels){
+                        try {
+                            //TODO get channel id by name
+                            getMessagesController().addUserToChat(-1, getUserConfig().getCurrentUser(), 0, null, TesterSettingsActivity.this, null);
+                        } catch (Exception e) {
+                            Toast.makeText(context, "Filed to resolve channel: " + chName, Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 };
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
                 showDialog(dialog);
