@@ -15,9 +15,12 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -30,6 +33,7 @@ import org.telegram.ui.Adapters.SearchAdapterHelper;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
+import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -197,25 +201,34 @@ public class TesterSettingsActivity extends BaseFragment {
                 template.addEditTemplate("", "List of channels", false);
                 template.positiveListener = views -> {
                     TextSettingsCell cell = (TextSettingsCell) view;
-                    String listOfInputsStr = ((EditTextCaption)views.get(0)).getText().toString();
+                    String listOfInputsStr = ((EditTextCaption) views.get(0)).getText().toString();
                     String[] listOfInputs = listOfInputsStr.split("[\n]");
                     List<String> listOfChannels = Arrays.stream(listOfInputs).filter(ch -> ch.startsWith("@")).collect(Collectors.toList());
-                    for(String chName: listOfChannels){
-                        try {
-                            //TODO get channel id by name
-//                            SearchAdapterHelper searchAdapterHelper = new SearchAdapterHelper(false);
-//                            searchAdapterHelper.queryServerSearch(chName, true, true, true, true, false, 0, false, 0, 0);
-//
-//                            TLObject object = MessagesController.getInstance(currentAccount).getUserOrChat(chName);
-//                            TLRPC.Chat chat = null;
-//                            if (object instanceof TLRPC.Chat) {
-//                                chat = (TLRPC.Chat) object;
-                                getMessagesController().addUserToChat(-100000, getUserConfig().getCurrentUser(), 0, null, TesterSettingsActivity.this, null);
-//                          }
+                    for (String chName : listOfChannels) {
+                        TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
+                        req.username = chName.replace("@", "");
+                        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {
+                            AndroidUtilities.runOnUIThread(() -> {
+                                if (response != null) {
+                                    TLRPC.TL_contacts_resolvedPeer res = (TLRPC.TL_contacts_resolvedPeer) response;
+                                    MessagesController.getInstance(currentAccount).putUsers(res.users, false);
+                                    MessagesController.getInstance(currentAccount).putChats(res.chats, false);
+                                    MessagesStorage.getInstance(currentAccount).putUsersAndChats(res.users, res.chats, true, true);
 
-                        } catch (Exception e) {
-                            Toast.makeText(context, "Filed to resolve channel: " + chName, Toast.LENGTH_SHORT).show();
-                        }
+                                    if (res.chats != null && !res.chats.isEmpty()) {
+                                        try {
+                                            getMessagesController().addUserToChat(res.chats.get(0).id, getUserConfig().getCurrentUser(), 0, null,
+                                                    TesterSettingsActivity.this, null);
+                                        } catch (Exception e) {
+                                            Toast.makeText(context, "Filed to join to channel: " + chName + " due to: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Filed to resolve channel: " + chName, Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        });
+
                     }
                 };
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
