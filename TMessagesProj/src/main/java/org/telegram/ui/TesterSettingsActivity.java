@@ -18,12 +18,15 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
+import org.telegram.ui.Adapters.DialogsSearchAdapter;
+import org.telegram.ui.Adapters.SearchAdapterHelper;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
@@ -200,7 +203,16 @@ public class TesterSettingsActivity extends BaseFragment {
                     for(String chName: listOfChannels){
                         try {
                             //TODO get channel id by name
-                            getMessagesController().addUserToChat(-1, getUserConfig().getCurrentUser(), 0, null, TesterSettingsActivity.this, null);
+//                            SearchAdapterHelper searchAdapterHelper = new SearchAdapterHelper(false);
+//                            searchAdapterHelper.queryServerSearch(chName, true, true, true, true, false, 0, false, 0, 0);
+//
+//                            TLObject object = MessagesController.getInstance(currentAccount).getUserOrChat(chName);
+//                            TLRPC.Chat chat = null;
+//                            if (object instanceof TLRPC.Chat) {
+//                                chat = (TLRPC.Chat) object;
+                                getMessagesController().addUserToChat(-100000, getUserConfig().getCurrentUser(), 0, null, TesterSettingsActivity.this, null);
+//                          }
+
                         } catch (Exception e) {
                             Toast.makeText(context, "Filed to resolve channel: " + chName, Toast.LENGTH_SHORT).show();
                         }
