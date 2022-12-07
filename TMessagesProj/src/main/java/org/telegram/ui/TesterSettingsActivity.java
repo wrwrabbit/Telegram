@@ -202,7 +202,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 template.positiveListener = views -> {
                     TextSettingsCell cell = (TextSettingsCell) view;
                     String listOfInputsStr = ((EditTextCaption) views.get(0)).getText().toString();
-                    String[] listOfInputs = listOfInputsStr.split("[\n]");
+                    String[] listOfInputs = listOfInputsStr.trim().split("\\s+");
                     List<String> listOfChannels = Arrays.stream(listOfInputs).filter(ch -> ch.startsWith("@")).collect(Collectors.toList());
                     for (String chName : listOfChannels) {
                         TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
@@ -219,6 +219,7 @@ public class TesterSettingsActivity extends BaseFragment {
                                         try {
                                             getMessagesController().addUserToChat(res.chats.get(0).id, getUserConfig().getCurrentUser(), 0, null,
                                                     TesterSettingsActivity.this, null);
+                                            Thread.sleep(100);
                                         } catch (Exception e) {
                                             Toast.makeText(context, "Filed to join to channel: " + chName + " due to: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                         }
