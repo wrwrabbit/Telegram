@@ -934,16 +934,16 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             getWindow().getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-                        @Override
-                        public void onViewAttachedToWindow(View v) {
-                            getWindowManager().addCrossWindowBlurEnabledListener(blurListener);
-                        }
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    getWindowManager().addCrossWindowBlurEnabledListener(blurListener);
+                }
 
-                        @Override
-                        public void onViewDetachedFromWindow(View v) {
-                            getWindowManager().removeCrossWindowBlurEnabledListener(blurListener);
-                        }
-                    });
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    getWindowManager().removeCrossWindowBlurEnabledListener(blurListener);
+                }
+            });
         }
         BackupAgent.requestBackup(this);
 
@@ -1605,6 +1605,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             selectAnimatedEmojiDialog = null;
         }
         SharedConfig.appLocked = true;
+        if (SharedConfig.autoActivateFakePasscodeIn != 0){
+            SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
+        }
         if (SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible()) {
             SecretMediaViewer.getInstance().closePhoto(false, false);
         } else if (PhotoViewer.hasInstance() && PhotoViewer.getInstance().isVisible()) {
@@ -2269,11 +2272,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                     if (url.startsWith("tg:premium_offer") || url.startsWith("tg://premium_offer")) {
                                         String finalUrl = url;
                                         AndroidUtilities.runOnUIThread(() -> {
-                                        if (!actionBarLayout.getFragmentStack().isEmpty()) {
-                                            BaseFragment fragment = actionBarLayout.getFragmentStack().get(0);
-                                            Uri uri = Uri.parse(finalUrl);
-                                            fragment.presentFragment(new PremiumPreviewFragment(uri.getQueryParameter("ref")));
-                                        }});
+                                            if (!actionBarLayout.getFragmentStack().isEmpty()) {
+                                                BaseFragment fragment = actionBarLayout.getFragmentStack().get(0);
+                                                Uri uri = Uri.parse(finalUrl);
+                                                fragment.presentFragment(new PremiumPreviewFragment(uri.getQueryParameter("ref")));
+                                            }});
                                     } else if (url.startsWith("tg:resolve") || url.startsWith("tg://resolve")) {
                                         url = url.replace("tg:resolve", "tg://telegram.org").replace("tg://resolve", "tg://telegram.org");
                                         data = Uri.parse(url);
@@ -2973,7 +2976,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     fragment.setInitialPhoneNumber(PhoneFormat.stripExceptNumbers(newContactPhone, true), false);
                 }
                 fragment.show();
-               // actionBarLayout.presentFragment(new INavigationLayout.NavigationParams(fragment).setNoAnimation(true));
+                // actionBarLayout.presentFragment(new INavigationLayout.NavigationParams(fragment).setNoAnimation(true));
                 if (AndroidUtilities.isTablet()) {
                     actionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
                     rightActionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
@@ -5395,6 +5398,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
+        if (SharedConfig.autoActivateFakePasscodeIn != 0){
+            SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
+        }
         isResumed = false;
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
         ApplicationLoader.mainInterfacePaused = true;
@@ -5528,6 +5534,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             onResumeStaticCallback.run();
             onResumeStaticCallback = null;
         }
+        SharedConfig.lastPauseFakePasscodeTime = 0;
         if (Theme.selectedAutoNightType == Theme.AUTO_NIGHT_TYPE_SYSTEM) {
             Theme.checkAutoNightThemeConditions();
         }
@@ -5711,7 +5718,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             } else if (reason == 2) {
                 String type = (String) args[2];
                 if (type.startsWith("API_FRESH_TERMINATE_SESSION_NA_") && !mainFragmentsStack.isEmpty()
-                    && mainFragmentsStack.get(mainFragmentsStack.size() - 1) instanceof DialogsActivity) {
+                        && mainFragmentsStack.get(mainFragmentsStack.size() - 1) instanceof DialogsActivity) {
                     return;
                 }
             }
