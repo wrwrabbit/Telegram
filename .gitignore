@@ -5,11 +5,7 @@ build/
 obj/
 *.iml
 local.properties
-gradle.properties
-google-services.json
 
-TMessagesProj/config/debug.keystore
-TMessagesProj/config/release.keystore
 TMessagesProj/.cxx
 *.apk
 *.log
