@@ -2614,7 +2614,7 @@ public class AndroidUtilities {
     public static void shakeViewSpring(View view, float shiftDp, Runnable endCallback) {
         int shift = dp(shiftDp);
         if (view.getTag(R.id.spring_tag) != null) {
-            ((SpringAnimation) view.getTag(R.id.spring_tag)).cancel();
+            ((SpringAnimation)view.getTag(R.id.spring_tag)).cancel();
         }
         Float wasX = (Float) view.getTag(R.id.spring_was_translation_x_tag);
         if (wasX != null) {
@@ -4771,7 +4771,7 @@ public class AndroidUtilities {
 
                 Method getViewRootNames = wmgClass.getMethod("getViewRootNames");
                 Method getRootView = wmgClass.getMethod("getRootView", String.class);
-                String[] rootViewNames = (String[]) getViewRootNames.invoke(wmgInstance, (Object[]) null);
+                String[] rootViewNames = (String[])getViewRootNames.invoke(wmgInstance, (Object[]) null);
 
                 views = new ArrayList<>();
                 for (String viewName : rootViewNames) {
@@ -4841,7 +4841,7 @@ public class AndroidUtilities {
                 onBitmapDone.run(null);
             });
         }
-        //   });
+    //   });
     }
 
     // rounds percents to be exact 100% in sum

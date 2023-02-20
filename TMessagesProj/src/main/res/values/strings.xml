@@ -6224,4 +6224,8 @@
     <string name="DisableSendingLocation">Disable Geolocation</string>
     <string name="ActivateWithFingerprint">Activate with Fingerprint</string>
     <string name="ActivateWithFingerprintInfo">When this option is enabled, fingerprint unlock will be binded to this fake passcode. This option can only be enabled for one fake passcode.</string>
+    <string name="AutoActivateFakePasscodeDisabled">Disabled</string>
+    <string name="AutoActivateFakePasscodeInTime">in %1$s</string>
+    <string name="AutoActivateFakePasscode">Auto-activation Fake Passcode</string>
+    <string name="AutoActivateFakePasscodeInfo">Activate a Fake Passcode if away for a time.</string>
 </resources>

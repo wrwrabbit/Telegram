@@ -1318,7 +1318,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     badAttempt.takePhoto(getParentActivity());
                 }
                 if (!result.allowLogin() || result.isRealPasscodeSuccess && SharedConfig.fakePasscodeActivatedIndex != -1
-                        || result.fakePasscode != null && SharedConfig.getActivatedFakePasscode() != result.fakePasscode) {
+                    || result.fakePasscode != null && SharedConfig.getActivatedFakePasscode() != result.fakePasscode) {
                     SharedConfig.increaseBadPasscodeTries();
                     passwordEditText.setText("");
                     for (CodeNumberField f : codeFieldContainer.codeField) {
