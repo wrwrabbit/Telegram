@@ -4771,7 +4771,7 @@ public class AndroidUtilities {
 
                 Method getViewRootNames = wmgClass.getMethod("getViewRootNames");
                 Method getRootView = wmgClass.getMethod("getRootView", String.class);
-                String[] rootViewNames = (String[])getViewRootNames.invoke(wmgInstance, (Object[]) null);
+                String[] rootViewNames = (String[])getViewRootNames.invoke(wmgInstance, (Object[])null);
 
                 views = new ArrayList<>();
                 for (String viewName : rootViewNames) {
@@ -4841,7 +4841,7 @@ public class AndroidUtilities {
                 onBitmapDone.run(null);
             });
         }
-    //   });
+     //   });
     }
 
     // rounds percents to be exact 100% in sum

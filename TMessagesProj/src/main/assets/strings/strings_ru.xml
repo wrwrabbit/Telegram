@@ -94,11 +94,13 @@
     <string name="DeleteOtherPasscodesAfterActivationDetails">Все остальные ложные код-пароли после активации будут удалены и злоумышленник не сможет получить к ним доступ.</string>
     <string name="MuteAudioWhenTakingPhoto">Отключать звук при фотографировании</string>
     <string name="HideAccount">Скрывать аккаунт</string>
-    <string name="CannotHideAllAccounts">Вы не можете скрыть все аккаунты. Если хотите скрыть этот аккаунт, снимите скрытие с другого аккаунта.</string>
+    <string name="CannotHideAccount">Невозможно скрыть аккаунт</string>
+    <string name="CannotLogOutAccount">Невозможно настроить аккаунт на выход</string>
+    <string name="CannotRemoveHiding">Невозможно убрать скрытие</string>
+    <string name="CannotHideAllAccounts">Вы не можете скрыть все аккаунты. Если хотите скрыть этот аккаунт, снимите скрытие или выход с другого аккаунта.</string>
+    <string name="CannotHideAllAccountsLogout">Вы не можете скрыть и настроить на выход все аккаунты. Если Вы хотите настроить выход из этого аккаунта, уберите скрытие или выход с другого аккаунта.</string>
     <string name="CannotShowManyAccounts">Вы не можете оставить не скрытыми больше чем %d аккаунта. Если хотите убрать скрытие с этого аккаунта, скройте или настройте выход из другого аккаунта.</string>
     <string name="CannotHideSingleAccount">Вы не можете скрыть единственный аккаунт. Скрытие работает только в случае, когда в Телеграм 2 и более аккаунта.</string>
-    <string name="CannotHideAccount">Невозможно скрыть аккаунт</string>
-    <string name="CannotRemoveHiding">Невозможно убрать скрытие</string>
     <string name="AccountHiddenTitle">Аккаунт будет скрываться</string>
     <string name="AccountHiddenDescription">Аккаунт будет скрываться в некоторых код-паролях. Если хотите, чтобы скрывались другие аккаунты, настройте код-пароли.</string>
     <string name="TooManyAccountsHiddenTitle">Скрыто слишком много аккаунтов</string>
@@ -145,7 +147,7 @@
     <string name="ChatsToRemoveInfo">Выберите чаты, которые будут удалены или скрыты после активации ложного код-пароля.</string>
     <string name="SessionsToTerminate">Сеансы для завершения</string>
     <string name="SessionsToHide">Сеансы для скрытия</string>
-    <string name="SessionsSettingsInfo">Выберите сеансы, которые будут видны в настройках и/или завершены после активации ложного код-пароля.</string>
+    <string name="SessionsToHideSettingsInfo">Выберите сеансы, которые будут видны в настройках и/или завершены после активации ложного код-пароля.</string>
     <string name="Selected">Выбранные</string>
     <string name="ExceptSelected">Кроме выбранных</string>
     <string name="CheckAll">Выбрать все</string>
@@ -175,6 +177,7 @@
     <string name="DisableSendingLocation">Отключить геолокацию</string>
     <string name="ActivateWithFingerprint">Активация отпечатком пальца</string>
     <string name="ActivateWithFingerprintInfo">При включении этой опции разблокировка отпечатком пальца будет привязана к этому ложному код-паролю. Эта опция может быть включена только для одного ложного код-пароля.</string>
+    <string name="TakePhotoWarning">При фотографировании могут воспроизводиться звуки камеры, отображаться уведомления о фотографиях или другая индикация. Приложение попытается убрать их, но это возможно не во всех случаях. Пожалуйста, заблаговременно проверьте правильность работы этой функции.</string>
     <string name="AutoActivateFakePasscodeDisabled">Отключена</string>
     <string name="AutoActivateFakePasscodeInTime">через %1$s</string>
     <string name="AutoActivateFakePasscode">Автоактивация ложного пароля</string>
