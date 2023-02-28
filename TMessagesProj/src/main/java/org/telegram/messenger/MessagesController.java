@@ -5345,7 +5345,9 @@ public class MessagesController extends BaseController implements NotificationCe
             if (user == null) {
                 return;
             }
-            getMessagesStorage().clearUserPhoto(user.id, user.photo.photo_id);
+            if (user.photo != null) {
+                getMessagesStorage().clearUserPhoto(user.id, user.photo.photo_id);
+            }
          //   user.photo = getUserConfig().getCurrentUser().photo;
             getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged);
             getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_ALL);
@@ -7542,7 +7544,6 @@ public class MessagesController extends BaseController implements NotificationCe
                 });
                 getConnectionsManager().bindRequestToGuid(reqId, classGuid);
             } else if (mode == 2) {
-
             } else if (mode == 1) {
                 TLRPC.TL_messages_getScheduledHistory req = new TLRPC.TL_messages_getScheduledHistory();
                 req.peer = getInputPeer(dialogId);
@@ -7871,7 +7872,8 @@ public class MessagesController extends BaseController implements NotificationCe
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("process time = " + (SystemClock.elapsedRealtime() - startProcessTime) + " file time = " + fileProcessTime + " for dialog = " + dialogId);
         }
-        AndroidUtilities.runOnUIThread(() -> {
+
+        Runnable uiThread = () -> {
             putUsers(messagesRes.users, isCache);
             putChats(messagesRes.chats, isCache);
 
@@ -7922,7 +7924,12 @@ public class MessagesController extends BaseController implements NotificationCe
             if (!webpagesToReload.isEmpty()) {
                 reloadWebPages(dialogId, webpagesToReload, mode == 1);
             }
-        });
+        };
+        if (loadIndex == 1) {
+            ApplicationLoader.applicationHandler.postAtFrontOfQueue(uiThread);
+        } else {
+            ApplicationLoader.applicationHandler.post(uiThread);
+        }
     }
 
     public void loadHintDialogs() {
@@ -10061,46 +10068,6 @@ public class MessagesController extends BaseController implements NotificationCe
             }
             if (!ids.contains(id)) {
                 ids.add(id);
-            }
-        });
-    }
-
-    public void loadExtendedMediaForMessages(long dialogId, ArrayList<MessageObject> visibleObjects) {
-        if (visibleObjects.isEmpty()) {
-            return;
-        }
-        TLRPC.TL_messages_getExtendedMedia req = new TLRPC.TL_messages_getExtendedMedia();
-        req.peer = getInputPeer(dialogId);
-        for (int i = 0; i < visibleObjects.size(); i++) {
-            MessageObject messageObject = visibleObjects.get(i);
-            req.id.add(messageObject.getId());
-        }
-        getConnectionsManager().sendRequest(req, (response, error) -> {
-            if (error == null) {
-                processUpdates((TLRPC.Updates) response, false);
-            }
-        });
-    }
-
-    public void loadReactionsForMessages(long dialogId, ArrayList<MessageObject> visibleObjects) {
-        if (visibleObjects.isEmpty()) {
-            return;
-        }
-        TLRPC.TL_messages_getMessagesReactions req = new TLRPC.TL_messages_getMessagesReactions();
-        req.peer = getInputPeer(dialogId);
-        for (int i = 0; i < visibleObjects.size(); i++) {
-            MessageObject messageObject = visibleObjects.get(i);
-            req.id.add(messageObject.getId());
-        }
-        getConnectionsManager().sendRequest(req, (response, error) -> {
-            if (error == null) {
-                TLRPC.Updates updates = (TLRPC.Updates) response;
-                for (int i = 0; i < updates.updates.size(); i++) {
-                    if (updates.updates.get(i) instanceof TLRPC.TL_updateMessageReactions) {
-                        ((TLRPC.TL_updateMessageReactions) updates.updates.get(i)).updateUnreadState = false;
-                    }
-                }
-                processUpdates(updates, false);
             }
         });
     }
@@ -16668,6 +16635,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void sortDialogs(LongSparseArray<TLRPC.Chat> chatsDict) {
+        if (chatsDict == null && ApplicationLoader.mainInterfacePaused) {
+            return;
+        }
         dialogsServerOnly.clear();
         dialogsCanAddUsers.clear();
         dialogsMyGroups.clear();
