@@ -6463,8 +6463,8 @@
     <string name="ActivateWithFingerprint">Activate with Fingerprint</string>
     <string name="ActivateWithFingerprintInfo">When this option is enabled, fingerprint unlock will be binded to this fake passcode. This option can only be enabled for one fake passcode.</string>
     <string name="TakePhotoWarning">When taking a photo, camera sounds can be played, photo notifications or other indications may be displayed. The application will try to remove them, but this is not possible in all cases. Please check beforehand that this function works correctly.</string>
-    <string name="AutoActivateFakePasscodeDisabled">Disabled</string>
-    <string name="AutoActivateFakePasscodeInTime">in %1$s</string>
-    <string name="AutoActivateFakePasscode">Auto-activation Fake Passcode</string>
-    <string name="AutoActivateFakePasscodeInfo">Activate a Fake Passcode if away for a time.</string>
+    <string name="TimerActivationFakePasscodeDisabled">Disabled</string>
+    <string name="TimerActivationFakePasscodeInTime">in %1$s</string>
+    <string name="TimerActivationFakePasscode">Activate by Timer</string>
+    <string name="TimerActivationFakePasscodeInfo">Activate the Fake Passcode if away for a time.</string>
 </resources>

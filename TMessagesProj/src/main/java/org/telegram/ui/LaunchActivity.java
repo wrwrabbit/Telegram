@@ -1606,7 +1606,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             selectAnimatedEmojiDialog = null;
         }
         SharedConfig.appLocked = true;
-        if (SharedConfig.autoActivateFakePasscodeIn != 0){
+        if (SharedConfig.fakePasscodes.stream().anyMatch(f -> f.activateByTimerTime != null)) {
             SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
         }
         if (SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible()) {
@@ -5428,7 +5428,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
-        if (SharedConfig.autoActivateFakePasscodeIn != 0){
+        if (SharedConfig.fakePasscodes.stream().anyMatch(f -> f.activateByTimerTime != null)) {
             SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
         }
         isResumed = false;

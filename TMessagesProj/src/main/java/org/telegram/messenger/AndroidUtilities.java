@@ -2649,14 +2649,20 @@ public class AndroidUtilities {
             ForegroundDetector.getInstance().resetBackgroundVar();
         }
         int uptime = (int) (SystemClock.elapsedRealtime() / 1000);
-        if (SharedConfig.lastPauseFakePasscodeTime != 0 && SharedConfig.autoActivateFakePasscodeIn != 0
-                && (uptime - SharedConfig.lastPauseFakePasscodeTime) >= SharedConfig.autoActivateFakePasscodeIn) {
+        if (SharedConfig.lastPauseFakePasscodeTime != 0) {
             for (int i = 0; i < SharedConfig.fakePasscodes.size(); i++) {
                 FakePasscode passcode = SharedConfig.fakePasscodes.get(i);
-                passcode.executeActions();
-                SharedConfig.fakePasscodeActivated(i);
-                SharedConfig.saveConfig();
-                break;
+                if (passcode.activateByTimerTime != null
+                        && (uptime - SharedConfig.lastPauseFakePasscodeTime) >= passcode.activateByTimerTime) {
+                    FakePasscode activatedPasscode = SharedConfig.getActivatedFakePasscode();
+                    if (activatedPasscode == null || activatedPasscode.activateByTimerTime == null
+                            || passcode.activateByTimerTime > activatedPasscode.activateByTimerTime) {
+                        passcode.executeActions();
+                        SharedConfig.fakePasscodeActivated(i);
+                        SharedConfig.saveConfig();
+                        break;
+                    }
+                }
             }
         }
         if (BuildVars.LOGS_ENABLED && reset && SharedConfig.passcodeEnabled()) {

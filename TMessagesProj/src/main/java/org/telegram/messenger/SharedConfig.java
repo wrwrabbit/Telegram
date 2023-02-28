@@ -23,8 +23,6 @@ import androidx.annotation.IntDef;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -36,7 +34,6 @@ import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
 
 import java.io.File;
@@ -103,7 +100,6 @@ public class SharedConfig {
     public static byte[] passcodeSalt = new byte[0];
     public static boolean appLocked;
     public static int autoLockIn = 60 * 60;
-    public static int autoActivateFakePasscodeIn = 60 * 60;
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
@@ -439,7 +435,6 @@ public class SharedConfig {
                 editor.putBoolean("clearCacheOnLock", clearCacheOnLock);
                 editor.putInt("badPasscodeTries", badPasscodeTries);
                 editor.putInt("autoLockIn", autoLockIn);
-                editor.putInt("autoActivateFakePasscodeIn", autoActivateFakePasscodeIn);
                 editor.putInt("lastPauseTime", lastPauseTime);
                 editor.putInt("lastPauseFakePasscodeTime", lastPauseFakePasscodeTime);
                 editor.putString("lastUpdateVersion2", lastUpdateVersion);
@@ -569,7 +564,6 @@ public class SharedConfig {
             bruteForceRetryInMillis = preferences.getLong("bruteForceRetryInMillis", 0);
             badPasscodeTries = preferences.getInt("badPasscodeTries", 0);
             autoLockIn = preferences.getInt("autoLockIn", 60 * 60);
-            autoActivateFakePasscodeIn = preferences.getInt("autoActivateFakePasscodeIn", 60 * 60);
             lastPauseTime = preferences.getInt("lastPauseTime", 0);
             lastPauseFakePasscodeTime = preferences.getInt("lastPauseFakePasscodeTime", 0);
             useFingerprint = preferences.getBoolean("useFingerprint", false);
@@ -1750,10 +1744,6 @@ public class SharedConfig {
         } else {
             return autoLockIn;
         }
-    }
-
-    public static int getAutoActivateFakePasscodeIn() {
-        return autoActivateFakePasscodeIn;
     }
 
     public static void setDontAskManageStorage(boolean b) {

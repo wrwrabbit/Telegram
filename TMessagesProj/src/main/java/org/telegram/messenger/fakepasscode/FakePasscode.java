@@ -46,6 +46,7 @@ public class FakePasscode {
     public String passcodeHash = "";
     public String activationMessage = "";
     public Integer badTriesToActivate;
+    public Integer activateByTimerTime;
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
     public boolean deleteOtherPasscodesAfterActivation;
