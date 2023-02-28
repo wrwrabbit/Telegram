@@ -1606,6 +1606,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             selectAnimatedEmojiDialog = null;
         }
         SharedConfig.appLocked = true;
+        if (SharedConfig.autoActivateFakePasscodeIn != 0){
+            SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
+        }
         if (SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible()) {
             SecretMediaViewer.getInstance().closePhoto(false, false);
         } else if (PhotoViewer.hasInstance() && PhotoViewer.getInstance().isVisible()) {
@@ -5425,6 +5428,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
+        if (SharedConfig.autoActivateFakePasscodeIn != 0){
+            SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
+        }
         isResumed = false;
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
         ApplicationLoader.mainInterfacePaused = true;
@@ -5560,6 +5566,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             onResumeStaticCallback.run();
             onResumeStaticCallback = null;
         }
+        SharedConfig.lastPauseFakePasscodeTime = 0;
         if (Theme.selectedAutoNightType == Theme.AUTO_NIGHT_TYPE_SYSTEM) {
             Theme.checkAutoNightThemeConditions();
         }

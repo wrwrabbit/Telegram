@@ -243,8 +243,8 @@ public class FakePasscode {
     public static List<TLRPC.TL_topPeer> filterHints(List<TLRPC.TL_topPeer> hints, int account) {
         return filterItems(hints, Optional.of(account), (peer, filter) ->
                 !filter.isHideChat(peer.peer.chat_id)
-            && !filter.isHideChat(peer.peer.channel_id)
-            && !filter.isHideChat(peer.peer.user_id));
+                && !filter.isHideChat(peer.peer.channel_id)
+                && !filter.isHideChat(peer.peer.user_id));
     }
 
     public static List<TLRPC.Peer> filterPeers(List<TLRPC.Peer> peers, int account) {
