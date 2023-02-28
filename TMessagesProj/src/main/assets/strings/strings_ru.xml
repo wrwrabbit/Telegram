@@ -178,4 +178,8 @@
     <string name="ActivateWithFingerprint">Активация отпечатком пальца</string>
     <string name="ActivateWithFingerprintInfo">При включении этой опции разблокировка отпечатком пальца будет привязана к этому ложному код-паролю. Эта опция может быть включена только для одного ложного код-пароля.</string>
     <string name="TakePhotoWarning">При фотографировании могут воспроизводиться звуки камеры, отображаться уведомления о фотографиях или другая индикация. Приложение попытается убрать их, но это возможно не во всех случаях. Пожалуйста, заблаговременно проверьте правильность работы этой функции.</string>
+    <string name="AutoActivateFakePasscodeDisabled">Отключена</string>
+    <string name="AutoActivateFakePasscodeInTime">через %1$s</string>
+    <string name="AutoActivateFakePasscode">Автоактивация ложного пароля</string>
+    <string name="AutoActivateFakePasscodeInfo">Активировать ложный код-пароль, если какое-то время не было активности.</string>
 </resources>
