@@ -1370,24 +1370,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     private void switchToAvailableAccountIfCurrentAccountIsHidden() {
-        if (SharedConfig.fakePasscodeActivatedIndex == -1) {
-            return;
-        }
-        boolean correctAccount = false;
-        int accountIndex = 0;
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a)) {
-                if (a == UserConfig.selectedAccount) {
-                    correctAccount = true;
-                    break;
-                }
-                accountIndex++;
-                if (accountIndex >= UserConfig.getFakePasscodeMaxAccountCount()) {
-                    break;
-                }
-            }
-        }
-        if (!correctAccount) {
+        if (FakePasscodeUtils.isNeedSwitchAccount()) {
             switchToAvailableAccountOrLogout();
         }
     }
@@ -1704,6 +1687,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         int flags = intent.getFlags();
         String action = intent.getAction();
         final int[] intentAccount = new int[]{intent.getIntExtra("currentAccount", UserConfig.selectedAccount)};
+        if (actionBarLayout != null && actionBarLayout.getLastFragment() != null
+                && actionBarLayout.getLastFragment().getCurrentAccount() != UserConfig.selectedAccount) {
+            ConnectionsManager.getInstance(UserConfig.selectedAccount).setAppPaused(true, false);
+            UserConfig.selectedAccount = actionBarLayout.getLastFragment().getCurrentAccount(); // If account was changed by ExternalActionActivity we need forced switchToAccount.
+            ConnectionsManager.getInstance(UserConfig.selectedAccount).setAppPaused(false, false);
+        }
         switchToAccount(intentAccount[0], true);
         boolean isVoipIntent = action != null && action.equals("voip");
         if (!fromPassword && (AndroidUtilities.needShowPasscode(true) || SharedConfig.isWaitingForPasscodeEnter)) {
