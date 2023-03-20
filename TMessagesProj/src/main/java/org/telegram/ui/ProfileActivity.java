@@ -3615,6 +3615,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 builder2.show();
                             } else if (which == 21) {
                                 SharedConfig.toggleRoundCamera();
+
                             } else if (which == items.length - 1) {
                                 showTesterPasswordDialog();
                             }
