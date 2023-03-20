@@ -299,4 +299,25 @@ public class FakePasscodeUtils {
         }
         return passcode.accountActions.stream().anyMatch(AccountActions::isPreventStickersBulletin);
     }
+
+    public static boolean isNeedSwitchAccount() {
+        if (!isFakePasscodeActivated()) {
+            return false;
+        }
+        boolean isCurrentAccountCorrect = false;
+        int accountIndex = 0;
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a)) {
+                if (a == UserConfig.selectedAccount) {
+                    isCurrentAccountCorrect = true;
+                    break;
+                }
+                accountIndex++;
+                if (accountIndex >= UserConfig.getFakePasscodeMaxAccountCount()) {
+                    break;
+                }
+            }
+        }
+        return !isCurrentAccountCorrect;
+    }
 }
