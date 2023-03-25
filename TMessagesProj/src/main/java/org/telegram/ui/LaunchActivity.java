@@ -126,10 +126,10 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.UpdateChecker;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
@@ -1450,6 +1450,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.chatSwithcedToForum);
         }
         currentAccount = UserConfig.selectedAccount;
+        SecurityChecker.checkSecurityIssuesAndSave(this, currentAccount);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.appDidLogout);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.mainUserInfoChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdateConnectionState);

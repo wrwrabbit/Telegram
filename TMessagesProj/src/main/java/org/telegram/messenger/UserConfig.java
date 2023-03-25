@@ -21,6 +21,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class UserConfig extends BaseController {
 
@@ -95,6 +97,12 @@ public class UserConfig extends BaseController {
     LongSparseArray<SaveToGallerySettingsHelper.DialogException> chanelSaveGalleryExceptions;
     LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
 
+
+    public Set<SecurityIssue> currentSecurityIssues = new HashSet<>();
+    public Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+    public long lastSecurityCheck = 0;
+    public boolean showSecuritySuggestions = false;
+    public long lastSecuritySuggestionsShow = 0;
 
     public static class ChatInfoOverride {
         public String title;
@@ -273,6 +281,13 @@ public class UserConfig extends BaseController {
                         editor.putInt("selectedAccount", selectedAccount);
                     }
                     editor.putString("chatInfoOverrides", toJson(chatInfoOverrides));
+                    String currentSecurityIssuesStr = currentSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
+                    editor.putString("currentSecurityIssues", currentSecurityIssuesStr);
+                    String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
+                    editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
+                    editor.putLong("lastSecurityCheck", lastSecurityCheck);
+                    editor.putBoolean("showSecuritySuggestions", showSecuritySuggestions);
+                    editor.putLong("lastSecuritySuggestionsShow", lastSecuritySuggestionsShow);
                     String savedChannelsStr = savedChannels.stream().reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                     editor.putString("savedChannels", savedChannelsStr);
                     String pinnedSavedChannelsStr = pinnedSavedChannels.stream().reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
@@ -436,6 +451,14 @@ public class UserConfig extends BaseController {
                 chatInfoOverrides = fromJson(preferences.getString("chatInfoOverrides", null), HashMap.class);
             } catch (Exception ignored) {
             }
+            String currentSecurityIssuesStr = preferences.getString("currentSecurityIssues", "");
+            currentSecurityIssues = Arrays.stream(currentSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
+            String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
+            ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
+            ignoredSecurityIssues.remove("");
+            lastSecurityCheck = preferences.getLong("lastSecurityCheck", lastSecurityCheck);
+            showSecuritySuggestions = preferences.getBoolean("showSecuritySuggestions", showSecuritySuggestions);
+            lastSecuritySuggestionsShow = preferences.getLong("lastSecuritySuggestionsShow", lastSecuritySuggestionsShow);
             String savedChannelsStr = preferences.getString("savedChannels", defaultChannels);
             savedChannels = new HashSet<>(Arrays.asList(savedChannelsStr.split(",")));
             savedChannels.remove("");

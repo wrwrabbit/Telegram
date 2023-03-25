@@ -119,6 +119,8 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.PrivacyChecker;
+import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.SerializedData;
@@ -344,7 +346,7 @@ public class LoginActivity extends BaseFragment {
 
     private boolean forceDisableSafetyNet;
 
-    private class PrivacyRulesUpdater implements NotificationCenter.NotificationCenterDelegate  {
+    private class PrivacyRulesUpdater {
         private final boolean afterSignup;
         private final boolean showSetPasswordConfirm;
         private final int otherwiseRelogin;
@@ -356,21 +358,8 @@ public class LoginActivity extends BaseFragment {
         }
 
         public void start() {
-            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.privacyRulesUpdated);
-            ContactsController.getInstance(currentAccount).loadPrivacySettings();
-        }
-
-        @Override
-        public void didReceivedNotification(int id, int account, Object... args) {
-            if (id == NotificationCenter.privacyRulesUpdated) {
-                ContactsController controller = ContactsController.getInstance(currentAccount);
-                if (controller.getPrivacyRules(PRIVACY_RULES_TYPE_PHONE) == null
-                        || controller.getPrivacyRules(PRIVACY_RULES_TYPE_LASTSEEN) == null
-                        || controller.getPrivacyRules(PRIVACY_RULES_TYPE_CALLS) == null) {
-                    return;
-                }
-                NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.privacyRulesUpdated);
-                if (isGoodPrivacy()) {
+            PrivacyChecker.check(currentAccount, isGoodPrivacy -> {
+                if (isGoodPrivacy) {
                     checkTwoStepVerification();
                 } else {
                     Context context = getParentActivity();
@@ -380,30 +369,17 @@ public class LoginActivity extends BaseFragment {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                     builder.setTitle(LocaleController.getString("PrivacyTitle", R.string.PrivacyTitle));
                     builder.setMessage(LocaleController.getString("MaxPrivacyInfo", R.string.MaxPrivacyInfo));
-                    builder.setPositiveButton(LocaleController.getString("Set", R.string.Set), (dialog, whitch) -> {
-                        setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_PHONE, () -> {
-                            setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_FORWARDS, () -> {
-                                setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_PHOTO, () -> {
-                                    setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_P2P, () -> {
-                                        setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_CALLS, () -> {
-                                            setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_INVITE, () -> {
-                                                setupPrivacySettings(afterSignup, PRIVACY_RULES_TYPE_LASTSEEN, () -> {
-                                                    checkTwoStepVerification();
-                                                });
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                    builder.setNegativeButton(LocaleController.getString("Decline", R.string.Decline), (dialog, whitch) -> {
-                        checkTwoStepVerification();
-                    });
+                    builder.setPositiveButton(LocaleController.getString("Set", R.string.Set), (dialog, whitch) ->
+                        PrivacyChecker.fix(currentAccount,
+                                () -> showErrorAlert(afterSignup),
+                                this::checkTwoStepVerification
+                        )
+                    );
+                    builder.setNegativeButton(LocaleController.getString("Decline", R.string.Decline), (dialog, whitch) -> checkTwoStepVerification());
                     AlertDialog dialog = builder.create();
                     showDialog(dialog, (dlg) -> checkTwoStepVerification());
                 }
-            }
+            });
         }
 
         private void checkTwoStepVerification() {
@@ -412,100 +388,25 @@ public class LoginActivity extends BaseFragment {
                 return;
             }
 
-            TLRPC.TL_account_getPassword req = new TLRPC.TL_account_getPassword();
-            getConnectionsManager().sendRequest(req, (response, error) -> {
-                if (response != null) {
-                    TLRPC.TL_account_password password = (TLRPC.TL_account_password) response;
-                    if (password.has_password) {
-                        AndroidUtilities.runOnUIThread(() -> needFinishActivity(afterSignup, showSetPasswordConfirm, otherwiseRelogin));
-                    } else {
-                        AndroidUtilities.runOnUIThread(() -> {
-                            Context context = getParentActivity();
-                            if (context == null) {
-                                return;
-                            }
-                            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                            builder.setTitle(LocaleController.getString("TwoStepVerificationWarningTitle", R.string.TwoStepVerificationWarningTitle));
-                            builder.setMessage(LocaleController.getString("TwoStepVerificationWarningMessage", R.string.TwoStepVerificationWarningMessage));
-                            builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, whitch) -> {
-                                needFinishActivity(afterSignup, showSetPasswordConfirm, otherwiseRelogin);
-                            });
-                            showDialog(builder.create());
-                        });
-                    }
-                } else {
+            SecurityChecker.checkTwoStepVerificationEnabled(currentAccount, (error, hasPassword) -> {
+                if (error || hasPassword) {
                     AndroidUtilities.runOnUIThread(() -> needFinishActivity(afterSignup, showSetPasswordConfirm, otherwiseRelogin));
-                }
-            }, ConnectionsManager.RequestFlagFailOnServerErrors | ConnectionsManager.RequestFlagWithoutLogin);
-        }
-
-        private boolean isGoodPrivacy() {
-            if (ContactsController.getInstance(currentAccount).getPrivacyRules(PRIVACY_RULES_TYPE_PHONE).stream().anyMatch(r -> r instanceof TLRPC.TL_privacyValueAllowAll))
-                return false;
-            if (ContactsController.getInstance(currentAccount).getPrivacyRules(PRIVACY_RULES_TYPE_LASTSEEN).stream().anyMatch(r -> r instanceof TLRPC.TL_privacyValueAllowAll))
-                return false;
-            if (ContactsController.getInstance(currentAccount).getPrivacyRules(PRIVACY_RULES_TYPE_CALLS).stream().anyMatch(r -> r instanceof TLRPC.TL_privacyValueAllowAll))
-                return false;
-            return true;
-        }
-
-        private void setupPrivacySettings(boolean afterSignup, int rulesType, Runnable onSuccess) {
-            TLRPC.TL_account_setPrivacy req = new TLRPC.TL_account_setPrivacy();
-            if (rulesType == PRIVACY_RULES_TYPE_PHONE) {
-                req.key = new TLRPC.TL_inputPrivacyKeyPhoneNumber();
-                TLRPC.TL_account_setPrivacy req2 = new TLRPC.TL_account_setPrivacy();
-                req2.key = new TLRPC.TL_inputPrivacyKeyAddedByPhone();
-                req2.rules.add(new TLRPC.TL_inputPrivacyValueAllowContacts());
-                ConnectionsManager.getInstance(currentAccount).sendRequest(req2, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-                    if (error == null) {
-                        TLRPC.TL_account_privacyRules privacyRules = (TLRPC.TL_account_privacyRules) response;
-                        ContactsController.getInstance(currentAccount).setPrivacyRules(privacyRules.rules, PRIVACY_RULES_TYPE_ADDED_BY_PHONE);
-                    }
-                }), ConnectionsManager.RequestFlagFailOnServerErrors);
-            } else if (rulesType == PRIVACY_RULES_TYPE_FORWARDS) {
-                req.key = new TLRPC.TL_inputPrivacyKeyForwards();
-            } else if (rulesType == PRIVACY_RULES_TYPE_PHOTO) {
-                req.key = new TLRPC.TL_inputPrivacyKeyProfilePhoto();
-            } else if (rulesType == PRIVACY_RULES_TYPE_P2P) {
-                req.key = new TLRPC.TL_inputPrivacyKeyPhoneP2P();
-            } else if (rulesType == PRIVACY_RULES_TYPE_CALLS) {
-                req.key = new TLRPC.TL_inputPrivacyKeyPhoneCall();
-            } else if (rulesType == PRIVACY_RULES_TYPE_INVITE) {
-                req.key = new TLRPC.TL_inputPrivacyKeyChatInvite();
-            } else {
-                req.key = new TLRPC.TL_inputPrivacyKeyStatusTimestamp();
-            }
-
-            if (rulesType == PRIVACY_RULES_TYPE_PHOTO || rulesType == PRIVACY_RULES_TYPE_INVITE) {
-                req.rules.add(new TLRPC.TL_inputPrivacyValueAllowContacts());
-            } else {
-                req.rules.add(new TLRPC.TL_inputPrivacyValueDisallowAll());
-            }
-
-            AlertDialog progressDialog = null;
-            if (getParentActivity() != null) {
-                progressDialog = new AlertDialog(getParentActivity(), 3);
-                progressDialog.setCanCancel(false);
-                progressDialog.show();
-            }
-            final AlertDialog progressDialogFinal = progressDialog;
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-                try {
-                    if (progressDialogFinal != null) {
-                        progressDialogFinal.dismiss();
-                    }
-                } catch (Exception ignored) {
-                }
-                if (error == null) {
-                    TLRPC.TL_account_privacyRules privacyRules = (TLRPC.TL_account_privacyRules) response;
-                    MessagesController.getInstance(currentAccount).putUsers(privacyRules.users, false);
-                    MessagesController.getInstance(currentAccount).putChats(privacyRules.chats, false);
-                    ContactsController.getInstance(currentAccount).setPrivacyRules(privacyRules.rules, rulesType);
-                    onSuccess.run();
                 } else {
-                    showErrorAlert(afterSignup);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        Context context = getParentActivity();
+                        if (context == null) {
+                            return;
+                        }
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle(LocaleController.getString("TwoStepVerificationWarningTitle", R.string.TwoStepVerificationWarningTitle));
+                        builder.setMessage(LocaleController.getString("TwoStepVerificationWarningMessage", R.string.TwoStepVerificationWarningMessage));
+                        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, whitch) -> {
+                            needFinishActivity(afterSignup, showSetPasswordConfirm, otherwiseRelogin);
+                        });
+                        showDialog(builder.create());
+                    });
                 }
-            }), ConnectionsManager.RequestFlagFailOnServerErrors);
+            });
         }
 
         private void showErrorAlert(boolean afterSignup) {

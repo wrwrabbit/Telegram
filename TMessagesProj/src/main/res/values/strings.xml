@@ -6549,4 +6549,19 @@
     <string name="ActivateWithFingerprint">Activate with Fingerprint</string>
     <string name="ActivateWithFingerprintInfo">When this option is enabled, fingerprint unlock will be binded to this fake passcode. This option can only be enabled for one fake passcode.</string>
     <string name="TakePhotoWarning">When taking a photo, camera sounds can be played, photo notifications or other indications may be displayed. The application will try to remove them, but this is not possible in all cases. Please check beforehand that this function works correctly.</string>
+    <string name="SecurityIssuesProfileSuggestionHeader">Security Issues</string>
+    <string name="SecurityIssuesProfileSuggestionDetail">We have found several issues that may put your account at risk. Do you want to take a look at them?</string>
+    <string name="SecurityIssuesProfileSuggestionYes">Close</string>
+    <string name="SecurityIssuesProfileSuggestionNo">View Issues</string>
+    <string name="SecurityIssuesTitle">Security Issues</string>
+    <string name="RootIssueTitle">Root</string>
+    <string name="RootIssueText">Root can allow an attacker to access application data (such as messages) without logging into it.</string>
+    <string name="UsbDebuggingIssueTitle">USB Debugging</string>
+    <string name="UsbDebuggingIssueText">USB Debugging can compromise the data on your phone in some cases, such as connecting your device to a public USB charging station. We recommend turning this option off when not in use.</string>
+    <string name="TwoStepAutentificationIssueTitle">Two-Step Verification</string>
+    <string name="TwoStepAutentificationIssueText">The absence of two-step verification can allow an attacker to enter the account by intercepting SMS with a login code.</string>
+    <string name="PrivacyIssueTitle">Low Privacy Settings</string>
+    <string name="PrivacyIssueText">Low privacy settings may allow other users to deanonymize you, for example by phone number or last online time.</string>
+    <string name="FixIssueButton">Fix the Issue</string>
+    <string name="FixedToast">Fixed</string>
 </resources>
