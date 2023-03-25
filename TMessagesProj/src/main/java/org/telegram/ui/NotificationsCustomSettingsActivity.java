@@ -48,6 +48,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -125,7 +126,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
         super();
         currentType = type;
         exceptions = notificationExceptions;
-        List<NotificationsSettingsActivity.NotificationException> filteredExceptions = FakePasscode.filterNotificationExceptions(exceptions, currentAccount);
+        List<NotificationsSettingsActivity.NotificationException> filteredExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
         for (int a = 0, N = filteredExceptions.size(); a < N; a++) {
             NotificationsSettingsActivity.NotificationException exception = filteredExceptions.get(a);
             exceptionsDict.put(exception.did, exception);
@@ -161,7 +162,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                 }
             }
         });
-        if (exceptions != null && !FakePasscode.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
+        if (exceptions != null && !FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
             ActionBarMenu menu = actionBar.createMenu();
             ActionBarMenuItem searchItem = menu.addItem(search_button, R.drawable.ic_ab_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
                 @Override
@@ -271,7 +272,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                     if (index < 0 || index >= arrayList.size()) {
                         return;
                     }
-                    exception = FakePasscode.filterNotificationExceptions(arrayList, currentAccount).get(index);
+                    exception = FakePasscodeUtils.filterNotificationExceptions(arrayList, currentAccount).get(index);
                     newException = false;
                 }
                 if (exception == null) {
@@ -454,7 +455,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                 }
             } else if (position == alertRow) {
                 enabled = getNotificationsController().isGlobalNotificationsEnabled(currentType);
@@ -629,7 +630,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
     }
 
     private void checkRowsEnabled() {
-        if (!FakePasscode.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
+        if (!FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
             return;
         }
         int count = listView.getChildCount();
@@ -863,7 +864,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
             groupSection2Row = -1;
             exceptionsAddRow = -1;
         }
-        List<NotificationsSettingsActivity.NotificationException> filteredExceptions = FakePasscode.filterNotificationExceptions(exceptions, currentAccount);
+        List<NotificationsSettingsActivity.NotificationException> filteredExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
         if (exceptions != null && !filteredExceptions.isEmpty()) {
             exceptionsStartRow = rowCount;
             rowCount += filteredExceptions.size();
@@ -1006,7 +1007,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
         private void processSearch(final String query) {
             AndroidUtilities.runOnUIThread(() -> {
                 searchAdapterHelper.queryServerSearch(query, true, currentType != NotificationsController.TYPE_PRIVATE, true, false, false, 0, false, 0, 0);
-                final ArrayList<NotificationsSettingsActivity.NotificationException> contactsCopy = (ArrayList<NotificationsSettingsActivity.NotificationException>)FakePasscode.filterNotificationExceptions(exceptions, currentAccount);
+                final ArrayList<NotificationsSettingsActivity.NotificationException> contactsCopy = (ArrayList<NotificationsSettingsActivity.NotificationException>)FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
                 Utilities.searchQueue.postRunnable(() -> {
                     String search1 = query.trim().toLowerCase();
                     if (search1.length() == 0) {
@@ -1056,7 +1057,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                                 if (chat.left || chat.kicked || chat.migrated_to != null) {
                                     continue;
                                 }
-                                names[0] = UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title);
+                                names[0] = getUserConfig().getChatTitleOverride(chat);
                                 names[1] = ChatObject.getPublicUsername(chat);
                                 object = chat;
                             }
@@ -1281,7 +1282,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                 }
                 case 2: {
                     UserCell cell = (UserCell) holder.itemView;
-                    NotificationsSettingsActivity.NotificationException exception = FakePasscode.filterNotificationExceptions(exceptions, currentAccount).get(position - exceptionsStartRow);
+                    NotificationsSettingsActivity.NotificationException exception = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).get(position - exceptionsStartRow);
                     cell.setException(exception, null, position != exceptionsEndRow - 1);
                     break;
                 }
@@ -1453,7 +1454,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
 
         @Override
         public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
-            if (exceptions == null || !FakePasscode.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
+            if (exceptions == null || !FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
                 return;
             }
             boolean enabled = getNotificationsController().isGlobalNotificationsEnabled(currentType);

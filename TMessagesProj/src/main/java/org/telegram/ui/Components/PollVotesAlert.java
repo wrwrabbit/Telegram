@@ -357,7 +357,7 @@ public class PollVotesAlert extends BottomSheet {
                 }
                 if (!continueUpdate && lastName != null && (mask & MessagesController.UPDATE_MASK_NAME) != 0) {
                     if (currentUser != null) {
-                        newName = UserObject.getUserName(currentUser);
+                        newName = UserObject.getUserName(currentUser, getCurrentAccount());
                     }
                     if (!newName.equals(lastName)) {
                         continueUpdate = true;
@@ -376,7 +376,7 @@ public class PollVotesAlert extends BottomSheet {
             }
 
             if (currentUser != null) {
-                lastName = newName == null ? UserObject.getUserName(currentUser) : newName;
+                lastName = newName == null ? UserObject.getUserName(currentUser, getCurrentAccount()) : newName;
             } else {
                 lastName = "";
             }

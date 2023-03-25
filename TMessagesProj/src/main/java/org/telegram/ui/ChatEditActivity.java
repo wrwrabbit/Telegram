@@ -223,11 +223,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             }
         }
 
-        String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-        if (title == null) {
-            title = currentChat.title;
-        }
-        avatarDrawable.setInfo(5, title, null);
+        avatarDrawable.setInfo(5, getUserConfig().getChatTitleOverride(currentChat), null);
         isChannel = ChatObject.isChannel(currentChat) && !currentChat.megagroup;
         imageUpdater.parentFragment = this;
         imageUpdater.setDelegate(this);
@@ -1394,13 +1390,13 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                         String username;
                         if (isChannel) {
                             if (TextUtils.isEmpty(username = ChatObject.getPublicUsername(chat))) {
-                                linkedCell.setTextAndValueAndIcon(LocaleController.getString("Discussion", R.string.Discussion), UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title), R.drawable.msg_discuss,true);
+                                linkedCell.setTextAndValueAndIcon(LocaleController.getString("Discussion", R.string.Discussion), getUserConfig().getChatTitleOverride(chat), R.drawable.msg_discuss,true);
                             } else {
                                 linkedCell.setTextAndValueAndIcon(LocaleController.getString("Discussion", R.string.Discussion), "@" + username, R.drawable.msg_discuss,true);
                             }
                         } else {
                             if (TextUtils.isEmpty(username = ChatObject.getPublicUsername(chat))) {
-                                linkedCell.setTextAndValueAndIcon(LocaleController.getString("LinkedChannel", R.string.LinkedChannel), UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title), R.drawable.msg_channel, forumsCell != null && forumsCell.getVisibility() == View.VISIBLE);
+                                linkedCell.setTextAndValueAndIcon(LocaleController.getString("LinkedChannel", R.string.LinkedChannel), getUserConfig().getChatTitleOverride(chat), R.drawable.msg_channel, forumsCell != null && forumsCell.getVisibility() == View.VISIBLE);
                             } else {
                                 linkedCell.setTextAndValueAndIcon(LocaleController.getString("LinkedChannel", R.string.LinkedChannel), "@" + username,  R.drawable.msg_channel, forumsCell != null && forumsCell.getVisibility() == View.VISIBLE);
                             }

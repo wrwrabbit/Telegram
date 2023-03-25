@@ -2022,11 +2022,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                     editText.setGravity(Gravity.LEFT | Gravity.TOP);
                     editText.setSingleLine(true);
                     editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-                    String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                    if (title == null) {
-                        title = currentChat.title;
-                    }
-                    editText.setHint(title);
+                    editText.setHint(UserConfig.getChatTitleOverride(currentAccount, currentChat));
                     editText.setHintTextColor(Theme.getColor(Theme.key_voipgroup_lastSeenText));
                     editText.setCursorColor(Theme.getColor(Theme.key_voipgroup_nameText));
                     editText.setCursorSize(AndroidUtilities.dp(20));
@@ -4818,7 +4814,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                 containerView.invalidate();
             }
         };
-        avatarsViewPager.setImagesLayerNum(8192);
+        avatarsViewPager.setImagesLayerNum(Integer.MAX_VALUE);
         avatarsViewPager.setInvalidateWithParent(true);
         avatarPagerIndicator.setProfileGalleryView(avatarsViewPager);
         avatarPreviewContainer = new FrameLayout(context) {
@@ -5800,10 +5796,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                 titleTextView.setText(call.call.title, animated);
             }
         } else {
-            String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-            if (title == null) {
-                title = currentChat.title;
-            }
+            String title = UserConfig.getChatTitleOverride(getCurrentAccount(), currentChat);
             if (!title.equals(actionBar.getTitle())) {
                 if (animated) {
                     actionBar.setTitleAnimated(title, true, 180);
@@ -7024,10 +7017,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             } else {
                 TLRPC.Chat chat = (TLRPC.Chat) object;
                 imageView.setForUserOrChat(chat, avatarDrawable);
-                name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (name == null) {
-                    name = chat.title;
-                }
+                name = UserConfig.getChatTitleOverride(currentAccount, chat);
             }
 
             TextView textView = new TextView(getContext());
@@ -7039,10 +7029,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             textView.setSingleLine(true);
             textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
             textView.setEllipsize(TextUtils.TruncateAt.END);
-            String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-            if (title == null) {
-                title = currentChat.title;
-            }
+            String title = UserConfig.getChatTitleOverride(currentAccount, currentChat);
             if (option == 2) {
                 textView.setText(LocaleController.getString("VoipGroupRemoveMemberAlertTitle2", R.string.VoipGroupRemoveMemberAlertTitle2));
                 if (ChatObject.isChannelOrGiga(currentChat)) {

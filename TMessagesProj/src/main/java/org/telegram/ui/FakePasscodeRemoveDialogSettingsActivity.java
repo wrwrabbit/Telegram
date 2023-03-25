@@ -276,14 +276,14 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
             if (action.contains(id)) {
                 entries.add(action.get(id).copy());
             } else {
-                String title = UserConfig.getChatTitleOverride(getUserConfig(), id);
+                String title = getUserConfig().getChatTitleOverride(id);
                 if (title == null) {
                     if (DialogObject.isUserDialog(id)) {
-                        title = UserObject.getUserName(getMessagesController().getUser(id), getUserConfig());
+                        title = UserObject.getUserName(getMessagesController().getUser(id), getCurrentAccount());
                     } else if (DialogObject.isEncryptedDialog(id)) {
                         TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(id));
                         TLRPC.User user = getMessagesController().getUser(encryptedChat.user_id);
-                        title = UserObject.getUserName(user, getUserConfig());
+                        title = UserObject.getUserName(user, getCurrentAccount());
                     } else if (DialogObject.isChatDialog(id)) {
                         title = getMessagesController().getChat(-id).title;
                     } else {
@@ -386,7 +386,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         showDialog(alertDialog);
         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
         if (button != null) {
-            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
         }
     }
 

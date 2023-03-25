@@ -60,6 +60,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -285,8 +286,8 @@ public class UsersSelectActivity extends BaseFragment implements NotificationCen
             }
             selectedContacts.put(uid, span);
 
-            editText.setHintVisible(false);
-            if (currentAnimation != null) {
+            editText.setHintVisible(false, TextUtils.isEmpty(editText.getText()));
+            if (currentAnimation != null && currentAnimation.isRunning()) {
                 currentAnimation.setupEndValues();
                 currentAnimation.cancel();
             }
@@ -337,7 +338,7 @@ public class UsersSelectActivity extends BaseFragment implements NotificationCen
                     animationStarted = false;
                     editText.setAllowDrawCursor(true);
                     if (allSpans.isEmpty()) {
-                        editText.setHintVisible(true);
+                        editText.setHintVisible(true, true);
                     }
                 }
             });
@@ -1040,7 +1041,7 @@ public class UsersSelectActivity extends BaseFragment implements NotificationCen
                 }
                 if (DialogObject.isUserDialog(dialog.id)) {
                     TLRPC.User user = getMessagesController().getUser(dialog.id);
-                    if (user != null && !FakePasscode.isHideChat(user.id, currentAccount)) {
+                    if (user != null && !FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                         if (type == TYPE_AUTO_DELETE_EXISTING_CHATS && UserObject.isUserSelf(user)) {
                             continue;
                         }
@@ -1051,14 +1052,14 @@ public class UsersSelectActivity extends BaseFragment implements NotificationCen
                     }
                 } else {
                     TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
-                    if (chat != null && !FakePasscode.isHideChat(-chat.id, currentAccount)) {
+                    if (chat != null && !FakePasscodeUtils.isHideChat(-chat.id, currentAccount)) {
                         contacts.add(chat);
                     }
                 }
             }
             if (!hasSelf && type != TYPE_AUTO_DELETE_EXISTING_CHATS) {
                 TLRPC.User user = getMessagesController().getUser(getUserConfig().clientUserId);
-                if (!FakePasscode.isHideChat(user.id, currentAccount)) {
+                if (!FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                     contacts.add(0, user);
                 }
             }

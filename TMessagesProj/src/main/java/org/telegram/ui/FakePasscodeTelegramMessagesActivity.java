@@ -972,19 +972,12 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
                                         } else if (object instanceof TLRPC.Chat) {
                                             TLRPC.Chat chat = (TLRPC.Chat) object;
-                                            String title = UserConfig.getChatTitleOverride(accountNum, chat.id);
-                                            if (title == null) {
-                                                title = chat.title;
-                                            }
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(title, null, q));
+                                            resultArrayNames.add(AndroidUtilities.generateSearchName(getUserConfig().getChatTitleOverride(chat), null, q));
                                         } else if (object instanceof TLRPC.EncryptedChat) {
                                             TLRPC.EncryptedChat encryptedChat = (TLRPC.EncryptedChat) object;
                                             TLRPC.User currentUser = MessagesController.getInstance(currentAccount)
                                                     .getUser(encryptedChat.user_id);
-                                            String title = UserConfig.getChatTitleOverride(accountNum, encryptedChat.id);
-                                            if (title == null) {
-                                                title = UserObject.getUserName(currentUser, currentAccount);
-                                            }
+                                            String title = UserConfig.getChatTitleOverride(accountNum, encryptedChat.id, UserObject.getUserName(currentUser, currentAccount));
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(title, null, q));
                                         }
                                     } else {

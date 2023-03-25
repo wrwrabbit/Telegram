@@ -30,6 +30,8 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SaveToGallerySettingsHelper;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -314,6 +316,9 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_ADD_EXCEPTION));
             boolean added = false;
             for (int i = 0; i < exceptionsDialogs.size(); i++) {
+                if (FakePasscodeUtils.isHideChat(exceptionsDialogs.valueAt(i).dialogId, currentAccount)) {
+                    continue;
+                }
                 items.add(new Item(VIEW_TYPE_CHAT, exceptionsDialogs.valueAt(i)));
                 added = true;
             }
@@ -545,7 +550,7 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     }
                 } else if (object instanceof TLRPC.Chat) {
                     TLRPC.Chat chat = (TLRPC.Chat) object;
-                    title = chat.title;
+                    title = getUserConfig().getChatTitleOverride(chat);
                 }
                 cell.setSelfAsSavedMessages(true);
                 cell.setData(object, title, exception.createDescription(currentAccount), 0, !(position != items.size() - 1 && items.get(position + 1).viewType != VIEW_TYPE_CHAT));

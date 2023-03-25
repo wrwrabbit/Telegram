@@ -434,6 +434,9 @@ public class GroupCallUserCell extends FrameLayout {
         if (animatorSet != null) {
             animatorSet.cancel();
         }
+        if (rightDrawable != null) {
+            rightDrawable.detach();
+        }
     }
 
     public boolean isSelfUser() {
@@ -469,7 +472,7 @@ public class GroupCallUserCell extends FrameLayout {
             currentChat = null;
             avatarDrawable.setInfo(currentUser);
 
-            nameTextView.setText(UserObject.getUserName(currentUser));
+            nameTextView.setText(UserObject.getUserName(currentUser, account.getCurrentAccount()));
             if (currentUser != null && currentUser.verified) {
                 rightDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new VerifiedDrawable(getContext()) : verifiedDrawable), animated);
             } else if (currentUser != null && currentUser.emoji_status instanceof TLRPC.TL_emojiStatus) {
@@ -510,11 +513,7 @@ public class GroupCallUserCell extends FrameLayout {
             avatarDrawable.setInfo(currentChat, account.getCurrentAccount());
 
             if (currentChat != null) {
-                String title = UserConfig.getChatTitleOverride(account.getCurrentAccount(), currentChat.id);
-                if (title == null) {
-                    title = currentChat.title;
-                }
-                nameTextView.setText(title);
+                nameTextView.setText(account.getUserConfig().getChatTitleOverride(currentChat));
                 if (currentChat.verified) {
                     rightDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new VerifiedDrawable(getContext()) : verifiedDrawable), animated);
                 } else {
@@ -543,6 +542,9 @@ public class GroupCallUserCell extends FrameLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         applyParticipantChanges(false);
+        if (rightDrawable != null) {
+            rightDrawable.attach();
+        }
     }
 
     public TLRPC.TL_groupCallParticipant getParticipant() {

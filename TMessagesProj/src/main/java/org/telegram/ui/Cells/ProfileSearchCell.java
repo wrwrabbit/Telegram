@@ -333,10 +333,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
         } else {
             String nameString2 = "";
             if (chat != null) {
-                nameString2 = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (nameString2 == null) {
-                    nameString2 = chat.title;
-                }
+                nameString2 = UserConfig.getChatTitleOverride(currentAccount, chat);
             } else if (user != null) {
                 nameString2 = UserObject.getUserName(user, currentAccount);
             }
@@ -627,10 +624,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
                 if (user != null) {
                     newName = user.first_name + user.last_name;
                 } else {
-                    newName = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (newName == null) {
-                        newName = chat.title;
-                    }
+                    newName = UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 if (!newName.equals(lastName)) {
                     continueUpdate = true;
@@ -656,10 +650,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
             }
             lastName = user.first_name + user.last_name;
         } else if (chat != null) {
-            lastName = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-            if (lastName == null) {
-                lastName = chat.title;
-            }
+            lastName = UserConfig.getChatTitleOverride(currentAccount, chat);
         }
 
         lastAvatar = photo;

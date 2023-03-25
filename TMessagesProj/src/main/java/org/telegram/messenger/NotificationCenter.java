@@ -209,6 +209,7 @@ public class NotificationCenter {
     public static final int updateBotMenuButton = totalEvents++;
 
     public static final int didUpdatePremiumGiftStickers = totalEvents++;
+    public static final int didUpdatePremiumGiftFieldIcon = totalEvents++;
 
     //fake passcode
     public static final int dialogDeletedByAction = totalEvents++;

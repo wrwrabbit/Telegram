@@ -39,6 +39,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -216,7 +217,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 				if (msg.messageOwner.action instanceof TLRPC.TL_messageActionPhoneCall) {
 					long fromId = msg.getFromChatId();
 					long userID = fromId == getUserConfig().getClientUserId() ? msg.messageOwner.peer_id.user_id : fromId;
-					if (!FakePasscode.isHideChat(userID, currentAccount)) {
+					if (!FakePasscodeUtils.isHideChat(userID, currentAccount)) {
 						int callType = fromId == getUserConfig().getClientUserId() ? TYPE_OUT : TYPE_IN;
 						TLRPC.PhoneCallDiscardReason reason = msg.messageOwner.action.reason;
 						if (callType == TYPE_IN && (reason instanceof TLRPC.TL_phoneCallDiscardReasonMissed || reason instanceof TLRPC.TL_phoneCallDiscardReasonBusy)) {
@@ -273,7 +274,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 				listViewAdapter.notifyDataSetChanged();
 			}
 		} else if (id == NotificationCenter.activeGroupCallsUpdated) {
-			activeGroupCalls = (ArrayList<Long>) FakePasscode.filterDialogIds(getMessagesController().getActiveGroupCalls(), currentAccount);
+			activeGroupCalls = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(getMessagesController().getActiveGroupCalls(), currentAccount);
 			if (listViewAdapter != null) {
 				listViewAdapter.notifyDataSetChanged();
 			}
@@ -394,7 +395,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	public boolean onFragmentCreate() {
 		super.onFragmentCreate();
 		getCalls(0, 50);
-		activeGroupCalls = (ArrayList<Long>) FakePasscode.filterDialogIds(getMessagesController().getActiveGroupCalls(), currentAccount);
+		activeGroupCalls = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(getMessagesController().getActiveGroupCalls(), currentAccount);
 
 		getNotificationCenter().addObserver(this, NotificationCenter.didReceiveNewMessages);
 		getNotificationCenter().addObserver(this, NotificationCenter.messagesDeleted);
@@ -601,14 +602,14 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			builder.setTitle(LocaleController.getString("DeleteCalls", R.string.DeleteCalls));
 			builder.setMessage(LocaleController.getString("DeleteSelectedCallsText", R.string.DeleteSelectedCallsText));
 		}
-		final boolean[] checks = new boolean[]{ !SharedConfig.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault};
+		final boolean[] checks = new boolean[]{ !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault};
 		FrameLayout frameLayout = new FrameLayout(getParentActivity());
 		CheckBoxCell cell = new CheckBoxCell(getParentActivity(), 1);
 		cell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
 		cell.setText(LocaleController.getString("DeleteCallsForEveryone", R.string.DeleteCallsForEveryone), "", false, false);
 		cell.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(8) : 0, 0, LocaleController.isRTL ? 0 : AndroidUtilities.dp(8), 0);
 		frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 8, 0, 8, 0));
-		cell.setChecked(!SharedConfig.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault, false);
+		cell.setChecked(!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault, false);
 		cell.setOnClickListener(v -> {
 			CheckBoxCell cell1 = (CheckBoxCell) v;
 			checks[0] = !checks[0];
@@ -633,7 +634,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		showDialog(alertDialog);
 		TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
 		if (button != null) {
-			button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+			button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
 		}
 	}
 
@@ -771,7 +772,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		req.peer = new TLRPC.TL_inputPeerEmpty();
 		req.filter = new TLRPC.TL_inputMessagesFilterPhoneCalls();
 		req.q = "";
-		req.offset_id = SharedConfig.isFakePasscodeActivated() ? max_id_without_filters : max_id;
+		req.offset_id = FakePasscodeUtils.isFakePasscodeActivated() ? max_id_without_filters : max_id;
 		int reqId = getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
 			int oldCount = Math.max(listViewAdapter.callsStartRow, 0) + calls.size();
 			if (error == null) {
@@ -797,7 +798,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 					long fromId = MessageObject.getFromChatId(msg);
 					long userID = fromId == getUserConfig().getClientUserId() ? msg.peer_id.user_id : fromId;
 					if (currentRow == null || currentRow.user.id != userID || currentRow.type != callType) {
-						if (currentRow != null && !calls.contains(currentRow) && !FakePasscode.isHideChat(currentRow.user.id, currentAccount)) {
+						if (currentRow != null && !calls.contains(currentRow) && !FakePasscodeUtils.isHideChat(currentRow.user.id, currentAccount)) {
 							calls.add(currentRow);
 						}
 						CallLogRow row = new CallLogRow();
@@ -810,7 +811,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 					currentRow.calls.add(msg);
 					max_id_without_filters = msg.id;
 				}
-				if (currentRow != null && currentRow.calls.size() > 0 && !calls.contains(currentRow) && !FakePasscode.isHideChat(currentRow.user.id, currentAccount)) {
+				if (currentRow != null && currentRow.calls.size() > 0 && !calls.contains(currentRow) && !FakePasscodeUtils.isHideChat(currentRow.user.id, currentAccount)) {
 					calls.add(currentRow);
 				}
 			} else {

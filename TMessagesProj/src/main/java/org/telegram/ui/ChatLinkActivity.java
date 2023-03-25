@@ -417,16 +417,12 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                     String title;
                     String message;
-                    String cTitle = UserConfig.getChatTitleOverride(currentAccount, c.id);
-                    if (cTitle == null) {
-                        cTitle = c.title;
-                    }
                     if (isChannel) {
                         title = LocaleController.getString("DiscussionUnlinkGroup", R.string.DiscussionUnlinkGroup);
-                        message = LocaleController.formatString("DiscussionUnlinkChannelAlert", R.string.DiscussionUnlinkChannelAlert, cTitle);
+                        message = LocaleController.formatString("DiscussionUnlinkChannelAlert", R.string.DiscussionUnlinkChannelAlert, getUserConfig().getChatTitleOverride(c));
                     } else {
                         title = LocaleController.getString("DiscussionUnlink", R.string.DiscussionUnlinkChannel);
-                        message = LocaleController.formatString("DiscussionUnlinkGroupAlert", R.string.DiscussionUnlinkGroupAlert, cTitle);
+                        message = LocaleController.formatString("DiscussionUnlinkGroupAlert", R.string.DiscussionUnlinkGroupAlert, getUserConfig().getChatTitleOverride(c));
                     }
                     builder.setTitle(title);
                     builder.setMessage(AndroidUtilities.replaceTags(message));
@@ -469,7 +465,7 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
                     showDialog(dialog);
                     TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                        button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                     }
                 }
             }
@@ -504,12 +500,12 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
         messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
         String message;
         if (!ChatObject.isPublic(chat)) {
-            message = LocaleController.formatString("DiscussionLinkGroupPublicPrivateAlert", R.string.DiscussionLinkGroupPublicPrivateAlert, UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title), UserConfig.getChatTitleOverride(currentAccount, currentChat.id, currentChat.title));
+            message = LocaleController.formatString("DiscussionLinkGroupPublicPrivateAlert", R.string.DiscussionLinkGroupPublicPrivateAlert, getUserConfig().getChatTitleOverride(chat), UserConfig.getChatTitleOverride(currentAccount, currentChat));
         } else {
             if (!ChatObject.isPublic(currentChat)) {
-                message = LocaleController.formatString("DiscussionLinkGroupPrivateAlert", R.string.DiscussionLinkGroupPrivateAlert, UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title), UserConfig.getChatTitleOverride(currentAccount, currentChat.id, currentChat.title));
+                message = LocaleController.formatString("DiscussionLinkGroupPrivateAlert", R.string.DiscussionLinkGroupPrivateAlert, getUserConfig().getChatTitleOverride(chat), getUserConfig().getChatTitleOverride(currentChat));
             } else {
-                message = LocaleController.formatString("DiscussionLinkGroupPublicAlert", R.string.DiscussionLinkGroupPublicAlert, UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title), UserConfig.getChatTitleOverride(currentAccount, currentChat.id, currentChat.title));
+                message = LocaleController.formatString("DiscussionLinkGroupPublicAlert", R.string.DiscussionLinkGroupPublicAlert, getUserConfig().getChatTitleOverride(chat), getUserConfig().getChatTitleOverride(currentChat));
             }
         }
         if (chatFull.hidden_prehistory) {
@@ -536,11 +532,7 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
         textView.setSingleLine(true);
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         textView.setEllipsize(TextUtils.TruncateAt.END);
-        String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-        if (title == null) {
-            title = chat.title;
-        }
-        textView.setText(title);
+        textView.setText(getUserConfig().getChatTitleOverride(chat));
 
         frameLayout2.addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, (LocaleController.isRTL ? 21 : 76), 11, (LocaleController.isRTL ? 76 : 21), 0));
         frameLayout2.addView(messageTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 24, 57, 24, 9));
@@ -661,11 +653,7 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
                 if (info != null && info.linked_chat_id != 0) {
                     TLRPC.Chat chat = getMessagesController().getChat(info.linked_chat_id);
                     if (chat != null) {
-                        String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                        if (title == null) {
-                            title = chat.title;
-                        }
-                        messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("DiscussionChannelGroupSetHelp2", R.string.DiscussionChannelGroupSetHelp2, title)));
+                        messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("DiscussionChannelGroupSetHelp2", R.string.DiscussionChannelGroupSetHelp2, getUserConfig().getChatTitleOverride(chat))));
                     }
                 } else {
                     messageTextView.setText(LocaleController.getString("DiscussionChannelHelp3", R.string.DiscussionChannelHelp3));
@@ -673,11 +661,7 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
             } else {
                 TLRPC.Chat chat = getMessagesController().getChat(info.linked_chat_id);
                 if (chat != null) {
-                    String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (title == null) {
-                        title = chat.title;
-                    }
-                    messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("DiscussionGroupHelp", R.string.DiscussionGroupHelp, title)));
+                    messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("DiscussionGroupHelp", R.string.DiscussionGroupHelp, getUserConfig().getChatTitleOverride(chat))));
                 }
             }
 
@@ -770,11 +754,7 @@ public class ChatLinkActivity extends BaseFragment implements NotificationCenter
 
                             if (found != 0) {
                                 if (found == 1) {
-                                    String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                                    if (title == null) {
-                                        title = chat.title;
-                                    }
-                                    resultArrayNames.add(AndroidUtilities.generateSearchName(title, null, q));
+                                    resultArrayNames.add(AndroidUtilities.generateSearchName(getUserConfig().getChatTitleOverride(chat), null, q));
                                 } else {
                                     resultArrayNames.add(AndroidUtilities.generateSearchName("@" + username, null, "@" + q));
                                 }

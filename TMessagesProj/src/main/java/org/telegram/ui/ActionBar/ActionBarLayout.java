@@ -51,6 +51,7 @@ import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.BackButtonMenu;
 import org.telegram.ui.Components.Bulletin;
@@ -67,6 +68,7 @@ import java.util.List;
 public class ActionBarLayout extends FrameLayout implements INavigationLayout, FloatingDebugProvider {
 
     public boolean highlightActionButtons = false;
+    private boolean attached;
 
     @Override
     public void setHighlightActionButtons(boolean highlightActionButtons) {
@@ -1419,7 +1421,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                                     if (delayedAnimationResumed) {
                                         delayedOpenAnimationRunnable.run();
                                     } else {
-                                        AndroidUtilities.runOnUIThread(delayedOpenAnimationRunnable, 100);
+                                        AndroidUtilities.runOnUIThread(delayedOpenAnimationRunnable, 200);
                                     }
                                 }
                             }
@@ -1440,7 +1442,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                                 }
                             };
                         }
-                        AndroidUtilities.runOnUIThread(waitingForKeyboardCloseRunnable, SharedConfig.smoothKeyboard ? 250 : 200);
+                        AndroidUtilities.runOnUIThread(waitingForKeyboardCloseRunnable, 250);
                     } else if (fragment.needDelayOpenAnimation()) {
                         delayedOpenAnimationRunnable = new Runnable() {
                             @Override
@@ -1845,7 +1847,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
 
     @Override
     public void bringToFront(int i) {
-        if (fragmentsStack.isEmpty()) {
+        if (fragmentsStack.isEmpty() || !fragmentsStack.isEmpty() && fragmentsStack.size() - 1 == i && fragmentsStack.get(i).fragmentView != null) {
             return;
         }
         for (int a = 0; a < i; a++) {
@@ -1869,7 +1871,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         previousFragment.setParentLayout(this);
         View fragmentView = previousFragment.fragmentView;
         if (fragmentView == null) {
-            if (!SharedConfig.isFakePasscodeActivated() && previousFragment instanceof ChatActivity) {
+            if (!FakePasscodeUtils.isFakePasscodeActivated() && previousFragment instanceof ChatActivity) {
                 ((ChatActivity)previousFragment).restoreStartLoadFromMessage();
             }
             fragmentView = previousFragment.createView(parentActivity);
@@ -2391,7 +2393,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
     }
 
     @Override
-    public ViewGroup getOverlayContainerView() {
+    public FrameLayout getOverlayContainerView() {
         return this;
     }
 
@@ -2446,14 +2448,13 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
 
     ArrayList<String> lastActions = new ArrayList<>();
     Runnable debugBlackScreenRunnable = () -> {
-        if (getLastFragment() != null && containerView.getChildCount() == 0) {
+        if (attached && getLastFragment() != null && containerView.getChildCount() == 0) {
             if (BuildVars.DEBUG_VERSION) {
                 FileLog.e(new RuntimeException(TextUtils.join(", ", lastActions)));
             }
             rebuildAllFragmentViews(true, true);
         }
     };
-
 
     public void checkBlackScreen(String action) {
 //        if (!BuildVars.DEBUG_VERSION) {
@@ -2472,5 +2473,15 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         AndroidUtilities.cancelRunOnUIThread(debugBlackScreenRunnable);
         AndroidUtilities.runOnUIThread(debugBlackScreenRunnable, 500);
     }
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        attached = true;
+    }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        attached = false;
+    }
 }

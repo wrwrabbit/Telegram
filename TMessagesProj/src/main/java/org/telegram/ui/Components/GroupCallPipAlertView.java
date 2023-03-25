@@ -293,10 +293,7 @@ public class GroupCallPipAlertView extends LinearLayout implements VoIPService.S
             if (!TextUtils.isEmpty(service.groupCall.call.title)) {
                 titleStr = service.groupCall.call.title;
             } else {
-                titleStr = UserConfig.getChatTitleOverride(currentAccount, service.getChat().id);
-                if (titleStr == null) {
-                    titleStr = service.getChat().title;
-                }
+                titleStr = UserConfig.getChatTitleOverride(currentAccount, service.getChat());
             }
             if (titleStr != null) {
                 titleStr = titleStr.replace("\n", " ").replaceAll(" +", " ").trim();

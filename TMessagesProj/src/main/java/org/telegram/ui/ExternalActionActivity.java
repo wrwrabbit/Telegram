@@ -34,6 +34,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -48,7 +49,7 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 
 import java.util.ArrayList;
 
-public class ExternalActionActivity extends Activity implements INavigationLayout.INavigationLayoutDelegate {
+public class ExternalActionActivity extends Activity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate {
 
     private boolean finished;
     private static ArrayList<BaseFragment> mainFragmentsStack = new ArrayList<>();
@@ -198,6 +199,8 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
 
         handleIntent(getIntent(), false, savedInstanceState != null, false, UserConfig.selectedAccount, 0);
         needLayout();
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appDidLogoutByAction);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appHiddenByAction);
     }
 
     private void showPasscodeActivity() {
@@ -252,6 +255,9 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
             passcodeSaveIntentState = state;
             UserConfig.getInstance(intentAccount).saveConfig(false);
             return false;
+        }
+        if (FakePasscodeUtils.isNeedSwitchAccount()) {
+            switchToAvailableAccountOrLogout();
         }
         return true;
     }
@@ -442,6 +448,8 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
             lockRunnable = null;
         }
         finished = true;
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appDidLogoutByAction);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appHiddenByAction);
     }
 
     public void presentFragment(BaseFragment fragment) {
@@ -672,6 +680,39 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
         if (AndroidUtilities.isTablet()) {
             if (layout == layersActionBarLayout) {
                 actionBarLayout.rebuildAllFragmentViews(last, last);
+            }
+        }
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.appHiddenByAction) {
+            boolean launchActivityObservesToo = NotificationCenter.getGlobalInstance()
+                    .getObservers(NotificationCenter.appHiddenByAction)
+                    .stream().anyMatch(o -> o instanceof LaunchActivity);
+            if (launchActivityObservesToo) {
+                NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appHiddenByAction);
+                NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appDidLogoutByAction);
+            } else if (FakePasscodeUtils.isNeedSwitchAccount()) {
+                switchToAvailableAccountOrLogout();
+            }
+        }
+    }
+
+    private void switchToAvailableAccountOrLogout() {
+        int account = -1;
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a)) {
+                account = a;
+                break;
+            }
+        }
+        if (account != -1) {
+            switchToAccount(account);
+        } else {
+            actionBarLayout.rebuildLogout();
+            if (AndroidUtilities.isTablet()) {
+                layersActionBarLayout.rebuildLogout();
             }
         }
     }

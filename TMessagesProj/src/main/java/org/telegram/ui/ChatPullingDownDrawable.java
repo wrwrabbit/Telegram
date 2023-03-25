@@ -32,6 +32,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -149,7 +150,7 @@ public class ChatPullingDownDrawable implements NotificationCenter.NotificationC
             circleRadius = AndroidUtilities.dp(56) / 2f;
             lastWidth = width;
 
-            String nameStr = nextChat != null ? UserConfig.getChatTitleOverride(currentAccount, nextChat.id, nextChat.title) : LocaleController.getString("SwipeToGoNextChannelEnd", R.string.SwipeToGoNextChannelEnd);
+            String nameStr = nextChat != null ? UserConfig.getChatTitleOverride(currentAccount, nextChat) : LocaleController.getString("SwipeToGoNextChannelEnd", R.string.SwipeToGoNextChannelEnd);
             chatNameWidth = (int) textPaint.measureText(nameStr);
             chatNameWidth = Math.min(chatNameWidth, lastWidth - AndroidUtilities.dp(60));
             chatNameLayout = new StaticLayout(nameStr, textPaint, chatNameWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
@@ -524,9 +525,9 @@ public class ChatPullingDownDrawable implements NotificationCenter.NotificationC
             if (filter == null) {
                 return null;
             }
-            dialogs = (ArrayList<TLRPC.Dialog>) FakePasscode.filterDialogs(filter.dialogs, Optional.of(UserConfig.selectedAccount));
+            dialogs = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(filter.dialogs, Optional.of(UserConfig.selectedAccount));
         } else {
-            dialogs = (ArrayList<TLRPC.Dialog>) FakePasscode.filterDialogs(messagesController.getDialogs(folderId), Optional.of(UserConfig.selectedAccount));
+            dialogs = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(messagesController.getDialogs(folderId), Optional.of(UserConfig.selectedAccount));
         }
         for (int i = 0; i < dialogs.size(); i++) {
             TLRPC.Dialog dialog = dialogs.get(i);

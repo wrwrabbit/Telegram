@@ -203,7 +203,7 @@ public class SendMessageChatCell extends FrameLayout {
             if (mask != 0) {
                 boolean continueUpdate = false;
                 if (currentName == null && lastName != null && (mask & MessagesController.UPDATE_MASK_NAME) != 0) {
-                    newName = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
+                    newName = UserConfig.getChatTitleOverride(currentAccount, currentChat);
                     if (newName == null) {
                         newName = currentChat.title;
                     }
@@ -222,10 +222,7 @@ public class SendMessageChatCell extends FrameLayout {
                 lastName = null;
                 nameTextView.setText(currentName, true);
             } else {
-                String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                if (title == null) {
-                    title = currentChat.title;
-                }
+                String title = UserConfig.getChatTitleOverride(currentAccount, currentChat);
                 lastName = newName == null ? title : newName;
                 nameTextView.setText(lastName);
             }

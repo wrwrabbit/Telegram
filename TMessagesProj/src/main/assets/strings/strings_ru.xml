@@ -182,4 +182,19 @@
     <string name="TimerActivationFakePasscodeInTime">через %1$s</string>
     <string name="TimerActivationFakePasscode">Автоактивация ложного пароля</string>
     <string name="TimerActivationFakePasscodeInfo">Активировать ложный код-пароль, если какое-то время не было активности.</string>
+    <string name="SecurityIssuesProfileSuggestionHeader">Проблемы с безопасностью</string>
+    <string name="SecurityIssuesProfileSuggestionDetail">Мы нашли несколько проблем, которые могут подвергнуть Ваш аккаунт опасности. Хотите взглянуть на них?</string>
+    <string name="SecurityIssuesProfileSuggestionYes">Закрыть</string>
+    <string name="SecurityIssuesProfileSuggestionNo">Посмотреть проблемы</string>
+    <string name="SecurityIssuesTitle">Проблемы с безопасностью</string>
+    <string name="RootIssueTitle">Root</string>
+    <string name="RootIssueText">Root может позволить злоумышленнику получить доступ к данным приложения (например, к сообщениям) без входа в него.</string>
+    <string name="UsbDebuggingIssueTitle">USB отладка</string>
+    <string name="UsbDebuggingIssueText">USB отладка может подвергнуть данные на телефоне опасности в некоторых случаях, таких, как подключение устройства к общедоступной USB зарядной станции. Мы рекомендуем выключать эту опцию, когда она не используется.</string>
+    <string name="TwoStepAutentificationIssueTitle">Облачный пароль</string>
+    <string name="TwoStepAutentificationIssueText">Отсутствие облачного пароля может позволить злоумышленнику войти в аккаунт путём перехвата смс с кодом для входа.</string>
+    <string name="PrivacyIssueTitle">Настройки конфиденциальности</string>
+    <string name="PrivacyIssueText">Низкие настройки конфиденциальности могут позволить другим пользователям деанонимизировать Вас, например, по номеру телефона или по последнему времени в сети.</string>
+    <string name="FixIssueButton">Исправить проблему</string>
+    <string name="FixedToast">Исправлено</string>
 </resources>

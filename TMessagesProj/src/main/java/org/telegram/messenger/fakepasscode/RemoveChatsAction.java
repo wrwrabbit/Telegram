@@ -433,7 +433,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     }
 
     private void deletePendingChat(long dialogId) {
-        FakePasscode fakePasscode = SharedConfig.getActivatedFakePasscode();
+        FakePasscode fakePasscode = FakePasscodeUtils.getActivatedFakePasscode();
         if (fakePasscode == null || fakePasscode.getAllAccountActions().stream().noneMatch(a -> a.getRemoveChatsAction() == this)) {
             return;
         }

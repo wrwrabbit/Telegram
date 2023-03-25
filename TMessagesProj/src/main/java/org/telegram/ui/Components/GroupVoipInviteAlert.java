@@ -545,7 +545,7 @@ public class GroupVoipInviteAlert extends UsersAlertBase {
                                 continue;
                             }
 
-                            String name = UserObject.getUserName(user).toLowerCase();
+                            String name = UserObject.getUserName(user, getCurrentAccount()).toLowerCase();
                             String tName = LocaleController.getInstance().getTranslitString(name);
                             if (name.equals(tName)) {
                                 tName = null;
@@ -739,7 +739,7 @@ public class GroupVoipInviteAlert extends UsersAlertBase {
                     }
 
                     if (nameSearch != null) {
-                        String u = UserObject.getUserName(user);
+                        String u = UserObject.getUserName(user, getCurrentAccount());
                         name = new SpannableStringBuilder(u);
                         int idx = AndroidUtilities.indexOfIgnoreCase(u, nameSearch);
                         if (idx != -1) {

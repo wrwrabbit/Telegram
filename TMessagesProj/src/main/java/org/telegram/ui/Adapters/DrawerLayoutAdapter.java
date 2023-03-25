@@ -22,6 +22,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.messenger.fakepasscode.FakePasscode;
@@ -131,7 +132,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int accountCount = 0;
         boolean correct = true;
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscode.isHideAccount(a)) {
+            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a)) {
                 if (!accountNumbers.contains(a)) {
                     correct = false;
                     break;
@@ -235,7 +236,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         }
         i -= 2;
         if (accountsShown) {
-            if (allAccountsShown || SharedConfig.isFakePasscodeActivated()) {
+            if (allAccountsShown || FakePasscodeUtils.isFakePasscodeActivated()) {
                 if (i < accountNumbers.size()) {
                     return 4;
                 } else {
@@ -294,7 +295,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
     private void resetItems() {
         accountNumbers.clear();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscode.isHideAccount(a)
+            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a)
                     && accountNumbers.size() < getMaxAccountCount(true)) {
                 accountNumbers.add(a);
             }
@@ -434,7 +435,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     private int getMaxAccountCount(boolean checkPremium) {
-        if (!SharedConfig.isFakePasscodeActivated()) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
             return UserConfig.MAX_ACCOUNT_COUNT;
         }
         return checkPremium

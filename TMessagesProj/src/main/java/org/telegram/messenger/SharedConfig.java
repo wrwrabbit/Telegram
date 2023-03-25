@@ -30,6 +30,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
@@ -49,6 +50,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SharedConfig {
@@ -60,6 +63,7 @@ public class SharedConfig {
 
     public final static int PASSCODE_TYPE_PIN = 0,
             PASSCODE_TYPE_PASSWORD = 1;
+    private static int legacyDevicePerformanceClass = -1;
 
     public static boolean loopStickers() {
         return LiteMode.isEnabled(LiteMode.FLAG_ANIMATED_STICKERS_CHAT);
@@ -122,8 +126,8 @@ public class SharedConfig {
     public static boolean stickersReorderingHintUsed;
     public static boolean disableVoiceAudioEffects;
     public static boolean forceDisableTabletMode;
-    public static boolean useLNavigation;
     public static boolean updateStickersOrderOnSend = true;
+    public static boolean bigCameraForRound;
     private static int lastLocalId = -210000;
 
     public static String storageCacheDir;
@@ -140,6 +144,7 @@ public class SharedConfig {
     public static int mapPreviewType = 2;
     public static boolean chatBubbles = Build.VERSION.SDK_INT >= 30;
     public static boolean raiseToSpeak = false;
+    public static boolean raiseToListen = true;
     public static boolean recordViaSco = false;
     public static boolean customTabs = true;
     public static boolean directShare = true;
@@ -150,11 +155,10 @@ public class SharedConfig {
     public static boolean streamAllVideo = false;
     public static boolean streamMkv = false;
     public static boolean saveStreamMedia = true;
-    public static boolean smoothKeyboard = true;
     public static boolean pauseMusicOnRecord = false;
+    public static boolean pauseMusicOnMedia = true;
     public static boolean noiseSupression;
-    public static boolean noStatusBar = true;
-    public static boolean forceRtmpStream;
+    public static final boolean noStatusBar = true;
     public static boolean debugWebView;
     public static boolean sortContactsByName;
     public static boolean sortFilesByName;
@@ -502,7 +506,6 @@ public class SharedConfig {
 
                 editor = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Context.MODE_PRIVATE).edit();
                 editor.putBoolean("hasEmailLogin", hasEmailLogin);
-                editor.putBoolean("useLNavigation", useLNavigation);
                 editor.putBoolean("floatingDebugActive", isFloatingDebugActive);
                 editor.putBoolean("record_via_sco", recordViaSco);
                 editor.apply();
@@ -643,6 +646,13 @@ public class SharedConfig {
                 }
                 if (pendingPtgAppUpdate != null) {
                     if (AppVersion.getCurrentVersion().greaterOrEquals(pendingPtgAppUpdate.version)) {
+                        UpdateData pendingPtgAppUpdateFinal = pendingPtgAppUpdate;
+                        Utilities.globalQueue.postRunnable(() -> {
+                            ImageLoader.getInstance(); // init media dirs
+                            FileLoader fileLoader = FileLoader.getInstance(pendingPtgAppUpdateFinal.accountNum);
+                            File path = fileLoader.getPathToAttach(pendingPtgAppUpdateFinal.document, true);
+                            path.delete();
+                        }, 1000);
                         pendingPtgAppUpdate = null;
                         AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
                     }
@@ -654,6 +664,7 @@ public class SharedConfig {
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
             SaveToGallerySettingsHelper.load(preferences);
             mapPreviewType = preferences.getInt("mapPreviewType", 2);
+            raiseToListen = preferences.getBoolean("raise_to_listen", true);
             raiseToSpeak = preferences.getBoolean("raise_to_speak", false);
             recordViaSco = preferences.getBoolean("record_via_sco", false);
             customTabs = preferences.getBoolean("custom_tabs", true);
@@ -662,7 +673,7 @@ public class SharedConfig {
             playOrderReversed = !shuffleMusic && preferences.getBoolean("playOrderReversed", false);
             inappCamera = preferences.getBoolean("inappCamera", true);
             hasCameraCache = preferences.contains("cameraCache");
-            roundCamera16to9 = true;//preferences.getBoolean("roundCamera16to9", false);
+            roundCamera16to9 = true;
             repeatMode = preferences.getInt("repeatMode", 0);
             fontSize = preferences.getInt("fons_size", AndroidUtilities.isTablet() ? 18 : 16);
             fontSizeIsDefault = !preferences.contains("fons_size");
@@ -672,8 +683,8 @@ public class SharedConfig {
             useSystemEmoji = preferences.getBoolean("useSystemEmoji", false);
             streamMedia = preferences.getBoolean("streamMedia", true);
             saveStreamMedia = preferences.getBoolean("saveStreamMedia", true);
-            smoothKeyboard = preferences.getBoolean("smoothKeyboard2", true);
             pauseMusicOnRecord = preferences.getBoolean("pauseMusicOnRecord", false);
+            pauseMusicOnMedia = preferences.getBoolean("pauseMusicOnMedia", true);
             forceDisableTabletMode = preferences.getBoolean("forceDisableTabletMode", false);
             streamAllVideo = preferences.getBoolean("streamAllVideo", BuildVars.DEBUG_VERSION);
             streamMkv = preferences.getBoolean("streamMkv", false);
@@ -689,8 +700,6 @@ public class SharedConfig {
             archiveHidden = preferences.getBoolean("archiveHidden", false);
             distanceSystemType = preferences.getInt("distanceSystemType", 0);
             keepMedia = preferences.getInt("keep_media", CacheByChatsController.KEEP_MEDIA_ONE_MONTH);
-            noStatusBar = preferences.getBoolean("noStatusBar", true);
-            forceRtmpStream = preferences.getBoolean("forceRtmpStream", false);
             debugWebView = preferences.getBoolean("debugWebView", false);
             lastKeepMediaCheckTime = preferences.getInt("lastKeepMediaCheckTime", 0);
             lastLogsCheckTime = preferences.getInt("lastLogsCheckTime", 0);
@@ -713,11 +722,11 @@ public class SharedConfig {
             fastScrollHintCount = preferences.getInt("fastScrollHintCount", 3);
             dontAskManageStorage = preferences.getBoolean("dontAskManageStorage", false);
             hasEmailLogin = preferences.getBoolean("hasEmailLogin", false);
-            useLNavigation = preferences.getBoolean("useLNavigation", false);
             isFloatingDebugActive = preferences.getBoolean("floatingDebugActive", false);
             updateStickersOrderOnSend = preferences.getBoolean("updateStickersOrderOnSend", true);
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
+            bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
             showNotificationsForAllAccounts = preferences.getBoolean("AllAccounts", true);
@@ -873,10 +882,10 @@ public class SharedConfig {
     }
 
     public static boolean isAppUpdateAvailable() {
-        if (pendingPtgAppUpdate == null || pendingPtgAppUpdate.document == null || isFakePasscodeActivated()) {
+        if (pendingPtgAppUpdate == null || pendingPtgAppUpdate.document == null || FakePasscodeUtils.isFakePasscodeActivated()) {
             return false;
         }
-        return isFakePasscodeActivated()
+        return FakePasscodeUtils.isFakePasscodeActivated()
                 ? pendingPtgAppUpdate.originalVersion.greater(AppVersion.getCurrentOriginalVersion())
                 : pendingPtgAppUpdate.version.greater(AppVersion.getCurrentVersion());
     }
@@ -923,8 +932,8 @@ public class SharedConfig {
                     System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
                     System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                     String hash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-                    if (getActivatedFakePasscode() != null && getActivatedFakePasscode().passcodeHash.equals(hash)) {
-                        return new PasscodeCheckResult(false, getActivatedFakePasscode());
+                    if (FakePasscodeUtils.getActivatedFakePasscode() != null && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
+                        return new PasscodeCheckResult(false, FakePasscodeUtils.getActivatedFakePasscode());
                     }
                     for (FakePasscode fakePasscode : fakePasscodes) {
                         if (fakePasscode.passcodeHash.equals(hash)) {
@@ -940,21 +949,9 @@ public class SharedConfig {
         }
     }
 
-    public static FakePasscode getActivatedFakePasscode() {
-        if (fakePasscodeActivatedIndex > -1 && fakePasscodeActivatedIndex < fakePasscodes.size()) {
-            return fakePasscodes.get(fakePasscodeActivatedIndex);
-        } else {
-            return null;
-        }
-    }
-
-    public static boolean isFakePasscodeActivated() {
-        return fakePasscodeActivatedIndex != -1;
-    }
-
     public static boolean passcodeEnabled() {
-        if (getActivatedFakePasscode() != null) {
-            return getActivatedFakePasscode().passcodeHash.length() != 0;
+        if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
+            return FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.length() != 0;
         } else {
             return passcodeHash.length() != 0;
         }
@@ -1133,14 +1130,6 @@ public class SharedConfig {
         editor.commit();
     }
 
-    public static void toggleForceRTMPStream() {
-        forceRtmpStream = !forceRtmpStream;
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("forceRtmpStream", forceRtmpStream);
-        editor.apply();
-    }
-
     public static void toggleDebugWebView() {
         debugWebView = !debugWebView;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -1150,14 +1139,6 @@ public class SharedConfig {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("debugWebView", debugWebView);
         editor.apply();
-    }
-
-    public static void toggleNoStatusBar() {
-        noStatusBar = !noStatusBar;
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("noStatusBar", noStatusBar);
-        editor.commit();
     }
 
     public static void toggleLoopStickers() {
@@ -1266,12 +1247,24 @@ public class SharedConfig {
         editor.commit();
     }
 
-    public static void toogleRaiseToSpeak() {
+    public static void toggleRaiseToSpeak() {
         raiseToSpeak = !raiseToSpeak;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("raise_to_speak", raiseToSpeak);
         editor.commit();
+    }
+
+    public static void toggleRaiseToListen() {
+        raiseToListen = !raiseToListen;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("raise_to_listen", raiseToListen);
+        editor.commit();
+    }
+
+    public static boolean enabledRaiseTo(boolean speak) {
+        return raiseToListen && (!speak || raiseToSpeak);
     }
 
     public static void toggleCustomTabs() {
@@ -1340,19 +1333,19 @@ public class SharedConfig {
         editor.commit();
     }
 
-    public static void toggleSmoothKeyboard() {
-        smoothKeyboard = !smoothKeyboard;
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("smoothKeyboard2", smoothKeyboard);
-        editor.commit();
-    }
-
     public static void togglePauseMusicOnRecord() {
         pauseMusicOnRecord = !pauseMusicOnRecord;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("pauseMusicOnRecord", pauseMusicOnRecord);
+        editor.commit();
+    }
+
+    public static void togglePauseMusicOnMedia() {
+        pauseMusicOnMedia = !pauseMusicOnMedia;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("pauseMusicOnMedia", pauseMusicOnMedia);
         editor.commit();
     }
 
@@ -1736,7 +1729,7 @@ public class SharedConfig {
 
     public static int getAutoLockIn() {
         if (autoLockIn == 1) {
-            if (getActivatedFakePasscode() == null) {
+            if (FakePasscodeUtils.getActivatedFakePasscode() == null) {
                 return autoLockIn;
             } else {
                 return 60;
@@ -1814,5 +1807,50 @@ public class SharedConfig {
 
     public static boolean deviceIsHigh() {
         return getDevicePerformanceClass() >= PERFORMANCE_CLASS_HIGH;
+    }
+
+    public static boolean deviceIsAverage() {
+        return getDevicePerformanceClass() <= PERFORMANCE_CLASS_AVERAGE;
+    }
+
+    public static void toggleRoundCamera() {
+        bigCameraForRound = !bigCameraForRound;
+        ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
+                .edit()
+                .putBoolean("bigCameraForRound", bigCameraForRound)
+                .apply();
+    }
+
+
+    @Deprecated
+    public static int getLegacyDevicePerformanceClass() {
+        if (legacyDevicePerformanceClass == -1) {
+            int androidVersion = Build.VERSION.SDK_INT;
+            int cpuCount = ConnectionsManager.CPU_COUNT;
+            int memoryClass = ((ActivityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryClass();
+            int totalCpuFreq = 0;
+            int freqResolved = 0;
+            for (int i = 0; i < cpuCount; i++) {
+                try {
+                    RandomAccessFile reader = new RandomAccessFile(String.format(Locale.ENGLISH, "/sys/devices/system/cpu/cpu%d/cpufreq/cpuinfo_max_freq", i), "r");
+                    String line = reader.readLine();
+                    if (line != null) {
+                        totalCpuFreq += Utilities.parseInt(line) / 1000;
+                        freqResolved++;
+                    }
+                    reader.close();
+                } catch (Throwable ignore) {}
+            }
+            int maxCpuFreq = freqResolved == 0 ? -1 : (int) Math.ceil(totalCpuFreq / (float) freqResolved);
+
+            if (androidVersion < 21 || cpuCount <= 2 || memoryClass <= 100 || cpuCount <= 4 && maxCpuFreq != -1 && maxCpuFreq <= 1250 || cpuCount <= 4 && maxCpuFreq <= 1600 && memoryClass <= 128 && androidVersion <= 21 || cpuCount <= 4 && maxCpuFreq <= 1300 && memoryClass <= 128 && androidVersion <= 24) {
+                legacyDevicePerformanceClass = PERFORMANCE_CLASS_LOW;
+            } else if (cpuCount < 8 || memoryClass <= 160 || maxCpuFreq != -1 && maxCpuFreq <= 2050 || maxCpuFreq == -1 && cpuCount == 8 && androidVersion <= 23) {
+                legacyDevicePerformanceClass = PERFORMANCE_CLASS_AVERAGE;
+            } else {
+                legacyDevicePerformanceClass = PERFORMANCE_CLASS_HIGH;
+            }
+        }
+        return legacyDevicePerformanceClass;
     }
 }

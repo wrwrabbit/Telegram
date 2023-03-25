@@ -8,6 +8,9 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.util.LongSparseArray;
 
+import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+
 public class SaveToGallerySettingsHelper {
 
     //shared settings
@@ -169,7 +172,7 @@ public class SaveToGallerySettingsHelper {
         private boolean needSave(FilePathDatabase.FileMeta meta, MessageObject messageObject, int currentAccount) {
             LongSparseArray<DialogException> exceptions = UserConfig.getInstance(currentAccount).getSaveGalleryExceptions(type);
             DialogException exception = exceptions.get(meta.dialogId);
-            if (messageObject != null && messageObject.isOutOwner()) {
+            if (messageObject != null && (messageObject.isOutOwner() || messageObject.isSecretMedia())) {
                 return false;
             }
             boolean isVideo = (messageObject != null && messageObject.isVideo()) || meta.messageType == MessageObject.TYPE_VIDEO;
@@ -213,11 +216,21 @@ public class SaveToGallerySettingsHelper {
                 builder.append(LocaleController.getString("SaveToGalleryOff", R.string.SaveToGalleryOff));
             }
             LongSparseArray<DialogException> exceptions = UserConfig.getInstance(currentAccount).getSaveGalleryExceptions(type);
-            if (exceptions.size() != 0) {
+            int exceptionCount = 0;
+            if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                for (int i = 0; i < exceptions.size(); i++) {
+                    if (!FakePasscodeUtils.isHideChat(exceptions.valueAt(i).dialogId, currentAccount)) {
+                        exceptionCount++;
+                    }
+                }
+            } else {
+                exceptionCount = exceptions.size();
+            }
+            if (exceptionCount != 0) {
                 if (builder.length() != 0) {
                     builder.append(", ");
                 }
-                builder.append(LocaleController.formatPluralString("Exception", exceptions.size(), exceptions.size()));
+                builder.append(LocaleController.formatPluralString("Exception", exceptionCount, exceptionCount));
             }
             return builder;
         }

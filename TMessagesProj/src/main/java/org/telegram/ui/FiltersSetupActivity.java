@@ -38,6 +38,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -442,7 +443,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         ArrayList<TLRPC.TL_dialogFilterSuggested> suggestedFilters = getMessagesController().suggestedFilters;
         rowCount = 0;
         filterHelpRow = rowCount++;
-        int count = FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).size();
+        int count = FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).size();
         showAllChats = true;
         if (!suggestedFilters.isEmpty() && count < 10) {
             recommendedHeaderRow = rowCount++;
@@ -482,7 +483,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated);
             getMessagesStorage().saveDialogFiltersOrder();
             TLRPC.TL_messages_updateDialogFiltersOrder req = new TLRPC.TL_messages_updateDialogFiltersOrder();
-            ArrayList<MessagesController.DialogFilter> filters = (ArrayList<MessagesController.DialogFilter>) FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount);
+            ArrayList<MessagesController.DialogFilter> filters = (ArrayList<MessagesController.DialogFilter>) FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount);
             for (int a = 0, N = filters.size(); a < N; a++) {
                 MessagesController.DialogFilter filter = filters.get(a);
                 req.order.add(filter.id);
@@ -543,17 +544,17 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 if (!showAllChats) {
                     filterPosition++;
                 }
-                if (FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition).isDefault()) {
+                if (FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition).isDefault()) {
                     return;
                 }
-                MessagesController.DialogFilter filter = FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition);
+                MessagesController.DialogFilter filter = FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition);
                 if (filter.locked) {
                     showDialog(new LimitReachedBottomSheet(this, context, LimitReachedBottomSheet.TYPE_FOLDERS, currentAccount));
                 } else {
-                    presentFragment(new FilterCreateActivity(FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition)));
+                    presentFragment(new FilterCreateActivity(FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition)));
                 }
             } else if (position == createFilterRow) {
-                if ((FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).size() - 1 >= getMessagesController().dialogFiltersLimitDefault && !getUserConfig().isPremium()) || FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).size() >= getMessagesController().dialogFiltersLimitPremium) {
+                if ((FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).size() - 1 >= getMessagesController().dialogFiltersLimitDefault && !getUserConfig().isPremium()) || FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).size() >= getMessagesController().dialogFiltersLimitPremium) {
                     showDialog(new LimitReachedBottomSheet(this, context, LimitReachedBottomSheet.TYPE_FOLDERS, currentAccount));
                 } else {
                     presentFragment(new FilterCreateActivity());
@@ -675,7 +676,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                                         } catch (Exception e) {
                                             FileLog.e(e);
                                         }
-                                        int idx = FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).indexOf(filter);
+                                        int idx = FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).indexOf(filter);
                                         if (idx >= 0) {
                                             idx += filtersStartRow;
                                         }
@@ -709,13 +710,13 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                                 showDialog(alertDialog);
                                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                                 if (button != null) {
-                                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                                 }
                             }
                         });
                         final AlertDialog dialog = builder1.create();
                         showDialog(dialog);
-                        dialog.setItemColor(items.length - 1, Theme.getColor(Theme.key_dialogTextRed2), Theme.getColor(Theme.key_dialogRedIcon));
+                        dialog.setItemColor(items.length - 1, Theme.getColor(Theme.key_dialogTextRed), Theme.getColor(Theme.key_dialogRedIcon));
                     });
                     view = filterCell;
                     break;
@@ -846,7 +847,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     if (!showAllChats) {
                         filterPosition++;
                     }
-                    filterCell.setFilter(FakePasscode.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition), true);
+                    filterCell.setFilter(FakePasscodeUtils.filterFolders(getMessagesController().dialogFilters, currentAccount).get(filterPosition), true);
                     break;
                 }
                 case 3: {
@@ -910,7 +911,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 return;
             }
             List<MessagesController.DialogFilter> originalFilters = getMessagesController().dialogFilters;
-            List<MessagesController.DialogFilter> filters = FakePasscode.filterFolders(originalFilters, currentAccount);
+            List<MessagesController.DialogFilter> filters = FakePasscodeUtils.filterFolders(originalFilters, currentAccount);
             MessagesController.DialogFilter filter1 = filters.get(idx1);
             MessagesController.DialogFilter filter2 = filters.get(idx2);
             int temp = filter1.order;

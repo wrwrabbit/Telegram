@@ -392,10 +392,7 @@ public class UserCell extends FrameLayout implements NotificationCenter.Notifica
                 if (currentUser != null) {
                     newName = UserObject.getUserName(currentUser, currentAccount);
                 } else {
-                    newName = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                    if (newName == null) {
-                        newName = currentChat.title;
-                    }
+                    newName = UserConfig.getChatTitleOverride(currentAccount, currentChat);
                 }
                 if (!newName.equals(lastName)) {
                     continueUpdate = true;
@@ -457,10 +454,7 @@ public class UserCell extends FrameLayout implements NotificationCenter.Notifica
             } else if (currentChat != null) {
                 avatarDrawable.setInfo(currentChat, currentAccount);
             } else if (currentName != null) {
-                String title = UserConfig.getChatTitleOverride(currentAccount, currentId);
-                if (title != null) {
-                    title = currentName.toString();
-                }
+                String title = UserConfig.getChatTitleOverride(currentAccount, currentId, currentName.toString());
                 avatarDrawable.setInfo(currentId, title, null);
             } else {
                 avatarDrawable.setInfo(currentId, "#", null);
@@ -474,10 +468,7 @@ public class UserCell extends FrameLayout implements NotificationCenter.Notifica
             if (currentUser != null) {
                 lastName = newName == null ? UserObject.getUserName(currentUser, currentAccount) : newName;
             } else if (currentChat != null) {
-                String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                if (title == null) {
-                    title = currentChat.title;
-                }
+                String title = UserConfig.getChatTitleOverride(currentAccount, currentChat);
                 lastName = newName == null ? title : newName;
             } else {
                 lastName = "";

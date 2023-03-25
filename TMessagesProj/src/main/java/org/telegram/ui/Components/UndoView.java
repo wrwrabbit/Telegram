@@ -568,10 +568,7 @@ public class UndoView extends FrameLayout {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
                     avatarDrawable.setInfo(chat, currentAccount);
                     avatarImageView.setForUserOrChat(chat, avatarDrawable);
-                    name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (name == null) {
-                        name = chat.title;
-                    }
+                    name = UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 TLRPC.Chat currentChat = (TLRPC.Chat) infoObject2;
                 if (ChatObject.isChannelOrGiga(currentChat)) {
@@ -616,10 +613,7 @@ public class UndoView extends FrameLayout {
                     name = UserObject.getFirstName(user);
                 } else {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
-                    name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (name == null) {
-                        name = chat.title;
-                    }
+                    name = UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 infoText = AndroidUtilities.replaceTags(LocaleController.formatString("VoipGroupUserCantNowSpeak", R.string.VoipGroupUserCantNowSpeak, name));
                 subInfoText = null;
@@ -632,10 +626,7 @@ public class UndoView extends FrameLayout {
                     name = UserObject.getFirstName(user);
                 } else if (infoObject instanceof TLRPC.Chat) {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
-                    name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (name == null) {
-                        name = chat.title;
-                    }
+                    name = UserConfig.getChatTitleOverride(currentAccount, chat);
                 } else {
                     name = "";
                 }
@@ -650,10 +641,7 @@ public class UndoView extends FrameLayout {
                     name = UserObject.getFirstName(user);
                 } else {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
-                    name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (name == null) {
-                        name = chat.title;
-                    }
+                    name = UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 infoText = AndroidUtilities.replaceTags(LocaleController.formatString("VoipGroupUserCanNowSpeak", R.string.VoipGroupUserCanNowSpeak, name));
                 subInfoText = null;
@@ -662,10 +650,7 @@ public class UndoView extends FrameLayout {
             } else if (action == ACTION_VOIP_CAN_NOW_SPEAK) {
                 if (infoObject instanceof TLRPC.Chat) {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
-                    String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (title == null) {
-                        title = chat.title;
-                    }
+                    String title = UserConfig.getChatTitleOverride(currentAccount, chat);
                     infoText = AndroidUtilities.replaceTags(LocaleController.formatString("VoipGroupYouCanNowSpeakIn", R.string.VoipGroupYouCanNowSpeakIn, title));
                 } else {
                     infoText = AndroidUtilities.replaceTags(LocaleController.getString("VoipGroupYouCanNowSpeak", R.string.VoipGroupYouCanNowSpeak));
@@ -724,10 +709,7 @@ public class UndoView extends FrameLayout {
                     name = UserObject.getFirstName(user);
                 } else {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
-                    name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (name == null) {
-                        name = chat.title;
-                    }
+                    name = UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 infoText = AndroidUtilities.replaceTags(LocaleController.formatString("VoipGroupUserCanNowSpeakForYou", R.string.VoipGroupUserCanNowSpeakForYou, name));
                 subInfoText = null;
@@ -740,10 +722,7 @@ public class UndoView extends FrameLayout {
                     name = UserObject.getFirstName(user);
                 } else {
                     TLRPC.Chat chat = (TLRPC.Chat) infoObject;
-                    name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (name == null) {
-                        name = chat.title;
-                    }
+                    name = UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 infoText = AndroidUtilities.replaceTags(LocaleController.formatString("VoipGroupRemovedFromGroup", R.string.VoipGroupRemovedFromGroup, name));
                 subInfoText = null;
@@ -837,16 +816,10 @@ public class UndoView extends FrameLayout {
                     } else {
                         TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
                         if (action == ACTION_ADDED_TO_FOLDER) {
-                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                            if (title == null) {
-                                title = chat.title;
-                            }
+                            String title = UserConfig.getChatTitleOverride(currentAccount, chat);
                             infoText = AndroidUtilities.replaceTags(LocaleController.formatString("FilterChatAddedToExisting", R.string.FilterChatAddedToExisting, title, filter.name));
                         } else {
-                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                            if (title == null) {
-                                title = chat.title;
-                            }
+                            String title = UserConfig.getChatTitleOverride(currentAccount, chat);
                             infoText = AndroidUtilities.replaceTags(LocaleController.formatString("FilterChatRemovedFrom", R.string.FilterChatRemovedFrom, title, filter.name));
                         }
                     }
@@ -1033,10 +1006,7 @@ public class UndoView extends FrameLayout {
                     } else {
                         if (DialogObject.isChatDialog(did)) {
                             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-did);
-                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                            if (title == null) {
-                                title = chat.title;
-                            }
+                            String title = UserConfig.getChatTitleOverride(currentAccount, chat);
                             infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("InvLinkToGroup", R.string.InvLinkToGroup, title)));
                         } else {
                             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);
@@ -1064,9 +1034,9 @@ public class UndoView extends FrameLayout {
                             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-did);
                             TLRPC.TL_forumTopic topic = (TLRPC.TL_forumTopic) infoObject2;
                             if (count == 1) {
-                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessageToGroup", R.string.FwdMessageToGroup, topic != null ? topic.title : UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title))));
+                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessageToGroup", R.string.FwdMessageToGroup, topic != null ? topic.title : UserConfig.getChatTitleOverride(currentAccount, chat))));
                             } else {
-                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessagesToGroup", R.string.FwdMessagesToGroup, topic != null ? topic.title : UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title))));
+                                infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FwdMessagesToGroup", R.string.FwdMessagesToGroup, topic != null ? topic.title : UserConfig.getChatTitleOverride(currentAccount, chat))));
                             }
                         } else {
                             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);

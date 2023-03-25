@@ -757,7 +757,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 if (count > 0) {
                     newSubtitle = LocaleController.formatPluralString("messages", count, count);
                 } else {
-                    newSubtitle = LocaleController.formatString("TopicProfileStatus", R.string.TopicProfileStatus, UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title));
+                    newSubtitle = LocaleController.formatString("TopicProfileStatus", R.string.TopicProfileStatus, UserConfig.getChatTitleOverride(currentAccount, chat));
                 }
             } else if (chat != null) {
                 TLRPC.ChatFull info = parentFragment.getCurrentChatInfo();
@@ -996,6 +996,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             currentConnectionState = ConnectionsManager.getInstance(currentAccount).getConnectionState();
             updateCurrentConnectionState();
         }
+        if (emojiStatusDrawable != null) {
+            emojiStatusDrawable.attach();
+        }
     }
 
     @Override
@@ -1004,6 +1007,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (parentFragment != null) {
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didUpdateConnectionState);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
+        }
+        if (emojiStatusDrawable != null) {
+            emojiStatusDrawable.detach();
         }
     }
 
@@ -1074,6 +1080,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         sb.append("\n");
         sb.append(subtitleTextView.getText());
         info.setContentDescription(sb);
+        setContentDescription(sb);
         if (info.isClickable() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             info.addAction(new AccessibilityNodeInfo.AccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, LocaleController.getString("OpenProfile", R.string.OpenProfile)));
         }

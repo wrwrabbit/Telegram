@@ -72,6 +72,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
@@ -317,7 +318,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     }
                     if (position == disablePasscodeRow) {
                         String message = LocaleController.getString(R.string.DisablePasscodeConfirmMessage);
-                        if (SharedConfig.getActivatedFakePasscode() == null && !SharedConfig.fakePasscodes.isEmpty()) {
+                        if (FakePasscodeUtils.getActivatedFakePasscode() == null && !SharedConfig.fakePasscodes.isEmpty()) {
                             message += " " + LocaleController.getString("AllFakePasscodesWillBeDeleted", R.string.AllFakePasscodesWillBeDeleted);
                         }
                         AlertDialog alertDialog = new AlertDialog.Builder(getParentActivity())
@@ -325,8 +326,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                 .setMessage(message)
                                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                                 .setPositiveButton(LocaleController.getString(R.string.DisablePasscodeTurnOff), (dialog, which) -> {
-                                    if (SharedConfig.getActivatedFakePasscode() != null) {
-                                        SharedConfig.getActivatedFakePasscode().passcodeHash = "";
+                                    if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
+                                        FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = "";
                                     } else {
                                         SharedConfig.passcodeHash = "";
                                         for (FakePasscode passcode: SharedConfig.fakePasscodes) {
@@ -334,7 +335,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                         }
                                         SharedConfig.fakePasscodes.clear();
                                     }
-                                    if (SharedConfig.isFakePasscodeActivated()) {
+                                    if (FakePasscodeUtils.isFakePasscodeActivated()) {
                                         SharedConfig.autoLockIn = 60;
                                     }
                                     SharedConfig.appLocked = false;
@@ -355,7 +356,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         alertDialog.show();
                         ((TextView)alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                     } else if (position == changePasscodeRow) {
-                        if (SharedConfig.fakePasscodes.isEmpty() || SharedConfig.getActivatedFakePasscode() != null) {
+                        if (SharedConfig.fakePasscodes.isEmpty() || FakePasscodeUtils.getActivatedFakePasscode() != null) {
                             presentFragment(new PasscodeActivity(TYPE_SETUP_CODE));
                         } else {
                             requireFakePasscodesDeletionConfirmation((dialogInterface, i) -> presentFragment(new PasscodeActivity(TYPE_SETUP_CODE)));
@@ -368,7 +369,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         builder.setTitle(LocaleController.getString("AutoLock", R.string.AutoLock));
                         final NumberPicker numberPicker = new NumberPicker(getParentActivity());
                         numberPicker.setMinValue(0);
-                        int fakePasscodeValueShift = SharedConfig.getActivatedFakePasscode() == null ? 0 : 1;
+                        int fakePasscodeValueShift = FakePasscodeUtils.getActivatedFakePasscode() == null ? 0 : 1;
                         numberPicker.setMaxValue(5 - fakePasscodeValueShift);
                         if (SharedConfig.getAutoLockIn() == 0) {
                             numberPicker.setValue(0);
@@ -465,6 +466,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         ((TextCheckCell) view).setChecked(SharedConfig.takePhotoMuteAudio);
                     } else if (position == fingerprintRow) {
                         SharedConfig.useFingerprint = !SharedConfig.useFingerprint;
+                        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                            FakePasscodeUtils.getActivatedFakePasscode().activateByFingerprint = SharedConfig.useFingerprint;
+                        }
                         UserConfig.getInstance(currentAccount).saveConfig(false);
                         ((TextCheckCell) view).setChecked(SharedConfig.useFingerprint);
                     } else if (position == captureRow) {
@@ -841,7 +845,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             keyboardView.setVisibility(visible ? View.VISIBLE : View.GONE);
             keyboardView.setAlpha(visible ? 1 : 0);
             keyboardView.setTranslationY(visible ? 0 : AndroidUtilities.dp(CustomPhoneKeyboardView.KEYBOARD_HEIGHT_DP));
-            fragmentView.requestLayout();
+            if (FakePasscodeUtils.isFakePasscodeActivated() || fragmentView != null) {
+                fragmentView.requestLayout();
+            }
         } else {
             ValueAnimator animator = ValueAnimator.ofFloat(visible ? 0 : 1, visible ? 1 : 0).setDuration(150);
             animator.setInterpolator(visible ? CubicBezierInterpolator.DEFAULT : Easings.easeInOutQuad);
@@ -1088,7 +1094,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         autoLockRow = rowCount++;
         autoLockDetailRow = rowCount++;
 
-        if (!SharedConfig.isFakePasscodeActivated()) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
             fakePasscodesHeaderRow = rowCount++;
             if (!SharedConfig.fakePasscodes.isEmpty()) {
                 firstFakePasscodeRow = rowCount;
@@ -1105,7 +1111,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         captureRow = rowCount++;
         captureDetailRow = rowCount++;
 
-        if (!SharedConfig.isFakePasscodeActivated()) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
             bruteForceProtectionRow = rowCount++;
             bruteForceProtectionDetailRow = rowCount++;
 
@@ -1247,7 +1253,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
             boolean isFirst = !SharedConfig.passcodeEnabled();
             try {
-                if (SharedConfig.getActivatedFakePasscode() == null) {
+                if (FakePasscodeUtils.getActivatedFakePasscode() == null) {
                     SharedConfig.passcodeSalt = new byte[16];
                     Utilities.random.nextBytes(SharedConfig.passcodeSalt);
                 }
@@ -1256,8 +1262,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, 0, 16);
                 System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
                 System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
-                if (SharedConfig.getActivatedFakePasscode() != null) {
-                    SharedConfig.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
+                    FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
                     SharedConfig.autoLockIn = 60;
                 } else {
                     SharedConfig.passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
@@ -1270,7 +1276,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 FileLog.e(e);
             }
 
-            if (SharedConfig.getActivatedFakePasscode() != null) {
+            if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                 SharedConfig.allowScreenCapture = true;
             } else {
                 SharedConfig.autoLockIn = 60;
@@ -1320,7 +1326,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     badAttempt.takePhoto(getParentActivity());
                 }
                 if (!result.allowLogin() || result.isRealPasscodeSuccess && SharedConfig.fakePasscodeActivatedIndex != -1
-                    || result.fakePasscode != null && SharedConfig.getActivatedFakePasscode() != result.fakePasscode) {
+                    || result.fakePasscode != null && FakePasscodeUtils.getActivatedFakePasscode() != result.fakePasscode) {
                     SharedConfig.increaseBadPasscodeTries();
                     passwordEditText.setText("");
                     for (CodeNumberField f : codeFieldContainer.codeField) {

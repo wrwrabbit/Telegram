@@ -499,11 +499,7 @@ public class TooManyCommunitiesActivity extends BaseFragment {
                 GroupCreateUserCell cell = (GroupCreateUserCell) holder.itemView;
                 TLRPC.Chat chat = inactiveChats.get(position - inactiveChatsStartRow);
                 String signature = inactiveChatsSignatures.get(position - inactiveChatsStartRow);
-                String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (title == null) {
-                    title = chat.title;
-                }
-                cell.setObject(chat, title, signature, position != inactiveChatsEndRow - 1);
+                cell.setObject(chat, getUserConfig().getChatTitleOverride(chat), signature, position != inactiveChatsEndRow - 1);
                 cell.setChecked(selectedIds.contains(chat.id), false);
             }
         }
@@ -559,11 +555,7 @@ public class TooManyCommunitiesActivity extends BaseFragment {
             TLRPC.Chat chat = searchResults.get(position);
             String signature = searchResultsSignatures.get(position);
             GroupCreateUserCell cell = ((GroupCreateUserCell) holder.itemView);
-            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-            if (title == null) {
-                title = chat.title;
-            }
-            cell.setObject(chat, title, signature, position != searchResults.size() - 1);
+            cell.setObject(chat, getUserConfig().getChatTitleOverride(chat), signature, position != searchResults.size() - 1);
             cell.setChecked(selectedIds.contains(chat.id), false);
         }
 

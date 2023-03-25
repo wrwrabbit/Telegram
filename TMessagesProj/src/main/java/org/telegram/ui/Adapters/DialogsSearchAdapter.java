@@ -43,6 +43,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -196,7 +197,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             HintDialogCell cell = (HintDialogCell) holder.itemView;
 
-            TLRPC.TL_topPeer peer = FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).get(position);
+            TLRPC.TL_topPeer peer = FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).get(position);
             TLRPC.Dialog dialog = new TLRPC.TL_dialog();
             TLRPC.Chat chat = null;
             TLRPC.User user = null;
@@ -216,17 +217,14 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
             if (user != null) {
                 name = UserObject.getFirstName(user);
             } else if (chat != null) {
-                name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (name == null) {
-                    name = chat.title;
-                }
+                name = UserConfig.getChatTitleOverride(currentAccount, chat);
             }
             cell.setDialog(did, true, name);
         }
 
         @Override
         public int getItemCount() {
-            return FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).size();
+            return FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).size();
         }
     }
 
@@ -518,7 +516,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                             TLRPC.Message message = res.messages.get(a);
                             long did = MessageObject.getDialogId(message);
                             int maxId = MessagesController.getInstance(currentAccount).deletedHistory.get(did);
-                            if (maxId != 0 && message.id <= maxId || FakePasscode.isHideChat(messageObjects.get(a).getDialogId(), currentAccount)) {
+                            if (maxId != 0 && message.id <= maxId || FakePasscodeUtils.isHideChat(messageObjects.get(a).getDialogId(), currentAccount)) {
                                 continue;
                             }
                             MessageObject msg = messageObjects.get(a);
@@ -572,7 +570,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     private List<RecentSearchObject> filteredRecentSearchObjects() {
-        return FakePasscode.filterItems(recentSearchObjects, Optional.of(currentAccount), (obj, filter) -> !filter.isHideChat(Utils.getChatOrUserId(obj.did, Optional.of(currentAccount))));
+        return FakePasscodeUtils.filterItems(recentSearchObjects, Optional.of(currentAccount), (obj, filter) -> !filter.isHideChat(Utils.getChatOrUserId(obj.did, Optional.of(currentAccount))));
     }
 
     public boolean hasRecentSearch() {
@@ -804,7 +802,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     private void setRecentSearch(ArrayList<RecentSearchObject> arrayList, LongSparseArray<RecentSearchObject> hashMap) {
-        recentSearchObjects = (ArrayList<RecentSearchObject>) FakePasscode.filterItems(arrayList, Optional.of(currentAccount), (s, filter) -> !filter.isHideChat(Utils.getChatOrUserId(s.did, Optional.of(currentAccount))));
+        recentSearchObjects = (ArrayList<RecentSearchObject>) FakePasscodeUtils.filterItems(arrayList, Optional.of(currentAccount), (s, filter) -> !filter.isHideChat(Utils.getChatOrUserId(s.did, Optional.of(currentAccount))));
         recentSearchObjectsById = hashMap;
         for (int a = 0; a < filteredRecentSearchObjects().size(); a++) {
             RecentSearchObject recentSearchObject = filteredRecentSearchObjects().get(a);
@@ -920,7 +918,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                     }
                 }
 
-                if (resentSearchAvailable()) {
+                if (resentSearchAvailable() && !(obj instanceof TLRPC.EncryptedChat)) {
                     boolean foundInRecent = false;
                     if (delegate != null && delegate.getSearchForumDialogId() == dialogId) {
                         foundInRecent = true;
@@ -1100,7 +1098,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
 
     public int getRecentItemsCount() {
         ArrayList<RecentSearchObject> recent = searchWas ? filtered2RecentSearchObjects : filteredRecentSearchObjects;
-        return (!recent.isEmpty() ? recent.size() + 1 : 0) + (!searchWas && !FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
+        return (!recent.isEmpty() ? recent.size() + 1 : 0) + (!searchWas && !FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
     }
 
     public int getRecentResultsCount() {
@@ -1183,7 +1181,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
             }
         }
         if (isRecentSearchDisplayed()) {
-            int offset = (!searchWas && !FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
+            int offset = (!searchWas && !FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
             ArrayList<RecentSearchObject> recent = searchWas ? filtered2RecentSearchObjects : filteredRecentSearchObjects;
             if (i > offset && i - 1 - offset < recent.size()) {
                 TLObject object = recent.get(i - 1 - offset).object;
@@ -1500,10 +1498,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                         if (user != null) {
                             nameSearch = ContactsController.formatName(user.first_name, user.last_name);
                         } else if (chat != null) {
-                            nameSearch = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                            if (nameSearch == null) {
-                                nameSearch = chat.title;
-                            }
+                            nameSearch = UserConfig.getChatTitleOverride(currentAccount, chat);
                         }
                         if (nameSearch != null && (index = AndroidUtilities.indexOfIgnoreCase(nameSearch, foundUserName)) != -1) {
                             SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(nameSearch);
@@ -1573,7 +1568,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                 } else {
                     int rawPosition = position;
                     if (isRecentSearchDisplayed() || !searchTopics.isEmpty() || !searchContacts.isEmpty()) {
-                        int offset = (!searchWas && !FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
+                        int offset = (!searchWas && !FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
                         if (position < offset) {
                             cell.setText(LocaleController.getString("ChatHints", R.string.ChatHints));
                             return;
@@ -1777,7 +1772,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
             return i == 0 ? VIEW_TYPE_GRAY_SECTION : VIEW_TYPE_HASHTAG_CELL;
         }
         if (isRecentSearchDisplayed()) {
-            int offset = (!searchWas && !FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
+            int offset = (!searchWas && !FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).isEmpty() ? 1 : 0);
             if (i < offset) {
                 return VIEW_TYPE_CATEGORY_LIST;
             }
@@ -1920,7 +1915,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                 title = ((TLRPC.Chat) obj.object).title;
                 username = ((TLRPC.Chat) obj.object).username;
             } else if (obj.object instanceof TLRPC.User) {
-                title = UserObject.getUserName((TLRPC.User) obj.object);
+                title = UserObject.getUserName((TLRPC.User) obj.object, currentAccount);
                 username = ((TLRPC.User) obj.object).username;
             } else if (obj.object instanceof TLRPC.ChatInvite) {
                 title = ((TLRPC.ChatInvite) obj.object).title;

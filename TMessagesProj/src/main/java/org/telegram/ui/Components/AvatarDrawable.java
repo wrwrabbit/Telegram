@@ -116,10 +116,6 @@ public class AvatarDrawable extends Drawable {
         this(user, profile, UserConfig.getChatTitleOverride(accountNum, user.id));
     }
 
-    public AvatarDrawable(TLRPC.User user, boolean profile, UserConfig config) {
-        this(user, profile, UserConfig.getChatTitleOverride(config, user.id));
-    }
-
     public AvatarDrawable(TLRPC.User user, boolean profile, String titleOverride) {
         this();
         isProfile = profile;
@@ -142,11 +138,7 @@ public class AvatarDrawable extends Drawable {
     }
 
     public AvatarDrawable(TLRPC.Chat chat, boolean profile, int accountNum) {
-        this(chat, profile, UserConfig.getChatTitleOverride(accountNum, chat.id));
-    }
-
-    public AvatarDrawable(TLRPC.Chat chat, boolean profile, UserConfig config) {
-        this(chat, profile, UserConfig.getChatTitleOverride(config, chat.id));
+        this(chat, profile, UserConfig.getChatTitleOverride(accountNum, chat));
     }
 
     public AvatarDrawable(TLRPC.Chat chat, boolean profile, String titleOverride) {
@@ -310,8 +302,7 @@ public class AvatarDrawable extends Drawable {
 
     public void setInfo(TLRPC.Chat chat, Integer accountNum) {
         if (chat != null) {
-            String title = UserConfig.getChatTitleOverride(accountNum, chat.id);
-            setInfo(chat.id, title != null ? title : chat.title, null, null);
+            setInfo(chat.id, UserConfig.getChatTitleOverride(accountNum, chat), null, null);
         }
     }
 

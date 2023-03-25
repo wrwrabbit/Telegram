@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 
@@ -33,7 +34,7 @@ public class ScreenReceiver extends BroadcastReceiver {
             ApplicationLoader.isScreenOn = true;
         }
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.screenStateChanged);
-        if (!SharedConfig.isFakePasscodeActivated() && intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated() && intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
             if (SharedConfig.onScreenLockActionClearCache) {
                 Utils.clearCache(this::executeOnScreenLockAction);
             } else {

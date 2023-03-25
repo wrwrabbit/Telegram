@@ -23,6 +23,7 @@ import org.telegram.ui.Components.URLSpanNoUnderline;
 
 public class SettingsSuggestionCell extends LinearLayout {
 
+    public final static int TYPE_SECURITY = 100;
     public final static int TYPE_PHONE = 0;
     public final static int TYPE_PASSWORD = 1;
 
@@ -105,6 +106,11 @@ public class SettingsSuggestionCell extends LinearLayout {
             detailTextView.setText(builder);
             yesButton.setText(LocaleController.getString("CheckPhoneNumberYes", R.string.CheckPhoneNumberYes));
             noButton.setText(LocaleController.getString("CheckPhoneNumberNo", R.string.CheckPhoneNumberNo));
+        } else if (type == TYPE_SECURITY) {
+            textView.setText(LocaleController.getString(R.string.SecurityIssuesProfileSuggestionHeader));
+            detailTextView.setText(LocaleController.getString(R.string.SecurityIssuesProfileSuggestionDetail));
+            yesButton.setText(LocaleController.getString(R.string.SecurityIssuesProfileSuggestionYes));
+            noButton.setText(LocaleController.getString(R.string.SecurityIssuesProfileSuggestionNo));
         } else if (type == TYPE_PASSWORD) {
             textView.setText(LocaleController.getString("YourPasswordHeader", R.string.YourPasswordHeader));
             detailTextView.setText(LocaleController.getString("YourPasswordRemember", R.string.YourPasswordRemember));

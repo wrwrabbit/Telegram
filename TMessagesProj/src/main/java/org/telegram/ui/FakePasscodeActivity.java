@@ -62,6 +62,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeSerializer;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -559,7 +560,7 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                             showDialog(alertDialog);
                             TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                             if (button != null) {
-                                button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                                button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                             }
                         }
                     } else if (position == backupPasscodeRow) {
@@ -586,7 +587,7 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                         showDialog(alertDialog);
                         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                         if (button != null) {
-                            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                         }
                     }
                 });
@@ -906,7 +907,9 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                 keyboardView.setVisibility(visible ? View.VISIBLE : View.GONE);
                 keyboardView.setAlpha(visible ? 1 : 0);
                 keyboardView.setTranslationY(visible ? 0 : AndroidUtilities.dp(CustomPhoneKeyboardView.KEYBOARD_HEIGHT_DP));
-                fragmentView.requestLayout();
+                if (fragmentView != null) {
+                    fragmentView.requestLayout();
+                }
             }
         } else {
             ValueAnimator animator = ValueAnimator.ofFloat(visible ? 0 : 1, visible ? 1 : 0).setDuration(150);
@@ -1009,8 +1012,10 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
         if (lockImageView != null) {
             lockImageView.setVisibility(!AndroidUtilities.isSmallScreen() && AndroidUtilities.displaySize.x < AndroidUtilities.displaySize.y ? View.VISIBLE : View.GONE);
         }
-        for (CodeNumberField f : codeFieldContainer.codeField) {
-            f.setShowSoftInputOnFocusCompat(!isCustomKeyboardVisible());
+        if (codeFieldContainer != null && codeFieldContainer.codeField != null) {
+            for (CodeNumberField f : codeFieldContainer.codeField) {
+                f.setShowSoftInputOnFocusCompat(!isCustomKeyboardVisible());
+            }
         }
     }
 
@@ -1563,7 +1568,7 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
             if (holder.getItemViewType() == 0) {
                 TextCheckCell textCell = (TextCheckCell) holder.itemView;
                 if (holder.getAdapterPosition() == fingerprintRow) {
-                    boolean enabled = FakePasscode.getFingerprintFakePasscode() == null || fakePasscode.activateByFingerprint;
+                    boolean enabled = FakePasscodeUtils.getFingerprintFakePasscode() == null || fakePasscode.activateByFingerprint;
                     textCell.setEnabled(enabled, null);
                 } else if (holder.getAdapterPosition() == allowFakePasscodeLoginRow) {
                     textCell.setEnabled(!fakePasscode.activateByFingerprint, null);

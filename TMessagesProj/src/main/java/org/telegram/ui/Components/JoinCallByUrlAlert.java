@@ -99,11 +99,7 @@ public class JoinCallByUrlAlert extends BottomSheet {
         ChatObject.Call call = AccountInstance.getInstance(currentAccount).getMessagesController().getGroupCall(chat.id, false);
         if (call != null) {
             if (TextUtils.isEmpty(call.call.title)) {
-                String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (title == null) {
-                    title = chat.title;
-                }
-                percentTextView.setText(title);
+                percentTextView.setText(UserConfig.getChatTitleOverride(getCurrentAccount(), chat));
             } else {
                 percentTextView.setText(call.call.title);
             }
@@ -113,11 +109,7 @@ public class JoinCallByUrlAlert extends BottomSheet {
                 infoTextView.setText(LocaleController.formatPluralString("Participants", call.call.participants_count));
             }
         } else {
-            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-            if (title == null) {
-                title = chat.title;
-            }
-            percentTextView.setText(title);
+            percentTextView.setText(UserConfig.getChatTitleOverride(getCurrentAccount(), chat));
             infoTextView.setText(LocaleController.getString("NoOneJoinedYet", R.string.NoOneJoinedYet));
         }
 

@@ -29,6 +29,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -154,11 +155,11 @@ public class FilterCreateActivity extends BaseFragment {
         }
         newFilterName = filter.name;
         newFilterFlags = filter.flags;
-        newAlwaysShow = (ArrayList<Long>) FakePasscode.filterDialogIds(filter.alwaysShow, currentAccount);
+        newAlwaysShow = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(filter.alwaysShow, currentAccount);
         if (alwaysShow != null) {
             newAlwaysShow.addAll(alwaysShow);
         }
-        newNeverShow = (ArrayList<Long>) FakePasscode.filterDialogIds(filter.neverShow, currentAccount);
+        newNeverShow = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(filter.neverShow, currentAccount);
         newPinned = filter.pinnedDialogs.clone();
     }
 
@@ -390,7 +391,7 @@ public class FilterCreateActivity extends BaseFragment {
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                 }
             } else if (position == nameRow) {
                 PollEditTextCell cell = (PollEditTextCell) view;
@@ -548,7 +549,7 @@ public class FilterCreateActivity extends BaseFragment {
         showDialog(alertDialog);
         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
         if (button != null) {
-            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
         }
     }
 
@@ -697,8 +698,8 @@ public class FilterCreateActivity extends BaseFragment {
 
     private boolean hasChanges() {
         hasUserChanged = false;
-        ArrayList<Long> filterAlwaysShow = new ArrayList<>(FakePasscode.filterDialogIds(filter.alwaysShow, currentAccount));
-        ArrayList<Long> filterNeverShow = new ArrayList<>(FakePasscode.filterDialogIds(filter.neverShow, currentAccount));
+        ArrayList<Long> filterAlwaysShow = new ArrayList<>(FakePasscodeUtils.filterDialogIds(filter.alwaysShow, currentAccount));
+        ArrayList<Long> filterNeverShow = new ArrayList<>(FakePasscodeUtils.filterDialogIds(filter.neverShow, currentAccount));
         if (filterAlwaysShow.size() != newAlwaysShow.size()) {
             hasUserChanged = true;
         }

@@ -10,6 +10,7 @@ import androidx.collection.LongSparseArray;
 
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -799,7 +800,7 @@ public class TopicsController extends BaseController {
                             }
                         } else {
                             topicsByTopMsgId.remove(messageHash(topic.top_message, -update.dialogId));
-                            if (update.topMessage == null || !FakePasscode.isHideMessage(currentAccount, update.topMessage.dialog_id, update.topMessage.id)) {
+                            if (update.topMessage == null || !FakePasscodeUtils.isHideMessage(currentAccount, update.topMessage.dialog_id, update.topMessage.id)) {
                                 topic.topMessage = update.topMessage;
                             }
                             topic.groupedMessages = update.groupedMessages;

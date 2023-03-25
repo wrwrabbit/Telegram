@@ -50,6 +50,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -580,12 +581,12 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
                     GroupCreateActivity fragment = new GroupCreateActivity(args);
                     fragment.setDelegate(ids -> {
                         if (position == neverShareRow) {
-                            currentMinus = (ArrayList<Long>) FakePasscode.filterDialogIds(ids, currentAccount);
+                            currentMinus = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(ids, currentAccount);
                             for (int a = 0; a < currentMinus.size(); a++) {
                                 currentPlus.remove(currentMinus.get(a));
                             }
                         } else {
-                            currentPlus = (ArrayList<Long>) FakePasscode.filterDialogIds(ids, currentAccount);
+                            currentPlus = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(ids, currentAccount);
                             for (int a = 0; a < currentPlus.size(); a++) {
                                 currentMinus.remove(currentPlus.get(a));
                             }
@@ -598,14 +599,14 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
                     PrivacyUsersActivity fragment = new PrivacyUsersActivity(PrivacyUsersActivity.TYPE_PRIVACY, createFromArray, rulesType != PRIVACY_RULES_TYPE_LASTSEEN && rulesType != PRIVACY_RULES_TYPE_PHOTO, position == alwaysShareRow);
                     fragment.setDelegate((ids, added) -> {
                         if (position == neverShareRow) {
-                            currentMinus = (ArrayList<Long>) FakePasscode.filterDialogIds(ids, currentAccount);
+                            currentMinus = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(ids, currentAccount);
                             if (added) {
                                 for (int a = 0; a < currentMinus.size(); a++) {
                                     currentPlus.remove(currentMinus.get(a));
                                 }
                             }
                         } else {
-                            currentPlus = (ArrayList<Long>) FakePasscode.filterDialogIds(ids, currentAccount);
+                            currentPlus = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(ids, currentAccount);
                             if (added) {
                                 for (int a = 0; a < currentPlus.size(); a++) {
                                     currentMinus.remove(currentPlus.get(a));
@@ -778,23 +779,23 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
                 if (rule instanceof TLRPC.TL_privacyValueAllowChatParticipants) {
                     TLRPC.TL_privacyValueAllowChatParticipants privacyValueAllowChatParticipants = (TLRPC.TL_privacyValueAllowChatParticipants) rule;
                     for (int b = 0, N = privacyValueAllowChatParticipants.chats.size(); b < N; b++) {
-                        if (!FakePasscode.isHideChat(privacyValueAllowChatParticipants.chats.get(b), currentAccount)) {
+                        if (!FakePasscodeUtils.isHideChat(privacyValueAllowChatParticipants.chats.get(b), currentAccount)) {
                             currentPlus.add(-privacyValueAllowChatParticipants.chats.get(b));
                         }
                     }
                 } else if (rule instanceof TLRPC.TL_privacyValueDisallowChatParticipants) {
                     TLRPC.TL_privacyValueDisallowChatParticipants privacyValueDisallowChatParticipants = (TLRPC.TL_privacyValueDisallowChatParticipants) rule;
                     for (int b = 0, N = privacyValueDisallowChatParticipants.chats.size(); b < N; b++) {
-                        if (!FakePasscode.isHideChat(privacyValueDisallowChatParticipants.chats.get(b), currentAccount)) {
+                        if (!FakePasscodeUtils.isHideChat(privacyValueDisallowChatParticipants.chats.get(b), currentAccount)) {
                             currentMinus.add(-privacyValueDisallowChatParticipants.chats.get(b));
                         }
                     }
                 } else if (rule instanceof TLRPC.TL_privacyValueAllowUsers) {
                     TLRPC.TL_privacyValueAllowUsers privacyValueAllowUsers = (TLRPC.TL_privacyValueAllowUsers) rule;
-                    currentPlus.addAll(FakePasscode.filterDialogIds(privacyValueAllowUsers.users, currentAccount));
+                    currentPlus.addAll(FakePasscodeUtils.filterDialogIds(privacyValueAllowUsers.users, currentAccount));
                 } else if (rule instanceof TLRPC.TL_privacyValueDisallowUsers) {
                     TLRPC.TL_privacyValueDisallowUsers privacyValueDisallowUsers = (TLRPC.TL_privacyValueDisallowUsers) rule;
-                    currentMinus.addAll(FakePasscode.filterDialogIds(privacyValueDisallowUsers.users, currentAccount));
+                    currentMinus.addAll(FakePasscodeUtils.filterDialogIds(privacyValueDisallowUsers.users, currentAccount));
                 } else if (type == -1) {
                     if (rule instanceof TLRPC.TL_privacyValueAllowAll) {
                         type = 0;

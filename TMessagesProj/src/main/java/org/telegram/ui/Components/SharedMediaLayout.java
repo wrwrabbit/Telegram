@@ -76,6 +76,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -3840,7 +3841,11 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                             photoVideoAdapter.notifyDataSetChanged();
                         }
                     } else {
-                        adapter.notifyDataSetChanged();
+                        try {
+                            adapter.notifyDataSetChanged();
+                        } catch (Throwable e) {
+
+                        }
                     }
                     if (sharedMediaData[type].messages.isEmpty() && !sharedMediaData[type].loading) {
                         if (listView != null) {
@@ -6080,7 +6085,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     TLRPC.messages_Chats res = (TLRPC.messages_Chats) response;
                     profileActivity.getMessagesController().putChats(res.chats, false);
                     endReached = res.chats.isEmpty() || res.chats.size() != count;
-                    chats.addAll(FakePasscode.filterItems(res.chats, Optional.of(profileActivity.getCurrentAccount()),
+                    chats.addAll(FakePasscodeUtils.filterItems(res.chats, Optional.of(profileActivity.getCurrentAccount()),
                             (c, filter) -> !filter.isHideChat(c.id)));
                 } else {
                     endReached = true;

@@ -356,7 +356,7 @@ public class ChatAttachAlertBotWebViewLayout extends ChatAttachAlert.AttachAlert
 
     @Override
     void onShow(ChatAttachAlert.AttachAlertLayout previousLayout) {
-        parentAlert.actionBar.setTitle(UserObject.getUserName(MessagesController.getInstance(currentAccount).getUser(botId)));
+        parentAlert.actionBar.setTitle(UserObject.getUserName(MessagesController.getInstance(currentAccount).getUser(botId), currentAccount));
         swipeContainer.setSwipeOffsetY(0);
         if (webViewContainer.getWebView() != null) {
             webViewContainer.getWebView().scrollTo(0, 0);

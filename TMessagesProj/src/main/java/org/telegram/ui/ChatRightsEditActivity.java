@@ -282,7 +282,7 @@ public class ChatRightsEditActivity extends BaseFragment {
                                                                 defaultBannedRights.send_voices = defaultBannedRights.send_roundvideos = false;
             }
 
-            if (!defaultBannedRights.change_info) {
+            if (!defaultBannedRights.change_info && !isChannel) {
                 adminRights.change_info = true;
             }
             if (!defaultBannedRights.pin_messages) {
@@ -919,11 +919,7 @@ public class ChatRightsEditActivity extends BaseFragment {
                         } else {
                             builder.setTitle(LocaleController.getString("EditAdminGroupTransfer", R.string.EditAdminGroupTransfer));
                         }
-                        String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                        if (title == null) {
-                            title = currentChat.title;
-                        }
-                        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("EditAdminTransferReadyAlertText", R.string.EditAdminTransferReadyAlertText, title, UserObject.getFirstName(currentUser))));
+                        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("EditAdminTransferReadyAlertText", R.string.EditAdminTransferReadyAlertText, getUserConfig().getChatTitleOverride(currentChat), UserObject.getFirstName(currentUser))));
                         builder.setPositiveButton(LocaleController.getString("EditAdminTransferChangeOwner", R.string.EditAdminTransferChangeOwner), (dialogInterface, i) -> {
                             TwoStepVerificationActivity fragment = new TwoStepVerificationActivity();
                             fragment.setDelegate(password -> initTransfer(password, fragment));
@@ -1025,7 +1021,7 @@ public class ChatRightsEditActivity extends BaseFragment {
                     }), ConnectionsManager.RequestFlagWithoutLogin);
                 } else if (error.text.equals("CHANNELS_TOO_MUCH")) {
                     if (getParentActivity() != null && !AccountInstance.getInstance(currentAccount).getUserConfig().isPremium()) {
-                        showDialog(new LimitReachedBottomSheet(this, getParentActivity(), LimitReachedBottomSheet.TYPE_TO_MANY_COMMUNITIES, currentAccount));
+                        showDialog(new LimitReachedBottomSheet(this, getParentActivity(), LimitReachedBottomSheet.TYPE_TO0_MANY_COMMUNITIES, currentAccount));
                     } else {
                         presentFragment(new TooManyCommunitiesActivity(TooManyCommunitiesActivity.TYPE_EDIT));
                     }
@@ -1278,7 +1274,7 @@ public class ChatRightsEditActivity extends BaseFragment {
                             isChannel ?
                                     LocaleController.formatString("AddBotMessageAdminChannel", R.string.AddBotMessageAdminChannel, chatName) :
                                     LocaleController.formatString("AddBotMessageAdminGroup", R.string.AddBotMessageAdminGroup, chatName)
-                    ) : LocaleController.formatString("AddMembersAlertNamesText", R.string.AddMembersAlertNamesText, UserObject.getUserName(currentUser), chatName)
+                    ) : LocaleController.formatString("AddMembersAlertNamesText", R.string.AddMembersAlertNamesText, UserObject.getUserName(currentUser, getCurrentAccount()), chatName)
             ));
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
             builder.setPositiveButton(asAdmin ? LocaleController.getString("AddAsAdmin", R.string.AddAsAdmin) : LocaleController.getString("AddBot", R.string.AddBot), (di, i) -> {
@@ -1364,11 +1360,7 @@ public class ChatRightsEditActivity extends BaseFragment {
             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("UserRestrictionsApplyChanges", R.string.UserRestrictionsApplyChanges));
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(chatId);
-            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-            if (title == null) {
-                title = chat.title;
-            }
-            builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("UserRestrictionsApplyChangesText", R.string.UserRestrictionsApplyChangesText, title)));
+            builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("UserRestrictionsApplyChangesText", R.string.UserRestrictionsApplyChangesText, getUserConfig().getChatTitleOverride(chat))));
             builder.setPositiveButton(LocaleController.getString("ApplyTheme", R.string.ApplyTheme), (dialogInterface, i) -> onDonePressed());
             builder.setNegativeButton(LocaleController.getString("PassportDiscard", R.string.PassportDiscard), (dialog, which) -> finishFragment());
             showDialog(builder.create());
@@ -1486,7 +1478,7 @@ public class ChatRightsEditActivity extends BaseFragment {
                         return false;
                     }
                     if (position == changeInfoRow) {
-                        return myAdminRights.change_info && (defaultBannedRights == null || defaultBannedRights.change_info);
+                        return myAdminRights.change_info && (defaultBannedRights == null || defaultBannedRights.change_info || isChannel);
                     } else if (position == postMessagesRow) {
                         return myAdminRights.post_messages;
                     } else if (position == editMesagesRow) {
@@ -1734,7 +1726,7 @@ public class ChatRightsEditActivity extends BaseFragment {
                     } else if (position == changeInfoRow) {
                         if (currentType == TYPE_ADMIN || currentType == TYPE_ADD_BOT) {
                             if (isChannel) {
-                                checkCell.setTextAndCheck(LocaleController.getString("EditAdminChangeChannelInfo", R.string.EditAdminChangeChannelInfo), asAdminValue && adminRights.change_info || !defaultBannedRights.change_info, true);
+                                checkCell.setTextAndCheck(LocaleController.getString("EditAdminChangeChannelInfo", R.string.EditAdminChangeChannelInfo), asAdminValue && adminRights.change_info, true);
                             } else {
                                 checkCell.setTextAndCheck(LocaleController.getString("EditAdminChangeGroupInfo", R.string.EditAdminChangeGroupInfo), asAdminValue && adminRights.change_info || !defaultBannedRights.change_info, true);
                             }

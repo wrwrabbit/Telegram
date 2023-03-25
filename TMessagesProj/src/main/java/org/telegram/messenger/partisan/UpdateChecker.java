@@ -11,6 +11,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -69,7 +70,7 @@ public class UpdateChecker implements NotificationCenter.NotificationCenterDeleg
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.messagesDidLoad) {
-            if (!SharedConfig.isFakePasscodeActivated()) {
+            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                 if ((Long)args[0] == getUpdateTgChannelId()) {
                     if (!partisanTgChannelLastMessageLoaded) {
                         partisanTgChannelLastMessageLoaded = true;
