@@ -375,7 +375,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
         Theme.createCommonChatResources();
         Theme.createDialogsResources(this);
-        if (SharedConfig.passcodeEnabled() && SharedConfig.appLocked) {
+        if (SharedConfig.passcodeEnabled() && SharedConfig.isAppLocked()) {
             SharedConfig.lastPauseTime = (int) (SystemClock.elapsedRealtime() / 1000);
         }
         AndroidUtilities.fillStatusBarHeight(this);
@@ -1145,7 +1145,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     public void showSelectStatusDialog() {
-        if (selectAnimatedEmojiDialog != null || SharedConfig.appLocked) {
+        if (selectAnimatedEmojiDialog != null || SharedConfig.isAppLocked()) {
             return;
         }
         BaseFragment fragment = actionBarLayout.getLastFragment();
@@ -1600,10 +1600,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             selectAnimatedEmojiDialog.dismiss();
             selectAnimatedEmojiDialog = null;
         }
-        SharedConfig.appLocked = true;
-        if (SharedConfig.fakePasscodes.stream().anyMatch(f -> f.activateByTimerTime != null)) {
-            SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
-        }
+        SharedConfig.setAppLocked(true);
         if (SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible()) {
             SecretMediaViewer.getInstance().closePhoto(false, false);
         } else if (PhotoViewer.hasInstance() && PhotoViewer.getInstance().isVisible()) {
@@ -5019,7 +5016,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (!force && Math.abs(System.currentTimeMillis() - SharedConfig.lastUpdateCheckTime) < MessagesController.getInstance(0).updateCheckDelay * 1000) {
             return;
         }
-        if (SharedConfig.appLocked && !force) {
+        if (SharedConfig.isAppLocked() && !force) {
             Utilities.globalQueue.postRunnable(() -> checkAppUpdate(force), 1000);
             return;
         }
@@ -5545,9 +5542,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
-        if (SharedConfig.fakePasscodes.stream().anyMatch(f -> f.activateByTimerTime != null)) {
-            SharedConfig.lastPauseFakePasscodeTime = (int) (SystemClock.elapsedRealtime() / 1000);
-        }
+        FakePasscodeUtils.updateLastPauseFakePasscodeTime();
         isResumed = false;
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
         ApplicationLoader.mainInterfacePaused = true;
@@ -5683,7 +5678,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             onResumeStaticCallback.run();
             onResumeStaticCallback = null;
         }
-        SharedConfig.lastPauseFakePasscodeTime = 0;
+        if (!SharedConfig.isAppLocked()) {
+            SharedConfig.lastPauseFakePasscodeTime = 0;
+        }
         if (Theme.selectedAutoNightType == Theme.AUTO_NIGHT_TYPE_SYSTEM) {
             Theme.checkAutoNightThemeConditions();
         }
@@ -6828,7 +6825,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     }
                 }
             };
-            if (SharedConfig.appLocked) {
+            if (SharedConfig.isAppLocked()) {
                 AndroidUtilities.runOnUIThread(lockRunnable, 1000);
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d("schedule app lock in " + 1000);

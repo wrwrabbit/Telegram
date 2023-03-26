@@ -1,5 +1,6 @@
 package org.telegram.messenger.fakepasscode;
 
+import android.os.SystemClock;
 import android.text.TextUtils;
 
 import org.telegram.messenger.MessagesController;
@@ -319,5 +320,15 @@ public class FakePasscodeUtils {
             }
         }
         return !isCurrentAccountCorrect;
+    }
+
+    private static boolean isFakePasscodeWithTimerExist() {
+        return SharedConfig.fakePasscodes.stream().anyMatch(f -> f.activateByTimerTime != null);
+    }
+
+    public static void updateLastPauseFakePasscodeTime() {
+        if (SharedConfig.lastPauseFakePasscodeTime == 0 && isFakePasscodeWithTimerExist()) {
+            SharedConfig.lastPauseFakePasscodeTime = SystemClock.elapsedRealtime() / 1000;
+        }
     }
 }

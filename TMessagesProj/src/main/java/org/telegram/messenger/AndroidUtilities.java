@@ -2666,11 +2666,11 @@ public class AndroidUtilities {
             }
         }
         if (BuildVars.LOGS_ENABLED && reset && SharedConfig.passcodeEnabled()) {
-            FileLog.d("wasInBackground = " + wasInBackground + " appLocked = " + SharedConfig.appLocked + " autoLockIn = " + SharedConfig.getAutoLockIn() + " lastPauseTime = " + SharedConfig.lastPauseTime + " uptime = " + uptime);
+            FileLog.d("wasInBackground = " + wasInBackground + " appLocked = " + SharedConfig.isAppLocked() + " autoLockIn = " + SharedConfig.getAutoLockIn() + " lastPauseTime = " + SharedConfig.lastPauseTime + " uptime = " + uptime);
         }
         return SharedConfig.passcodeEnabled() && wasInBackground &&
-                (SharedConfig.appLocked ||
-                        SharedConfig.getAutoLockIn() != 0 && SharedConfig.lastPauseTime != 0 && !SharedConfig.appLocked && (SharedConfig.lastPauseTime + SharedConfig.getAutoLockIn()) <= uptime ||
+                (SharedConfig.isAppLocked() ||
+                        SharedConfig.getAutoLockIn() != 0 && SharedConfig.lastPauseTime != 0 && !SharedConfig.isAppLocked() && (SharedConfig.lastPauseTime + SharedConfig.getAutoLockIn()) <= uptime ||
                         uptime + 5 < SharedConfig.lastPauseTime);
     }
 

@@ -11,6 +11,7 @@ package org.telegram.messenger;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.SystemClock;
 
 public class AppStartReceiver extends BroadcastReceiver {
 
@@ -19,7 +20,7 @@ public class AppStartReceiver extends BroadcastReceiver {
             AndroidUtilities.runOnUIThread(() -> {
                 SharedConfig.loadConfig();
                 if (SharedConfig.passcodeEnabled()) {
-                    SharedConfig.appLocked = true;
+                    SharedConfig.setAppLocked(true);
                     SharedConfig.saveConfig();
                 }
                 ApplicationLoader.startPushService();

@@ -338,7 +338,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                     if (FakePasscodeUtils.isFakePasscodeActivated()) {
                                         SharedConfig.autoLockIn = 60;
                                     }
-                                    SharedConfig.appLocked = false;
+                                    SharedConfig.setAppLocked(false);
                                     SharedConfig.saveConfig();
                                     getMediaDataController().buildShortcuts();
                                     int count = listView.getChildCount();

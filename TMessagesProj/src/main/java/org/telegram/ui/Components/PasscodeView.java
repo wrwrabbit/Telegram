@@ -83,7 +83,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.didGenerateFingerprintKeyPair) {
             checkFingerprintButton();
-            if ((boolean) args[0] && SharedConfig.appLocked) {
+            if ((boolean) args[0] && SharedConfig.isAppLocked()) {
                 checkFingerprint();
             }
         } else if (id == NotificationCenter.passcodeDismissed) {
@@ -1014,7 +1014,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             FingerprintController.deleteInvalidKey();
         }
 
-        SharedConfig.appLocked = false;
+        SharedConfig.setAppLocked(false);
         SharedConfig.saveConfig();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
         setOnTouchListener(null);

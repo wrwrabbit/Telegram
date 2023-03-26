@@ -143,13 +143,13 @@ public class SharedConfig {
     public static boolean clearCacheOnLock = true;
     public static int badPasscodeTries;
     public static byte[] passcodeSalt = new byte[0];
-    public static boolean appLocked;
+    private static boolean appLocked;
     public static int autoLockIn = 60 * 60;
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
     public static int lastPauseTime;
-    public static int lastPauseFakePasscodeTime;
+    public static long lastPauseFakePasscodeTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprint = true;
     public static String lastUpdateVersion;
@@ -481,7 +481,7 @@ public class SharedConfig {
                 editor.putInt("badPasscodeTries", badPasscodeTries);
                 editor.putInt("autoLockIn", autoLockIn);
                 editor.putInt("lastPauseTime", lastPauseTime);
-                editor.putInt("lastPauseFakePasscodeTime", lastPauseFakePasscodeTime);
+                editor.putLong("lastPauseFakePasscodeTime", lastPauseFakePasscodeTime);
                 editor.putString("lastUpdateVersion2", lastUpdateVersion);
                 editor.putBoolean("useFingerprint", useFingerprint);
                 editor.putBoolean("allowScreenCapture", allowScreenCapture);
@@ -609,7 +609,7 @@ public class SharedConfig {
             badPasscodeTries = preferences.getInt("badPasscodeTries", 0);
             autoLockIn = preferences.getInt("autoLockIn", 60 * 60);
             lastPauseTime = preferences.getInt("lastPauseTime", 0);
-            lastPauseFakePasscodeTime = preferences.getInt("lastPauseFakePasscodeTime", 0);
+            lastPauseFakePasscodeTime = preferences.getLong("lastPauseFakePasscodeTime", 0);
             useFingerprint = preferences.getBoolean("useFingerprint", false);
             lastUpdateVersion = preferences.getString("lastUpdateVersion2", "3.5");
             allowScreenCapture = preferences.getBoolean("allowScreenCapture", false);
@@ -1832,6 +1832,21 @@ public class SharedConfig {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("onScreenLockAction", onScreenLockAction);
         editor.commit();
+    }
+
+    public static boolean isAppLocked() {
+        return appLocked;
+    }
+
+    public static void setAppLocked(boolean locked) {
+        if (locked) {
+            FakePasscodeUtils.updateLastPauseFakePasscodeTime();
+        } else {
+            if (appLocked) {
+                SharedConfig.lastPauseFakePasscodeTime = 0;
+            }
+        }
+        appLocked = locked;
     }
 
     public static SharedPreferences getPreferences() {

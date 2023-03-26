@@ -86,7 +86,7 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
 
         super.onCreate(savedInstanceState);
 
-        if (SharedConfig.passcodeEnabled() && SharedConfig.appLocked) {
+        if (SharedConfig.passcodeEnabled() && SharedConfig.isAppLocked()) {
             SharedConfig.lastPauseTime = (int) (SystemClock.elapsedRealtime() / 1000);
         }
 
@@ -207,7 +207,8 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
         if (passcodeView == null) {
             return;
         }
-        SharedConfig.appLocked = true;
+        SharedConfig.setAppLocked(true);
+        FakePasscodeUtils.updateLastPauseFakePasscodeTime();
         if (SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible()) {
             SecretMediaViewer.getInstance().closePhoto(false, false);
         } else if (PhotoViewer.hasInstance() && PhotoViewer.getInstance().isVisible()) {
@@ -516,6 +517,7 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
     @Override
     protected void onPause() {
         super.onPause();
+        FakePasscodeUtils.updateLastPauseFakePasscodeTime();
         actionBarLayout.onPause();
         if (AndroidUtilities.isTablet()) {
             layersActionBarLayout.onPause();
@@ -581,7 +583,7 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
                     }
                 }
             };
-            if (SharedConfig.appLocked) {
+            if (SharedConfig.isAppLocked()) {
                 AndroidUtilities.runOnUIThread(lockRunnable, 1000);
             } else if (SharedConfig.getAutoLockIn() != 0) {
                 AndroidUtilities.runOnUIThread(lockRunnable, (long) SharedConfig.getAutoLockIn() * 1000 + 1000);
