@@ -123,6 +123,7 @@ import com.google.android.gms.tasks.Task;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.utils.CustomHtml;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -2638,7 +2639,7 @@ public class AndroidUtilities {
                 FakePasscode passcode = SharedConfig.fakePasscodes.get(i);
                 if (passcode.activateByTimerTime != null
                         && (uptime - SharedConfig.lastPauseFakePasscodeTime) >= passcode.activateByTimerTime) {
-                    FakePasscode activatedPasscode = SharedConfig.getActivatedFakePasscode();
+                    FakePasscode activatedPasscode = FakePasscodeUtils.getActivatedFakePasscode();
                     if (activatedPasscode == null || activatedPasscode.activateByTimerTime == null
                             || passcode.activateByTimerTime > activatedPasscode.activateByTimerTime) {
                         passcode.executeActions();
