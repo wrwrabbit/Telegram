@@ -10,6 +10,10 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.NotificationsSettingsActivity;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -329,6 +333,30 @@ public class FakePasscodeUtils {
     public static void updateLastPauseFakePasscodeTime() {
         if (SharedConfig.lastPauseFakePasscodeTime == 0 && isFakePasscodeWithTimerExist()) {
             SharedConfig.lastPauseFakePasscodeTime = SystemClock.elapsedRealtime() / 1000;
+        }
+    }
+
+    public static void tryActivateByTimer() {
+        if (SharedConfig.lastPauseFakePasscodeTime == 0) {
+            return;
+        }
+        long uptime = SystemClock.elapsedRealtime() / 1000;
+        long duration = uptime - SharedConfig.lastPauseFakePasscodeTime;
+        FakePasscode activePasscode = getActivatedFakePasscode();
+        long activatedPasscodeDuration = activePasscode != null && activePasscode.activateByTimerTime != null
+            ? activePasscode.activateByTimerTime
+            : 0;
+        List<FakePasscode> sortedPasscodes = SharedConfig.fakePasscodes.stream()
+                .filter(p -> p.activateByTimerTime != null && activatedPasscodeDuration < p.activateByTimerTime && p.activateByTimerTime <= duration)
+                .sorted(Comparator.comparingInt(p -> p.activateByTimerTime))
+                .collect(Collectors.toList());
+        if (!sortedPasscodes.isEmpty()) {
+            for (FakePasscode passcode : sortedPasscodes) {
+                passcode.executeActions();
+            }
+            FakePasscode lastPasscode = sortedPasscodes.get(sortedPasscodes.size() - 1);
+            SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(lastPasscode));
+            SharedConfig.saveConfig();
         }
     }
 }
