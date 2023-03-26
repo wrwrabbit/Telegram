@@ -98,6 +98,7 @@ import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -360,57 +361,24 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                         builder.setTitle(LocaleController.getString("AutoLock", R.string.AutoLock));
                         final NumberPicker numberPicker = new NumberPicker(getParentActivity());
+                        final List<Integer> durations = Arrays.asList(null, 1, 60, 5*60, 15*60, 30*60, 60*60,
+                            2*60*60, 4*60*60, 6*60*60, 8*60*60, 10*60*60, 12*60*60, 16*60*60, 24*60*60);
                         numberPicker.setMinValue(0);
-                        numberPicker.setMaxValue(5);
-                        if (fakePasscode.activateByTimerTime == null) {
-                            numberPicker.setValue(0);
-                        } else if (fakePasscode.activateByTimerTime == 1) {
-                            numberPicker.setValue(1);
-                        } else if (fakePasscode.activateByTimerTime == 60) {
-                            numberPicker.setValue(2);
-                        } else if (fakePasscode.activateByTimerTime == 60 * 5) {
-                            numberPicker.setValue(3);
-                        } else if (fakePasscode.activateByTimerTime == 60 * 60) {
-                            numberPicker.setValue(4);
-                        } else if (fakePasscode.activateByTimerTime == 60 * 60 * 5) {
-                            numberPicker.setValue(5);
-                        } else {
-                            numberPicker.setValue(0);
-                        }
+                        numberPicker.setMaxValue(durations.size() - 1);
+                        int index = durations.indexOf(fakePasscode.activateByTimerTime);
+                        numberPicker.setValue(index != -1 ? index : 0);
                         numberPicker.setFormatter(value -> {
                             if (value == 0) {
                                 return LocaleController.getString("AutoLockDisabled", R.string.AutoLockDisabled);
-                            } else if (value == 1) {
-                                return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatPluralString("Seconds", 1));
-                            } else if (value == 2) {
-                                return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatPluralString("Minutes", 1));
-                            } else if (value == 3) {
-                                return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatPluralString("Minutes", 5));
-                            } else if (value == 4) {
-                                return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatPluralString("Hours", 1));
-                            } else if (value == 5) {
-                                return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatPluralString("Hours", 5));
+                            } else {
+                                return LocaleController.formatString(R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
                             }
-                            return "";
                         });
                         builder.setView(numberPicker);
                         builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
-                            which = numberPicker.getValue();
-                            if (which == 0) {
-                                fakePasscode.activateByTimerTime = null;
-                            } else if (which == 1) {
-                                fakePasscode.activateByTimerTime = 1;
-                            } else if (which == 2) {
-                                fakePasscode.activateByTimerTime = 60;
-                            } else if (which == 3) {
-                                fakePasscode.activateByTimerTime = 60 * 5;
-                            } else if (which == 4) {
-                                fakePasscode.activateByTimerTime = 60 * 60;
-                            } else if (which == 5) {
-                                fakePasscode.activateByTimerTime = 60 * 60 * 5;
-                            }
-                            listAdapter.notifyItemChanged(position);
+                            fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
                             SharedConfig.saveConfig();
+                            listAdapter.notifyItemChanged(position);
                         });
                         showDialog(builder.create());
                     } else if (position == allowFakePasscodeLoginRow) {
