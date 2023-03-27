@@ -106,7 +106,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
-public class FakePasscodeActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
+public class FakePasscodeActivity extends BaseFragment {
     public final static int TYPE_FAKE_PASSCODE_SETTINGS = 0,
             TYPE_SETUP_FAKE_PASSCODE = 1,
             TYPE_ENTER_BACKUP_CODE = 2,
