@@ -1419,18 +1419,8 @@ public class FakePasscodeActivity extends BaseFragment {
                         String val;
                         if (fakePasscode.activateByTimerTime == null) {
                             val = LocaleController.formatString("TimerActivationFakePasscodeDisabled", R.string.TimerActivationFakePasscodeDisabled);
-                        } else if (fakePasscode.activateByTimerTime == 1) {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeInTime", R.string.TimerActivationFakePasscodeInTime, LocaleController.formatPluralString("Seconds", 1));
-                        } else if (fakePasscode.activateByTimerTime == 60) {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeInTime", R.string.TimerActivationFakePasscodeInTime, LocaleController.formatPluralString("Minutes", 1));
-                        } else if (fakePasscode.activateByTimerTime == 60 * 5) {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeInTime", R.string.TimerActivationFakePasscodeInTime, LocaleController.formatPluralString("Minutes", 5));
-                        } else if (fakePasscode.activateByTimerTime == 60 * 60) {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeInTime", R.string.TimerActivationFakePasscodeInTime, LocaleController.formatPluralString("Hours", 1));
-                        } else  if (fakePasscode.activateByTimerTime == 60 * 60 * 5) {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeInTime", R.string.TimerActivationFakePasscodeInTime, LocaleController.formatPluralString("Hours", 5));
                         } else {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeDisabled", R.string.TimerActivationFakePasscodeDisabled);
+                            val = LocaleController.formatString(R.string.TimerActivationFakePasscodeInTime, LocaleController.formatDuration(fakePasscode.activateByTimerTime));
                         }
                         textCell.setTextAndValue(LocaleController.getString(R.string.TimerActivationFakePasscode), val, true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
