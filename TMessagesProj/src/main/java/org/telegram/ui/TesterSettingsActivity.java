@@ -289,6 +289,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private void setSecurityIssues(Set<SecurityIssue> issues) {
         getUserConfig().currentSecurityIssues = issues;
         getUserConfig().ignoredSecurityIssues = new HashSet<>();
+        SharedConfig.ignoredSecurityIssues = new HashSet<>();
         getUserConfig().lastSecuritySuggestionsShow = 0;
         getUserConfig().showSecuritySuggestions = !issues.isEmpty();
         getUserConfig().saveConfig(false);

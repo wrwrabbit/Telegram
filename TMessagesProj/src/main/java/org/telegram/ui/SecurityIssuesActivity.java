@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PrivacyChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
@@ -135,7 +136,7 @@ public class SecurityIssuesActivity extends BaseFragment {
             mContext = context;
 
             securityIssues = new ArrayList<>(getUserConfig().currentSecurityIssues);
-            securityIssues.removeAll(getUserConfig().ignoredSecurityIssues);
+            securityIssues.removeAll(getUserConfig().getIgnoredSecurityIssues());
             Collections.sort(securityIssues);
         }
 
@@ -158,8 +159,13 @@ public class SecurityIssuesActivity extends BaseFragment {
                     view = new SecurityIssueCell(mContext) {
                         @Override
                         protected void onCloseClick() {
-                            getUserConfig().ignoredSecurityIssues.add(currentIssue);
-                            getUserConfig().showSecuritySuggestions = getUserConfig().ignoredSecurityIssues.containsAll(getUserConfig().currentSecurityIssues);
+                            if (currentIssue.isGlobal()) {
+                                SharedConfig.ignoredSecurityIssues.add(currentIssue);
+                            } else {
+                                getUserConfig().ignoredSecurityIssues.add(currentIssue);
+                            }
+                            getUserConfig().showSecuritySuggestions = !getUserConfig().getIgnoredSecurityIssues()
+                                    .containsAll(getUserConfig().currentSecurityIssues);
                             getUserConfig().saveConfig(false);
                             int issueIndex = ListAdapter.this.securityIssues.indexOf(currentIssue);
                             ListAdapter.this.securityIssues.remove(currentIssue);

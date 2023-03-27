@@ -782,6 +782,12 @@ public class UserConfig extends BaseController {
         }
     }
 
+    public Set<SecurityIssue> getIgnoredSecurityIssues() {
+        Set<SecurityIssue> allIgnoredSecurityIssues = new HashSet<>(ignoredSecurityIssues);
+        allIgnoredSecurityIssues.addAll(SharedConfig.ignoredSecurityIssues);
+        return allIgnoredSecurityIssues;
+    }
+
     int globalTtl = 0;
     boolean ttlIsLoading = false;
     long lastLoadingTime;

@@ -42,13 +42,13 @@ public class SecurityChecker {
         checkSecurityIssues(context, accountNum, issues -> {
             config.currentSecurityIssues = issues;
             if (!config.showSecuritySuggestions) {
-                if (!config.ignoredSecurityIssues.containsAll(config.currentSecurityIssues)
+                if (!config.getIgnoredSecurityIssues().containsAll(config.currentSecurityIssues)
                         && System.currentTimeMillis() - config.lastSecuritySuggestionsShow >= (30L * 24L * 60L * 60L * 1000L)) {
                     config.showSecuritySuggestions = true;
                     config.lastSecuritySuggestionsShow = System.currentTimeMillis();
                 }
             } else {
-                if (config.ignoredSecurityIssues.containsAll(config.currentSecurityIssues)) {
+                if (config.getIgnoredSecurityIssues().containsAll(config.currentSecurityIssues)) {
                     config.showSecuritySuggestions = false;
                     config.lastSecuritySuggestionsShow = System.currentTimeMillis();
                 }

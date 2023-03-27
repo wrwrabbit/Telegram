@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.AppVersion;
+import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -360,6 +362,7 @@ public class SharedConfig {
     public static int runNumber;
     public static boolean premiumDisabled;
     public static String phoneOverride;
+    public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
 
     static {
         loadConfig();
@@ -532,6 +535,8 @@ public class SharedConfig {
                 editor.putInt("runNumber", runNumber);
                 editor.putBoolean("premiumDisabled", premiumDisabled);
                 editor.putString("phoneOverride", phoneOverride);
+                String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
+                editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
 
                 if (pendingPtgAppUpdate != null) {
                     try {
@@ -663,6 +668,8 @@ public class SharedConfig {
             runNumber = preferences.getInt("runNumber", 0);
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
             phoneOverride = preferences.getString("phoneOverride", "");
+            String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
+            ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
 
             String authKeyString = preferences.getString("pushAuthKey", null);
             if (!TextUtils.isEmpty(authKeyString)) {
