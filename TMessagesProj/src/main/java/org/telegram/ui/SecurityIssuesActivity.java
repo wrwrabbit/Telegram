@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PrivacyChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -168,7 +169,7 @@ public class SecurityIssuesActivity extends BaseFragment {
                         @Override
                         protected void onFixClick() {
                             if (currentIssue == SecurityIssue.PRIVACY) {
-                                PrivacyChecker.fix(currentAccount, SecurityIssuesActivity.this::showPrivacyErrorAlert, SecurityIssuesActivity.this::showFixed);
+                                PrivacyChecker.fix(currentAccount, SecurityIssuesActivity.this::showPrivacyErrorAlert, () -> fixed(currentIssue));
                             } else if (currentIssue == SecurityIssue.TWO_STEP_VERIFICATION) {
                                 TwoStepVerificationSetupActivity twoStepVerification = new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_INTRO, null);
                                 twoStepVerification.setFromRegistration(false);
@@ -197,6 +198,15 @@ public class SecurityIssuesActivity extends BaseFragment {
         @Override
         public int getItemViewType(int position) {
             return 0;
+        }
+
+        private void fixed(SecurityIssue issue) {
+            getUserConfig().currentSecurityIssues.remove(issue);
+            getUserConfig().saveConfig(false);
+            int index = securityIssues.indexOf(issue);
+            securityIssues.remove(issue);
+            notifyItemRemoved(index);
+            showFixed();
         }
     }
 
