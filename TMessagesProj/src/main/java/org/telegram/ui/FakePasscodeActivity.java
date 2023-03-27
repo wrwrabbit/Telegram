@@ -1011,18 +1011,6 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
         AndroidUtilities.removeAltFocusable(getParentActivity(), classGuid);
     }
 
-    @Override
-    public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.didSetPasscode && (args.length == 0 || (Boolean) args[0])) {
-            if (type == TYPE_FAKE_PASSCODE_SETTINGS) {
-                updateRows();
-                if (listAdapter != null) {
-                    listAdapter.notifyDataSetChanged();
-                }
-            }
-        }
-    }
-
     private void updateRows() {
         rowCount = 0;
 
