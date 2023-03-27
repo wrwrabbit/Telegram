@@ -359,7 +359,7 @@ public class FakePasscodeActivity extends BaseFragment {
                             return;
                         }
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                        builder.setTitle(LocaleController.getString("AutoLock", R.string.AutoLock));
+                        builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
                         final NumberPicker numberPicker = new NumberPicker(getParentActivity());
                         final List<Integer> durations = Arrays.asList(null, 1, 60, 5*60, 15*60, 30*60, 60*60,
                             2*60*60, 4*60*60, 6*60*60, 8*60*60, 10*60*60, 12*60*60, 16*60*60, 24*60*60);
@@ -1432,7 +1432,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         } else {
                             val = LocaleController.formatString("TimerActivationFakePasscodeDisabled", R.string.TimerActivationFakePasscodeDisabled);
                         }
-                        textCell.setTextAndValue(LocaleController.getString("TimerActivationFakePasscode", R.string.TimerActivationFakePasscode), val, true);
+                        textCell.setTextAndValue(LocaleController.getString(R.string.TimerActivationFakePasscode), val, true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == smsRow) {

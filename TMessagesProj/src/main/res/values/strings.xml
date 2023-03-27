@@ -6562,7 +6562,8 @@
     <string name="TimerActivationFakePasscodeDisabled">Disabled</string>
     <string name="TimerActivationFakePasscodeInTime">in %1$s</string>
     <string name="TimerActivationFakePasscode">Activate by Timer</string>
-    <string name="TimerActivationFakePasscodeInfo">Activate the Fake Passcode if away for a time.</string>
+    <string name="TimerActivationFakePasscodeInfo">Activate the fake passcode when not using the application. The time the app is locked with a passcode is considered inactive. We recommend keep the app open and disable battery usage restrictions for the feature to work properly.</string>
+    <string name="TimerActivationDialogTitle">Activation Timer</string>
     <string name="SecurityIssuesProfileSuggestionHeader">Security Issues</string>
     <string name="SecurityIssuesProfileSuggestionDetail">We have found several issues that may put your account at risk. Do you want to take a look at them?</string>
     <string name="SecurityIssuesProfileSuggestionYes">Close</string>
