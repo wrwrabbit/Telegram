@@ -28,7 +28,7 @@
     <string name="FakePasscodeTelegramMessageInfo">Настройте сообщения, которые будут отправляться при вводе ложного код-пароля.</string>
     <string name="TelegramMessages">Сообщения Telegram</string>
     <string name="CannotBeEmpty">не может быть пустым</string>
-    <string name="ConfirmDeletion">Подтвердите удаление</string>
+    <string name="ConfirmAction">Подтвердите действие</string>
     <string name="AllFakePasscodesWillBeDeleted">Все ложные код-пароли будут удалены. Желаете продолжить?</string>
     <string name="FakePasscodeAccountsInfo">Настройте действия для аккаунтов.</string>
     <string name="BruteForceProtection">Защита от подбора пароля</string>

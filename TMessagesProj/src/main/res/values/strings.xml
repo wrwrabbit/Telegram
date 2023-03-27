@@ -6410,7 +6410,7 @@
     <string name="FakePasscodeTelegramMessageInfo">Set up messages that will be sent when you enter a fake passcode.</string>
     <string name="TelegramMessages">Telegram Messages</string>
     <string name="CannotBeEmpty">cannot be empty</string>
-    <string name="ConfirmDeletion">Confirm deletion</string>
+    <string name="ConfirmAction">Confirm action</string>
     <string name="AllFakePasscodesWillBeDeleted">All fake passcodes will be deleted. Are you sure you want to continue?</string>
     <string name="FakePasscodeAccountsInfo">Configure actions for accounts.</string>
     <string name="BruteForceProtection">Brute Force Protection</string>

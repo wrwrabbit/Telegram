@@ -1383,7 +1383,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private void requireFakePasscodesDeletionConfirmation(final DialogInterface.OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setMessage(LocaleController.getString("AllFakePasscodesWillBeDeleted", R.string.AllFakePasscodesWillBeDeleted));
-        builder.setTitle(LocaleController.getString("ConfirmDeletion", R.string.ConfirmDeletion));
+        builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
         builder.setPositiveButton(LocaleController.getString("Continue", R.string.Continue), listener);
         builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
         AlertDialog alertDialog = builder.create();

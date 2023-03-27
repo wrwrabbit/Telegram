@@ -28,7 +28,7 @@
     <string name="FakePasscodeTelegramMessageInfo">Наладзьце паведамленні, якія будуць адсылацца пры ўводзе несапраўднага кода блакіроўкі.</string>
     <string name="TelegramMessages">Паведамленні Telegram</string>
     <string name="CannotBeEmpty">не можа быць парожнім</string>
-    <string name="ConfirmDeletion">Пацвердзіце выдаленне</string>
+    <string name="ConfirmAction">Пацвердзіце дзеянне</string>
     <string name="AllFakePasscodesWillBeDeleted">Усе несапраўдныя кады блакіроўкі будуць выдалены. Жадаеце працягнуць?</string>
     <string name="FakePasscodeAccountsInfo">Наладзьце дзеянні для акаўнтаў.</string>
     <string name="BruteForceProtection">Ахова ад падбору кода блакіроўкі</string>
