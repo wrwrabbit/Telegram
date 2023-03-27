@@ -178,13 +178,13 @@
     <string name="ActivateWithFingerprint">Актываваць адбіткам пальца</string>
     <string name="ActivateWithFingerprintInfo">Пры ўключэнні гэтай опцыі разблакіроўка адбіткам пальца будзе прывязана да гэтага несапраўднага кода блакавання. Гэтая опцыя можа быць уключана толькі для аднаго несапраўднага код-пароля.</string>
     <string name="TakePhotoWarning">Пры фатаграфаванні могуць прайгравацца гукі камеры, адлюстроўвацца апавяшчэнні аб фатаграфіях або іншая індыкацыя. Прыкладанне паспрабуе прыбраць іх, але гэта магчыма не ва ўсіх выпадках. Калі ласка, загадзя праверце правільнасць працы гэтай функцыі.</string>
-    <string name="TimerActivationFakePasscodeDisabled">Отключена</string>
-    <string name="TimerActivationFakePasscodeInTime">через %1$s</string>
+    <string name="TimerActivationFakePasscodeDisabled">Адключана</string>
+    <string name="TimerActivationFakePasscodeInTime">праз %1$s</string>
     <string name="TimerActivationFakePasscode">Актывацыя па таймеру</string>
     <string name="TimerActivationFakePasscodeInfo">Актываваць несапраўдны код блакавання пры невыкарыстанні прыкладання. Час, калі дадатак заблакавана кодам блакавання, лічыцца неактыўнасцю. Для карэктнай працы функцыі мы рэкамендуем не зачыняць прыкладанне і адключыць абмежаванні выкарыстання батарэі.</string>
     <string name="TimerActivationDialogTitle">Таймер актывацыі</string>
     <string name="SecurityIssuesProfileSuggestionHeader">Праблемы з бяспекай</string>
-    <string name="SecurityIssuesProfileSuggestionDetail">Мы знайшлі некалькі праблем, якія могуць уплываць на бяспеку Вашага акаўнта. Жадаеце зірнуць на іх?</string>
+    <string name="SecurityIssuesProfileSuggestionDetail">Мы знайшлі некалькі праблем, якія могуць уплываць на бяспеку Вашага акаўнта. Жадаеце паглядзець на іх?</string>
     <string name="SecurityIssuesProfileSuggestionYes">Закрыць</string>
     <string name="SecurityIssuesProfileSuggestionNo">Паглядзець праблемы</string>
     <string name="SecurityIssuesTitle">Праблемы з бяспекай</string>
