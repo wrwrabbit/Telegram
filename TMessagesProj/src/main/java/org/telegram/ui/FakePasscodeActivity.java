@@ -1434,7 +1434,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     } else if (position == activateByTimerRow){
                         String val;
                         if (fakePasscode.activateByTimerTime == null) {
-                            val = LocaleController.formatString("TimerActivationFakePasscodeDisabled", R.string.TimerActivationFakePasscodeDisabled);
+                            val = LocaleController.formatString("Disabled", R.string.Disabled);
                         } else {
                             val = LocaleController.formatString(R.string.TimerActivationFakePasscodeInTime, LocaleController.formatDuration(fakePasscode.activateByTimerTime));
                         }
