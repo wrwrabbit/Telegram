@@ -7200,7 +7200,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     phoneSuggestionRow = rowCount++;
                     phoneSuggestionSectionRow = rowCount++;
                 }
-                if (getUserConfig().showSecuritySuggestions) {
+                if (!FakePasscodeUtils.isFakePasscodeActivated() && getUserConfig().showSecuritySuggestions) {
                     securitySuggestionRow = rowCount++;
                     securitySuggestionSectionRow = rowCount++;
                 }

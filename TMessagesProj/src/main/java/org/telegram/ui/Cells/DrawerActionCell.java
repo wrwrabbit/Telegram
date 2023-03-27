@@ -24,6 +24,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedTextView;
@@ -75,7 +76,7 @@ public class DrawerActionCell extends FrameLayout {
         if (currentId == 8) {
             Set<String> suggestions = MessagesController.getInstance(UserConfig.selectedAccount).pendingSuggestions;
             if (suggestions.contains("VALIDATE_PHONE_NUMBER") || suggestions.contains("VALIDATE_PASSWORD")
-                    || UserConfig.getInstance(UserConfig.selectedAccount).showSecuritySuggestions) {
+                    || !FakePasscodeUtils.isFakePasscodeActivated() && UserConfig.getInstance(UserConfig.selectedAccount).showSecuritySuggestions) {
                 int countTop = AndroidUtilities.dp(12.5f);
                 int countWidth = AndroidUtilities.dp(9);
                 int countLeft = getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
