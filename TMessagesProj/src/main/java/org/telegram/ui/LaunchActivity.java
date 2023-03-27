@@ -925,6 +925,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }, Math.max(shift, 0));
         }
         RemoveAfterReadingMessages.save();
+        FakePasscodeUtils.scheduleFakePasscodeTimer(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             FingerprintController.checkKeyReady();

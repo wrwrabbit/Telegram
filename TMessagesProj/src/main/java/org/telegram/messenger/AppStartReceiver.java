@@ -13,6 +13,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
 
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+
 public class AppStartReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
@@ -25,6 +27,8 @@ public class AppStartReceiver extends BroadcastReceiver {
                 }
                 ApplicationLoader.startPushService();
             });
+        } else {
+            FakePasscodeUtils.tryActivateByTimer();
         }
     }
 }

@@ -1,8 +1,14 @@
 package org.telegram.messenger.fakepasscode;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.SystemClock;
 import android.text.TextUtils;
 
+import org.telegram.messenger.AppStartReceiver;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
@@ -10,9 +16,6 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.NotificationsSettingsActivity;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -336,27 +339,44 @@ public class FakePasscodeUtils {
         }
     }
 
-    public static void tryActivateByTimer() {
-        if (SharedConfig.lastPauseFakePasscodeTime == 0) {
-            return;
-        }
-        long uptime = SystemClock.elapsedRealtime() / 1000;
-        long duration = uptime - SharedConfig.lastPauseFakePasscodeTime;
+    private static int getActivatePasscodeTimerDuration() {
         FakePasscode activePasscode = getActivatedFakePasscode();
-        long activatedPasscodeDuration = activePasscode != null && activePasscode.activateByTimerTime != null
-            ? activePasscode.activateByTimerTime
-            : 0;
-        List<FakePasscode> sortedPasscodes = SharedConfig.fakePasscodes.stream()
-                .filter(p -> p.activateByTimerTime != null && activatedPasscodeDuration < p.activateByTimerTime && p.activateByTimerTime <= duration)
-                .sorted(Comparator.comparingInt(p -> p.activateByTimerTime))
-                .collect(Collectors.toList());
-        if (!sortedPasscodes.isEmpty()) {
-            for (FakePasscode passcode : sortedPasscodes) {
-                passcode.executeActions();
+        return activePasscode != null && activePasscode.activateByTimerTime != null
+                ? activePasscode.activateByTimerTime
+                : 0;
+    }
+
+    public static void tryActivateByTimer() {
+        try {
+            if (SharedConfig.lastPauseFakePasscodeTime == 0) {
+                return;
             }
-            FakePasscode lastPasscode = sortedPasscodes.get(sortedPasscodes.size() - 1);
-            SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(lastPasscode));
-            SharedConfig.saveConfig();
+            long uptime = SystemClock.elapsedRealtime() / 1000;
+            long duration = uptime - SharedConfig.lastPauseFakePasscodeTime;
+            List<FakePasscode> sortedPasscodes = SharedConfig.fakePasscodes.stream()
+                    .filter(p -> p.activateByTimerTime != null && getActivatePasscodeTimerDuration() < p.activateByTimerTime && p.activateByTimerTime <= duration)
+                    .sorted(Comparator.comparingLong(p -> p.activateByTimerTime))
+                    .collect(Collectors.toList());
+            if (!sortedPasscodes.isEmpty()) {
+                for (FakePasscode passcode : sortedPasscodes) {
+                    passcode.executeActions();
+                }
+                FakePasscode lastPasscode = sortedPasscodes.get(sortedPasscodes.size() - 1);
+                SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(lastPasscode));
+                SharedConfig.saveConfig();
+            }
+        } catch (Exception ignore) {
+        }
+    }
+
+    public static void scheduleFakePasscodeTimer(Context context) {
+        try {
+            AlarmManager alarmManager = (AlarmManager) ApplicationLoader.applicationContext.getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(context, AppStartReceiver.class);
+            int flags = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0;
+            PendingIntent pintent = PendingIntent.getBroadcast(context, 0, intent, flags);
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 60 * 1000, pintent);
+        } catch (Exception ignore) {
         }
     }
 }
