@@ -40,6 +40,7 @@ public class SecurityChecker {
         }
 
         checkSecurityIssues(context, accountNum, issues -> {
+            boolean issuesChanged = !issues.equals(config.currentSecurityIssues);
             config.currentSecurityIssues = issues;
             if (!config.showSecuritySuggestions) {
                 if (!config.getIgnoredSecurityIssues().containsAll(config.currentSecurityIssues)
@@ -56,6 +57,9 @@ public class SecurityChecker {
             config.saveConfig(false);
             if (config.showSecuritySuggestions) {
                 NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.newSuggestionsAvailable);
+            }
+            if (issuesChanged) {
+                NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.securityIssuesChanged);
             }
         });
     }

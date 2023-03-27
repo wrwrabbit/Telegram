@@ -16,10 +16,11 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PrivacyChecker;
+import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -40,7 +41,7 @@ import java.util.List;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class SecurityIssuesActivity extends BaseFragment {
+public class SecurityIssuesActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     private ListAdapter listAdapter;
     private RecyclerListView listView;
@@ -48,7 +49,14 @@ public class SecurityIssuesActivity extends BaseFragment {
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
+        getNotificationCenter().addObserver(this, NotificationCenter.securityIssuesChanged);
         return true;
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        super.onFragmentDestroy();
+        getNotificationCenter().removeObserver(this, NotificationCenter.securityIssuesChanged);
     }
 
     @Override
@@ -89,6 +97,7 @@ public class SecurityIssuesActivity extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount());
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
@@ -127,6 +136,16 @@ public class SecurityIssuesActivity extends BaseFragment {
         Toast.makeText(getContext(), LocaleController.getString(R.string.FixedToast), Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.securityIssuesChanged) {
+            if (listAdapter != null) {
+                listAdapter.updateIssues();
+                listAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
         private List<SecurityIssue> securityIssues;
@@ -134,7 +153,10 @@ public class SecurityIssuesActivity extends BaseFragment {
 
         public ListAdapter(Context context) {
             mContext = context;
+            updateIssues();
+        }
 
+        public void updateIssues() {
             securityIssues = new ArrayList<>(getUserConfig().currentSecurityIssues);
             securityIssues.removeAll(getUserConfig().getIgnoredSecurityIssues());
             Collections.sort(securityIssues);
