@@ -100,7 +100,6 @@ public class UserConfig extends BaseController {
 
     public Set<SecurityIssue> currentSecurityIssues = new HashSet<>();
     public Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
-    public long lastSecurityCheck = 0;
     public boolean showSecuritySuggestions = false;
     public long lastSecuritySuggestionsShow = 0;
 
@@ -285,7 +284,6 @@ public class UserConfig extends BaseController {
                     editor.putString("currentSecurityIssues", currentSecurityIssuesStr);
                     String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                     editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
-                    editor.putLong("lastSecurityCheck", lastSecurityCheck);
                     editor.putBoolean("showSecuritySuggestions", showSecuritySuggestions);
                     editor.putLong("lastSecuritySuggestionsShow", lastSecuritySuggestionsShow);
                     String savedChannelsStr = savedChannels.stream().reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
@@ -455,10 +453,7 @@ public class UserConfig extends BaseController {
             currentSecurityIssues = Arrays.stream(currentSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
-            ignoredSecurityIssues.remove("");
-            lastSecurityCheck = preferences.getLong("lastSecurityCheck", lastSecurityCheck);
             showSecuritySuggestions = preferences.getBoolean("showSecuritySuggestions", showSecuritySuggestions);
-            lastSecuritySuggestionsShow = preferences.getLong("lastSecuritySuggestionsShow", lastSecuritySuggestionsShow);
             String savedChannelsStr = preferences.getString("savedChannels", defaultChannels);
             savedChannels = new HashSet<>(Arrays.asList(savedChannelsStr.split(",")));
             savedChannels.remove("");

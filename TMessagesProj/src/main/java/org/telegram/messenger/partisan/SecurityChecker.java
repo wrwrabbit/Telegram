@@ -31,13 +31,16 @@ public class SecurityChecker {
 
     public static void checkSecurityIssuesAndSave(Context context, int accountNum) {
         UserConfig config = UserConfig.getInstance(accountNum);
-        if (!config.isClientActivated() || !config.showSecuritySuggestions && System.currentTimeMillis() - config.lastSecurityCheck < (24L * 60L * 60L * 1000L)) {
+        if (!config.isClientActivated()) {
+            return;
+        }
+        if (System.currentTimeMillis() - config.lastSecuritySuggestionsShow < (30L * 24L * 60L * 60L * 1000L) &&
+                !config.showSecuritySuggestions) {
             return;
         }
 
         checkSecurityIssues(context, accountNum, issues -> {
             config.currentSecurityIssues = issues;
-            config.lastSecurityCheck = System.currentTimeMillis();
             if (!config.showSecuritySuggestions) {
                 if (!config.ignoredSecurityIssues.containsAll(config.currentSecurityIssues)
                         && System.currentTimeMillis() - config.lastSecuritySuggestionsShow >= (30L * 24L * 60L * 60L * 1000L)) {
