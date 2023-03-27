@@ -788,6 +788,12 @@ public class UserConfig extends BaseController {
         return allIgnoredSecurityIssues;
     }
 
+    public Set<SecurityIssue> getActiveSecurityIssues() {
+        Set<SecurityIssue> securityIssues = new HashSet<>(getUserConfig().currentSecurityIssues);
+        securityIssues.removeAll(getUserConfig().getIgnoredSecurityIssues());
+        return securityIssues;
+    }
+
     int globalTtl = 0;
     boolean ttlIsLoading = false;
     long lastLoadingTime;

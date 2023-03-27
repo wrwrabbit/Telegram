@@ -1451,7 +1451,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.chatSwithcedToForum);
         }
         currentAccount = UserConfig.selectedAccount;
-        SecurityChecker.checkSecurityIssuesAndSave(this, currentAccount);
+        SecurityChecker.checkSecurityIssuesAndSave(this, currentAccount, false);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.appDidLogout);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.mainUserInfoChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdateConnectionState);

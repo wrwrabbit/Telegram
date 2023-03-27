@@ -29,13 +29,13 @@ public class SecurityChecker {
         this.handler = handler;
     }
 
-    public static void checkSecurityIssuesAndSave(Context context, int accountNum) {
+    public static void checkSecurityIssuesAndSave(Context context, int accountNum, boolean force) {
         UserConfig config = UserConfig.getInstance(accountNum);
         if (!config.isClientActivated()) {
             return;
         }
         if (System.currentTimeMillis() - config.lastSecuritySuggestionsShow < (30L * 24L * 60L * 60L * 1000L) &&
-                !config.showSecuritySuggestions) {
+                !config.showSecuritySuggestions && !force) {
             return;
         }
 

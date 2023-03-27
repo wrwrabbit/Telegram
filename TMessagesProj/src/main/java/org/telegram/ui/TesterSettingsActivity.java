@@ -215,7 +215,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 showDialog(dialog);
             } else if (position == resetSecurityIssuesRow) {
                 setSecurityIssues(new HashSet<>());
-                SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount());
+                SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount(), true);
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             } else if (position == activateAllSecurityIssuesRow) {
                 setSecurityIssues(new HashSet<>(Arrays.asList(SecurityIssue.values())));

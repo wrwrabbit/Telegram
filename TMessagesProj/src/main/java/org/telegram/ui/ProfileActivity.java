@@ -6494,7 +6494,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         }
         if (getUserConfig().showSecuritySuggestions) {
-            SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount());
+            SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount(), false);
         }
     }
 

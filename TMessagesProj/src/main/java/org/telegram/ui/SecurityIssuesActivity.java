@@ -97,7 +97,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
     @Override
     public void onResume() {
         super.onResume();
-        SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount());
+        SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount(), true);
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
@@ -157,8 +157,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
         }
 
         public void updateIssues() {
-            securityIssues = new ArrayList<>(getUserConfig().currentSecurityIssues);
-            securityIssues.removeAll(getUserConfig().getIgnoredSecurityIssues());
+            securityIssues = new ArrayList<>(getUserConfig().getActiveSecurityIssues());
             Collections.sort(securityIssues);
         }
 
