@@ -287,12 +287,18 @@ public class TesterSettingsActivity extends BaseFragment {
     }
 
     private void setSecurityIssues(Set<SecurityIssue> issues) {
-        getUserConfig().currentSecurityIssues = issues;
-        getUserConfig().ignoredSecurityIssues = new HashSet<>();
         SharedConfig.ignoredSecurityIssues = new HashSet<>();
-        getUserConfig().lastSecuritySuggestionsShow = 0;
-        getUserConfig().showSecuritySuggestions = !issues.isEmpty();
-        getUserConfig().saveConfig(false);
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            UserConfig config = UserConfig.getInstance(a);
+            if (!config.isClientActivated()) {
+                continue;
+            }
+            config.currentSecurityIssues = issues;
+            config.ignoredSecurityIssues = new HashSet<>();
+            config.lastSecuritySuggestionsShow = 0;
+            config.showSecuritySuggestions = !issues.isEmpty();
+            config.saveConfig(false);
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
