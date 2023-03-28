@@ -197,4 +197,5 @@
     <string name="PrivacyIssueText">Слабыя налады канфідэнцыяльнасці могуць дазволіць іншым карыстальнікам дэананімізаваць Вас, напрыклад, па нумары тэлефона ці па апошнім часе ў сетцы.</string>
     <string name="FixIssueButton">Выправіць праблему</string>
     <string name="FixedToast">Выпраўлена</string>
+    <string name="ResetIgnoredIssues">Скінуць праігнараваныя праблемы</string>
 </resources>

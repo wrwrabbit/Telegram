@@ -9,12 +9,17 @@
 package org.telegram.ui;
 
 import android.content.Context;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -23,6 +28,8 @@ import org.telegram.messenger.partisan.PrivacyChecker;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -45,6 +52,10 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
 
     private ListAdapter listAdapter;
     private RecyclerListView listView;
+    private ActionBarMenuItem otherItem;
+
+    private final static int reset_issues = 1;
+
 
     @Override
     public boolean onFragmentCreate() {
@@ -76,6 +87,25 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
         FrameLayout frameLayout = (FrameLayout) fragmentView;
 
         actionBar.setTitle(LocaleController.getString(R.string.SecurityIssuesTitle));
+        ActionBarMenu menu = actionBar.createMenu();
+        otherItem = menu.addItem(10, R.drawable.ic_ab_other);
+        otherItem.addSubItem(reset_issues, LocaleController.getString(R.string.PasscodeSwitchToPassword));
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+            @Override
+            public void onItemClick(int id) {
+                if (id == -1) {
+                    finishFragment();
+                } else if (id == reset_issues) {
+                    getUserConfig().ignoredSecurityIssues.clear();
+                    getUserConfig().saveConfig(false);
+                    if (listAdapter != null) {
+                        listAdapter.updateIssues();
+                        listAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+
         frameLayout.setTag(Theme.key_windowBackgroundGray);
         frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
         listView = new RecyclerListView(context);

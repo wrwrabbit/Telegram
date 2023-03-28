@@ -6578,4 +6578,5 @@
     <string name="PrivacyIssueText">Low privacy settings may allow other users to deanonymize you, for example by phone number or last online time.</string>
     <string name="FixIssueButton">Fix the Issue</string>
     <string name="FixedToast">Fixed</string>
+    <string name="ResetIgnoredIssues">Reset Ignored Issues</string>
 </resources>

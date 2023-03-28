@@ -197,4 +197,5 @@
     <string name="PrivacyIssueText">Низкие настройки конфиденциальности могут позволить другим пользователям деанонимизировать Вас, например, по номеру телефона или по последнему времени в сети.</string>
     <string name="FixIssueButton">Исправить проблему</string>
     <string name="FixedToast">Исправлено</string>
+    <string name="ResetIgnoredIssues">Сбросить проигнорированные проблемы</string>
 </resources>
