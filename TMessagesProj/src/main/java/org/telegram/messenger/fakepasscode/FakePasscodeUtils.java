@@ -346,7 +346,7 @@ public class FakePasscodeUtils {
                 : 0;
     }
 
-    public static void tryActivateByTimer() {
+    public static synchronized void tryActivateByTimer() {
         try {
             if (SharedConfig.lastPauseFakePasscodeTime == 0) {
                 return;
@@ -371,11 +371,12 @@ public class FakePasscodeUtils {
 
     public static void scheduleFakePasscodeTimer(Context context) {
         try {
-            AlarmManager alarmManager = (AlarmManager) ApplicationLoader.applicationContext.getSystemService(Context.ALARM_SERVICE);
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             Intent intent = new Intent(context, AppStartReceiver.class);
             int flags = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0;
             PendingIntent pintent = PendingIntent.getBroadcast(context, 0, intent, flags);
-            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 60 * 1000, pintent);
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60 * 1000, 5 * 60 * 1000, pintent);
+            InnerFakePasscodeTimer.schedule();
         } catch (Exception ignore) {
         }
     }
