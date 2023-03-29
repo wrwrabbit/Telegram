@@ -11,7 +11,6 @@ package org.telegram.messenger;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.SystemClock;
 
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 
