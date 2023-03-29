@@ -187,7 +187,7 @@
     <string name="SecurityIssuesProfileSuggestionDetail">Мы нашли несколько проблем, которые могут подвергнуть Ваш аккаунт опасности. Хотите посмотреть на них?</string>
     <string name="SecurityIssuesProfileSuggestionYes">Закрыть</string>
     <string name="SecurityIssuesProfileSuggestionNo">Посмотреть проблемы</string>
-    <string name="SecurityIssuesTitle">Проблемы с безопасностью</string>
+    <string name="SecurityIssuesTitle">Проблемы безопасности</string>
     <string name="RootIssueTitle">Root</string>
     <string name="RootIssueText">Root может позволить злоумышленнику получить доступ к данным приложения (например, к сообщениям) без входа в него.</string>
     <string name="UsbDebuggingIssueTitle">USB отладка</string>
@@ -198,5 +198,5 @@
     <string name="PrivacyIssueText">Низкие настройки конфиденциальности могут позволить другим пользователям деанонимизировать Вас, например, по номеру телефона или по последнему времени в сети.</string>
     <string name="FixIssueButton">Исправить проблему</string>
     <string name="FixedToast">Исправлено</string>
-    <string name="ResetIgnoredIssues">Сбросить проигнорированные проблемы</string>
+    <string name="ResetIgnoredIssues">Вернуть скрытые проблемы</string>
 </resources>

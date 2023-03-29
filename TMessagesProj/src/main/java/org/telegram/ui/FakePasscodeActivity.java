@@ -486,9 +486,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             numberPicker.setValue(index != -1 ? index : 0);
                             numberPicker.setFormatter(value -> {
                                 if (value == 0) {
-                                    return LocaleController.getString("AutoLockDisabled", R.string.AutoLockDisabled);
+                                    return LocaleController.getString(R.string.Disabled);
                                 } else {
-                                    return LocaleController.formatString(R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
+                                    return LocaleController.formatDuration(durations.get(value));
                                 }
                             });
                             builder.setView(numberPicker);
