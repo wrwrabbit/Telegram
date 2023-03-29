@@ -166,6 +166,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         boolean foldersCleared = clearFolders();
         removeChats();
         saveResults();
+        hideFolders();
         if (!realRemovedChats.isEmpty()) {
             fakePasscode.actionsResult.actionsPreventsLogoutAction.add(this);
         }
@@ -241,7 +242,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     }
 
     private boolean clearFolder(MessagesController.DialogFilter folder) {
-        if (!folderHasDialogs(folder)) {
+        if (!folderHasDialogs(folder, chatEntriesToRemove.stream().map(e -> e.chatId).collect(Collectors.toList()))) {
             return false;
         }
 
@@ -284,24 +285,29 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             fillPeerArray(pinnedDialogs, req.filter.pinned_peers);
             getAccount().getConnectionsManager().sendRequest(req, (response, error) -> { });
         }
-        if ((folder.flags & DIALOG_FILTER_FLAG_ALL_CHATS) == 0) {
-            Set<Long> idsToHide = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toSet());
-            if (folder.alwaysShow.stream().allMatch(idsToHide::contains)) {
-                hiddenFolders.add(folder.id);
-            }
-        }
         return false;
     }
 
-    private boolean folderHasDialogs(MessagesController.DialogFilter folder) {
-        List<Long> idsToRemove = chatEntriesToRemove.stream().map(e -> e.chatId).collect(Collectors.toList());
-        if (!Collections.disjoint(folder.alwaysShow, idsToRemove)) {
+    private void hideFolders() {
+        ArrayList<MessagesController.DialogFilter> filters = new ArrayList<>(getMessagesController().dialogFilters);
+        for (MessagesController.DialogFilter folder : filters) {
+            if ((folder.flags & DIALOG_FILTER_FLAG_ALL_CHATS) == 0) {
+                Set<Long> idsToHide = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toSet());
+                if (idsToHide.containsAll(folder.alwaysShow)) {
+                    hiddenFolders.add(folder.id);
+                }
+            }
+        }
+    }
+
+    private boolean folderHasDialogs(MessagesController.DialogFilter folder, List<Long> idsToCheck) {
+        if (!Collections.disjoint(folder.alwaysShow, idsToCheck)) {
             return true;
         }
-        if (!Collections.disjoint(folder.neverShow, idsToRemove)) {
+        if (!Collections.disjoint(folder.neverShow, idsToCheck)) {
             return true;
         }
-        if (!Collections.disjoint(getFolderPinnedDialogs(folder), idsToRemove)) {
+        if (!Collections.disjoint(getFolderPinnedDialogs(folder), idsToCheck)) {
             return true;
         }
         return false;
