@@ -24,6 +24,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PrivacyChecker;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
@@ -43,6 +44,7 @@ import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -53,8 +55,20 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
     private ListAdapter listAdapter;
     private RecyclerListView listView;
     private ActionBarMenuItem otherItem;
+    private final boolean[] oldShowSuggestionValues = new boolean[UserConfig.MAX_ACCOUNT_COUNT];
 
     private final static int reset_issues = 1;
+
+    public SecurityIssuesActivity() {
+        super();
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            UserConfig config = UserConfig.getInstance(a);
+            if (!config.isClientActivated()) {
+                continue;
+            }
+            oldShowSuggestionValues[a] = config.showSecuritySuggestions;
+        }
+    }
 
 
     @Override
@@ -98,6 +112,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                 } else if (id == reset_issues) {
                     getUserConfig().ignoredSecurityIssues.clear();
                     SharedConfig.ignoredSecurityIssues.clear();
+                    updateShowSuggestion();
                     getUserConfig().saveConfig(false);
                     if (listAdapter != null) {
                         listAdapter.updateIssues();
@@ -170,10 +185,28 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
     }
 
     private void checkResetIssuesItemVisibility() {
-        if (getUserConfig().ignoredSecurityIssues.isEmpty() && SharedConfig.ignoredSecurityIssues.isEmpty()) {
+        if (getUserConfig().getIgnoredSecurityIssues().isEmpty()) {
             otherItem.setVisibility(View.GONE);
         } else {
             otherItem.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateShowSuggestion() {
+        boolean oldShow = getUserConfig().showSecuritySuggestions;
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            UserConfig config = UserConfig.getInstance(a);
+            if (!config.isClientActivated()) {
+                continue;
+            }
+            config.showSecuritySuggestions = !getUserConfig().getIgnoredSecurityIssues()
+                    .containsAll(getUserConfig().currentSecurityIssues)
+                    && oldShowSuggestionValues[a]; // true only if it was true when the activity started
+            config.saveConfig(false);
+        }
+        boolean currentAccountShowSuggestionChanged = getUserConfig().showSecuritySuggestions != oldShow;
+        if (currentAccountShowSuggestionChanged) {
+            getNotificationCenter().postNotificationName(NotificationCenter.newSuggestionsAvailable);
         }
     }
 
@@ -227,8 +260,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                             } else {
                                 getUserConfig().ignoredSecurityIssues.add(currentIssue);
                             }
-                            getUserConfig().showSecuritySuggestions = !getUserConfig().getIgnoredSecurityIssues()
-                                    .containsAll(getUserConfig().currentSecurityIssues);
+                            updateShowSuggestion();
                             getUserConfig().saveConfig(false);
                             int issueIndex = ListAdapter.this.securityIssues.indexOf(currentIssue);
                             ListAdapter.this.securityIssues.remove(currentIssue);
@@ -273,6 +305,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
 
         private void fixed(SecurityIssue issue) {
             getUserConfig().currentSecurityIssues.remove(issue);
+            updateShowSuggestion();
             getUserConfig().saveConfig(false);
             int index = securityIssues.indexOf(issue);
             securityIssues.remove(issue);
