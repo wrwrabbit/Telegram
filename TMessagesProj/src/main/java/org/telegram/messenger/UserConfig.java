@@ -645,7 +645,7 @@ public class UserConfig extends BaseController {
         currentSecurityIssues = new HashSet<>();
         ignoredSecurityIssues = new HashSet<>();
         showSecuritySuggestions = false;
-        lastSecuritySuggestionsShow = 0;
+        lastSecuritySuggestionsShow = System.currentTimeMillis() - (30L - 1L) * 24L * 60L * 60L * 1000L;
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = -210000;
