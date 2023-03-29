@@ -111,10 +111,12 @@ public abstract class SecurityIssueCell extends LinearLayout {
             case TWO_STEP_VERIFICATION:
                 headerTextView.setText(LocaleController.getString(R.string.TwoStepAutentificationIssueTitle));
                 detailTextView.setText(LocaleController.getString(R.string.TwoStepAutentificationIssueText));
+                fixButton.setVisibility(View.VISIBLE);
                 break;
             case PRIVACY:
                 headerTextView.setText(LocaleController.getString(R.string.PrivacyIssueTitle));
                 detailTextView.setText(LocaleController.getString(R.string.PrivacyIssueText));
+                fixButton.setVisibility(View.VISIBLE);
                 break;
         }
     }

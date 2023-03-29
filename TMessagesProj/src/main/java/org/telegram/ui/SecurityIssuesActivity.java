@@ -89,7 +89,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
         actionBar.setTitle(LocaleController.getString(R.string.SecurityIssuesTitle));
         ActionBarMenu menu = actionBar.createMenu();
         otherItem = menu.addItem(10, R.drawable.ic_ab_other);
-        otherItem.addSubItem(reset_issues, LocaleController.getString(R.string.PasscodeSwitchToPassword));
+        otherItem.addSubItem(reset_issues, LocaleController.getString(R.string.ResetIgnoredIssues));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -97,14 +97,17 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                     finishFragment();
                 } else if (id == reset_issues) {
                     getUserConfig().ignoredSecurityIssues.clear();
+                    SharedConfig.ignoredSecurityIssues.clear();
                     getUserConfig().saveConfig(false);
                     if (listAdapter != null) {
                         listAdapter.updateIssues();
                         listAdapter.notifyDataSetChanged();
                     }
+                    checkResetIssuesItemVisibility();
                 }
             }
         });
+        checkResetIssuesItemVisibility();
 
         frameLayout.setTag(Theme.key_windowBackgroundGray);
         frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
@@ -166,6 +169,14 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
         Toast.makeText(getContext(), LocaleController.getString(R.string.FixedToast), Toast.LENGTH_LONG).show();
     }
 
+    private void checkResetIssuesItemVisibility() {
+        if (getUserConfig().ignoredSecurityIssues.isEmpty() && SharedConfig.ignoredSecurityIssues.isEmpty()) {
+            otherItem.setVisibility(View.GONE);
+        } else {
+            otherItem.setVisibility(View.VISIBLE);
+        }
+    }
+
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.securityIssuesChanged) {
@@ -173,6 +184,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                 listAdapter.updateIssues();
                 listAdapter.notifyDataSetChanged();
             }
+            checkResetIssuesItemVisibility();
         }
     }
 
@@ -221,6 +233,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                             int issueIndex = ListAdapter.this.securityIssues.indexOf(currentIssue);
                             ListAdapter.this.securityIssues.remove(currentIssue);
                             ListAdapter.this.notifyItemRemoved(issueIndex);
+                            checkResetIssuesItemVisibility();
                         }
 
                         @Override
