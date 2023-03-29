@@ -181,6 +181,8 @@
     <string name="TimerActivationFakePasscode">Актывацыя па таймеру</string>
     <string name="TimerActivationFakePasscodeInfo">Актываваць несапраўдны код блакавання пры невыкарыстанні прыкладання. Час, калі дадатак заблакавана кодам блакавання, лічыцца неактыўнасцю. Для карэктнай працы функцыі мы рэкамендуем не зачыняць прыкладанне і адключыць абмежаванні выкарыстання батарэі.</string>
     <string name="TimerActivationDialogTitle">Таймер актывацыі</string>
+    <string name="TimerActivationFakePasscodeWarningTitle">Увага!</string>
+    <string name="TimerActivationFakePasscodeWarning">Таймер можа не заўсёды спрацоўваць карэктна. Прыкладанне можа быць зачынена сістэмай, а фонавая праца можа быць абмежавана. Для карэктнай працы функцыі мы рэкамендуем не зачыняць прыкладанне і адключыць абмежаванні выкарыстання батарэі. Таксама мы рэкамендуем прадумаць запасны план на выпадак неспрацоўвання таймера.</string>
     <string name="SecurityIssuesProfileSuggestionHeader">Праблемы з бяспекай</string>
     <string name="SecurityIssuesProfileSuggestionDetail">Мы знайшлі некалькі праблем, якія могуць уплываць на бяспеку Вашага акаўнта. Жадаеце паглядзець на іх?</string>
     <string name="SecurityIssuesProfileSuggestionYes">Закрыць</string>

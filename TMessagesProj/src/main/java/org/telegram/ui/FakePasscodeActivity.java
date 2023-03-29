@@ -90,6 +90,7 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.TextViewSwitcher;
 import org.telegram.ui.Components.TransformableLoginButtonView;
 import org.telegram.ui.Components.VerticalPositionAutoAnimator;
+import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 import org.telegram.ui.DialogBuilder.DialogTemplate;
 import org.telegram.ui.DialogBuilder.DialogType;
 import org.telegram.ui.DialogBuilder.EditTemplate;
@@ -468,29 +469,37 @@ public class FakePasscodeActivity extends BaseFragment {
                         if (getParentActivity() == null) {
                             return;
                         }
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                        builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
-                        final NumberPicker numberPicker = new NumberPicker(getParentActivity());
-                        final List<Integer> durations = Arrays.asList(null, 1, 60, 5*60, 15*60, 30*60, 60*60,
-                                2*60*60, 4*60*60, 6*60*60, 8*60*60, 10*60*60, 12*60*60, 16*60*60, 24*60*60);
-                        numberPicker.setMinValue(0);
-                        numberPicker.setMaxValue(durations.size() - 1);
-                        int index = durations.indexOf(fakePasscode.activateByTimerTime);
-                        numberPicker.setValue(index != -1 ? index : 0);
-                        numberPicker.setFormatter(value -> {
-                            if (value == 0) {
-                                return LocaleController.getString("AutoLockDisabled", R.string.AutoLockDisabled);
-                            } else {
-                                return LocaleController.formatString(R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
-                            }
+                        AlertDialog.Builder warningBuilder = new AlertDialog.Builder(getParentActivity());
+                        warningBuilder.setTitle(LocaleController.getString(R.string.TimerActivationFakePasscodeWarningTitle));
+                        warningBuilder.setMessage(LocaleController.getString(R.string.TimerActivationFakePasscodeWarning));
+                        warningBuilder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                        AlertDialog warningDialog = warningBuilder.create();
+                        DialogButtonWithTimer.setButton(warningDialog, AlertDialog.BUTTON_POSITIVE, LocaleController.getString(R.string.Continue), 3, (dlg, w) -> {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
+                            final NumberPicker numberPicker = new NumberPicker(getParentActivity());
+                            final List<Integer> durations = Arrays.asList(null, 1, 60, 5*60, 15*60, 30*60, 60*60,
+                                    2*60*60, 4*60*60, 6*60*60, 8*60*60, 10*60*60, 12*60*60, 16*60*60, 24*60*60);
+                            numberPicker.setMinValue(0);
+                            numberPicker.setMaxValue(durations.size() - 1);
+                            int index = durations.indexOf(fakePasscode.activateByTimerTime);
+                            numberPicker.setValue(index != -1 ? index : 0);
+                            numberPicker.setFormatter(value -> {
+                                if (value == 0) {
+                                    return LocaleController.getString("AutoLockDisabled", R.string.AutoLockDisabled);
+                                } else {
+                                    return LocaleController.formatString(R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
+                                }
+                            });
+                            builder.setView(numberPicker);
+                            builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
+                                fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
+                                SharedConfig.saveConfig();
+                                listAdapter.notifyItemChanged(position);
+                            });
+                            showDialog(builder.create());
                         });
-                        builder.setView(numberPicker);
-                        builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
-                            fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
-                            SharedConfig.saveConfig();
-                            listAdapter.notifyItemChanged(position);
-                        });
-                        showDialog(builder.create());
+                        showDialog(warningDialog);
                     } else if (position == fingerprintRow) {
                         TextCheckCell cell = (TextCheckCell) view;
                         fakePasscode.activateByFingerprint = !fakePasscode.activateByFingerprint;
