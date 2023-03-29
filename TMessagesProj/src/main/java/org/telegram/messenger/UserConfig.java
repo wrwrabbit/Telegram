@@ -98,10 +98,6 @@ public class UserConfig extends BaseController {
     LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
 
 
-    public Set<SecurityIssue> currentSecurityIssues = new HashSet<>();
-    public Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
-    public boolean showSecuritySuggestions = false;
-    public long lastSecuritySuggestionsShow = 0;
 
     public static class ChatInfoOverride {
         public String title;
@@ -117,6 +113,11 @@ public class UserConfig extends BaseController {
     public String defaultChannels = "cpartisans";
     public Set<String> savedChannels = new HashSet<>();
     public List<String> pinnedSavedChannels = new ArrayList<>();
+
+    public Set<SecurityIssue> currentSecurityIssues = new HashSet<>();
+    public Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+    public boolean showSecuritySuggestions = false;
+    public long lastSecuritySuggestionsShow = 0;
 
     private static ObjectMapper jsonMapper = null;
 
@@ -641,6 +642,10 @@ public class UserConfig extends BaseController {
         chatInfoOverrides.clear();
         savedChannels = new HashSet<>(Arrays.asList(defaultChannels.split(",")));
         pinnedSavedChannels = new ArrayList<>(Arrays.asList(defaultChannels.split(",")));
+        currentSecurityIssues = new HashSet<>();
+        ignoredSecurityIssues = new HashSet<>();
+        showSecuritySuggestions = false;
+        lastSecuritySuggestionsShow = 0;
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = -210000;
