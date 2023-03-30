@@ -291,6 +291,9 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     private void hideFolders() {
         ArrayList<MessagesController.DialogFilter> filters = new ArrayList<>(getMessagesController().dialogFilters);
         for (MessagesController.DialogFilter folder : filters) {
+            if (folder.id == 0) {
+                continue;
+            }
             if ((folder.flags & DIALOG_FILTER_FLAG_ALL_CHATS) == 0) {
                 Set<Long> idsToHide = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toSet());
                 if (idsToHide.containsAll(folder.alwaysShow)) {
