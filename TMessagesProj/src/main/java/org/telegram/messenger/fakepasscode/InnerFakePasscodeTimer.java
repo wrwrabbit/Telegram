@@ -8,7 +8,7 @@ public class InnerFakePasscodeTimer implements Runnable {
     public static synchronized void schedule() {
         if (instance == null) {
             instance = new InnerFakePasscodeTimer();
-            Utilities.globalQueue.postRunnable(instance, 60 * 1000);
+            Utilities.globalQueue.postRunnable(instance, 1000);
         }
     }
 
