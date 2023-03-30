@@ -1685,6 +1685,7 @@ public class LoginActivity extends BaseFragment {
         MessagesController.getInstance(currentAccount).cleanup();
         ConnectionsManager.getInstance(currentAccount).setUserId(res.user.id);
         UserConfig.getInstance(currentAccount).clearConfig();
+        UserConfig.getInstance(currentAccount).lastSecuritySuggestionsShow = System.currentTimeMillis() - (30L - 1L) * 24L * 60L * 60L * 1000L;
         MessagesController.getInstance(currentAccount).cleanup();
         UserConfig.getInstance(currentAccount).syncContacts = syncContacts;
         UserConfig.getInstance(currentAccount).setCurrentUser(res.user);

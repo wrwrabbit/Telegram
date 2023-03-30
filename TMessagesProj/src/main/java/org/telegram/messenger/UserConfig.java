@@ -455,7 +455,7 @@ public class UserConfig extends BaseController {
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
             showSecuritySuggestions = preferences.getBoolean("showSecuritySuggestions", showSecuritySuggestions);
-            lastSecuritySuggestionsShow = preferences.getLong("lastSecuritySuggestionsShow", System.currentTimeMillis() - (30L - 1L) * 24L * 60L * 60L * 1000L); // check security next day
+            lastSecuritySuggestionsShow = preferences.getLong("lastSecuritySuggestionsShow", 0); // check security next day
             String savedChannelsStr = preferences.getString("savedChannels", defaultChannels);
             savedChannels = new HashSet<>(Arrays.asList(savedChannelsStr.split(",")));
             savedChannels.remove("");
@@ -645,7 +645,7 @@ public class UserConfig extends BaseController {
         currentSecurityIssues = new HashSet<>();
         ignoredSecurityIssues = new HashSet<>();
         showSecuritySuggestions = false;
-        lastSecuritySuggestionsShow = System.currentTimeMillis() - (30L - 1L) * 24L * 60L * 60L * 1000L;
+        lastSecuritySuggestionsShow = 0;
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = -210000;
