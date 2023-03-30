@@ -488,7 +488,7 @@ public class FakePasscodeActivity extends BaseFragment {
                                 if (value == 0) {
                                     return LocaleController.getString(R.string.Disabled);
                                 } else {
-                                    return LocaleController.formatDuration(durations.get(value));
+                                    return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
                                 }
                             });
                             builder.setView(numberPicker);
@@ -1445,7 +1445,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         if (fakePasscode.activateByTimerTime == null) {
                             val = LocaleController.formatString("Disabled", R.string.Disabled);
                         } else {
-                            val = LocaleController.formatDuration(fakePasscode.activateByTimerTime);
+                            val = LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(fakePasscode.activateByTimerTime));
                         }
                         textCell.setTextAndValue(LocaleController.getString(R.string.TimerActivationFakePasscode), val, true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
