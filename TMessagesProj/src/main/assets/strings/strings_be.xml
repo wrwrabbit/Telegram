@@ -189,7 +189,7 @@
     <string name="SecurityIssuesProfileSuggestionNo">Паглядзець праблемы</string>
     <string name="SecurityIssuesTitle">Праблемы з бяспекай</string>
     <string name="RootIssueTitle">Root</string>
-    <string name="RootIssue">Root можа дазволіць зламысніку атрымаць доступ да дадзеных прыкладання (напрыклад, да паведамленняў) без уваходу ў яго.</string>
+    <string name="RootIssueText">Root можа дазволіць зламысніку атрымаць доступ да дадзеных прыкладання (напрыклад, да паведамленняў) без уваходу ў яго.</string>
     <string name="UsbDebuggingIssueTitle">USB адладка</string>
     <string name="UsbDebuggingIssueText">USB адладка можа падвергнуць дадзеныя на тэлефоне небяспекі ў некаторых выпадках, такіх, як падлучэнне прылады да агульнадаступнай USB зараднай станцыі. Мы рэкамендуем выключаць гэтую опцыю, калі яна не выкарыстоўваецца.</string>
     <string name="TwoStepAutentificationIssueTitle">Двухэтапная аўтэнтыфікацыя</string>
