@@ -146,7 +146,7 @@
     <string name="IsDeleteMessagesForAllByDefaultInfo">Los mensajes y chats también se eliminarán para su acompañante de forma predeterminada.</string>
     <string name="SessionsToTerminate">Sesiones a Terminar</string>
     <string name="SessionsToHide">Sesiones para Ocultar</string>
-    <string name="SessionsSettingsInfo">Elija sesiones que serán visibles en Configuración y/o terminada en Activación de contraseña falsa</string>
+    <string name="SessionsToHideSettingsInfo">Elija sesiones que serán visibles en Configuración y/o terminada en Activación de contraseña falsa</string>
     <string name="Selected">Seleccionado</string>
     <string name="ExceptSelected">Excepto Seleccionado</string>
     <string name="CheckAll">Comprobar Todo</string>
