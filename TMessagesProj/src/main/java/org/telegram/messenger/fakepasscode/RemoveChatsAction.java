@@ -291,9 +291,22 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     private void hideFolders() {
         ArrayList<MessagesController.DialogFilter> filters = new ArrayList<>(getMessagesController().dialogFilters);
         for (MessagesController.DialogFilter folder : filters) {
-            if ((folder.flags & DIALOG_FILTER_FLAG_ALL_CHATS) != 0) {
-                Set<Long> idsToHide = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toSet());
-                if (idsToHide.containsAll(folder.alwaysShow)) {
+            if ((folder.flags & DIALOG_FILTER_FLAG_ALL_CHATS) == 0) {
+                if (folder.id != 0) {
+                    Set<Long> idsToHide = chatEntriesToRemove.stream().filter(e -> !e.isExitFromChat).map(e -> e.chatId).collect(Collectors.toSet());
+                    if (idsToHide.containsAll(folder.alwaysShow)) {
+                        hiddenFolders.add(folder.id);
+                    }
+                }
+            } else {
+                boolean allDialogsHidden = true;
+                for (TLRPC.Dialog dialog : getMessagesController().getDialogs(0)) {
+                    if (folder.includesDialog(getAccount(), dialog.id) && !hiddenChats.contains(dialog.id)) {
+                        allDialogsHidden = false;
+                        break;
+                    }
+                }
+                if (allDialogsHidden) {
                     hiddenFolders.add(folder.id);
                 }
             }
