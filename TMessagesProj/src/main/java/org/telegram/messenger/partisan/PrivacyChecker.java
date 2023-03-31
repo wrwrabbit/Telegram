@@ -73,7 +73,7 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
             req.key = new TLRPC.TL_inputPrivacyKeyStatusTimestamp();
         }
 
-        if (rulesType == PRIVACY_RULES_TYPE_PHOTO || rulesType == PRIVACY_RULES_TYPE_INVITE) {
+        if (rulesType == PRIVACY_RULES_TYPE_INVITE) {
             req.rules.add(new TLRPC.TL_inputPrivacyValueAllowContacts());
         } else {
             req.rules.add(new TLRPC.TL_inputPrivacyValueDisallowAll());
