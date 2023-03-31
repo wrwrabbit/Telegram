@@ -5,6 +5,8 @@ import android.provider.Settings;
 
 import androidx.core.util.Consumer;
 
+import com.scottyab.rootbeer.RootBeer;
+
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
@@ -86,26 +88,8 @@ public class SecurityChecker {
         });
     }
 
-    private static boolean isRooted() {
-        try {
-            File file = new File("/system/app/Superuser.apk");
-            if (file.exists()) {
-                return true;
-            }
-        } catch (Exception e1) {
-            // ignore
-        }
-
-        return canExecuteCommand("su");
-    }
-
-    private static boolean canExecuteCommand(String command) {
-        try {
-            Runtime.getRuntime().exec(command);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    private boolean isRooted() {
+        return new RootBeer(context).isRooted();
     }
 
     private static boolean isUsbDebuggingEnabled(Context context) {
