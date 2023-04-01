@@ -703,8 +703,7 @@ public class SharedConfig {
                         AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
                     }
                 }
-            } catch (Exception e) {
-                FileLog.e(e);
+            } catch (Exception ignore) {
             }
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
