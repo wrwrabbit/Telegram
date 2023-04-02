@@ -53,7 +53,6 @@ import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.ringtone.RingtoneDataStore;
 import org.telegram.messenger.ringtone.RingtoneUploader;
-import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -4309,6 +4308,7 @@ public class MediaDataController extends BaseController {
                 }
             }
         }
+        boolean recreateShortcuts = Build.VERSION.SDK_INT >= 30;
         Utilities.globalQueue.postRunnable(() -> {
             try {
                 if (SharedConfig.directShareHash == null) {
@@ -4316,19 +4316,58 @@ public class MediaDataController extends BaseController {
                     ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit().putString("directShareHash2", SharedConfig.directShareHash).commit();
                 }
 
-                ShortcutManagerCompat.removeAllDynamicShortcuts(ApplicationLoader.applicationContext);
+                ArrayList<String> shortcutsToUpdate = new ArrayList<>();
+                ArrayList<String> newShortcutsIds = new ArrayList<>();
+                ArrayList<String> shortcutsToDelete = new ArrayList<>();
 
+                if (recreateShortcuts) {
+                    ShortcutManagerCompat.removeAllDynamicShortcuts(ApplicationLoader.applicationContext);
+                } else {
+                    List<ShortcutInfoCompat> currentShortcuts = ShortcutManagerCompat.getDynamicShortcuts(ApplicationLoader.applicationContext);
+                    if (currentShortcuts != null && !currentShortcuts.isEmpty()) {
+                        newShortcutsIds.add("compose");
+                        for (int a = 0; a < hintsFinal.size(); a++) {
+                            TLRPC.TL_topPeer hint = hintsFinal.get(a);
+                            newShortcutsIds.add("did3_" + MessageObject.getPeerId(hint.peer));
+                        }
+                        for (int a = 0; a < currentShortcuts.size(); a++) {
+                            String id = currentShortcuts.get(a).getId();
+                            if (!newShortcutsIds.remove(id)) {
+                                shortcutsToDelete.add(id);
+                            }
+                            shortcutsToUpdate.add(id);
+                        }
+                        if (newShortcutsIds.isEmpty() && shortcutsToDelete.isEmpty()) {
+                            return;
+                        }
+                    }
+
+                    if (!shortcutsToDelete.isEmpty()) {
+                        ShortcutManagerCompat.removeDynamicShortcuts(ApplicationLoader.applicationContext, shortcutsToDelete);
+                    }
+                }
 
                 Intent intent = new Intent(ApplicationLoader.applicationContext, LaunchActivity.class);
                 intent.setAction("new_dialog");
                 ArrayList<ShortcutInfoCompat> arrayList = new ArrayList<>();
-                ShortcutManagerCompat.pushDynamicShortcut(ApplicationLoader.applicationContext, new ShortcutInfoCompat.Builder(ApplicationLoader.applicationContext, "compose")
+                ShortcutInfoCompat shortcut = new ShortcutInfoCompat.Builder(ApplicationLoader.applicationContext, "compose")
                         .setShortLabel(LocaleController.getString("NewConversationShortcut", R.string.NewConversationShortcut))
                         .setLongLabel(LocaleController.getString("NewConversationShortcut", R.string.NewConversationShortcut))
                         .setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.shortcut_compose))
                         .setRank(0)
                         .setIntent(intent)
-                        .build());
+                        .build();
+                if (recreateShortcuts) {
+                    ShortcutManagerCompat.pushDynamicShortcut(ApplicationLoader.applicationContext, shortcut);
+                } else {
+                    arrayList.add(shortcut);
+                    if (shortcutsToUpdate.contains("compose")) {
+                        ShortcutManagerCompat.updateShortcuts(ApplicationLoader.applicationContext, arrayList);
+                    } else {
+                        ShortcutManagerCompat.addDynamicShortcuts(ApplicationLoader.applicationContext, arrayList);
+                    }
+                    arrayList.clear();
+                }
 
 
                 HashSet<String> category = new HashSet<>(1);
@@ -4423,7 +4462,18 @@ public class MediaDataController extends BaseController {
                     } else {
                         builder.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.shortcut_user));
                     }
-                    ShortcutManagerCompat.pushDynamicShortcut(ApplicationLoader.applicationContext, builder.build());
+
+                    if (recreateShortcuts) {
+                        ShortcutManagerCompat.pushDynamicShortcut(ApplicationLoader.applicationContext, builder.build());
+                    } else {
+                        arrayList.add(builder.build());
+                        if (shortcutsToUpdate.contains(id)) {
+                            ShortcutManagerCompat.updateShortcuts(ApplicationLoader.applicationContext, arrayList);
+                        } else {
+                            ShortcutManagerCompat.addDynamicShortcuts(ApplicationLoader.applicationContext, arrayList);
+                        }
+                        arrayList.clear();
+                    }
                 }
             } catch (Throwable ignore) {
 
@@ -6229,7 +6279,7 @@ public class MediaDataController extends BaseController {
         return entities;
     }
 
-    private CharSequence parsePattern(CharSequence cs, Pattern pattern, List<TLRPC.MessageEntity> entities, GenericProvider<Void, TLRPC.MessageEntity> entityProvider) {
+    private CharSequence parsePattern(CharSequence cs, Pattern pattern, ArrayList<TLRPC.MessageEntity> entities, GenericProvider<Void, TLRPC.MessageEntity> entityProvider) {
         Matcher m = pattern.matcher(cs);
         int offset = 0;
         while (m.find()) {
@@ -6249,12 +6299,26 @@ public class MediaDataController extends BaseController {
                 TLRPC.MessageEntity entity = entityProvider.provide(null);
                 entity.offset = m.start() - offset;
                 entity.length = gr.length();
+
+                removeOffset4After(entity.offset, entity.offset + entity.length, entities);
                 entities.add(entity);
             }
 
             offset += m.end() - m.start() - gr.length();
         }
         return cs;
+    }
+
+    private static void removeOffset4After(int start, int end, ArrayList<TLRPC.MessageEntity> entities) {
+        int count = entities.size();
+        for (int a = 0; a < count; a++) {
+            TLRPC.MessageEntity entity = entities.get(a);
+            if (entity.offset > end) {
+                entity.offset -= 4;
+            } else if (entity.offset > start) {
+                entity.offset -= 2;
+            }
+        }
     }
 
     //---------------- MESSAGES END ----------------
@@ -6950,10 +7014,12 @@ public class MediaDataController extends BaseController {
                 TLRPC.Document document = premiumPreviewStickers.get(i == 2 ? premiumPreviewStickers.size() - 1 : i);
                 if (MessageObject.isPremiumSticker(document)) {
                     ImageReceiver imageReceiver = new ImageReceiver();
+                    imageReceiver.setAllowLoadingOnAttachedOnly(false);
                     imageReceiver.setImage(ImageLocation.getForDocument(document), null, null, "webp", null, 1);
                     ImageLoader.getInstance().loadImageForImageReceiver(imageReceiver);
 
                     imageReceiver = new ImageReceiver();
+                    imageReceiver.setAllowLoadingOnAttachedOnly(false);
                     imageReceiver.setImage(ImageLocation.getForDocument(MessageObject.getPremiumStickerAnimation(document), document), null, null, null, "tgs", null, 1);
                     ImageLoader.getInstance().loadImageForImageReceiver(imageReceiver);
                 }
