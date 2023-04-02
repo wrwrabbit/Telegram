@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.os.PowerManager;
-import android.util.SparseArray;
-import android.util.SparseIntArray;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.math.MathUtils;
@@ -19,9 +16,6 @@ import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-
-import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.AnimatedEmojiDrawable;
 
 public class LiteMode {
 
@@ -53,8 +47,10 @@ public class LiteMode {
 
     public static int PRESET_LOW = (
         FLAG_ANIMATED_EMOJI_CHAT_PREMIUM |
+        FLAG_ANIMATED_EMOJI_KEYBOARD_PREMIUM |
+        FLAG_ANIMATED_EMOJI_REACTIONS_PREMIUM |
         FLAG_AUTOPLAY_GIFS
-    ); // 2064
+    ); // 2076
     public static int PRESET_MEDIUM = (
         FLAGS_ANIMATED_STICKERS |
         FLAG_ANIMATED_EMOJI_KEYBOARD_PREMIUM |
@@ -136,6 +132,10 @@ public class LiteMode {
     }
 
     public static boolean isEnabled(int flag) {
+        if (flag == FLAG_CHAT_FORUM_TWOCOLUMN && AndroidUtilities.isTablet()) {
+            // always enabled for tablets
+            return true;
+        }
         return (getValue() & preprocessFlag(flag)) > 0;
     }
 
