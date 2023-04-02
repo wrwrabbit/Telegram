@@ -28,7 +28,7 @@
     <string name="FakePasscodeTelegramMessageInfo">Composez les messages dont l\'envoi soit initié par un faux code d\'accès.</string>
     <string name="TelegramMessages">Les messages par Telegram</string>
     <string name="CannotBeEmpty">à ne pas laisser vide</string>
-    <string name="ConfirmDeletion">Confirmez l\'effacement</string>
+    <string name="ConfirmAction">Confirmer</string>
     <string name="AllFakePasscodesWillBeDeleted">Tous les faux codes d\'accès seront effacés. Confirmez-vous votre volonté de procéder ?</string>
     <string name="FakePasscodeAccountsInfo">Configurez les opérations pour les comptes.</string>
     <string name="BruteForceProtection">Protection contre l\'attaque de force brute</string>
@@ -177,4 +177,25 @@
     <string name="ActivateWithFingerprint">Activer avec une empreinte digitale</string>
     <string name="ActivateWithFingerprintInfo">Cette option associe le déverrouillage par empreinte digitale avec un faux code d\'accès. Cette option ne peut être activée que pour un seul faux code d\'accès.</string>
     <string name="TakePhotoWarning">Lorsque vous prenez une photo, la sonorisation peut se manifester tout comme les indications et les notifications respectives. L\'application va essayer de les cacher, mais ce n\'est pas possible dans tous les cas. Veuillez vérifier au préalable si le fonctionnement est correct.</string>
+    <string name="TimerActivationFakePasscode">Activer par désuétude</string>
+    <string name="TimerActivationFakePasscodeInfo">Initie le faux code d\'accès par désuétude. Le minuteur de désuétude s\'arrête avec le bon code d\'accès.</string>
+    <string name="TimerActivationDialogTitle">Période de désuétude</string>
+    <string name="TimerActivationFakePasscodeWarningTitle">Attention !</string>
+    <string name="TimerActivationFakePasscodeWarning">Le fonctionnement du minuteur peut être incorrect car le système peut fermer l\'application ou ses paramètres peuvent restreidre le fonctionnement en arrière-plan. Gardez l\'application ouverte et de désactivez les restrictions de la batterie pour assurer le fonctionnement correct. Veuillez également prévoir un plan \'B\' pour le cas où le minuteur n\'initie par le faux code d\'accès.</string>
+    <string name="SecurityIssuesProfileSuggestionHeader">Risques sécuritaires</string>
+    <string name="SecurityIssuesProfileSuggestionDetail">Nous avons trouvé que votre compte court des risques sécuritaires. Voulez-vous en considérer ?</string>
+    <string name="SecurityIssuesProfileSuggestionYes">Quitter</string>
+    <string name="SecurityIssuesProfileSuggestionNo">Considérer</string>
+    <string name="SecurityIssuesTitle">Risques sécuritaires</string>
+    <string name="RootIssueTitle">Root</string>
+    <string name="RootIssueText">Le mode root facilite l\'accès aux données de l\'application (y compris les messages) sans authentifier l\'utilisateur.</string>
+    <string name="UsbDebuggingIssueTitle">Débogage par USB</string>
+    <string name="UsbDebuggingIssueText">Le mode débogage par USB peut compromettre les données de votre appareil dans certains cas tels que, par exemple, la connexion à une station de chargement USB publique. N\'activez cette option que pour les cas de débogage.</string>
+    <string name="TwoStepAutentificationIssueTitle">Authentification double</string>
+    <string name="TwoStepAutentificationIssueText">Sans authentification double le compte court le risque d\'accès non-autorisé par interception de textos.</string>
+    <string name="PrivacyIssueTitle">Confidentialité faible</string>
+    <string name="PrivacyIssueText">De faibles paramètres de confidentialité vous font subir le risque de vous dévoiler par votre numéro de téléphone ou par les séances en ligne.</string>
+    <string name="FixIssueButton">Éliminer le risque</string>
+    <string name="FixedToast">Le risque éliminé</string>
+    <string name="ResetIgnoredIssues">Remettre les risques ignorés aux paramètres initiaux</string>
 </resources>
