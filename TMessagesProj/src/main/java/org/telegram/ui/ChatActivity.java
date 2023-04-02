@@ -13089,6 +13089,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 invalidateMessagesVisiblePart = false;
                 updateMessagesVisiblePart(false);
             }
+            if (startLoadFromMessageRestored) {
+                startLoadFromMessageRestored = false;
+                lastViewedMessageId = 0;
+                lastViewedMessageOffset = 0;
+            }
             updateTextureViewPosition(false, false);
             updatePagedownButtonsPosition();
             int restoreToCount = -1;

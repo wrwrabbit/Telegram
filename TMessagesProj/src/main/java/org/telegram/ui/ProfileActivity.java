@@ -125,8 +125,8 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -459,6 +459,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int bioRow;
     private int phoneSuggestionSectionRow;
     private int phoneSuggestionRow;
+    private int securitySuggestionSectionRow;
+    private int securitySuggestionRow;
     private int passwordSuggestionSectionRow;
     private int passwordSuggestionRow;
     private int settingsSectionRow;
@@ -6371,10 +6373,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             updateListAnimated(false);
         } else if (id == NotificationCenter.newSuggestionsAvailable) {
             int prevRow1 = passwordSuggestionRow;
+            int prevSecuritySuggestionRow = securitySuggestionRow;
             int prevRow2 = phoneSuggestionRow;
             updateRowsIds();
-            if (prevRow1 != passwordSuggestionRow || prevRow2 != phoneSuggestionRow) {
-                listAdapter.notifyDataSetChanged();
+            if (prevRow1 != passwordSuggestionRow || prevSecuritySuggestionRow != securitySuggestionRow || prevRow2 != phoneSuggestionRow) {
+                AndroidUtilities.runOnUIThread(() -> listAdapter.notifyDataSetChanged());
             }
         } else if (id == NotificationCenter.topicsDidLoaded) {
             if (isTopic) {
@@ -6494,6 +6497,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     layoutManager.scrollToPositionWithOffset(0, AndroidUtilities.dp(88) - listView.getPaddingTop());
                 }
             }
+        }
+        if (getUserConfig().showSecuritySuggestions) {
+            SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount(), false);
         }
     }
 
@@ -7089,6 +7095,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         bioRow = -1;
         phoneSuggestionSectionRow = -1;
         phoneSuggestionRow = -1;
+        secretSettingsSectionRow = -1;
+        securitySuggestionRow = -1;
         passwordSuggestionSectionRow = -1;
         passwordSuggestionRow = -1;
         settingsSectionRow = -1;
@@ -7196,6 +7204,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (suggestions.contains("VALIDATE_PHONE_NUMBER")) {
                     phoneSuggestionRow = rowCount++;
                     phoneSuggestionSectionRow = rowCount++;
+                }
+                if (!FakePasscodeUtils.isFakePasscodeActivated() && getUserConfig().showSecuritySuggestions) {
+                    securitySuggestionRow = rowCount++;
+                    securitySuggestionSectionRow = rowCount++;
                 }
                 if (suggestions.contains("VALIDATE_PASSWORD")) {
                     passwordSuggestionRow = rowCount++;
@@ -8120,8 +8132,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                     }
                 }
-                    otherItem.addSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString("AddShortcut", R.string.AddShortcut));
-                }
             }
         } else if (chatId != 0) {
             TLRPC.Chat chat = getMessagesController().getChat(chatId);
@@ -9029,6 +9039,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
+        private final static int VIEW_TYPE_SECURITY_SUGGESTION = 100;
         private final static int VIEW_TYPE_HEADER = 1,
                 VIEW_TYPE_TEXT_DETAIL = 2,
                 VIEW_TYPE_ABOUT_LINK = 3,
@@ -9224,6 +9235,23 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             } else {
                                 presentFragment(new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_VERIFY, null));
                             }
+                        }
+                    };
+                    break;
+                }
+                case VIEW_TYPE_SECURITY_SUGGESTION: {
+                    view = new SettingsSuggestionCell(mContext, resourcesProvider) {
+                        @Override
+                        protected void onYesClick(int type) {
+                            getUserConfig().showSecuritySuggestions = false;
+                            getUserConfig().lastSecuritySuggestionsShow = System.currentTimeMillis();
+                            getUserConfig().saveConfig(false);
+                            updateListAnimated(false);
+                        }
+
+                        @Override
+                        protected void onNoClick(int type) {
+                            presentFragment(new SecurityIssuesActivity());
                         }
                     };
                     break;
@@ -9684,6 +9712,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     SettingsSuggestionCell suggestionCell = (SettingsSuggestionCell) holder.itemView;
                     suggestionCell.setType(position == passwordSuggestionRow ? SettingsSuggestionCell.TYPE_PASSWORD : SettingsSuggestionCell.TYPE_PHONE);
                     break;
+                case VIEW_TYPE_SECURITY_SUGGESTION:
+                    SettingsSuggestionCell securitySuggestionCell = (SettingsSuggestionCell) holder.itemView;
+                    securitySuggestionCell.setType(SettingsSuggestionCell.TYPE_SECURITY);
+                    break;
                 case VIEW_TYPE_ADDTOGROUP_INFO:
                     TextInfoPrivacyCell addToGroupInfo = (TextInfoPrivacyCell) holder.itemView;
                     addToGroupInfo.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
@@ -9818,7 +9850,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return VIEW_TYPE_NOTIFICATIONS_CHECK_SIMPLE;
             }else if (position == infoSectionRow || position == lastSectionRow || position == membersSectionRow ||
                     position == secretSettingsSectionRow || position == settingsSectionRow || position == devicesSectionRow ||
-                    position == helpSectionCell || position == setAvatarSectionRow || position == passwordSuggestionSectionRow ||
+                    position == helpSectionCell || position == setAvatarSectionRow || position == passwordSuggestionSectionRow || position == securitySuggestionSectionRow ||
                     position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow) {
                 return VIEW_TYPE_SHADOW;
             } else if (position >= membersStartRow && position < membersEndRow) {
@@ -9833,6 +9865,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return VIEW_TYPE_VERSION;
             } else if (position == passwordSuggestionRow || position == phoneSuggestionRow) {
                 return VIEW_TYPE_SUGGESTION;
+            } else if (position == securitySuggestionRow) {
+                return VIEW_TYPE_SECURITY_SUGGESTION;
             } else if (position == addToGroupInfoRow) {
                 return VIEW_TYPE_ADDTOGROUP_INFO;
             } else if (position == premiumRow) {
@@ -10874,6 +10908,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, bioRow, sparseIntArray);
             put(++pointer, phoneSuggestionRow, sparseIntArray);
             put(++pointer, phoneSuggestionSectionRow, sparseIntArray);
+            put(++pointer, securitySuggestionRow, sparseIntArray);
+            put(++pointer, securitySuggestionSectionRow, sparseIntArray);
             put(++pointer, passwordSuggestionRow, sparseIntArray);
             put(++pointer, passwordSuggestionSectionRow, sparseIntArray);
             put(++pointer, settingsSectionRow, sparseIntArray);

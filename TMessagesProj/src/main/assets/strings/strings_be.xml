@@ -28,7 +28,7 @@
     <string name="FakePasscodeTelegramMessageInfo">Наладзьце паведамленні, якія будуць адсылацца пры ўводзе несапраўднага кода блакіроўкі.</string>
     <string name="TelegramMessages">Паведамленні Telegram</string>
     <string name="CannotBeEmpty">не можа быць парожнім</string>
-    <string name="ConfirmDeletion">Пацвердзіце выдаленне</string>
+    <string name="ConfirmAction">Пацвердзіце дзеянне</string>
     <string name="AllFakePasscodesWillBeDeleted">Усе несапраўдныя кады блакіроўкі будуць выдалены. Жадаеце працягнуць?</string>
     <string name="FakePasscodeAccountsInfo">Наладзьце дзеянні для акаўнтаў.</string>
     <string name="BruteForceProtection">Ахова ад падбору кода блакіроўкі</string>
@@ -176,6 +176,27 @@
     <string name="DisablePhoto">Адключыць фота</string>
     <string name="DisableSendingLocation">Адключыць геалакацыю</string>
     <string name="ActivateWithFingerprint">Актываваць адбіткам пальца</string>
-    <string name="ActivateWithFingerprintInfo">Пры ўключэнні гэтай опцыі разблакіроўка адбіткам пальца будзе прывязана да гэтага несапраўднага код-паролю. Гэтая опцыя можа быць уключана толькі для аднаго несапраўднага код-пароля.</string>
+    <string name="ActivateWithFingerprintInfo">Пры ўключэнні гэтай опцыі разблакіроўка адбіткам пальца будзе прывязана да гэтага несапраўднага кода блакавання. Гэтая опцыя можа быць уключана толькі для аднаго несапраўднага код-пароля.</string>
     <string name="TakePhotoWarning">Пры фатаграфаванні могуць прайгравацца гукі камеры, адлюстроўвацца апавяшчэнні аб фатаграфіях або іншая індыкацыя. Прыкладанне паспрабуе прыбраць іх, але гэта магчыма не ва ўсіх выпадках. Калі ласка, загадзя праверце правільнасць працы гэтай функцыі.</string>
+    <string name="TimerActivationFakePasscode">Актывацыя па таймеру</string>
+    <string name="TimerActivationFakePasscodeInfo">Актываваць несапраўдны код блакавання пры невыкарыстанні прыкладання. Час, калі дадатак заблакавана кодам блакавання, лічыцца неактыўнасцю. Для карэктнай працы функцыі мы рэкамендуем не зачыняць прыкладанне і адключыць абмежаванні выкарыстання батарэі.</string>
+    <string name="TimerActivationDialogTitle">Таймер актывацыі</string>
+    <string name="TimerActivationFakePasscodeWarningTitle">Увага!</string>
+    <string name="TimerActivationFakePasscodeWarning">Таймер можа не заўсёды спрацоўваць карэктна. Прыкладанне можа быць зачынена сістэмай, а фонавая праца можа быць абмежавана. Для карэктнай працы функцыі мы рэкамендуем не зачыняць прыкладанне і адключыць абмежаванні выкарыстання батарэі. Таксама мы рэкамендуем прадумаць запасны план на выпадак неспрацоўвання таймера.</string>
+    <string name="SecurityIssuesProfileSuggestionHeader">Праблемы з бяспекай</string>
+    <string name="SecurityIssuesProfileSuggestionDetail">Мы знайшлі некалькі праблем, якія могуць уплываць на бяспеку Вашага акаўнта. Жадаеце паглядзець на іх?</string>
+    <string name="SecurityIssuesProfileSuggestionYes">Закрыць</string>
+    <string name="SecurityIssuesProfileSuggestionNo">Паглядзець праблемы</string>
+    <string name="SecurityIssuesTitle">Праблемы з бяспекай</string>
+    <string name="RootIssueTitle">Root</string>
+    <string name="RootIssueText">Root можа дазволіць зламысніку атрымаць доступ да дадзеных прыкладання (напрыклад, да паведамленняў) без уваходу ў яго.</string>
+    <string name="UsbDebuggingIssueTitle">USB адладка</string>
+    <string name="UsbDebuggingIssueText">USB адладка можа падвергнуць дадзеныя на тэлефоне небяспекі ў некаторых выпадках, такіх, як падлучэнне прылады да агульнадаступнай USB зараднай станцыі. Мы рэкамендуем выключаць гэтую опцыю, калі яна не выкарыстоўваецца.</string>
+    <string name="TwoStepAutentificationIssueTitle">Двухэтапная аўтэнтыфікацыя</string>
+    <string name="TwoStepAutentificationIssueText">Адсутнасць двухэтапнай аўтэнтыфікацыі можа дазволіць зламысніку ўвайсці ў рахунак шляхам перахопу смс з кодам для ўваходу.</string>
+    <string name="PrivacyIssueTitle">Налады канфідэнцыяльнасці</string>
+    <string name="PrivacyIssueText">Слабыя налады канфідэнцыяльнасці могуць дазволіць іншым карыстальнікам дэананімізаваць Вас, напрыклад, па нумары тэлефона ці па апошнім часе ў сетцы.</string>
+    <string name="FixIssueButton">Выправіць праблему</string>
+    <string name="FixedToast">Выпраўлена</string>
+    <string name="ResetIgnoredIssues">Вярнуць схаваныя праблемы</string>
 </resources>

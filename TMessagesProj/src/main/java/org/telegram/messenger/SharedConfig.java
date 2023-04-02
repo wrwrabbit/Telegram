@@ -24,8 +24,6 @@ import androidx.annotation.IntDef;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -35,6 +33,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.AppVersion;
+import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -54,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -143,12 +143,13 @@ public class SharedConfig {
     public static boolean clearCacheOnLock = true;
     public static int badPasscodeTries;
     public static byte[] passcodeSalt = new byte[0];
-    public static boolean appLocked;
+    private static boolean appLocked;
     public static int autoLockIn = 60 * 60;
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
     public static int lastPauseTime;
+    public static long lastPauseFakePasscodeTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprint = true;
     public static String lastUpdateVersion;
@@ -359,6 +360,7 @@ public class SharedConfig {
     public static int runNumber;
     public static boolean premiumDisabled;
     public static String phoneOverride;
+    public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
 
     static {
         loadConfig();
@@ -480,6 +482,7 @@ public class SharedConfig {
                 editor.putInt("badPasscodeTries", badPasscodeTries);
                 editor.putInt("autoLockIn", autoLockIn);
                 editor.putInt("lastPauseTime", lastPauseTime);
+                editor.putLong("lastPauseFakePasscodeTime", lastPauseFakePasscodeTime);
                 editor.putString("lastUpdateVersion2", lastUpdateVersion);
                 editor.putBoolean("useFingerprint", useFingerprint);
                 editor.putBoolean("allowScreenCapture", allowScreenCapture);
@@ -530,6 +533,8 @@ public class SharedConfig {
                 editor.putInt("runNumber", runNumber);
                 editor.putBoolean("premiumDisabled", premiumDisabled);
                 editor.putString("phoneOverride", phoneOverride);
+                String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
+                editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
 
                 if (pendingPtgAppUpdate != null) {
                     try {
@@ -607,6 +612,7 @@ public class SharedConfig {
             badPasscodeTries = preferences.getInt("badPasscodeTries", 0);
             autoLockIn = preferences.getInt("autoLockIn", 60 * 60);
             lastPauseTime = preferences.getInt("lastPauseTime", 0);
+            lastPauseFakePasscodeTime = preferences.getLong("lastPauseFakePasscodeTime", 0);
             useFingerprint = preferences.getBoolean("useFingerprint", false);
             lastUpdateVersion = preferences.getString("lastUpdateVersion2", "3.5");
             allowScreenCapture = preferences.getBoolean("allowScreenCapture", false);
@@ -660,6 +666,8 @@ public class SharedConfig {
             runNumber = preferences.getInt("runNumber", 0);
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
             phoneOverride = preferences.getString("phoneOverride", "");
+            String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
+            ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
 
             String authKeyString = preferences.getString("pushAuthKey", null);
             if (!TextUtils.isEmpty(authKeyString)) {
@@ -695,8 +703,7 @@ public class SharedConfig {
                         AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
                     }
                 }
-            } catch (Exception e) {
-                FileLog.e(e);
+            } catch (Exception ignore) {
             }
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
@@ -1829,6 +1836,21 @@ public class SharedConfig {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("onScreenLockAction", onScreenLockAction);
         editor.commit();
+    }
+
+    public static boolean isAppLocked() {
+        return appLocked;
+    }
+
+    public static void setAppLocked(boolean locked) {
+        if (locked) {
+            FakePasscodeUtils.updateLastPauseFakePasscodeTime();
+        } else {
+            if (appLocked) {
+                SharedConfig.lastPauseFakePasscodeTime = 0;
+            }
+        }
+        appLocked = locked;
     }
 
     public static SharedPreferences getPreferences() {

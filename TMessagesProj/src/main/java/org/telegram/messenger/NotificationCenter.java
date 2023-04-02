@@ -225,6 +225,7 @@ public class NotificationCenter {
     public static final int telegramDataReceived = totalEvents++;
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
+    public static final int securityIssuesChanged = totalEvents++;
 
 
     //global

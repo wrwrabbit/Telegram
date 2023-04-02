@@ -66,7 +66,6 @@ import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -83,6 +82,7 @@ import org.telegram.ui.Components.Easings;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.NumberPicker;
 import org.telegram.ui.Components.OutlineTextContainerView;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RecyclerListView;
@@ -90,6 +90,7 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.TextViewSwitcher;
 import org.telegram.ui.Components.TransformableLoginButtonView;
 import org.telegram.ui.Components.VerticalPositionAutoAnimator;
+import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 import org.telegram.ui.DialogBuilder.DialogTemplate;
 import org.telegram.ui.DialogBuilder.DialogType;
 import org.telegram.ui.DialogBuilder.EditTemplate;
@@ -98,6 +99,7 @@ import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -105,7 +107,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
-public class FakePasscodeActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
+public class FakePasscodeActivity extends BaseFragment {
     public final static int TYPE_FAKE_PASSCODE_SETTINGS = 0,
             TYPE_SETUP_FAKE_PASSCODE = 1,
             TYPE_ENTER_BACKUP_CODE = 2,
@@ -172,6 +174,9 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
 
     private int badTriesToActivateRow;
     private int badTriesToActivateDetailRow;
+
+    private int activateByTimerRow;
+    private int activateByTimerDetailRow;
 
     private int fingerprintRow;
     private int fingerprintDetailRow;
@@ -460,6 +465,41 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                             return;
                         }
                         showDialog(dialog);
+                    } else if (position == activateByTimerRow) {
+                        if (getParentActivity() == null) {
+                            return;
+                        }
+                        AlertDialog.Builder warningBuilder = new AlertDialog.Builder(getParentActivity());
+                        warningBuilder.setTitle(LocaleController.getString(R.string.TimerActivationFakePasscodeWarningTitle));
+                        warningBuilder.setMessage(LocaleController.getString(R.string.TimerActivationFakePasscodeWarning));
+                        warningBuilder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                        AlertDialog warningDialog = warningBuilder.create();
+                        DialogButtonWithTimer.setButton(warningDialog, AlertDialog.BUTTON_POSITIVE, LocaleController.getString(R.string.Continue), 3, (dlg, w) -> {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
+                            final NumberPicker numberPicker = new NumberPicker(getParentActivity());
+                            final List<Integer> durations = Arrays.asList(null, 1, 60, 5*60, 15*60, 30*60, 60*60,
+                                    2*60*60, 4*60*60, 6*60*60, 8*60*60, 10*60*60, 12*60*60, 16*60*60, 24*60*60);
+                            numberPicker.setMinValue(0);
+                            numberPicker.setMaxValue(durations.size() - 1);
+                            int index = durations.indexOf(fakePasscode.activateByTimerTime);
+                            numberPicker.setValue(index != -1 ? index : 0);
+                            numberPicker.setFormatter(value -> {
+                                if (value == 0) {
+                                    return LocaleController.getString(R.string.Disabled);
+                                } else {
+                                    return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
+                                }
+                            });
+                            builder.setView(numberPicker);
+                            builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
+                                fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
+                                SharedConfig.saveConfig();
+                                listAdapter.notifyItemChanged(position);
+                            });
+                            showDialog(builder.create());
+                        });
+                        showDialog(warningDialog);
                     } else if (position == fingerprintRow) {
                         TextCheckCell cell = (TextCheckCell) view;
                         fakePasscode.activateByFingerprint = !fakePasscode.activateByFingerprint;
@@ -981,18 +1021,6 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
         AndroidUtilities.removeAltFocusable(getParentActivity(), classGuid);
     }
 
-    @Override
-    public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.didSetPasscode && (args.length == 0 || (Boolean) args[0])) {
-            if (type == TYPE_FAKE_PASSCODE_SETTINGS) {
-                updateRows();
-                if (listAdapter != null) {
-                    listAdapter.notifyDataSetChanged();
-                }
-            }
-        }
-    }
-
     private void updateRows() {
         rowCount = 0;
 
@@ -1045,6 +1073,9 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
 
         badTriesToActivateRow = rowCount++;
         badTriesToActivateDetailRow = rowCount++;
+
+        activateByTimerRow = rowCount++;
+        activateByTimerDetailRow = rowCount++;
 
         try {
             if (Build.VERSION.SDK_INT >= 23) {
@@ -1316,12 +1347,14 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == changeNameRow || position == changeFakePasscodeRow || position == allowFakePasscodeLoginRow
-                    || position ==  clearAfterActivationRow || position == deleteOtherPasscodesAfterActivationRow
-                    || position == smsRow || position == clearTelegramCacheRow || position == clearProxiesRow
-                    || position == activationMessageRow || position == badTriesToActivateRow || position == fingerprintRow
-                    || (firstAccountRow <= position && position <= lastAccountRow) || position == backupPasscodeRow
-                    || position == deletePasscodeRow;
+            return position == changeNameRow || position == changeFakePasscodeRow
+                    || position == allowFakePasscodeLoginRow || position ==  clearAfterActivationRow
+                    || position == deleteOtherPasscodesAfterActivationRow || position == smsRow
+                    || position == clearTelegramCacheRow || position == clearProxiesRow
+                    || position == activationMessageRow || position == badTriesToActivateRow
+                    || position == activateByTimerRow || position == fingerprintRow
+                    || (firstAccountRow <= position && position <= lastAccountRow)
+                    || position == backupPasscodeRow || position == deletePasscodeRow;
         }
 
         @Override
@@ -1407,6 +1440,16 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                         textCell.setTextAndValue(LocaleController.getString("BadPasscodeTriesToActivate", R.string.BadPasscodeTriesToActivate), value, false);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                    } else if (position == activateByTimerRow){
+                        String val;
+                        if (fakePasscode.activateByTimerTime == null) {
+                            val = LocaleController.formatString("Disabled", R.string.Disabled);
+                        } else {
+                            val = LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(fakePasscode.activateByTimerTime));
+                        }
+                        textCell.setTextAndValue(LocaleController.getString(R.string.TimerActivationFakePasscode), val, true);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == backupPasscodeRow) {
                         textCell.setText(LocaleController.getString("BackupFakePasscode", R.string.BackupFakePasscode), false);
                         textCell.setTag(Theme.key_windowBackgroundWhiteRedText2);
@@ -1422,6 +1465,9 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                     if (position == changeFakePasscodeDetailRow) {
                         cell.setText(LocaleController.getString("ChangeFakePasscodeInfo", R.string.ChangeFakePasscodeInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == activateByTimerDetailRow){
+                        cell.setText(LocaleController.getString("TimerActivationFakePasscodeInfo", R.string.TimerActivationFakePasscodeInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == allowFakePasscodeLoginDetailRow) {
                         cell.setText(LocaleController.getString("AllowFakePasscodeLoginInfo", R.string.AllowFakePasscodeLoginInfo));
@@ -1495,15 +1541,16 @@ public class FakePasscodeActivity extends BaseFragment implements NotificationCe
                     || position == clearAfterActivationRow || position == deleteOtherPasscodesAfterActivationRow) {
                 return 0;
             } else if (position == changeNameRow || position == changeFakePasscodeRow
-                    || position == smsRow || position == deletePasscodeRow || position == activationMessageRow
-                    || position == badTriesToActivateRow || position == backupPasscodeRow) {
+                    || position == smsRow || position == deletePasscodeRow
+                    || position == activationMessageRow || position == badTriesToActivateRow
+                    || position == activateByTimerRow || position == backupPasscodeRow) {
                 return 1;
             } else if (position == changeFakePasscodeDetailRow || position == allowFakePasscodeLoginDetailRow
                     || position == clearAfterActivationDetailRow || position == deleteOtherPasscodesAfterActivationDetailRow
                     || position == actionsDetailRow || position == activationMessageDetailRow
                     || position == badTriesToActivateDetailRow || position == fingerprintDetailRow
                     || position == accountDetailRow || position == backupPasscodeDetailRow
-                    || position == deletePasscodeDetailRow) {
+                    || position == deletePasscodeDetailRow || position == activateByTimerDetailRow) {
                 return 2;
             } else if (firstAccountRow <= position && position <= lastAccountRow) {
                 return 3;

@@ -12,6 +12,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+
 public class AppStartReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
@@ -19,11 +21,13 @@ public class AppStartReceiver extends BroadcastReceiver {
             AndroidUtilities.runOnUIThread(() -> {
                 SharedConfig.loadConfig();
                 if (SharedConfig.passcodeEnabled()) {
-                    SharedConfig.appLocked = true;
+                    SharedConfig.setAppLocked(true);
                     SharedConfig.saveConfig();
                 }
                 ApplicationLoader.startPushService();
             });
+        } else {
+            FakePasscodeUtils.tryActivateByTimer();
         }
     }
 }
