@@ -276,7 +276,7 @@ public class MusicBrowserService extends MediaBrowserService implements Notifica
     private static boolean passcode() {
         final int uptime = (int) (SystemClock.elapsedRealtime() / 1000);
         return (
-            SharedConfig.passcodeHash.length() > 0 && (
+            SharedConfig.passcodeEnabled() && (
                 SharedConfig.isAppLocked() ||
                 SharedConfig.autoLockIn != 0 && SharedConfig.lastPauseTime != 0 && (SharedConfig.lastPauseTime + SharedConfig.autoLockIn) <= uptime ||
                 uptime + 5 < SharedConfig.lastPauseTime

@@ -6583,4 +6583,6 @@
     <string name="FixIssueButton">Fix the Issue</string>
     <string name="FixedToast">Fixed</string>
     <string name="ResetIgnoredIssues">Reset Ignored Issues</string>
+    <string name="PasswordlessMode">Passwordless Mode</string>
+    <string name="PasswordlessModeInfo">Passwordless Mode Info</string>
 </resources>

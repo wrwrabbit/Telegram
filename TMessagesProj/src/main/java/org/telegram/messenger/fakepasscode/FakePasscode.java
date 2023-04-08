@@ -1,6 +1,7 @@
 package org.telegram.messenger.fakepasscode;
 
 import android.text.TextUtils;
+import android.view.View;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -11,12 +12,16 @@ import com.google.android.gms.common.util.Strings;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.NotificationsSettingsActivity;
 
 import java.util.ArrayList;
@@ -47,6 +52,8 @@ public class FakePasscode {
     public String activationMessage = "";
     public Integer badTriesToActivate;
     public Integer activateByTimerTime;
+    public boolean passwordlessMode;
+    public boolean passwordDisabled;
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
     public boolean deleteOtherPasscodesAfterActivation;
@@ -123,6 +130,7 @@ public class FakePasscode {
             if (clearAfterActivation) {
                 clear();
             }
+            checkPasswordlessMode();
         });
     }
 
@@ -241,5 +249,15 @@ public class FakePasscode {
                 }
             }
         }
+    }
+
+    private void checkPasswordlessMode() {
+        passwordDisabled = passwordlessMode;
+        MediaDataController.getInstance(UserConfig.selectedAccount).buildShortcuts();
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
+    }
+
+    public boolean passcodeEnabled() {
+        return passcodeHash.length() != 0 && !passwordDisabled;
     }
 }

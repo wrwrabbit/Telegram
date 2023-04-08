@@ -4172,7 +4172,7 @@ public class NotificationsController extends BaseController {
 
         long selfUserId = getUserConfig().getClientUserId();
         boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter;
-        boolean passcode = SharedConfig.passcodeHash.length() > 0;
+        boolean passcode = SharedConfig.passcodeEnabled();
 
         int maxCount = 7;
         LongSparseArray<Person> personCache = new LongSparseArray<>();

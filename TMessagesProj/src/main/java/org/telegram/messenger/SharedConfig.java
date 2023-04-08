@@ -135,7 +135,7 @@ public class SharedConfig {
 
     @PasscodeType
     public static int passcodeType;
-    public static String passcodeHash = "";
+    private static String passcodeHash = "";
     public static long passcodeRetryInMs;
     public static long lastUptimeMillis;
     public static boolean bruteForceProtectionEnabled = true;
@@ -996,10 +996,14 @@ public class SharedConfig {
 
     public static boolean passcodeEnabled() {
         if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-            return FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.length() != 0;
+            return FakePasscodeUtils.getActivatedFakePasscode().passcodeEnabled();
         } else {
             return passcodeHash.length() != 0;
         }
+    }
+
+    public static void setPasscode(String passcode) {
+        passcodeHash = passcode;
     }
 
     public static void clearConfig() {

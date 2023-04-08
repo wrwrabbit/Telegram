@@ -327,9 +327,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                                 .setPositiveButton(LocaleController.getString(R.string.DisablePasscodeTurnOff), (dialog, which) -> {
                                     if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                                        FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = "";
+                                        FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = true;
                                     } else {
-                                        SharedConfig.passcodeHash = "";
+                                        SharedConfig.setPasscode("");
                                         for (FakePasscode passcode: SharedConfig.fakePasscodes) {
                                             passcode.onDelete();
                                         }
@@ -1264,9 +1264,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                 if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                     FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                    FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = false;
                     SharedConfig.autoLockIn = 60;
                 } else {
-                    SharedConfig.passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                    SharedConfig.setPasscode(Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)));
                     for (FakePasscode passcode: SharedConfig.fakePasscodes) {
                         passcode.onDelete();
                     }
