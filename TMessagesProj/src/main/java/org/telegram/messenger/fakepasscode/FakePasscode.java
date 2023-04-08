@@ -1,37 +1,23 @@
 package org.telegram.messenger.fakepasscode;
 
-import android.text.TextUtils;
-import android.view.View;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.android.exoplayer2.util.Log;
-import com.google.android.gms.common.util.Strings;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.MediaDataController;
-import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
-import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Cells.TextSettingsCell;
-import org.telegram.ui.NotificationsSettingsActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -111,6 +97,9 @@ public class FakePasscode {
         if (SharedConfig.fakePasscodeActivatedIndex == SharedConfig.fakePasscodes.indexOf(this)) {
             return;
         }
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            FakePasscodeUtils.getActivatedFakePasscode().deactivate();
+        }
         activationDate = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         actionsResult = new ActionsResult();
         AndroidUtilities.runOnUIThread(() -> {
@@ -131,6 +120,27 @@ public class FakePasscode {
                 clear();
             }
             checkPasswordlessMode();
+        });
+    }
+
+    public void deactivate() {
+        AndroidUtilities.runOnUIThread(() -> {
+            if (!actionsResult.hiddenAccounts.isEmpty()) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
+            }
+            for (int account : actionsResult.removeChatsResults.keySet()) {
+                RemoveChatsResult removeResult = actionsResult.removeChatsResults.get(account);
+                if (removeResult == null) {
+                    continue;
+                }
+                NotificationCenter notificationCenter = NotificationCenter.getInstance(account);
+                if (!removeResult.hiddenChats.isEmpty()) {
+                    notificationCenter.postNotificationName(NotificationCenter.dialogsHidingChanged);
+                }
+                if (!removeResult.hiddenFolders.isEmpty()) {
+                    notificationCenter.postNotificationName(NotificationCenter.foldersHidingChanged);
+                }
+            }
         });
     }
 

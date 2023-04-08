@@ -434,6 +434,18 @@ public class SharedConfig {
         public boolean allowLogin() {
             return isRealPasscodeSuccess || fakePasscode != null && fakePasscode.allowLogin;
         }
+
+        public void activateFakePasscode() {
+            if (allowLogin() && FakePasscodeUtils.isFakePasscodeActivated()) {
+                FakePasscodeUtils.getActivatedFakePasscode().deactivate();
+            }
+            if (fakePasscode != null) {
+                fakePasscode.executeActions();
+            }
+            if (isRealPasscodeSuccess || fakePasscode != null) {
+                fakePasscodeActivated(fakePasscodes.indexOf(fakePasscode));
+            }
+        }
     }
 
     private static ObjectMapper jsonMapper = null;
@@ -877,6 +889,10 @@ public class SharedConfig {
             AndroidUtilities.runOnUIThread(() ->
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.fakePasscodeActivated)
             );
+        }
+        boolean originalAppDisguiseChanged = (oldIndex == -1) != (fakePasscodeActivatedIndex == -1);
+        if (originalAppDisguiseChanged) {
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.savedChannelsButtonStateChanged);
         }
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
             if (UserConfig.getInstance(i).isClientActivated()) {

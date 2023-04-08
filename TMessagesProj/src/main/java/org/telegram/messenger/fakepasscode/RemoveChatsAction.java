@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AccountInstance;
-import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -394,10 +393,10 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
     private void postNotifications(boolean foldersCleared) {
         if (!hiddenChats.isEmpty() || !realRemovedChats.isEmpty()) {
-            getNotificationCenter().postNotificationName(NotificationCenter.dialogHiddenByAction);
+            getNotificationCenter().postNotificationName(NotificationCenter.dialogsHidingChanged);
         }
         if (!hiddenFolders.isEmpty()) {
-            getNotificationCenter().postNotificationName(NotificationCenter.foldersHiddenByAction);
+            getNotificationCenter().postNotificationName(NotificationCenter.foldersHidingChanged);
         }
         if (foldersCleared) {
             getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated);

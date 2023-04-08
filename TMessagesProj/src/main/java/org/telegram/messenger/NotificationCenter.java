@@ -216,9 +216,9 @@ public class NotificationCenter {
     public static final int dialogCleared = totalEvents++;
     public static final int appDidLogoutByAction = totalEvents++;
     public static final int fakePasscodeActivated = totalEvents++;
-    public static final int dialogHiddenByAction = totalEvents++;
-    public static final int foldersHiddenByAction = totalEvents++;
-    public static final int appHiddenByAction = totalEvents++;
+    public static final int dialogsHidingChanged = totalEvents++;
+    public static final int foldersHidingChanged = totalEvents++;
+    public static final int accountHidingChanged = totalEvents++;
     public static final int searchCleared = totalEvents++;
     public static final int savedChannelsButtonStateChanged = totalEvents++;
     public static final int chatSearchResultsAvailableAll = totalEvents++;

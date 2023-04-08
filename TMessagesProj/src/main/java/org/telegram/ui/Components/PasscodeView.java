@@ -949,12 +949,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             }
             SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
             synchronized (FakePasscode.class) {
-                if (result.fakePasscode != null) {
-                    result.fakePasscode.executeActions();
-                }
-                if (result.isRealPasscodeSuccess || result.fakePasscode != null) {
-                    SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(result.fakePasscode));
-                }
+                result.activateFakePasscode();
                 SharedConfig.saveConfig();
                 if (!result.allowLogin() || result.fakePasscode != null  || SharedConfig.bruteForceProtectionEnabled && SharedConfig.bruteForceRetryInMillis > 0) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
@@ -988,6 +983,8 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             synchronized (FakePasscode.class) {
                 if (fakePasscode != null) {
                     fakePasscode.executeActions();
+                } else if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                    FakePasscodeUtils.getActivatedFakePasscode().deactivate();
                 }
                 SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(fakePasscode));
                 SharedConfig.saveConfig();

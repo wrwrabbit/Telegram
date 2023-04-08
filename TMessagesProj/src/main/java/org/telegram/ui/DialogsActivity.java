@@ -96,7 +96,6 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.FilesMigrationService;
-import org.telegram.messenger.FingerprintController;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LiteMode;
@@ -187,7 +186,6 @@ import org.telegram.ui.Components.FragmentContextView;
 import org.telegram.ui.Components.JoinGroupAlert;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.MediaActionDrawable;
-import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.PacmanAnimation;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
@@ -2357,8 +2355,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseMigration);
         getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseOpened);
         getNotificationCenter().addObserver(this, NotificationCenter.didClearDatabase);
-        getNotificationCenter().addObserver(this, NotificationCenter.foldersHiddenByAction);
-        getNotificationCenter().addObserver(this, NotificationCenter.dialogHiddenByAction);
+        getNotificationCenter().addObserver(this, NotificationCenter.foldersHidingChanged);
+        getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
         getNotificationCenter().addObserver(this, NotificationCenter.searchCleared);
         getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseReset);
@@ -2488,8 +2486,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseMigration);
         getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseOpened);
         getNotificationCenter().removeObserver(this, NotificationCenter.didClearDatabase);
-        getNotificationCenter().removeObserver(this, NotificationCenter.foldersHiddenByAction);
-        getNotificationCenter().removeObserver(this, NotificationCenter.dialogHiddenByAction);
+        getNotificationCenter().removeObserver(this, NotificationCenter.foldersHidingChanged);
+        getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
         getNotificationCenter().removeObserver(this, NotificationCenter.searchCleared);
         getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseReset);
@@ -9097,14 +9095,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             }
-        } else if (id == NotificationCenter.foldersHiddenByAction) {
+        } else if (id == NotificationCenter.foldersHidingChanged) {
             updateFilterTabs(true, false);
             filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
             if (viewPages != null) {
                 viewPages[0].selectedType = Integer.MAX_VALUE;
                 viewPages[0].dialogsAdapter.setDialogsType(0);
             }
-        } else if (id == NotificationCenter.dialogHiddenByAction) {
+        } else if (id == NotificationCenter.dialogsHidingChanged) {
             try {
                 scrollToTop();
             } catch (Exception ignored) {
@@ -9613,12 +9611,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (passcode.passwordlessMode && !passcode.passcodeEnabled()) {
                 SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(text);
                 synchronized (FakePasscode.class) {
-                    if (result.fakePasscode != null) {
-                        result.fakePasscode.executeActions();
-                    }
-                    if (result.isRealPasscodeSuccess || result.fakePasscode != null) {
-                        SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(result.fakePasscode));
-                    }
+                    result.activateFakePasscode();
                     SharedConfig.saveConfig();
                     if (!result.allowLogin() || result.fakePasscode != null) {
                         BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
