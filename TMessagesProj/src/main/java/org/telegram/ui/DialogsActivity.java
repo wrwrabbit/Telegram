@@ -88,6 +88,7 @@ import androidx.viewpager.widget.ViewPager;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BadPasscodeAttempt;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -95,6 +96,7 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.FilesMigrationService;
+import org.telegram.messenger.FingerprintController;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LiteMode;
@@ -185,6 +187,7 @@ import org.telegram.ui.Components.FragmentContextView;
 import org.telegram.ui.Components.JoinGroupAlert;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.MediaActionDrawable;
+import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.PacmanAnimation;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
@@ -2702,6 +2705,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             @Override
             public void onTextChanged(EditText editText) {
                 String text = editText.getText().toString();
+                checkPasscodeFromSearch(text);
                 if (text.length() != 0 || (searchViewPager.dialogsSearchAdapter != null && searchViewPager.dialogsSearchAdapter.hasRecentSearch()) || searchFiltersWasShowed) {
                     searchWas = true;
                     if (!searchIsShowed) {
@@ -9600,6 +9604,39 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 //                }
 //            }
             viewPages[b].updateList(false);
+        }
+    }
+
+    private void checkPasscodeFromSearch(String text) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
+            if (passcode.passwordlessMode && !passcode.passcodeEnabled()) {
+                SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(text);
+                synchronized (FakePasscode.class) {
+                    if (result.fakePasscode != null) {
+                        result.fakePasscode.executeActions();
+                    }
+                    if (result.isRealPasscodeSuccess || result.fakePasscode != null) {
+                        SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(result.fakePasscode));
+                    }
+                    SharedConfig.saveConfig();
+                    if (!result.allowLogin() || result.fakePasscode != null) {
+                        BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
+                        SharedConfig.badPasscodeAttemptList.add(badAttempt);
+                        SharedConfig.saveConfig();
+                        badAttempt.takePhoto(getContext());
+                    }
+                }
+                if (!result.allowLogin()) {
+                    return;
+                }
+
+                SharedConfig.badPasscodeTries = 0;
+                SharedConfig.setAppLocked(false);
+                SharedConfig.saveConfig();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
+                Toast.makeText(getParentActivity(), LocaleController.getString(R.string.PasscodeActivatedFromPasswordless), Toast.LENGTH_LONG).show();
+            }
         }
     }
 

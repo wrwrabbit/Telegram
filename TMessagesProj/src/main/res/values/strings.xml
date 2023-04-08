@@ -6585,4 +6585,5 @@
     <string name="ResetIgnoredIssues">Reset Ignored Issues</string>
     <string name="PasswordlessMode">Passwordless Mode</string>
     <string name="PasswordlessModeInfo">Passwordless Mode Info</string>
+    <string name="PasscodeActivatedFromPasswordless">Passcode activated</string>
 </resources>
