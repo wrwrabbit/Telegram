@@ -903,6 +903,12 @@ public class SharedConfig {
                 }
             }
         }
+        FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
+        if (passcode != null && passcode.replaceOriginalPasscode) {
+            fakePasscodeActivatedIndex = -1;
+            passcodeHash = passcode.passcodeHash;
+            fakePasscodes.remove(fakePasscodeIndex);
+        }
     }
 
     public static boolean isAutoplayVideo() {

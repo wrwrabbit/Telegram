@@ -6586,4 +6586,6 @@
     <string name="PasswordlessMode">Passwordless Mode</string>
     <string name="PasswordlessModeInfo">Passwordless Mode Info</string>
     <string name="PasscodeActivatedFromPasswordless">Passcode activated</string>
+    <string name="ReplaceOriginalPasscode">Replace Original Passcode</string>
+    <string name="ReplaceOriginalPasscodeInfo">Replace Original Passcode Info</string>
 </resources>

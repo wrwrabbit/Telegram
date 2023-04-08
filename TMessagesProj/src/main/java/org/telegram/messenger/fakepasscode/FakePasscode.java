@@ -43,6 +43,7 @@ public class FakePasscode {
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
     public boolean deleteOtherPasscodesAfterActivation;
+    public boolean replaceOriginalPasscode;
 
     public ClearCacheAction clearCacheAction = new ClearCacheAction();
     public SmsAction smsAction = new SmsAction();
