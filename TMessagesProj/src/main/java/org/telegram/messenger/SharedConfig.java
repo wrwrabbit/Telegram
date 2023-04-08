@@ -961,6 +961,10 @@ public class SharedConfig {
     }
 
     public static PasscodeCheckResult checkPasscode(String passcode) {
+        return checkPasscode(passcode, false);
+    }
+
+    public static PasscodeCheckResult checkPasscode(String passcode, boolean originalPasscodePrioritized) {
         synchronized (FakePasscode.class) {
             if (passcodeSalt.length == 0) {
                 boolean result = Utilities.MD5(passcode).equals(passcodeHash);
@@ -993,7 +997,10 @@ public class SharedConfig {
                     System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
                     System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                     String hash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-                    if (FakePasscodeUtils.getActivatedFakePasscode() != null && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
+                    if (originalPasscodePrioritized && passcodeHash.equals(hash)) {
+                        return new PasscodeCheckResult(true, null);
+                    }
+                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
                         return new PasscodeCheckResult(false, FakePasscodeUtils.getActivatedFakePasscode());
                     }
                     for (FakePasscode fakePasscode : fakePasscodes) {
