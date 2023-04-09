@@ -94,6 +94,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                     fingerprintDialog.dismiss();
                 }
             }
+        } else if (id == NotificationCenter.fakePasscodeActivated) {
+            if (FakePasscodeUtils.isFakePasscodeActivated() && !FakePasscodeUtils.getActivatedFakePasscode().passcodeEnabled()) {
+                appUnlocked();
+            }
         }
     }
 
@@ -1011,6 +1015,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             FingerprintController.deleteInvalidKey();
         }
 
+        appUnlocked();
+    }
+
+    private void appUnlocked() {
         SharedConfig.setAppLocked(false);
         SharedConfig.saveConfig();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
@@ -1161,6 +1169,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didGenerateFingerprintKeyPair);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.passcodeDismissed);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
     }
 
     @Override
@@ -1169,6 +1178,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didGenerateFingerprintKeyPair);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.passcodeDismissed);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
     }
 
     private void checkFingerprint() {
