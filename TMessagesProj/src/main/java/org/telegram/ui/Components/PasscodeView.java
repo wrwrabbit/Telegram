@@ -1028,20 +1028,26 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             delegate.didAcceptedPassword(this);
         }
 
-        AndroidUtilities.runOnUIThread(() -> {
-            AnimatorSet AnimatorSet = new AnimatorSet();
-            AnimatorSet.setDuration(200);
-            AnimatorSet.playTogether(
-                    ObjectAnimator.ofFloat(this, View.TRANSLATION_Y, AndroidUtilities.dp(20)),
-                    ObjectAnimator.ofFloat(this, View.ALPHA, AndroidUtilities.dp(0.0f)));
-            AnimatorSet.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    setVisibility(View.GONE);
-                }
-            });
-            AnimatorSet.start();
-        }, showed ? 500 : 0);
+        AndroidUtilities.runOnUIThread(this::hidePasscodeView);
+    }
+
+    private void hidePasscodeView() {
+        if (!showed) {
+            AndroidUtilities.runOnUIThread(this::hidePasscodeView, 500);
+            return;
+        }
+        AnimatorSet AnimatorSet = new AnimatorSet();
+        AnimatorSet.setDuration(200);
+        AnimatorSet.playTogether(
+                ObjectAnimator.ofFloat(this, View.TRANSLATION_Y, AndroidUtilities.dp(20)),
+                ObjectAnimator.ofFloat(this, View.ALPHA, AndroidUtilities.dp(0.0f)));
+        AnimatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                setVisibility(View.GONE);
+            }
+        });
+        AnimatorSet.start();
     }
 
     private void shakeTextView(final float x, final int num) {
