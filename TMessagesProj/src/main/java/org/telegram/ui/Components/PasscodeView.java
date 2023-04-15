@@ -78,6 +78,7 @@ import java.util.Locale;
 
 public class PasscodeView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private final static float BACKGROUND_SPRING_STIFFNESS = 300f;
+    private boolean showed = false;
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
@@ -1040,7 +1041,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 }
             });
             AnimatorSet.start();
-        });
+        }, showed ? 500 : 0);
     }
 
     private void shakeTextView(final float x, final int num) {
@@ -1341,6 +1342,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     }
 
     public void onShow(boolean fingerprint, boolean animated, int x, int y, Runnable onShow, Runnable onStart) {
+        showed = false;
         checkFingerprintButton();
         checkRetryTextView();
         Activity parentActivity = (Activity) getContext();
@@ -1571,6 +1573,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         }
 
         setOnTouchListener((v, event) -> true);
+       showed = true;
     }
 
     private void showFingerprintError(CharSequence error) {
