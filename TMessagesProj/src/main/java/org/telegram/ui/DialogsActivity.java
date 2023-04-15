@@ -9096,12 +9096,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         } else if (id == NotificationCenter.foldersHidingChanged) {
-            updateFilterTabs(true, false);
-            filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
-            if (viewPages != null) {
-                viewPages[0].selectedType = Integer.MAX_VALUE;
-                viewPages[0].dialogsAdapter.setDialogsType(0);
-            }
+            foldersHidingChanged();
         } else if (id == NotificationCenter.dialogsHidingChanged) {
             try {
                 scrollToTop();
@@ -9633,6 +9628,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
                 Toast.makeText(getParentActivity(), LocaleController.getString(R.string.PasscodeActivatedFromPasswordless), Toast.LENGTH_LONG).show();
             }
+        }
+    }
+
+    private void foldersHidingChanged() {
+        if (searchIsShowed) {
+            AndroidUtilities.runOnUIThread(this::foldersHidingChanged, 500);
+            return;
+        } else {
+            updateFilterTabs(true, false);
+        }
+        filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
+        if (viewPages != null) {
+            viewPages[0].selectedType = Integer.MAX_VALUE;
+            viewPages[0].dialogsAdapter.setDialogsType(0);
         }
     }
 
