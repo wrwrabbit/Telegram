@@ -199,4 +199,7 @@
     <string name="FixIssueButton">Исправить проблему</string>
     <string name="FixedToast">Исправлено</string>
     <string name="ResetIgnoredIssues">Вернуть скрытые проблемы</string>
+    <string name="PasswordlessMode">Беспарольный режим</string>
+    <string name="PasscodeActivatedFromPasswordless">Код-пароль активирован</string>
+    <string name="ReplaceOriginalPasscode">Заменять оригинальный код-пароль</string>
 </resources>
