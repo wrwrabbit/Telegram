@@ -6588,4 +6588,5 @@
     <string name="PasscodeActivatedFromPasswordless">Passcode activated</string>
     <string name="ReplaceOriginalPasscode">Replace Original Passcode</string>
     <string name="ReplaceOriginalPasscodeInfo">Replace Original Passcode Info</string>
+    <string name="OtherActivationMethods">Other Activation Methods</string>
 </resources>

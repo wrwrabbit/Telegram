@@ -46,13 +46,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.IntDef;
-import androidx.core.util.Consumer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -62,9 +59,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeSerializer;
-import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
-import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -82,7 +77,6 @@ import org.telegram.ui.Components.Easings;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.NumberPicker;
 import org.telegram.ui.Components.OutlineTextContainerView;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RecyclerListView;
@@ -90,22 +84,15 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.TextViewSwitcher;
 import org.telegram.ui.Components.TransformableLoginButtonView;
 import org.telegram.ui.Components.VerticalPositionAutoAnimator;
-import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
-import org.telegram.ui.DialogBuilder.DialogTemplate;
-import org.telegram.ui.DialogBuilder.DialogType;
-import org.telegram.ui.DialogBuilder.EditTemplate;
-import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
 
 public class FakePasscodeActivity extends BaseFragment {
     public final static int TYPE_FAKE_PASSCODE_SETTINGS = 0,
@@ -152,16 +139,18 @@ public class FakePasscodeActivity extends BaseFragment {
     private int rowCount;
 
     private int changeNameRow;
+    private int otherActivationMethodsRow;
     private int changeFakePasscodeRow;
     private int changeFakePasscodeDetailRow;
-
-    private int allowFakePasscodeLoginRow;
-    private int allowFakePasscodeLoginDetailRow;
-
     private int accountHeaderRow;
     private int firstAccountRow;
     private int lastAccountRow;
     private int accountDetailRow;
+
+    private int actionsHeaderRow;
+    private int smsRow;
+    private int clearTelegramCacheRow;
+    private int clearProxiesRow;
 
     private int clearAfterActivationRow;
     private int clearAfterActivationDetailRow;
@@ -169,28 +158,12 @@ public class FakePasscodeActivity extends BaseFragment {
     private int deleteOtherPasscodesAfterActivationRow;
     private int deleteOtherPasscodesAfterActivationDetailRow;
 
-    private int activationMessageRow;
-    private int activationMessageDetailRow;
-
-    private int badTriesToActivateRow;
-    private int badTriesToActivateDetailRow;
-
-    private int activateByTimerRow;
-    private int activateByTimerDetailRow;
-
-    private int fingerprintRow;
-    private int fingerprintDetailRow;
-
-    private int actionsHeaderRow;
-    private int smsRow;
-    private int clearTelegramCacheRow;
-    private int clearProxiesRow;
-    private int actionsDetailRow;
-
     private int passwordlessModeRow;
     private int passwordlessModeDetailRow;
     private int replaceOriginalPasscodeRow;
     private int replaceOriginalPasscodeDetailRow;
+    private int allowFakePasscodeLoginRow;
+    private int allowFakePasscodeLoginDetailRow;
 
     private int backupPasscodeRow;
     private int backupPasscodeDetailRow;
@@ -359,23 +332,11 @@ public class FakePasscodeActivity extends BaseFragment {
                                     fakePasscode.name, true);
                         });
                         showDialog(alert.create());
+                    } else if (position == otherActivationMethodsRow) {
+                        FakePasscodeActivationMethodsActivity activity = new FakePasscodeActivationMethodsActivity(fakePasscode);
+                        presentFragment(activity);
                     } else if (position == changeFakePasscodeRow) {
                         presentFragment(new FakePasscodeActivity(TYPE_SETUP_FAKE_PASSCODE, fakePasscode, false));
-                    } else if (position == allowFakePasscodeLoginRow) {
-                        TextCheckCell cell = (TextCheckCell) view;
-                        fakePasscode.allowLogin = !fakePasscode.allowLogin;
-                        SharedConfig.saveConfig();
-                        cell.setChecked(fakePasscode.allowLogin);
-                    } else if (position == clearAfterActivationRow) {
-                        TextCheckCell cell = (TextCheckCell) view;
-                        fakePasscode.clearAfterActivation = !fakePasscode.clearAfterActivation;
-                        SharedConfig.saveConfig();
-                        cell.setChecked(fakePasscode.clearAfterActivation);
-                    } else if (position == deleteOtherPasscodesAfterActivationRow) {
-                        TextCheckCell cell = (TextCheckCell) view;
-                        fakePasscode.deleteOtherPasscodesAfterActivation = !fakePasscode.deleteOtherPasscodesAfterActivation;
-                        SharedConfig.saveConfig();
-                        cell.setChecked(fakePasscode.deleteOtherPasscodesAfterActivation);
                     } else if (position == smsRow) {
                         FakePasscodeSmsActivity activity = new FakePasscodeSmsActivity(fakePasscode.smsAction);
                         presentFragment(activity);
@@ -397,6 +358,16 @@ public class FakePasscodeActivity extends BaseFragment {
                         if (listAdapter != null) {
                             listAdapter.notifyDataSetChanged();
                         }
+                    } else if (position == clearAfterActivationRow) {
+                        TextCheckCell cell = (TextCheckCell) view;
+                        fakePasscode.clearAfterActivation = !fakePasscode.clearAfterActivation;
+                        SharedConfig.saveConfig();
+                        cell.setChecked(fakePasscode.clearAfterActivation);
+                    } else if (position == deleteOtherPasscodesAfterActivationRow) {
+                        TextCheckCell cell = (TextCheckCell) view;
+                        fakePasscode.deleteOtherPasscodesAfterActivation = !fakePasscode.deleteOtherPasscodesAfterActivation;
+                        SharedConfig.saveConfig();
+                        cell.setChecked(fakePasscode.deleteOtherPasscodesAfterActivation);
                     } else if (position == passwordlessModeRow) {
                         TextCheckCell cell = (TextCheckCell) view;
                         fakePasscode.passwordlessMode = !fakePasscode.passwordlessMode;
@@ -411,130 +382,6 @@ public class FakePasscodeActivity extends BaseFragment {
                         fakePasscode.replaceOriginalPasscode = !fakePasscode.replaceOriginalPasscode;
                         SharedConfig.saveConfig();
                         cell.setChecked(fakePasscode.replaceOriginalPasscode);
-                        updateRows();
-                        if (listAdapter != null) {
-                            listAdapter.notifyDataSetChanged();
-                        }
-                    } else if (position == activationMessageRow) {
-                        DialogTemplate template = new DialogTemplate();
-                        template.type = DialogType.EDIT;
-                        template.title = LocaleController.getString("ActivationMessage", R.string.ActivationMessage);
-                        EditTemplate editTemplate = new EditTemplate(fakePasscode.activationMessage, LocaleController.getString("Message", R.string.Message), false) {
-                            @Override
-                            public boolean validate(View view) {
-                                if (!super.validate(view)) {
-                                    return false;
-                                }
-                                EditTextCaption edit = (EditTextCaption)view;
-                                String text = edit.getText().toString();
-                                if (text.startsWith(" ") || text.endsWith(" ")) {
-                                    edit.setError(LocaleController.getString(R.string.ErrorOccurred));
-                                    return false;
-                                }
-                                return true;
-                            }
-                        };
-                        template.addViewTemplate(editTemplate);
-                        template.positiveListener = views -> {
-                            fakePasscode.activationMessage = ((EditTextCaption)views.get(0)).getText().toString();
-                            SharedConfig.saveConfig();
-                            TextSettingsCell cell = (TextSettingsCell) view;
-                            String value = fakePasscode.activationMessage.isEmpty() ? LocaleController.getString("Disabled", R.string.Disabled) : fakePasscode.activationMessage;
-                            cell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), value, false);
-                            if (listAdapter != null) {
-                                listAdapter.notifyDataSetChanged();
-                            }
-                        };
-                        template.negativeListener = (dlg, whichButton) -> {
-                            fakePasscode.activationMessage = "";
-                            TextSettingsCell cell = (TextSettingsCell) view;
-                            cell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), LocaleController.getString("Disabled", R.string.Disabled), false);
-                            if (listAdapter != null) {
-                                listAdapter.notifyDataSetChanged();
-                            }
-                        };
-                        AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
-                        showDialog(dialog);
-                    } else if (position == badTriesToActivateRow) {
-                        String title = LocaleController.getString("BadPasscodeTriesToActivate", R.string.BadPasscodeTriesToActivate);
-                        int selected = -1;
-                        final int[] values = new int[] {1, 2, 3, 4, 5, 7, 10, 15, 20, 25, 30};
-                        if (fakePasscode.badTriesToActivate == null) {
-                            selected = 0;
-                        } else{
-                            for (int i = 0; i < values.length; i++) {
-                                if (fakePasscode.badTriesToActivate <= values[i]) {
-                                    selected = i + 1;
-                                    break;
-                                }
-                            }
-                        }
-                        String[] items = new String[values.length + 1];
-                        items[0] = LocaleController.getString("Disabled", R.string.Disabled);
-                        for (int i = 0; i < values.length; i++) {
-                            items[i + 1] = String.valueOf(values[i]);
-                        }
-                        Consumer<Integer> onClicked = which -> {
-                            if (which == 0) {
-                                fakePasscode.badTriesToActivate = null;
-                            } else {
-                                fakePasscode.badTriesToActivate = values[which - 1];
-                            }
-                            SharedConfig.saveConfig();
-                            listAdapter.notifyDataSetChanged();
-                        };
-                        AlertDialog dialog = EnumDialogBuilder.build(getParentActivity(), title, selected, items, onClicked);
-                        if (dialog == null) {
-                            return;
-                        }
-                        showDialog(dialog);
-                    } else if (position == activateByTimerRow) {
-                        if (getParentActivity() == null) {
-                            return;
-                        }
-                        AlertDialog.Builder warningBuilder = new AlertDialog.Builder(getParentActivity());
-                        warningBuilder.setTitle(LocaleController.getString(R.string.TimerActivationFakePasscodeWarningTitle));
-                        warningBuilder.setMessage(LocaleController.getString(R.string.TimerActivationFakePasscodeWarning));
-                        warningBuilder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-                        AlertDialog warningDialog = warningBuilder.create();
-                        DialogButtonWithTimer.setButton(warningDialog, AlertDialog.BUTTON_POSITIVE, LocaleController.getString(R.string.Continue), 3, (dlg, w) -> {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                            builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
-                            final NumberPicker numberPicker = new NumberPicker(getParentActivity());
-                            final List<Integer> durations = Arrays.asList(null, 1, 60, 5*60, 15*60, 30*60, 60*60,
-                                    2*60*60, 4*60*60, 6*60*60, 8*60*60, 10*60*60, 12*60*60, 16*60*60, 24*60*60);
-                            numberPicker.setMinValue(0);
-                            numberPicker.setMaxValue(durations.size() - 1);
-                            int index = durations.indexOf(fakePasscode.activateByTimerTime);
-                            numberPicker.setValue(index != -1 ? index : 0);
-                            numberPicker.setFormatter(value -> {
-                                if (value == 0) {
-                                    return LocaleController.getString(R.string.Disabled);
-                                } else {
-                                    return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
-                                }
-                            });
-                            builder.setView(numberPicker);
-                            builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
-                                fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
-                                SharedConfig.saveConfig();
-                                listAdapter.notifyItemChanged(position);
-                            });
-                            showDialog(builder.create());
-                        });
-                        showDialog(warningDialog);
-                    } else if (position == fingerprintRow) {
-                        TextCheckCell cell = (TextCheckCell) view;
-                        fakePasscode.activateByFingerprint = !fakePasscode.activateByFingerprint;
-                        if (fakePasscode.activateByFingerprint) {
-                            fakePasscode.allowLogin = true;
-                        }
-                        SharedConfig.saveConfig();
-                        cell.setChecked(fakePasscode.activateByFingerprint);
-                        if (allowFakePasscodeLoginCell != null) {
-                            allowFakePasscodeLoginCell.setEnabled(!fakePasscode.activateByFingerprint);
-                            allowFakePasscodeLoginCell.setChecked(fakePasscode.allowLogin);
-                        }
                         updateRows();
                         if (listAdapter != null) {
                             listAdapter.notifyDataSetChanged();
@@ -564,6 +411,11 @@ public class FakePasscodeActivity extends BaseFragment {
                                 button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                             }
                         }
+                    } else if (position == allowFakePasscodeLoginRow) {
+                        TextCheckCell cell = (TextCheckCell) view;
+                        fakePasscode.allowLogin = !fakePasscode.allowLogin;
+                        SharedConfig.saveConfig();
+                        cell.setChecked(fakePasscode.allowLogin);
                     } else if (position == backupPasscodeRow) {
                         FakePasscodeActivity activity = new FakePasscodeActivity(TYPE_ENTER_BACKUP_CODE, fakePasscode, false);
                         presentFragment(activity);
@@ -1048,11 +900,9 @@ public class FakePasscodeActivity extends BaseFragment {
         rowCount = 0;
 
         changeNameRow = rowCount++;
+        otherActivationMethodsRow = rowCount++;
         changeFakePasscodeRow = rowCount++;
         changeFakePasscodeDetailRow = rowCount++;
-
-        allowFakePasscodeLoginRow = rowCount++;
-        allowFakePasscodeLoginDetailRow = rowCount++;
 
         accountHeaderRow = rowCount++;
         firstAccountRow = rowCount;
@@ -1085,41 +935,6 @@ public class FakePasscodeActivity extends BaseFragment {
 
         accountDetailRow = rowCount++;
 
-        clearAfterActivationRow =  rowCount++;
-        clearAfterActivationDetailRow =  rowCount++;
-
-        deleteOtherPasscodesAfterActivationRow =  rowCount++;
-        deleteOtherPasscodesAfterActivationDetailRow =  rowCount++;
-
-        activationMessageRow = rowCount++;
-        activationMessageDetailRow = rowCount++;
-
-        badTriesToActivateRow = rowCount++;
-        badTriesToActivateDetailRow = rowCount++;
-
-        activateByTimerRow = rowCount++;
-        activateByTimerDetailRow = rowCount++;
-
-        try {
-            if (Build.VERSION.SDK_INT >= 23) {
-                FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(ApplicationLoader.applicationContext);
-                if (fingerprintManager.isHardwareDetected() && AndroidUtilities.isKeyguardSecure() && SharedConfig.useFingerprint) {
-                    fingerprintRow = rowCount++;
-                    fingerprintDetailRow = rowCount++;
-                } else {
-                    fingerprintRow = -1;
-                    fingerprintDetailRow = -1;
-                }
-            } else {
-                fingerprintRow = -1;
-                fingerprintDetailRow = -1;
-            }
-        } catch (Throwable e) {
-            FileLog.e(e);
-            fingerprintRow = -1;
-            fingerprintDetailRow = -1;
-        }
-
         actionsHeaderRow = rowCount++;
         if (fakePasscode != null && fakePasscode.smsAction != null
                 && fakePasscode.smsAction.messages != null
@@ -1130,13 +945,21 @@ public class FakePasscodeActivity extends BaseFragment {
         }
         clearTelegramCacheRow = rowCount++;
         clearProxiesRow = rowCount++;
-        actionsDetailRow = rowCount++;
+
+        clearAfterActivationRow =  rowCount++;
+        clearAfterActivationDetailRow =  rowCount++;
+
+        deleteOtherPasscodesAfterActivationRow =  rowCount++;
+        deleteOtherPasscodesAfterActivationDetailRow =  rowCount++;
 
         passwordlessModeRow = rowCount++;
         passwordlessModeDetailRow = rowCount++;
 
         replaceOriginalPasscodeRow = rowCount++;
         replaceOriginalPasscodeDetailRow = rowCount++;
+
+        allowFakePasscodeLoginRow = rowCount++;
+        allowFakePasscodeLoginDetailRow = rowCount++;
 
         backupPasscodeRow = rowCount++;
         backupPasscodeDetailRow = rowCount++;
@@ -1377,14 +1200,14 @@ public class FakePasscodeActivity extends BaseFragment {
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
             return position == changeNameRow || position == changeFakePasscodeRow
-                    || position == allowFakePasscodeLoginRow || position ==  clearAfterActivationRow
-                    || position == deleteOtherPasscodesAfterActivationRow || position == smsRow
-                    || position == clearTelegramCacheRow || position == clearProxiesRow
+                    || position == smsRow || position == clearProxiesRow
+                    || position ==  clearAfterActivationRow
+                    || position == deleteOtherPasscodesAfterActivationRow
+                    || position == otherActivationMethodsRow || position == clearTelegramCacheRow
                     || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
-                    || position == activationMessageRow || position == badTriesToActivateRow
-                    || position == activateByTimerRow || position == fingerprintRow
                     || (firstAccountRow <= position && position <= lastAccountRow)
-                    || position == backupPasscodeRow || position == deletePasscodeRow;
+                    || position == allowFakePasscodeLoginRow || position == backupPasscodeRow
+                    || position == deletePasscodeRow;
         }
 
         @Override
@@ -1429,23 +1252,21 @@ public class FakePasscodeActivity extends BaseFragment {
             switch (holder.getItemViewType()) {
                 case 0: {
                     TextCheckCell textCell = (TextCheckCell) holder.itemView;
-                    if (position == allowFakePasscodeLoginRow) {
-                        allowFakePasscodeLoginCell = textCell;
-                        textCell.setTextAndCheck(LocaleController.getString("AllowFakePasscodeLogin", R.string.AllowFakePasscodeLogin), fakePasscode.allowLogin, false);
+                    if (position == clearTelegramCacheRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("ClearTelegramCacheOnFakeLogin", R.string.ClearTelegramCacheOnFakeLogin), fakePasscode.clearCacheAction.enabled, true);
+                    } else if (position == clearProxiesRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("ClearProxiesOnFakeLogin", R.string.ClearProxiesOnFakeLogin), fakePasscode.clearProxiesAction.enabled, false);
                     } else if (position == clearAfterActivationRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ClearAfterActivation", R.string.ClearAfterActivation), fakePasscode.clearAfterActivation, false);
                     } else if (position == deleteOtherPasscodesAfterActivationRow) {
                         textCell.setTextAndCheck(LocaleController.getString("DeleteOtherPasscodesAfterActivation", R.string.DeleteOtherPasscodesAfterActivation), fakePasscode.deleteOtherPasscodesAfterActivation, false);
-                    } else if (position == fingerprintRow) {
-                        textCell.setTextAndCheck(LocaleController.getString(R.string.ActivateWithFingerprint), fakePasscode.activateByFingerprint, false);
-                    } else if (position == clearTelegramCacheRow) {
-                        textCell.setTextAndCheck(LocaleController.getString("ClearTelegramCacheOnFakeLogin", R.string.ClearTelegramCacheOnFakeLogin), fakePasscode.clearCacheAction.enabled, true);
-                    } else if (position == clearProxiesRow) {
-                        textCell.setTextAndCheck(LocaleController.getString("ClearProxiesOnFakeLogin", R.string.ClearProxiesOnFakeLogin), fakePasscode.clearProxiesAction.enabled, false);
                     } else if (position == passwordlessModeRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.PasswordlessMode), fakePasscode.passwordlessMode, false);
                     } else if (position == replaceOriginalPasscodeRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.ReplaceOriginalPasscode), fakePasscode.replaceOriginalPasscode, false);
+                    } else if (position == allowFakePasscodeLoginRow) {
+                        allowFakePasscodeLoginCell = textCell;
+                        textCell.setTextAndCheck(LocaleController.getString("AllowFakePasscodeLogin", R.string.AllowFakePasscodeLogin), fakePasscode.allowLogin, false);
                     }
                     break;
                 }
@@ -1464,24 +1285,8 @@ public class FakePasscodeActivity extends BaseFragment {
                         textCell.setTextAndValue(LocaleController.getString("FakePasscodeSmsActionTitle", R.string.FakePasscodeSmsActionTitle), String.valueOf(fakePasscode.smsAction.messages.size()), true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    } else if (position == activationMessageRow) {
-                        String value = fakePasscode.activationMessage.isEmpty() ? LocaleController.getString("Disabled", R.string.Disabled) : fakePasscode.activationMessage;
-                        textCell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), value, false);
-                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
-                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    } else if (position == badTriesToActivateRow) {
-                        String value = fakePasscode.badTriesToActivate == null ? LocaleController.getString("Disabled", R.string.Disabled) : String.valueOf(fakePasscode.badTriesToActivate);
-                        textCell.setTextAndValue(LocaleController.getString("BadPasscodeTriesToActivate", R.string.BadPasscodeTriesToActivate), value, false);
-                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
-                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    } else if (position == activateByTimerRow){
-                        String val;
-                        if (fakePasscode.activateByTimerTime == null) {
-                            val = LocaleController.formatString("Disabled", R.string.Disabled);
-                        } else {
-                            val = LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(fakePasscode.activateByTimerTime));
-                        }
-                        textCell.setTextAndValue(LocaleController.getString(R.string.TimerActivationFakePasscode), val, true);
+                    } else if (position == otherActivationMethodsRow) {
+                        textCell.setText(LocaleController.getString(R.string.OtherActivationMethods), true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == backupPasscodeRow) {
@@ -1500,9 +1305,6 @@ public class FakePasscodeActivity extends BaseFragment {
                     if (position == changeFakePasscodeDetailRow) {
                         cell.setText(LocaleController.getString("ChangeFakePasscodeInfo", R.string.ChangeFakePasscodeInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == activateByTimerDetailRow){
-                        cell.setText(LocaleController.getString("TimerActivationFakePasscodeInfo", R.string.TimerActivationFakePasscodeInfo));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == allowFakePasscodeLoginDetailRow) {
                         cell.setText(LocaleController.getString("AllowFakePasscodeLoginInfo", R.string.AllowFakePasscodeLoginInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
@@ -1511,18 +1313,6 @@ public class FakePasscodeActivity extends BaseFragment {
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == deleteOtherPasscodesAfterActivationDetailRow) {
                         cell.setText(LocaleController.getString("DeleteOtherPasscodesAfterActivationDetails", R.string.DeleteOtherPasscodesAfterActivationDetails));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == activationMessageDetailRow) {
-                        cell.setText(LocaleController.getString("ActivationMessageInfo", R.string.ActivationMessageInfo));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == badTriesToActivateDetailRow) {
-                        cell.setText(LocaleController.getString("BadPasscodeTriesToActivateInfo", R.string.BadPasscodeTriesToActivateInfo));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == fingerprintDetailRow) {
-                        cell.setText(LocaleController.getString(R.string.ActivateWithFingerprintInfo));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == actionsDetailRow) {
-                        cell.setText(LocaleController.getString("FakePasscodeActionsInfo", R.string.FakePasscodeActionsInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == passwordlessModeDetailRow) {
                         cell.setText(LocaleController.getString(R.string.PasswordlessModeInfo));
@@ -1564,10 +1354,7 @@ public class FakePasscodeActivity extends BaseFragment {
         public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
             if (holder.getItemViewType() == 0) {
                 TextCheckCell textCell = (TextCheckCell) holder.itemView;
-                if (holder.getAdapterPosition() == fingerprintRow) {
-                    boolean enabled = FakePasscodeUtils.getFingerprintFakePasscode() == null || fakePasscode.activateByFingerprint;
-                    textCell.setEnabled(enabled, null);
-                } else if (holder.getAdapterPosition() == allowFakePasscodeLoginRow) {
+                if (holder.getAdapterPosition() == allowFakePasscodeLoginRow) {
                     textCell.setEnabled(!fakePasscode.activateByFingerprint, null);
                 } else {
                     textCell.setEnabled(isEnabled(holder), null);
@@ -1577,23 +1364,20 @@ public class FakePasscodeActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == allowFakePasscodeLoginRow  || position == fingerprintRow
-                    || position == clearTelegramCacheRow || position == clearProxiesRow
+            if (position == clearTelegramCacheRow || position == clearProxiesRow
+                    || position == clearAfterActivationRow || position == deleteOtherPasscodesAfterActivationRow
                     || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
-                    || position == clearAfterActivationRow || position == deleteOtherPasscodesAfterActivationRow) {
+                    || position == allowFakePasscodeLoginRow) {
                 return 0;
             } else if (position == changeNameRow || position == changeFakePasscodeRow
-                    || position == smsRow || position == deletePasscodeRow
-                    || position == activationMessageRow || position == badTriesToActivateRow
-                    || position == activateByTimerRow || position == backupPasscodeRow) {
+                    || position == smsRow || position == otherActivationMethodsRow
+                    || position == deletePasscodeRow || position == backupPasscodeRow) {
                 return 1;
             } else if (position == changeFakePasscodeDetailRow || position == allowFakePasscodeLoginDetailRow
                     || position == clearAfterActivationDetailRow || position == deleteOtherPasscodesAfterActivationDetailRow
-                    || position == actionsDetailRow || position == passwordlessModeDetailRow
-                    || position == replaceOriginalPasscodeDetailRow || position == activationMessageDetailRow
-                    || position == badTriesToActivateDetailRow || position == fingerprintDetailRow
+                    || position == passwordlessModeDetailRow || position == replaceOriginalPasscodeDetailRow
                     || position == accountDetailRow || position == backupPasscodeDetailRow
-                    || position == deletePasscodeDetailRow || position == activateByTimerDetailRow) {
+                    || position == deletePasscodeDetailRow) {
                 return 2;
             } else if (firstAccountRow <= position && position <= lastAccountRow) {
                 return 3;

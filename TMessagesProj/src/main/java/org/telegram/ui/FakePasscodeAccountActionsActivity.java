@@ -72,7 +72,6 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
     private int clearDraftsRow;
     private int logOutRow;
     private int hideAccountRow;
-    private int actionsDetailRow;
     private int sessionsToTerminateRow;
     private int sessionsToHideRow;
     private int sessionsSettingsDetailRow;
@@ -300,7 +299,6 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
         } else {
             hideAccountRow = -1;
         }
-        actionsDetailRow = rowCount++;
     }
 
     @Override
@@ -329,7 +327,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position != actionsDetailRow && position != messagesDetailRow && position != phoneDetailRow;
+            return position != messagesDetailRow && position != phoneDetailRow;
         }
 
         @Override
@@ -435,9 +433,6 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                     } else if (position == phoneDetailRow) {
                         cell.setText(LocaleController.getString(R.string.FakePhoneNumberInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == actionsDetailRow) {
-                        cell.setText(LocaleController.getString(R.string.FakePasscodeActionsInfo));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == changeChatsToRemoveDetailRow) {
                         cell.setText(LocaleController.getString(R.string.ChatsToRemoveInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
@@ -495,7 +490,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
             } else if (position == changeChatsToRemoveRow || position == changePhoneRow ||  position == changeTelegramMessageRow
                     || position == sessionsToTerminateRow || position == sessionsToHideRow) {
                 return 1;
-            } else if (position == messagesDetailRow || position == phoneDetailRow || position == actionsDetailRow
+            } else if (position == messagesDetailRow || position == phoneDetailRow
                     || position == changeChatsToRemoveDetailRow || position == sessionsSettingsDetailRow) {
                 return 2;
             }
