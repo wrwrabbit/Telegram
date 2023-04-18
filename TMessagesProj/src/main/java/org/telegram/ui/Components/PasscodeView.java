@@ -1370,6 +1370,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             checkFingerprint();
         }
         if (getVisibility() == View.VISIBLE) {
+            showed = true;
             return;
         }
         setTranslationY(0);
@@ -1579,7 +1580,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         }
 
         setOnTouchListener((v, event) -> true);
-       showed = true;
+        showed = true;
     }
 
     private void showFingerprintError(CharSequence error) {
