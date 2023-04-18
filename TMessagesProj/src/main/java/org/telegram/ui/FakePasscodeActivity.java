@@ -67,6 +67,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.AccountActionsCell;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
@@ -139,8 +140,8 @@ public class FakePasscodeActivity extends BaseFragment {
     private int rowCount;
 
     private int changeNameRow;
-    private int otherActivationMethodsRow;
     private int changeFakePasscodeRow;
+    private int otherActivationMethodsRow;
     private int changeFakePasscodeDetailRow;
     private int accountHeaderRow;
     private int firstAccountRow;
@@ -332,11 +333,11 @@ public class FakePasscodeActivity extends BaseFragment {
                                     fakePasscode.name, true);
                         });
                         showDialog(alert.create());
+                    } else if (position == changeFakePasscodeRow) {
+                        presentFragment(new FakePasscodeActivity(TYPE_SETUP_FAKE_PASSCODE, fakePasscode, false));
                     } else if (position == otherActivationMethodsRow) {
                         FakePasscodeActivationMethodsActivity activity = new FakePasscodeActivationMethodsActivity(fakePasscode);
                         presentFragment(activity);
-                    } else if (position == changeFakePasscodeRow) {
-                        presentFragment(new FakePasscodeActivity(TYPE_SETUP_FAKE_PASSCODE, fakePasscode, false));
                     } else if (position == smsRow) {
                         FakePasscodeSmsActivity activity = new FakePasscodeSmsActivity(fakePasscode.smsAction);
                         presentFragment(activity);
@@ -900,8 +901,8 @@ public class FakePasscodeActivity extends BaseFragment {
         rowCount = 0;
 
         changeNameRow = rowCount++;
-        otherActivationMethodsRow = rowCount++;
         changeFakePasscodeRow = rowCount++;
+        otherActivationMethodsRow = rowCount++;
         changeFakePasscodeDetailRow = rowCount++;
 
         accountHeaderRow = rowCount++;
@@ -1189,6 +1190,12 @@ public class FakePasscodeActivity extends BaseFragment {
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
+        private final static int VIEW_TYPE_CHECK = 0,
+                VIEW_TYPE_SETTING = 1,
+                VIEW_TYPE_INFO = 2,
+                VIEW_TYPE_ACCOUNT_ACTIONS = 3,
+                VIEW_TYPE_HEADER = 4,
+                VIEW_TYPE_SHADOW = 5;
 
         private Context mContext;
 
@@ -1200,12 +1207,12 @@ public class FakePasscodeActivity extends BaseFragment {
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
             return position == changeNameRow || position == changeFakePasscodeRow
-                    || position == smsRow || position == clearProxiesRow
-                    || position ==  clearAfterActivationRow
-                    || position == deleteOtherPasscodesAfterActivationRow
-                    || position == otherActivationMethodsRow || position == clearTelegramCacheRow
-                    || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
+                    || position == otherActivationMethodsRow
                     || (firstAccountRow <= position && position <= lastAccountRow)
+                    || position == smsRow || position == clearTelegramCacheRow
+                    || position == clearProxiesRow || position ==  clearAfterActivationRow
+                    || position == deleteOtherPasscodesAfterActivationRow
+                    || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
                     || position == allowFakePasscodeLoginRow || position == backupPasscodeRow
                     || position == deletePasscodeRow;
         }
@@ -1219,29 +1226,31 @@ public class FakePasscodeActivity extends BaseFragment {
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
             switch (viewType) {
-                case 0:
-                case 5:
+                case VIEW_TYPE_CHECK:
                     view = new TextCheckCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 1:
+                case VIEW_TYPE_SETTING:
                     view = new TextSettingsCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 2:
+                case VIEW_TYPE_INFO:
                     view = new TextInfoPrivacyCell(mContext);
                     break;
-                case 3:
+                case VIEW_TYPE_ACCOUNT_ACTIONS:
                 {
                     AccountActionsCell cell = new AccountActionsCell(mContext);
                     view = cell;
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 }
-                case 4:
-                default:
+                case VIEW_TYPE_HEADER:
                     view = new HeaderCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case VIEW_TYPE_SHADOW:
+                default:
+                    view = new ShadowSectionCell(mContext);
                     break;
             }
             return new RecyclerListView.Holder(view);
@@ -1250,7 +1259,7 @@ public class FakePasscodeActivity extends BaseFragment {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
-                case 0: {
+                case VIEW_TYPE_CHECK: {
                     TextCheckCell textCell = (TextCheckCell) holder.itemView;
                     if (position == clearTelegramCacheRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ClearTelegramCacheOnFakeLogin", R.string.ClearTelegramCacheOnFakeLogin), fakePasscode.clearCacheAction.enabled, true);
@@ -1270,7 +1279,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     }
                     break;
                 }
-                case 1: {
+                case VIEW_TYPE_SETTING: {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                     if (position == changeNameRow) {
                         changeNameCell = textCell;
@@ -1281,12 +1290,12 @@ public class FakePasscodeActivity extends BaseFragment {
                         textCell.setText(LocaleController.getString("ChangeFakePasscode", R.string.ChangeFakePasscode), false);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    } else if (position == smsRow) {
-                        textCell.setTextAndValue(LocaleController.getString("FakePasscodeSmsActionTitle", R.string.FakePasscodeSmsActionTitle), String.valueOf(fakePasscode.smsAction.messages.size()), true);
-                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
-                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == otherActivationMethodsRow) {
                         textCell.setText(LocaleController.getString(R.string.OtherActivationMethods), true);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                    } else if (position == smsRow) {
+                        textCell.setTextAndValue(LocaleController.getString("FakePasscodeSmsActionTitle", R.string.FakePasscodeSmsActionTitle), String.valueOf(fakePasscode.smsAction.messages.size()), true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == backupPasscodeRow) {
@@ -1300,12 +1309,9 @@ public class FakePasscodeActivity extends BaseFragment {
                     }
                     break;
                 }
-                case 2: {
+                case VIEW_TYPE_INFO: {
                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
-                    if (position == changeFakePasscodeDetailRow) {
-                        cell.setText(LocaleController.getString("ChangeFakePasscodeInfo", R.string.ChangeFakePasscodeInfo));
-                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    } else if (position == allowFakePasscodeLoginDetailRow) {
+                    if (position == allowFakePasscodeLoginDetailRow) {
                         cell.setText(LocaleController.getString("AllowFakePasscodeLoginInfo", R.string.AllowFakePasscodeLoginInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == clearAfterActivationDetailRow) {
@@ -1332,19 +1338,25 @@ public class FakePasscodeActivity extends BaseFragment {
                     }
                     break;
                 }
-                case 3: {
+                case VIEW_TYPE_ACCOUNT_ACTIONS: {
                     AccountActionsCell cell = (AccountActionsCell) holder.itemView;
                     AccountActionsCellInfo info = accounts.get(position - firstAccountRow);
                     cell.setAccount(info.accountNum, info.actions, position != lastAccountRow);
                     break;
                 }
-                case 4: {
+                case VIEW_TYPE_HEADER: {
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == actionsHeaderRow) {
                         headerCell.setText(LocaleController.getString("FakePasscodeActionsHeader", R.string.FakePasscodeActionsHeader));
                     } else if (position == accountHeaderRow) {
                         headerCell.setText(LocaleController.getString("FakePasscodeAccountsHeader", R.string.FakePasscodeAccountsHeader));
                     }
+                    break;
+                }
+                case VIEW_TYPE_SHADOW: {
+                    View sectionCell = holder.itemView;
+                    sectionCell.setTag(position);
+                    sectionCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
                     break;
                 }
             }
@@ -1368,23 +1380,25 @@ public class FakePasscodeActivity extends BaseFragment {
                     || position == clearAfterActivationRow || position == deleteOtherPasscodesAfterActivationRow
                     || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
                     || position == allowFakePasscodeLoginRow) {
-                return 0;
+                return VIEW_TYPE_CHECK;
             } else if (position == changeNameRow || position == changeFakePasscodeRow
-                    || position == smsRow || position == otherActivationMethodsRow
-                    || position == deletePasscodeRow || position == backupPasscodeRow) {
-                return 1;
-            } else if (position == changeFakePasscodeDetailRow || position == allowFakePasscodeLoginDetailRow
-                    || position == clearAfterActivationDetailRow || position == deleteOtherPasscodesAfterActivationDetailRow
+                    || position == otherActivationMethodsRow || position == smsRow
+                    || position == backupPasscodeRow || position == deletePasscodeRow) {
+                return VIEW_TYPE_SETTING;
+            } else if (position == allowFakePasscodeLoginDetailRow || position == clearAfterActivationDetailRow
+                    || position == deleteOtherPasscodesAfterActivationDetailRow
                     || position == passwordlessModeDetailRow || position == replaceOriginalPasscodeDetailRow
                     || position == accountDetailRow || position == backupPasscodeDetailRow
                     || position == deletePasscodeDetailRow) {
-                return 2;
+                return VIEW_TYPE_INFO;
             } else if (firstAccountRow <= position && position <= lastAccountRow) {
-                return 3;
+                return VIEW_TYPE_ACCOUNT_ACTIONS;
             } else if (position == actionsHeaderRow || position == accountHeaderRow) {
-                return 4;
+                return VIEW_TYPE_HEADER;
+            } else if (position == changeFakePasscodeDetailRow) {
+                return VIEW_TYPE_SHADOW;
             }
-            return 0;
+            return VIEW_TYPE_CHECK;
         }
     }
 
