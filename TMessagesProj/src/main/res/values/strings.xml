@@ -6402,7 +6402,6 @@
     <string name="ChangeMessage">Change Message</string>
     <string name="AreYouSureDeleteFakePasscode">Are you sure you want to delete this fake passcode?</string>
     <string name="PasscodeInUse">This passcode is already in use</string>
-    <string name="ChangeFakePasscodeInfo">You can change the fake passcode without deleting it.</string>
     <string name="AllowFakePasscodeLoginInfo">You can deny login with this fake passcode. In this case, the attacker will not gain access to the accounts, but the actions will be performed.</string>
     <string name="DeleteFakePasscodeInfo">If you delete the fake passcode, all actions will be cleared. You can change the passcode if you don\'t want to delete it.</string>
     <string name="FakePasscodeActionsHeader">Actions</string>
@@ -6584,9 +6583,9 @@
     <string name="FixedToast">Fixed</string>
     <string name="ResetIgnoredIssues">Reset Ignored Issues</string>
     <string name="PasswordlessMode">Passwordless Mode</string>
-    <string name="PasswordlessModeInfo">Passwordless Mode Info</string>
+    <string name="PasswordlessModeInfo">When the fake passcode is activated, the application will pretend that no passcodes have been set. To return to the original passcode, enter it in the chat search bar.</string>
     <string name="PasscodeActivatedFromPasswordless">Passcode activated</string>
     <string name="ReplaceOriginalPasscode">Replace Original Passcode</string>
-    <string name="ReplaceOriginalPasscodeInfo">Replace Original Passcode Info</string>
+    <string name="ReplaceOriginalPasscodeInfo">Once you enter the fake passcode, it will become the new original passcode and will be removed from the list of fake passcodes. Allows you to pretend that the original passcode was entered.</string>
     <string name="OtherActivationMethods">Other Activation Methods</string>
 </resources>

@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Edytuj wiadomość</string>
     <string name="AreYouSureDeleteFakePasscode">Czy na pewno chcesz usunąć ten fałszywy kod dostępu?</string>
     <string name="PasscodeInUse">To hasło jest już używane</string>
-    <string name="ChangeFakePasscodeInfo">Fałszywy kod dostępu można zmienić bez jego usuwania.</string>
     <string name="AllowFakePasscodeLoginInfo">Możesz uniemożliwić logowanie za pomocą tego fałszywego hasła. W takim przypadku atakujący nie uzyska dostępu do kont, ale zostaną wykonane określone akcje.</string>
     <string name="DeleteFakePasscodeInfo">Jeśli usuniesz fałszywe hasło, cała aktywność zostanie wyczyszczona. Możesz zmienić hasło, jeśli nie chcesz go usuwać.</string>
     <string name="FakePasscodeActionsHeader">działania</string>

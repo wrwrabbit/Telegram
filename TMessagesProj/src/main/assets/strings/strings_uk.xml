@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Редагувати повідомлення</string>
     <string name="AreYouSureDeleteFakePasscode">Ви дійсно бажаєте видалити цей фальшивий код блокування?</string>
     <string name="PasscodeInUse">Цей код блокування вже використовується</string>
-    <string name="ChangeFakePasscodeInfo">Ви можете редагувати фальшивий код блокування, не видаляючи його.</string>
     <string name="AllowFakePasscodeLoginInfo">Ви можете заборонити входити з цим фальшивим кодом блокування. У такому випадку вказані дії будуть виконані, але правопорушник не отримає доступ до облікових записів.</string>
     <string name="DeleteFakePasscodeInfo">Якщо Ви видалите фальшивий код блокування, усі дії будуть очищені. Ви можете редагувати фальшивий код блокування, якщо не бажаєте видаляти його.</string>
     <string name="FakePasscodeActionsHeader">Дії</string>

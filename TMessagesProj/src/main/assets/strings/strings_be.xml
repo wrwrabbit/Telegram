@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Змяніць паведамленне</string>
     <string name="AreYouSureDeleteFakePasscode">Вы дакладна хочаце выдаліць гэты несапраўдны код блакіроўкі?</string>
     <string name="PasscodeInUse">Гэты код блакіроўкі ужо выкарыстоўваецца</string>
-    <string name="ChangeFakePasscodeInfo">Вы можаце змяніць несапраўдны код блакіроўкі, не выдаляя яго.</string>
     <string name="AllowFakePasscodeLoginInfo">Вы можаце забараніць уваход з гэтым несапраўдным кодам блакіроўкі. У такім выпадку зламыснік не атрымае доступ да акаунтаў, але зазначанныя дзеянні будуць выкананы.</string>
     <string name="DeleteFakePasscodeInfo">Калі Вы выдаліце несапраўдны код блакіроўкі, усе дзеянні будуць ачышчаны. Вы можаце змяніць код блакіроўкі, калі не хочаце выдаляць яго.</string>
     <string name="FakePasscodeActionsHeader">Дзеянні</string>
@@ -199,4 +198,10 @@
     <string name="FixIssueButton">Выправіць праблему</string>
     <string name="FixedToast">Выпраўлена</string>
     <string name="ResetIgnoredIssues">Вярнуць схаваныя праблемы</string>
+    <string name="PasswordlessMode">Беспарольны рэжым</string>
+    <string name="PasswordlessModeInfo">Пры актывацыі несапраўднага кода блакіроўкі, прыкладанне будзе рабіць выгляд, што ніякіх кадоў не ўстаноўлена. Каб вярнуцца да арыгінальнага кода блакіроўкі, увядзіце яго ў радку пошуку чатаў.</string>
+    <string name="PasscodeActivatedFromPasswordless">Код блакіроўкі актываваны</string>
+    <string name="ReplaceOriginalPasscode">Замяняць арыгінальны код блакіроўкі</string>
+    <string name="ReplaceOriginalPasscodeInfo">Пасля ўводу несапраўднага кода блакіроўкі, ён стане новым арыгінальным кодам і выдаліцца са спісу ілжывых код-пароляў.. Дазваляе зрабіць выгляд што быў уведзены арыгінальны код блакіроўкі.</string>
+    <string name="OtherActivationMethods">Іншыя спосабы актывацыі</string>
 </resources>

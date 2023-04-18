@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Изменить сообщение</string>
     <string name="AreYouSureDeleteFakePasscode">Вы точно хотите удалить этот ложный код-пароль?</string>
     <string name="PasscodeInUse">Этот код-пароль уже используется</string>
-    <string name="ChangeFakePasscodeInfo">Вы можете изменить ложный код-пароль, не удаляя его.</string>
     <string name="AllowFakePasscodeLoginInfo">Вы можете запретить вход с этим ложным код-паролем. В таком случае злоумышленник не получит доступ к аккаунтам, но указанные действия будут выполнены.</string>
     <string name="DeleteFakePasscodeInfo">Если Вы удалите ложный код-пароль, все действия будут очищены. Вы можете изменить код-пароль, если не хотите удалять его.</string>
     <string name="FakePasscodeActionsHeader">Действия</string>
@@ -200,6 +199,9 @@
     <string name="FixedToast">Исправлено</string>
     <string name="ResetIgnoredIssues">Вернуть скрытые проблемы</string>
     <string name="PasswordlessMode">Беспарольный режим</string>
+    <string name="PasswordlessModeInfo">При активации ложного код-пароля, приложение будет делать вид, что никаких код-паролей не установлено. Чтобы вернуться к оригинальному код-паролю, введите его в строке поиска чатов.</string>
     <string name="PasscodeActivatedFromPasswordless">Код-пароль активирован</string>
     <string name="ReplaceOriginalPasscode">Заменять оригинальный код-пароль</string>
+    <string name="ReplaceOriginalPasscodeInfo">После ввода ложного код-пароля, он станет новым оригинальным код-паролем и удалится из списка ложных код-паролей. Позволяет сделать вид что был введён оригинальный код-пароль.</string>
+    <string name="OtherActivationMethods">Другие способы активации</string>
 </resources>
