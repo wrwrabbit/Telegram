@@ -204,4 +204,6 @@
     <string name="ReplaceOriginalPasscode">Замяняць арыгінальны код блакіроўкі</string>
     <string name="ReplaceOriginalPasscodeInfo">Пасля ўводу несапраўднага кода блакіроўкі, ён стане новым арыгінальным кодам і выдаліцца са спісу ілжывых код-пароляў.. Дазваляе зрабіць выгляд, што быў уведзены арыгінальны код блакіроўкі.</string>
     <string name="OtherActivationMethods">Іншыя спосабы актывацыі</string>
+    <string name="AdditionalVerifiedSetting">Дадатковыя значкі верыфікацыі</string>
+    <string name="AdditionalVerifiedSettingInfo">Прыкладанне будзе паказваць значкі Верыфікаваны, SCAM, FAKE, у некаторых ботаў і каналаў, у якіх у афіцыйным дадатку такія адзнакі адсутнічаюць. Гэта можа дапамагчы Вам не трапіцца на хітрыкі зламыснікаў.</string>
 </resources>

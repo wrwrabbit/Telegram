@@ -204,4 +204,6 @@
     <string name="ReplaceOriginalPasscode">Заменять оригинальный код-пароль</string>
     <string name="ReplaceOriginalPasscodeInfo">После ввода ложного код-пароля, он станет новым оригинальным код-паролем и удалится из списка ложных код-паролей. Позволяет сделать вид, что был введён оригинальный код-пароль.</string>
     <string name="OtherActivationMethods">Другие способы активации</string>
+    <string name="AdditionalVerifiedSetting">Дополнительные значки верификации</string>
+    <string name="AdditionalVerifiedSettingInfo">Приложение будет показывать значки Верифицирован, SCAM, FAKE, у некоторых ботов и каналов, в которых в официальном приложении такие отметки отсутствуют. Это может помочь Вам не попасться на уловки злоумышленников.</string>
 </resources>

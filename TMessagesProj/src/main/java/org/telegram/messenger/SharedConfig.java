@@ -232,6 +232,7 @@ public class SharedConfig {
 
     public static boolean showCallButton;
     public static boolean marketIcons;
+    public static boolean additionalVerifiedBadges;
 
     public static boolean clearAllDraftsOnScreenLock;
     public static boolean deleteMessagesForAllByDefault;
@@ -772,6 +773,7 @@ public class SharedConfig {
             chatSwipeAction = preferences.getInt("ChatSwipeAction", -1);
             showCallButton = preferences.getBoolean("showCallButton", true);
             marketIcons = preferences.getBoolean("marketIcons", false);
+            additionalVerifiedBadges = preferences.getBoolean("additionalVerifiedBadges", true);
             messageSeenHintCount = preferences.getInt("messageSeenCount", 3);
             emojiInteractionsHintCount = preferences.getInt("emojiInteractionsHintCount", 3);
             dayNightThemeSwitchHintCount = preferences.getInt("dayNightThemeSwitchHintCount", 3);
@@ -822,6 +824,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("marketIcons", marketIcons);
+        editor.commit();
+    }
+
+    public static void toggleAdditionalVerifiedBadges() {
+        additionalVerifiedBadges = !additionalVerifiedBadges;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("additionalVerifiedBadges", additionalVerifiedBadges);
         editor.commit();
     }
 

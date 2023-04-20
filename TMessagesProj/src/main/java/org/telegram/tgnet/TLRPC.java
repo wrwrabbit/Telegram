@@ -20,6 +20,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
@@ -22631,7 +22632,8 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
-            return verified || !FakePasscodeUtils.isFakePasscodeActivated() && id == 6275586312L;
+            return verified || !FakePasscodeUtils.isFakePasscodeActivated()
+                        && SharedConfig.additionalVerifiedBadges && id == 6275586312L;
         }
 
         public void setVerified(boolean verified) {
@@ -22639,11 +22641,12 @@ public class TLRPC {
         }
 
         public boolean isScam() {
-            return scam || !FakePasscodeUtils.isFakePasscodeActivated() && id == 5735310739L;
+            return scam;
         }
 
         public boolean isFake() {
-            return fake;
+            return fake || !FakePasscodeUtils.isFakePasscodeActivated()
+                    && SharedConfig.additionalVerifiedBadges && id == 5735310739L;
         }
     }
 

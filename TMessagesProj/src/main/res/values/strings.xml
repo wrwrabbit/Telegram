@@ -6588,4 +6588,6 @@
     <string name="ReplaceOriginalPasscode">Replace Original Passcode</string>
     <string name="ReplaceOriginalPasscodeInfo">Once you enter the fake passcode, it will become the new original passcode and will be removed from the list of fake passcodes. Allows you to pretend that the original passcode was entered.</string>
     <string name="OtherActivationMethods">Other Activation Methods</string>
+    <string name="AdditionalVerifiedSetting">Additional Verified Badges</string>
+    <string name="AdditionalVerifiedSettingInfo">The application will show the Verified, SCAM, FAKE badges for some bots and channels that do not have such badges in the official application. This can help you avoid getting scammed.</string>
 </resources>
