@@ -3259,7 +3259,7 @@ public class MessagesController extends BaseController implements NotificationCe
         user = new TLRPC.TL_userForeign_old2();
         user.phone = "42777";
         user.id = 777000;
-        user.verified = true;
+        user.setVerified(true);
         user.first_name = "Telegram";
         user.last_name = "Notifications";
         user.status = null;

@@ -1105,14 +1105,14 @@ public class DialogCell extends BaseCell {
                             drawVerified = !forbidVerified && chat.verified;
                         }
                     } else if (user != null) {
-                        if (user.scam) {
+                        if (user.isScam()) {
                             drawScam = 1;
                             Theme.dialogs_scamDrawable.checkText();
-                        } else if (user.fake) {
+                        } else if (user.isFake()) {
                             drawScam = 2;
                             Theme.dialogs_fakeDrawable.checkText();
                         } else {
-                            drawVerified =!forbidVerified && user.verified;
+                            drawVerified =!forbidVerified && user.isVerified();
                         }
                         drawPremium = MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
                         if (drawPremium) {

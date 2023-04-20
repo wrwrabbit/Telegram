@@ -134,7 +134,7 @@ public class DialogMeUrlCell extends BaseCell {
                         nameLeft = AndroidUtilities.dp(14);
                     }
                 }
-                drawVerified = user.verified;
+                drawVerified = user.isVerified();
             }
             nameString = UserObject.getUserName(user, currentAccount);
             avatarDrawable.setInfo(user, currentAccount);

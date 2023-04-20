@@ -473,7 +473,7 @@ public class GroupCallUserCell extends FrameLayout {
             avatarDrawable.setInfo(currentUser);
 
             nameTextView.setText(UserObject.getUserName(currentUser, account.getCurrentAccount()));
-            if (currentUser != null && currentUser.verified) {
+            if (currentUser != null && currentUser.isVerified()) {
                 rightDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new VerifiedDrawable(getContext()) : verifiedDrawable), animated);
             } else if (currentUser != null && currentUser.emoji_status instanceof TLRPC.TL_emojiStatus) {
                 rightDrawable.set(((TLRPC.TL_emojiStatus) currentUser.emoji_status).document_id, animated);

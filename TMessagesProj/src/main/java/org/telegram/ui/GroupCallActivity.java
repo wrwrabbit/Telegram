@@ -1175,7 +1175,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                             } catch (Exception ignore) {}
                             if (DialogObject.isUserDialog(justJoinedId)) {
                                 TLRPC.User user = accountInstance.getMessagesController().getUser(justJoinedId);
-                                if (user != null && (call.call.participants_count < 250 || UserObject.isContact(user) || user.verified || hasInDialogs)) {
+                                if (user != null && (call.call.participants_count < 250 || UserObject.isContact(user) || user.isVerified() || hasInDialogs)) {
                                     getUndoView().showWithAction(0, UndoView.ACTION_VOIP_USER_JOINED, user, currentChat, null, null);
                                 }
                             } else {

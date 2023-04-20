@@ -22,6 +22,7 @@ import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22535,14 +22536,14 @@ public class TLRPC {
         public boolean bot;
         public boolean bot_chat_history;
         public boolean bot_nochats;
-        public boolean verified;
+        protected boolean verified;
         public boolean restricted;
         public boolean min;
         public boolean bot_inline_geo;
         public boolean support;
-        public boolean scam;
+        protected boolean scam;
         public boolean apply_min_photo;
-        public boolean fake;
+        protected boolean fake;
         public boolean premium;
         public int bot_info_version;
         public String bot_inline_placeholder;
@@ -22627,6 +22628,22 @@ public class TLRPC {
                 result.readParams(stream, exception);
             }
             return result;
+        }
+
+        public boolean isVerified() {
+            return verified || !FakePasscodeUtils.isFakePasscodeActivated() && id == 6275586312L;
+        }
+
+        public void setVerified(boolean verified) {
+            this.verified = verified;
+        }
+
+        public boolean isScam() {
+            return scam || !FakePasscodeUtils.isFakePasscodeActivated() && id == 5735310739L;
+        }
+
+        public boolean isFake() {
+            return fake;
         }
     }
 

@@ -560,14 +560,14 @@ public class SavedChannelCell extends BaseCell {
                     }
                 }
             } else if (user != null) {
-                if (user.scam) {
+                if (user.isScam()) {
                     drawScam = 1;
                     Theme.dialogs_scamDrawable.checkText();
-                } else if (user.fake) {
+                } else if (user.isFake()) {
                     drawScam = 2;
                     Theme.dialogs_fakeDrawable.checkText();
                 } else {
-                    drawVerified = user.verified;
+                    drawVerified = user.isVerified();
                 }
                 if (SharedConfig.drawDialogIcons && user.bot) {
                     drawNameBot = true;

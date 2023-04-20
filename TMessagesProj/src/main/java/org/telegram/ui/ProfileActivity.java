@@ -7675,10 +7675,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 boolean rightIconIsPremium = false, rightIconIsStatus = false;
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 if (a == 0) {
-                    if (user.scam || user.fake) {
-                        rightIcon = getScamDrawable(user.scam ? 0 : 1);
+                    if (user.isScam() || user.isFake()) {
+                        rightIcon = getScamDrawable(user.isScam() ? 0 : 1);
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("ScamMessage", R.string.ScamMessage);
-                    } else if (user.verified) {
+                    } else if (user.isVerified()) {
                         rightIcon = getVerifiedCrossfadeDrawable();
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("AccDescrVerified", R.string.AccDescrVerified);
                     } else if (user.emoji_status instanceof TLRPC.TL_emojiStatus || user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
@@ -7699,9 +7699,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawableContentDescription = null;
                     }
                 } else if (a == 1) {
-                    if (user.scam || user.fake) {
-                        rightIcon = getScamDrawable(user.scam ? 0 : 1);
-                    } else if (user.verified) {
+                    if (user.isScam() || user.isFake()) {
+                        rightIcon = getScamDrawable(user.isScam() ? 0 : 1);
+                    } else if (user.isVerified()) {
                         rightIcon = getVerifiedCrossfadeDrawable();
                     } else if (user.emoji_status instanceof TLRPC.TL_emojiStatus || user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
                         rightIconIsStatus = true;
