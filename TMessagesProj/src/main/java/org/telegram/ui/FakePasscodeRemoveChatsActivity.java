@@ -45,6 +45,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.TLRPC;
@@ -84,7 +85,8 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
 
     private int containerHeight;
 
-    RemoveChatsAction action;
+    private FakePasscode fakePasscode;
+    private RemoveChatsAction action;
     protected int accountNum;
 
     private boolean searchWas;
@@ -206,8 +208,9 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         }
     }
 
-    public FakePasscodeRemoveChatsActivity(RemoveChatsAction action, int accountNum) {
+    public FakePasscodeRemoveChatsActivity(FakePasscode fakePasscode, RemoveChatsAction action, int accountNum) {
         super();
+        this.fakePasscode = fakePasscode;
         this.action = action;
         this.accountNum = accountNum;
     }
@@ -258,7 +261,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                     hideActionMode(true);
                     updateHint();
                 } else if (id == add || id == edit) {
-                    presentFragment(new FakePasscodeRemoveDialogSettingsActivity(action, selectedDialogs, accountNum));
+                    presentFragment(new FakePasscodeRemoveDialogSettingsActivity(fakePasscode, action, selectedDialogs, accountNum));
                     selectedDialogs.clear();
                     if (listView != null) {
                         listView.getAdapter().notifyDataSetChanged();
@@ -495,7 +498,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                         if (editText.length() > 0) {
                             editText.setText(null);
                         }
-                        presentFragment(new FakePasscodeRemoveDialogSettingsActivity(action, Collections.singletonList(cell.getDialogId()), accountNum));
+                        presentFragment(new FakePasscodeRemoveDialogSettingsActivity(fakePasscode, action, Collections.singletonList(cell.getDialogId()), accountNum));
                     }
                 }
             }
@@ -1150,7 +1153,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
             }
             hideActionMode(true);
             updateHint();
-            presentFragment(new FakePasscodeRemoveDialogSettingsActivity(action, entry, accountNum));
+            presentFragment(new FakePasscodeRemoveDialogSettingsActivity(fakePasscode, action, entry, accountNum));
         }
     }
 

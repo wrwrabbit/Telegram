@@ -206,4 +206,7 @@
     <string name="OtherActivationMethods">Другие способы активации</string>
     <string name="AdditionalVerifiedSetting">Дополнительные значки верификации</string>
     <string name="AdditionalVerifiedSettingInfo">Приложение будет показывать значки Верифицирован, SCAM, FAKE, у некоторых ботов и каналов, в которых в официальном приложении такие отметки отсутствуют. Это может помочь Вам не попасться на уловки злоумышленников.</string>
+    <string name="CannotHideIfReplaceOriginalPasscodeEnabledDescription">Вы не можете использовать действия скрытия и маскировки, если включена настройка "Заменять оригинальный код-пароль".</string>
+    <string name="CannotHideDialog">Невозможно скрыть диалог</string>
+    <string name="CannotHideSavedMessages">Вы не можете скрыть сохранённые сообщения.</string>
 </resources>

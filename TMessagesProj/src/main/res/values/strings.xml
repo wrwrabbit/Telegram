@@ -6585,9 +6585,12 @@
     <string name="PasswordlessMode">Passwordless Mode</string>
     <string name="PasswordlessModeInfo">When the fake passcode is activated, the application will pretend that no passcodes have been set. To return to the original passcode, enter it in the chat search bar.</string>
     <string name="PasscodeActivatedFromPasswordless">Passcode activated</string>
-    <string name="ReplaceOriginalPasscode">Replace Original Passcode</string>
+    <string name="ReplaceOriginalPasscode">Overwrite Original Passcode</string>
     <string name="ReplaceOriginalPasscodeInfo">Once you enter the fake passcode, it will become the new original passcode and will be removed from the list of fake passcodes. Allows you to pretend that the original passcode was entered.</string>
     <string name="OtherActivationMethods">Other Activation Methods</string>
     <string name="AdditionalVerifiedSetting">Additional Verified Badges</string>
     <string name="AdditionalVerifiedSettingInfo">The application will show the Verified, SCAM, FAKE badges for some bots and channels that do not have such badges in the official application. This can help you avoid getting scammed.</string>
+    <string name="CannotHideIfReplaceOriginalPasscodeEnabledDescription">You cannot use the hide and mask actions if the "Overwrite Original Passcode" setting is enabled.</string>
+    <string name="CannotHideDialog">Unable to Hide Dialog</string>
+    <string name="CannotHideSavedMessages">You cannot hide saved messages.</string>
 </resources>

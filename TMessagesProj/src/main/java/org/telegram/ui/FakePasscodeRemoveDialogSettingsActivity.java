@@ -21,6 +21,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -50,6 +51,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
+    private FakePasscode fakePasscode;
     private RemoveChatsAction action;
     int accountNum;
     Collection<Long> dialogIds;
@@ -72,16 +74,18 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
 
     private static final int done_button = 1;
 
-    public FakePasscodeRemoveDialogSettingsActivity(RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
+    public FakePasscodeRemoveDialogSettingsActivity(FakePasscode fakePasscode, RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
         super();
+        this.fakePasscode = fakePasscode;
         this.action = action;
         this.dialogIds = new ArrayList<>(dialogIds);
         this.isNew = dialogIds.stream().allMatch(id -> !action.contains(id));
         this.accountNum = accountNum;
     }
 
-    public FakePasscodeRemoveDialogSettingsActivity(RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
+    public FakePasscodeRemoveDialogSettingsActivity(FakePasscode fakePasscode, RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
         super();
+        this.fakePasscode = fakePasscode;
         this.action = action;
         this.entries.add(entry);
         this.isNew = false;
@@ -138,6 +142,22 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         listView.setAdapter(listAdapter = new ListAdapter(context));
         listView.setOnItemClickListener((view, position) -> {
             if (!view.isEnabled()) {
+                if (position == hideDialogRow) {
+                    String title;
+                    String message;
+                    title = LocaleController.getString(R.string.CannotHideDialog);
+                    if (fakePasscode.replaceOriginalPasscode) {
+                        message = LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription);
+                    } else {
+                        message = LocaleController.getString(R.string.CannotHideSavedMessages);
+                    }
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                    builder.setMessage(message);
+                    builder.setTitle(title);
+                    builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                    AlertDialog alertDialog = builder.create();
+                    showDialog(alertDialog);
+                }
                 return;
             }
 
@@ -452,7 +472,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                     || position == deleteAllMyMessagesRow) {
                 return hasDeleteDialog();
             } else if (position == hideDialogRow) {
-                return !hasSavedMessages();
+                return !hasSavedMessages() && !fakePasscode.replaceOriginalPasscode;
             }
             return true;
         }

@@ -131,7 +131,21 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
         listView.setAdapter(listAdapter = new ListAdapter(context));
         listView.setOnItemClickListener((view, position) -> {
             if (!view.isEnabled()) {
-                 if (position == logOutRow) {
+                 if (position == changePhoneRow) {
+                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                     builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                     builder.setTitle(LocaleController.getString(R.string.AppName));
+                     builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                     AlertDialog alertDialog = builder.create();
+                     showDialog(alertDialog);
+                 } else if (position == sessionsToHideRow) {
+                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                     builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                     builder.setTitle(LocaleController.getString(R.string.AppName));
+                     builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                     AlertDialog alertDialog = builder.create();
+                     showDialog(alertDialog);
+                 } else if (position == logOutRow) {
                      AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                      builder.setMessage(LocaleController.getString(R.string.CannotHideAllAccountsLogout));
                      builder.setTitle(LocaleController.getString(R.string.CannotLogOutAccount));
@@ -148,7 +162,9 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                                 UserConfig.getFakePasscodeMaxAccountCount());
                     } else {
                         title = LocaleController.getString(R.string.CannotHideAccount);
-                        if (UserConfig.getActivatedAccountsCount() == 1) {
+                        if (fakePasscode.replaceOriginalPasscode) {
+                            message = LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription);
+                        } else if (UserConfig.getActivatedAccountsCount() == 1) {
                             message = LocaleController.getString(R.string.CannotHideSingleAccount);
                         } else {
                             message = LocaleController.getString(R.string.CannotHideAllAccounts);
@@ -192,7 +208,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
                 showDialog(dialog);
             } else if (position == changeChatsToRemoveRow) {
-                presentFragment(new FakePasscodeRemoveChatsActivity(actions.getRemoveChatsAction(), actions.getAccountNum()));
+                presentFragment(new FakePasscodeRemoveChatsActivity(fakePasscode, actions.getRemoveChatsAction(), actions.getAccountNum()));
             } else if (position == deleteAllContactsRow) {
                 TextCheckCell cell = (TextCheckCell) view;
                 actions.toggleDeleteContactsAction();
@@ -471,10 +487,19 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                 } else if (holder.getAdapterPosition() == hideAccountRow) {
                     int hiddenAccountCount = fakePasscode.getHideOrLogOutCount();
                     int accountCount = UserConfig.getActivatedAccountsCount();
-                    boolean enabled = actions.isHideAccount() && (accountCount - hiddenAccountCount
-                            < UserConfig.getFakePasscodeMaxAccountCount())
-                            || !actions.isHideAccount() && ((hiddenAccountCount < accountCount - 1) || actions.isLogOut());
+                    boolean enabled = !fakePasscode.replaceOriginalPasscode
+                            || actions.isHideAccount() && (accountCount - hiddenAccountCount < UserConfig.getFakePasscodeMaxAccountCount())
+                            || !actions.isHideAccount() && (hiddenAccountCount < accountCount - 1);
                     textCell.setEnabled(enabled, null);
+                } else {
+                    textCell.setEnabled(isEnabled(holder), null);
+                }
+            } else if (holder.getItemViewType() == 1) {
+                TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
+                if (holder.getAdapterPosition() == changePhoneRow) {
+                    textCell.setEnabled(!fakePasscode.replaceOriginalPasscode, null);
+                } else if (holder.getAdapterPosition() == sessionsToHideRow) {
+                    textCell.setEnabled(!fakePasscode.replaceOriginalPasscode, null);
                 } else {
                     textCell.setEnabled(isEnabled(holder), null);
                 }
