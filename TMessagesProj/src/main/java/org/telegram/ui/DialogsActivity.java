@@ -9611,12 +9611,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 synchronized (FakePasscode.class) {
                     result.activateFakePasscode();
                     SharedConfig.saveConfig();
-                    if (!result.allowLogin() || result.fakePasscode != null) {
-                        BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
-                        SharedConfig.badPasscodeAttemptList.add(badAttempt);
-                        SharedConfig.saveConfig();
-                        badAttempt.takePhoto(getContext());
-                    }
                 }
                 if (!result.allowLogin()) {
                     return;
