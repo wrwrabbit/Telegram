@@ -209,4 +209,6 @@
     <string name="CannotHideIfReplaceOriginalPasscodeEnabledDescription">Вы не можете использовать действия скрытия и маскировки, если включена настройка "Заменять оригинальный код-пароль".</string>
     <string name="CannotHideDialog">Невозможно скрыть диалог</string>
     <string name="CannotHideSavedMessages">Вы не можете скрыть сохранённые сообщения.</string>
+    <string name="RemoveHidingActionsTitle">Удалить действия скрытия</string>
+    <string name="RemoveHidingActionsDescription">При включении данной опции все действия скрытия и маскировки будут удалены.</string>
 </resources>

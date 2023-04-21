@@ -6593,4 +6593,6 @@
     <string name="CannotHideIfReplaceOriginalPasscodeEnabledDescription">You cannot use the hide and mask actions if the "Overwrite Original Passcode" setting is enabled.</string>
     <string name="CannotHideDialog">Unable to Hide Dialog</string>
     <string name="CannotHideSavedMessages">You cannot hide saved messages.</string>
+    <string name="RemoveHidingActionsTitle">Remove Hiding Actions</string>
+    <string name="RemoveHidingActionsDescription">When this option is enabled, all hide and mask actions will be removed.</string>
 </resources>

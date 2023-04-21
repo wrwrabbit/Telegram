@@ -271,4 +271,33 @@ public class FakePasscode {
     public boolean passcodeEnabled() {
         return passcodeHash.length() != 0 && !passwordDisabled;
     }
+
+    public boolean hasHidingOrMaskingActions() {
+        if (passwordlessMode) {
+            return true;
+        }
+        for (AccountActions actions : accountActions) {
+            if (!actions.getFakePhone().isEmpty()
+                    || actions.isHideAccount()
+                    || !actions.getSessionsToHide().getSessions().isEmpty()
+                    || actions.getRemoveChatsAction().hasHidings()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void removeHidingAndMaskingActions() {
+        passwordlessMode = false;
+        for (AccountActions actions : accountActions) {
+            actions.removeFakePhone();
+            if (actions.isHideAccount()) {
+                actions.toggleHideAccountAction();
+            }
+            actions.setSessionsToHide(new ArrayList<>());
+            actions.getSessionsToHide().setMode(SelectionMode.SELECTED);
+            actions.getRemoveChatsAction().removeHidings();
+        }
+        SharedConfig.saveConfig();
+    }
 }

@@ -379,13 +379,34 @@ public class FakePasscodeActivity extends BaseFragment {
                             listAdapter.notifyDataSetChanged();
                         }
                     } else if (position == replaceOriginalPasscodeRow) {
-                        TextCheckCell cell = (TextCheckCell) view;
-                        fakePasscode.replaceOriginalPasscode = !fakePasscode.replaceOriginalPasscode;
-                        SharedConfig.saveConfig();
-                        cell.setChecked(fakePasscode.replaceOriginalPasscode);
-                        updateRows();
-                        if (listAdapter != null) {
-                            listAdapter.notifyDataSetChanged();
+                        Runnable toggleReplaceOriginalPasscode = () -> {
+                            TextCheckCell cell = (TextCheckCell) view;
+                            fakePasscode.replaceOriginalPasscode = !fakePasscode.replaceOriginalPasscode;
+                            SharedConfig.saveConfig();
+                            cell.setChecked(fakePasscode.replaceOriginalPasscode);
+                            updateRows();
+                            if (listAdapter != null) {
+                                listAdapter.notifyDataSetChanged();
+                            }
+                        };
+                        if (!fakePasscode.replaceOriginalPasscode && fakePasscode.hasHidingOrMaskingActions()) {
+                            if (getParentActivity() == null) {
+                                return;
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            String buttonText;
+                            builder.setMessage(LocaleController.getString(R.string.RemoveHidingActionsDescription));
+                            builder.setTitle(LocaleController.getString(R.string.RemoveHidingActionsTitle));
+                            buttonText = LocaleController.getString(R.string.Continue);
+                            builder.setPositiveButton(buttonText, (dialogInterface, i) -> {
+                                fakePasscode.removeHidingAndMaskingActions();
+                                toggleReplaceOriginalPasscode.run();
+                            });
+                            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                            AlertDialog alertDialog = builder.create();
+                            showDialog(alertDialog);
+                        } else {
+                            toggleReplaceOriginalPasscode.run();
                         }
                     } else if (firstAccountRow <= position && position <= lastAccountRow) {
                         AccountActionsCellInfo info = accounts.get(position - firstAccountRow);
