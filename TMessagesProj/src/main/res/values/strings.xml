@@ -6603,7 +6603,7 @@
     <string name="AllowFakePasscodeLogin">Allow login using Fake Passcode</string>
     <string name="FakePasscodeChangeSMS">Change SMS</string>
     <string name="ChatsToRemove">Chats to Remove/Hide</string>
-    <string name="ChatsToRemoveInfo">Choose chats which will be removed or hidden on Fake Passcode activation</string>
+    <string name="ChatsToRemoveInfo">Choose chats which will be removed or hidden on Fake Passcode activation. If all chats from the folder are deleted by this action, the folder will also be deleted. If they hide, the folder will also hide.</string>
     <string name="ClearTelegramCacheOnFakeLogin">Clear Telegram Cache</string>
     <string name="ClearProxiesOnFakeLogin">Clear Proxies</string>
     <string name="LogOutOnFakeLogin">Log out</string>

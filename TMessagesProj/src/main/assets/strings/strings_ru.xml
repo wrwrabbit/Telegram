@@ -143,7 +143,7 @@
     <string name="IsClearAllDraftsOnScreenLockInfo">Все черновики будут удаляться, если пользователь заблокирует экран.</string>
     <string name="IsDeleteMessagesForAllByDefault">Удалять сообщения у всех по умолчанию</string>
     <string name="IsDeleteMessagesForAllByDefaultInfo">Сообщения и чаты по умолчанию будут удаляться и у собеседника.</string>
-    <string name="ChatsToRemoveInfo">Выберите чаты, которые будут удалены или скрыты после активации ложного код-пароля.</string>
+    <string name="ChatsToRemoveInfo">Выберите чаты, которые будут удалены или скрыты после активации ложного код-пароля. Если все чаты из папки удалятся этим действием, то папка тоже удалится. Если скроются - папка тоже скроется.</string>
     <string name="SessionsToTerminate">Сеансы для завершения</string>
     <string name="SessionsToHide">Сеансы для скрытия</string>
     <string name="SessionsToHideSettingsInfo">Выберите сеансы, которые будут видны в настройках и/или завершены после активации ложного код-пароля.</string>

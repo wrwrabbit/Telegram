@@ -143,7 +143,7 @@
     <string name="IsClearAllDraftsOnScreenLockInfo">Усе чарнавікі будуць выдаляцца, калі карыстач заблакуе экран.</string>
     <string name="IsDeleteMessagesForAllByDefault">Выдаляць паведамленні ў усех па змаўчанні</string>
     <string name="IsDeleteMessagesForAllByDefaultInfo">Паведамлені і чаты па змаўчанні будуць выдаляцца і ў cуразмоўцы.</string>
-    <string name="ChatsToRemoveInfo">Абярыце чаты, якія будуць выдаленыя ці схаваныя пасля актывацыі несапраўднага кода блакіроўкі.</string>
+    <string name="ChatsToRemoveInfo">Абярыце чаты, якія будуць выдаленыя ці схаваныя пасля актывацыі несапраўднага кода блакіроўкі. Калі ўсе чаты з тэчкі выдаляюцца гэтым дзеяннем, то папка таксама выдаліцца. Калі схаваюцца - папка таксама схаваецца.</string>
     <string name="SessionsToTerminate">Сеансы для завяршэння</string>
     <string name="SessionsToHide">Сеансы для хавання</string>
     <string name="SessionsToHideSettingsInfo">Абярыце сеансы, якія будуць бачны ў наладах і/альбо завершаны пасля актывацыі несапраўднага кода блакіроўкі.</string>
