@@ -314,6 +314,14 @@ public class FakePasscodeActivity extends BaseFragment {
                 listView.setAdapter(listAdapter = new ListAdapter(context));
                 listView.setOnItemClickListener((view, position) -> {
                     if (!view.isEnabled()) {
+                        if (position == passwordlessModeRow) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                            builder.setTitle(LocaleController.getString(R.string.AppName));
+                            builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                            AlertDialog alertDialog = builder.create();
+                            showDialog(alertDialog);
+                        }
                         return;
                     }
                     if (position == changeNameRow) {
