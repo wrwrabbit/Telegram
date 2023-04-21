@@ -1212,8 +1212,10 @@ public class FakePasscodeActivity extends BaseFragment {
                     || position == smsRow || position == clearTelegramCacheRow
                     || position == clearProxiesRow || position ==  clearAfterActivationRow
                     || position == deleteOtherPasscodesAfterActivationRow
-                    || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
-                    || position == allowFakePasscodeLoginRow || position == backupPasscodeRow
+                    || (position == passwordlessModeRow && !fakePasscode.replaceOriginalPasscode)
+                    || position == replaceOriginalPasscodeRow
+                    || (position == allowFakePasscodeLoginRow && !fakePasscode.activateByFingerprint)
+                    || position == backupPasscodeRow
                     || position == deletePasscodeRow;
         }
 
@@ -1368,6 +1370,8 @@ public class FakePasscodeActivity extends BaseFragment {
                 TextCheckCell textCell = (TextCheckCell) holder.itemView;
                 if (holder.getAdapterPosition() == allowFakePasscodeLoginRow) {
                     textCell.setEnabled(!fakePasscode.activateByFingerprint, null);
+                } else if (holder.getAdapterPosition() == passwordlessModeRow) {
+                    textCell.setEnabled(!fakePasscode.replaceOriginalPasscode, null);
                 } else {
                     textCell.setEnabled(isEnabled(holder), null);
                 }
