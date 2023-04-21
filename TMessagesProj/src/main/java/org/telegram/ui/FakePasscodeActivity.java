@@ -1331,8 +1331,8 @@ public class FakePasscodeActivity extends BaseFragment {
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == backupPasscodeRow) {
                         textCell.setText(LocaleController.getString("BackupFakePasscode", R.string.BackupFakePasscode), false);
-                        textCell.setTag(Theme.key_color_red);
-                        textCell.setTextColor(Theme.getColor(Theme.key_color_red));
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlueText4);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
                     } else if (position == deletePasscodeRow) {
                         textCell.setText(LocaleController.getString("DeleteFakePasscode", R.string.DeleteFakePasscode), false);
                         textCell.setTag(Theme.key_color_red);
