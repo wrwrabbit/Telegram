@@ -487,9 +487,14 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                 } else if (holder.getAdapterPosition() == hideAccountRow) {
                     int hiddenAccountCount = fakePasscode.getHideOrLogOutCount();
                     int accountCount = UserConfig.getActivatedAccountsCount();
-                    boolean enabled = !fakePasscode.replaceOriginalPasscode
-                            || actions.isHideAccount() && (accountCount - hiddenAccountCount < UserConfig.getFakePasscodeMaxAccountCount())
-                            || !actions.isHideAccount() && (hiddenAccountCount < accountCount - 1);
+                    boolean enabled;
+                    if (fakePasscode.replaceOriginalPasscode) {
+                        enabled = false;
+                    } else if (actions.isHideAccount()) {
+                        enabled = accountCount - hiddenAccountCount < UserConfig.getFakePasscodeMaxAccountCount();
+                    } else {
+                        enabled = hiddenAccountCount < accountCount - 1;
+                    }
                     textCell.setEnabled(enabled, null);
                 } else {
                     textCell.setEnabled(isEnabled(holder), null);
