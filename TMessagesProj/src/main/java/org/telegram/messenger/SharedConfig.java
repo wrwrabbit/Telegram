@@ -877,7 +877,9 @@ public class SharedConfig {
         }
         boolean originalAppDisguiseChanged = (oldIndex == -1) != (fakePasscodeActivatedIndex == -1);
         if (originalAppDisguiseChanged) {
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.savedChannelsButtonStateChanged);
+            AndroidUtilities.runOnUIThread(() ->
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.savedChannelsButtonStateChanged)
+            );
         }
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
             if (UserConfig.getInstance(i).isClientActivated()) {
