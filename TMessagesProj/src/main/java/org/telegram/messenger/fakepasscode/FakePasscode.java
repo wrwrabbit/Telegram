@@ -273,7 +273,7 @@ public class FakePasscode {
     }
 
     public boolean hasHidingOrMaskingActions() {
-        if (passwordlessMode) {
+        if (!allowLogin || passwordlessMode) {
             return true;
         }
         for (AccountActions actions : accountActions) {
@@ -288,6 +288,7 @@ public class FakePasscode {
     }
 
     public void removeHidingAndMaskingActions() {
+        allowLogin = true;
         passwordlessMode = false;
         for (AccountActions actions : accountActions) {
             actions.removeFakePhone();
