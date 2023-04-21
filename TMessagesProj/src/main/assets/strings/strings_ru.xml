@@ -211,4 +211,5 @@
     <string name="CannotHideSavedMessages">Вы не можете скрыть Избранное.</string>
     <string name="RemoveHidingActionsTitle">Удалить действия скрытия</string>
     <string name="RemoveHidingActionsDescription">При включении данной опции все действия скрытия и маскировки будут удалены.</string>
+    <string name="CannotHideIfFingerprintEnabledDescription">Вы не можете отключить вход в приложение при помощи ложного код-пароля, если включён вход по отпечатку пальца.</string>
 </resources>

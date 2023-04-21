@@ -314,7 +314,18 @@ public class FakePasscodeActivity extends BaseFragment {
                 listView.setAdapter(listAdapter = new ListAdapter(context));
                 listView.setOnItemClickListener((view, position) -> {
                     if (!view.isEnabled()) {
-                        if (position == passwordlessModeRow) {
+                        if (position == allowFakePasscodeLoginRow) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            if (fakePasscode.replaceOriginalPasscode) {
+                                builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                            } else if (fakePasscode.activateByFingerprint) {
+                                builder.setMessage(LocaleController.getString(R.string.CannotHideIfFingerprintEnabledDescription));
+                            }
+                            builder.setTitle(LocaleController.getString(R.string.AppName));
+                            builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                            AlertDialog alertDialog = builder.create();
+                            showDialog(alertDialog);
+                        } else if (position == passwordlessModeRow) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                             builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
                             builder.setTitle(LocaleController.getString(R.string.AppName));
@@ -1243,7 +1254,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     || position == deleteOtherPasscodesAfterActivationRow
                     || (position == passwordlessModeRow && !fakePasscode.replaceOriginalPasscode)
                     || position == replaceOriginalPasscodeRow
-                    || (position == allowFakePasscodeLoginRow && !fakePasscode.activateByFingerprint)
+                    || (position == allowFakePasscodeLoginRow && !fakePasscode.replaceOriginalPasscode && !fakePasscode.activateByFingerprint)
                     || position == backupPasscodeRow
                     || position == deletePasscodeRow;
         }
@@ -1398,7 +1409,7 @@ public class FakePasscodeActivity extends BaseFragment {
             if (holder.getItemViewType() == 0) {
                 TextCheckCell textCell = (TextCheckCell) holder.itemView;
                 if (holder.getAdapterPosition() == allowFakePasscodeLoginRow) {
-                    textCell.setEnabled(!fakePasscode.activateByFingerprint, null);
+                    textCell.setEnabled(!fakePasscode.activateByFingerprint && !fakePasscode.replaceOriginalPasscode, null);
                 } else if (holder.getAdapterPosition() == passwordlessModeRow) {
                     textCell.setEnabled(!fakePasscode.replaceOriginalPasscode, null);
                 } else {

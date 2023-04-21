@@ -202,7 +202,7 @@
     <string name="PasswordlessModeInfo">Пры актывацыі несапраўднага кода блакіроўкі, прыкладанне будзе рабіць выгляд, што ніякіх кадоў не ўстаноўлена. Каб вярнуцца да арыгінальнага кода блакіроўкі, увядзіце яго ў радку пошуку чатаў.</string>
     <string name="PasscodeActivatedFromPasswordless">Код блакіроўкі актываваны</string>
     <string name="ReplaceOriginalPasscode">Замяняць арыгінальны код блакіроўкі</string>
-    <string name="ReplaceOriginalPasscodeInfo">Пасля ўводу несапраўднага кода блакіроўкі, ён стане новым арыгінальным кодам і выдаліцца са спісу ілжывых код-пароляў.. Дазваляе зрабіць выгляд, што быў уведзены арыгінальны код блакіроўкі.</string>
+    <string name="ReplaceOriginalPasscodeInfo">Пасля ўводу несапраўднага кода блакіроўкі, ён стане новым арыгінальным кодам і выдаліцца са спісу несапраўдных код-пароляў.. Дазваляе зрабіць выгляд, што быў уведзены арыгінальны код блакіроўкі.</string>
     <string name="OtherActivationMethods">Іншыя спосабы актывацыі</string>
     <string name="AdditionalVerifiedSetting">Дадатковыя значкі верыфікацыі</string>
     <string name="AdditionalVerifiedSettingInfo">Прыкладанне будзе паказваць значкі Верыфікаваны, SCAM, FAKE, у некаторых ботаў і каналаў, у якіх у афіцыйным дадатку такія адзнакі адсутнічаюць. Гэта можа дапамагчы Вам не трапіцца на хітрыкі зламыснікаў.</string>
@@ -210,4 +210,5 @@
     <string name="CannotHideDialog">Немагчыма схаваць дыялог</string>
     <string name="CannotHideSavedMessages">Вы не можаце схаваць Захаванае.</string>
     <string name="RemoveHidingActionsDescription">Пры ўключэнні дадзенай опцыі ўсе дзеянні ўтойвання і маскіроўкі будуць выдаленыя.</string>
+    <string name="CannotHideIfFingerprintEnabledDescription">Вы не можаце адключыць уваход у дадатак пры дапамозе несапраўднага код-пароля, калі ўключаны ўваход адбіткам пальца.</string>
 </resources>

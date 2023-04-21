@@ -6807,4 +6807,5 @@
     <string name="CannotHideSavedMessages">You cannot hide saved messages.</string>
     <string name="RemoveHidingActionsTitle">Remove Hiding Actions</string>
     <string name="RemoveHidingActionsDescription">When this option is enabled, all hide and mask actions will be removed.</string>
+    <string name="CannotHideIfFingerprintEnabledDescription">You cannot disable app login with the fake passcode if fingerprint login is enabled.</string>
 </resources>
