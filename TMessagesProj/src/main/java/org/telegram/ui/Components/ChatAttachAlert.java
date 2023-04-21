@@ -423,7 +423,6 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
     public interface ChatAttachViewDelegate {
         void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument);
-        void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, boolean autoDeletable, int delay);
         default void onCameraOpened() {
         }
 
@@ -2793,7 +2792,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         }
         applyCaption();
         buttonPressed = true;
-        delegate.didPressedButton(7, true, notify, scheduleDate, false, autoDeletable, delay);
+        delegate.didPressedButton(7, true, notify, scheduleDate, false);
     }
 
     public void showLayout(AttachAlertLayout layout) {

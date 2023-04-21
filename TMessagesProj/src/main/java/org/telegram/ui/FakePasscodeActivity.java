@@ -438,7 +438,7 @@ public class FakePasscodeActivity extends BaseFragment {
                             showDialog(alertDialog);
                             TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                             if (button != null) {
-                                button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                                button.setTextColor(Theme.getColor(Theme.key_color_red));
                             }
                         }
                     } else if (position == allowFakePasscodeLoginRow) {
@@ -470,7 +470,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         showDialog(alertDialog);
                         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                         if (button != null) {
-                            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                            button.setTextColor(Theme.getColor(Theme.key_color_red));
                         }
                     }
                 });
@@ -1331,12 +1331,12 @@ public class FakePasscodeActivity extends BaseFragment {
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == backupPasscodeRow) {
                         textCell.setText(LocaleController.getString("BackupFakePasscode", R.string.BackupFakePasscode), false);
-                        textCell.setTag(Theme.key_windowBackgroundWhiteRedText2);
-                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                        textCell.setTag(Theme.key_color_red);
+                        textCell.setTextColor(Theme.getColor(Theme.key_color_red));
                     } else if (position == deletePasscodeRow) {
                         textCell.setText(LocaleController.getString("DeleteFakePasscode", R.string.DeleteFakePasscode), false);
-                        textCell.setTag(Theme.key_windowBackgroundWhiteRedText2);
-                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteRedText2));
+                        textCell.setTag(Theme.key_color_red);
+                        textCell.setTextColor(Theme.getColor(Theme.key_color_red));
                     }
                     break;
                 }

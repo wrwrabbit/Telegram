@@ -9538,7 +9538,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             };
             chatAttachAlert.setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
                 @Override
-                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, boolean autoDeletable, int delay) {
+                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument) {
                     if (getParentActivity() == null || chatAttachAlert == null) {
                         return;
                     }
@@ -9600,10 +9600,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         chatAttachAlert.dismissWithButtonClick(button);
                     }
                     processSelectedAttach(button);
-                }
-                @Override
-                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument) {
-                    didPressedButton(button, arg, notify, scheduleDate, forceDocument, false, 0);
                 }
 
                 @Override

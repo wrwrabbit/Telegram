@@ -813,7 +813,7 @@ public class DialogCell extends BaseCell {
 
     private CharSequence formatArchivedDialogNames() {
         final MessagesController messagesController = MessagesController.getInstance(currentAccount);
-        ArrayList<TLRPC.Dialog> dialogs = FakePasscodeUtils.filterDialogs(messagesController.getDialogs(currentDialogFolderId), Optional.of(currentAccount));
+        ArrayList<TLRPC.Dialog> dialogs = (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(messagesController.getDialogs(currentDialogFolderId), Optional.of(currentAccount));
         currentDialogFolderDialogsCount = dialogs.size();
         SpannableStringBuilder builder = new SpannableStringBuilder();
         for (int a = 0, N = dialogs.size(); a < N; a++) {
