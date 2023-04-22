@@ -206,9 +206,11 @@
     <string name="OtherActivationMethods">Іншыя спосабы актывацыі</string>
     <string name="AdditionalVerifiedSetting">Дадатковыя значкі верыфікацыі</string>
     <string name="AdditionalVerifiedSettingInfo">Прыкладанне будзе паказваць значкі Верыфікаваны, SCAM, FAKE, у некаторых ботаў і каналаў, у якіх у афіцыйным дадатку такія адзнакі адсутнічаюць. Гэта можа дапамагчы Вам не трапіцца на хітрыкі зламыснікаў.</string>
-    <string name="CannotHideIfReplaceOriginalPasscodeEnabledDescription">Вы не можаце выкарыстоўваць дзеянні ўтойвання і маскіроўкі, калі ўключана настройка "Замяняць арыгінальны код-пароль".</string>
+    <string name="CannotEnableSettingDescription">Вы не можаце ўключыць гэтую наладу, калі ўключаная налада \"%1$s\".</string>
     <string name="CannotHideDialog">Немагчыма схаваць дыялог</string>
     <string name="CannotHideSavedMessages">Вы не можаце схаваць Захаванае.</string>
-    <string name="RemoveHidingActionsDescription">Пры ўключэнні дадзенай опцыі ўсе дзеянні ўтойвання і маскіроўкі будуць выдаленыя.</string>
-    <string name="CannotHideIfFingerprintEnabledDescription">Вы не можаце адключыць уваход у дадатак пры дапамозе несапраўднага код-пароля, калі ўключаны ўваход адбіткам пальца.</string>
+    <string name="RemoveIncompatibleSettingsTitle">Выдаліць несумяшчальныя налады</string>
+    <string name="RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription">Пры ўключэнні дадзенай опцыі ўсе дзеянні хавання і маскіроўкі будуць выдаленыя, актывацыя няўдалымі спробамі ўваходу будзе адключаная, а ўваход з несапраўдным кодам блакіроўкі будзе дазволены.</string>
+    <string name="RemovePasswordlessIncompatibleSettingsDescription">Пры ўключэнні дадзенай опцыі актывацыя няўдалымі спробамі ўваходу будзе адключаная, а ўваход з ілжывым код-паролем будзе дазволены.</string>
+    <string name="CannotDisableLoginIfOptionEnabledDescription">Вы не можаце адключыць уваход у дадатак з несапраўдным кодам блакавання паролем, калі ўключаная налада \"%1$s\".</string>
 </resources>

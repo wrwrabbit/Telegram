@@ -19,7 +19,6 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
@@ -45,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
     private ListAdapter listAdapter;
@@ -147,7 +145,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                     String message;
                     title = LocaleController.getString(R.string.CannotHideDialog);
                     if (fakePasscode.replaceOriginalPasscode) {
-                        message = LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription);
+                        message = LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode));
                     } else {
                         message = LocaleController.getString(R.string.CannotHideSavedMessages);
                     }

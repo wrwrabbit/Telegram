@@ -6802,10 +6802,11 @@
     <string name="OtherActivationMethods">Other Activation Methods</string>
     <string name="AdditionalVerifiedSetting">Additional Verified Badges</string>
     <string name="AdditionalVerifiedSettingInfo">The application will show the Verified, SCAM, FAKE badges for some bots and channels that do not have such badges in the official application. This can help you avoid getting scammed.</string>
-    <string name="CannotHideIfReplaceOriginalPasscodeEnabledDescription">You cannot use the hide and mask actions if the "Overwrite Original Passcode" setting is enabled.</string>
+    <string name="CannotEnableSettingDescription">You cannot enable this setting if the \"%1$s\" setting is enabled.</string>
     <string name="CannotHideDialog">Unable to Hide Dialog</string>
     <string name="CannotHideSavedMessages">You cannot hide saved messages.</string>
-    <string name="RemoveHidingActionsTitle">Remove Hiding Actions</string>
-    <string name="RemoveHidingActionsDescription">When this option is enabled, all hide and mask actions will be removed.</string>
-    <string name="CannotHideIfFingerprintEnabledDescription">You cannot disable app login with the fake passcode if fingerprint login is enabled.</string>
+    <string name="RemoveIncompatibleSettingsTitle">Remove Incompatible Settings</string>
+    <string name="RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription">When this option is enabled, all hide and disguise actions will be removed, activation by bad login attempts will be disabled, and login with the fake passcode will be allowed.</string>
+    <string name="RemovePasswordlessIncompatibleSettingsDescription">When this option is enabled activation by bad login attempts will be disabled, and login with the fake passcode will be allowed.</string>
+    <string name="CannotDisableLoginIfOptionEnabledDescription">You cannot disable app login with the fake passcode if \"%1$s\" setting is enabled.</string>
 </resources>

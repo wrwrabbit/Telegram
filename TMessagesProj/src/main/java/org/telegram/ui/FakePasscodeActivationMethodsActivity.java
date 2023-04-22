@@ -108,127 +108,142 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter = new ListAdapter(context));
         listView.setOnItemClickListener((view, position) -> {
-            if (view.isEnabled()) {
-                if (position == activationMessageRow) {
-                    DialogTemplate template = new DialogTemplate();
-                    template.type = DialogType.EDIT;
-                    template.title = LocaleController.getString("ActivationMessage", R.string.ActivationMessage);
-                    EditTemplate editTemplate = new EditTemplate(fakePasscode.activationMessage, LocaleController.getString("Message", R.string.Message), false) {
-                        @Override
-                        public boolean validate(View view) {
-                            if (!super.validate(view)) {
-                                return false;
-                            }
-                            EditTextCaption edit = (EditTextCaption) view;
-                            String text = edit.getText().toString();
-                            if (text.startsWith(" ") || text.endsWith(" ")) {
-                                edit.setError(LocaleController.getString(R.string.ErrorOccurred));
-                                return false;
-                            }
-                            return true;
-                        }
-                    };
-                    template.addViewTemplate(editTemplate);
-                    template.positiveListener = views -> {
-                        fakePasscode.activationMessage = ((EditTextCaption) views.get(0)).getText().toString();
-                        SharedConfig.saveConfig();
-                        TextSettingsCell cell = (TextSettingsCell) view;
-                        String value = fakePasscode.activationMessage.isEmpty() ? LocaleController.getString("Disabled", R.string.Disabled) : fakePasscode.activationMessage;
-                        cell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), value, false);
-                        if (listAdapter != null) {
-                            listAdapter.notifyDataSetChanged();
-                        }
-                    };
-                    template.negativeListener = (dlg, whichButton) -> {
-                        fakePasscode.activationMessage = "";
-                        TextSettingsCell cell = (TextSettingsCell) view;
-                        cell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), LocaleController.getString("Disabled", R.string.Disabled), false);
-                        if (listAdapter != null) {
-                            listAdapter.notifyDataSetChanged();
-                        }
-                    };
-                    AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
-                    showDialog(dialog);
-                } else if (position == badTriesToActivateRow) {
-                    String title = LocaleController.getString("BadPasscodeTriesToActivate", R.string.BadPasscodeTriesToActivate);
-                    int selected = -1;
-                    final int[] values = new int[]{1, 2, 3, 4, 5, 7, 10, 15, 20, 25, 30};
-                    if (fakePasscode.badTriesToActivate == null) {
-                        selected = 0;
-                    } else {
-                        for (int i = 0; i < values.length; i++) {
-                            if (fakePasscode.badTriesToActivate <= values[i]) {
-                                selected = i + 1;
-                                break;
-                            }
-                        }
+            if (!view.isEnabled()) {
+                if (position == badTriesToActivateRow) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                    String blockingSetting = "";
+                    if (fakePasscode.replaceOriginalPasscode) {
+                        blockingSetting = LocaleController.getString(R.string.ReplaceOriginalPasscode);
+                    } else if (fakePasscode.passwordlessMode) {
+                        blockingSetting = LocaleController.getString(R.string.PasswordlessMode);
                     }
-                    String[] items = new String[values.length + 1];
-                    items[0] = LocaleController.getString("Disabled", R.string.Disabled);
-                    for (int i = 0; i < values.length; i++) {
-                        items[i + 1] = String.valueOf(values[i]);
-                    }
-                    Consumer<Integer> onClicked = which -> {
-                        if (which == 0) {
-                            fakePasscode.badTriesToActivate = null;
-                        } else {
-                            fakePasscode.badTriesToActivate = values[which - 1];
+                    builder.setMessage(LocaleController.formatString(R.string.CannotEnableSettingDescription, blockingSetting));
+                    builder.setTitle(LocaleController.getString(R.string.AppName));
+                    builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                    AlertDialog alertDialog = builder.create();
+                    showDialog(alertDialog);
+                }
+                return;
+            }
+            if (position == activationMessageRow) {
+                DialogTemplate template = new DialogTemplate();
+                template.type = DialogType.EDIT;
+                template.title = LocaleController.getString("ActivationMessage", R.string.ActivationMessage);
+                EditTemplate editTemplate = new EditTemplate(fakePasscode.activationMessage, LocaleController.getString("Message", R.string.Message), false) {
+                    @Override
+                    public boolean validate(View view) {
+                        if (!super.validate(view)) {
+                            return false;
                         }
-                        SharedConfig.saveConfig();
-                        listAdapter.notifyDataSetChanged();
-                    };
-                    AlertDialog dialog = EnumDialogBuilder.build(getParentActivity(), title, selected, items, onClicked);
-                    if (dialog == null) {
-                        return;
+                        EditTextCaption edit = (EditTextCaption) view;
+                        String text = edit.getText().toString();
+                        if (text.startsWith(" ") || text.endsWith(" ")) {
+                            edit.setError(LocaleController.getString(R.string.ErrorOccurred));
+                            return false;
+                        }
+                        return true;
                     }
-                    showDialog(dialog);
-                } else if (position == activateByTimerRow) {
-                    if (getParentActivity() == null) {
-                        return;
-                    }
-                    AlertDialog.Builder warningBuilder = new AlertDialog.Builder(getParentActivity());
-                    warningBuilder.setTitle(LocaleController.getString(R.string.TimerActivationFakePasscodeWarningTitle));
-                    warningBuilder.setMessage(LocaleController.getString(R.string.TimerActivationFakePasscodeWarning));
-                    warningBuilder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-                    AlertDialog warningDialog = warningBuilder.create();
-                    DialogButtonWithTimer.setButton(warningDialog, AlertDialog.BUTTON_POSITIVE, LocaleController.getString(R.string.Continue), 3, (dlg, w) -> {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                        builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
-                        final NumberPicker numberPicker = new NumberPicker(getParentActivity());
-                        final List<Integer> durations = Arrays.asList(null, 1, 60, 5 * 60, 15 * 60, 30 * 60, 60 * 60,
-                                2 * 60 * 60, 4 * 60 * 60, 6 * 60 * 60, 8 * 60 * 60, 10 * 60 * 60, 12 * 60 * 60, 16 * 60 * 60, 24 * 60 * 60);
-                        numberPicker.setMinValue(0);
-                        numberPicker.setMaxValue(durations.size() - 1);
-                        int index = durations.indexOf(fakePasscode.activateByTimerTime);
-                        numberPicker.setValue(index != -1 ? index : 0);
-                        numberPicker.setFormatter(value -> {
-                            if (value == 0) {
-                                return LocaleController.getString(R.string.Disabled);
-                            } else {
-                                return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
-                            }
-                        });
-                        builder.setView(numberPicker);
-                        builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
-                            fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
-                            SharedConfig.saveConfig();
-                            listAdapter.notifyItemChanged(position);
-                        });
-                        showDialog(builder.create());
-                    });
-                    showDialog(warningDialog);
-                } else if (position == fingerprintRow) {
-                    TextCheckCell cell = (TextCheckCell) view;
-                    fakePasscode.activateByFingerprint = !fakePasscode.activateByFingerprint;
-                    if (fakePasscode.activateByFingerprint) {
-                        fakePasscode.allowLogin = true;
-                    }
+                };
+                template.addViewTemplate(editTemplate);
+                template.positiveListener = views -> {
+                    fakePasscode.activationMessage = ((EditTextCaption) views.get(0)).getText().toString();
                     SharedConfig.saveConfig();
-                    cell.setChecked(fakePasscode.activateByFingerprint);
-                    updateRows();
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    String value = fakePasscode.activationMessage.isEmpty() ? LocaleController.getString("Disabled", R.string.Disabled) : fakePasscode.activationMessage;
+                    cell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), value, false);
                     if (listAdapter != null) {
                         listAdapter.notifyDataSetChanged();
                     }
+                };
+                template.negativeListener = (dlg, whichButton) -> {
+                    fakePasscode.activationMessage = "";
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    cell.setTextAndValue(LocaleController.getString("ActivationMessage", R.string.ActivationMessage), LocaleController.getString("Disabled", R.string.Disabled), false);
+                    if (listAdapter != null) {
+                        listAdapter.notifyDataSetChanged();
+                    }
+                };
+                AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
+                showDialog(dialog);
+            } else if (position == badTriesToActivateRow) {
+                String title = LocaleController.getString("BadPasscodeTriesToActivate", R.string.BadPasscodeTriesToActivate);
+                int selected = -1;
+                final int[] values = new int[]{1, 2, 3, 4, 5, 7, 10, 15, 20, 25, 30};
+                if (fakePasscode.badTriesToActivate == null) {
+                    selected = 0;
+                } else {
+                    for (int i = 0; i < values.length; i++) {
+                        if (fakePasscode.badTriesToActivate <= values[i]) {
+                            selected = i + 1;
+                            break;
+                        }
+                    }
+                }
+                String[] items = new String[values.length + 1];
+                items[0] = LocaleController.getString("Disabled", R.string.Disabled);
+                for (int i = 0; i < values.length; i++) {
+                    items[i + 1] = String.valueOf(values[i]);
+                }
+                Consumer<Integer> onClicked = which -> {
+                    if (which == 0) {
+                        fakePasscode.badTriesToActivate = null;
+                    } else {
+                        fakePasscode.badTriesToActivate = values[which - 1];
+                    }
+                    SharedConfig.saveConfig();
+                    listAdapter.notifyDataSetChanged();
+                };
+                AlertDialog dialog = EnumDialogBuilder.build(getParentActivity(), title, selected, items, onClicked);
+                if (dialog == null) {
+                    return;
+                }
+                showDialog(dialog);
+            } else if (position == activateByTimerRow) {
+                if (getParentActivity() == null) {
+                    return;
+                }
+                AlertDialog.Builder warningBuilder = new AlertDialog.Builder(getParentActivity());
+                warningBuilder.setTitle(LocaleController.getString(R.string.TimerActivationFakePasscodeWarningTitle));
+                warningBuilder.setMessage(LocaleController.getString(R.string.TimerActivationFakePasscodeWarning));
+                warningBuilder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                AlertDialog warningDialog = warningBuilder.create();
+                DialogButtonWithTimer.setButton(warningDialog, AlertDialog.BUTTON_POSITIVE, LocaleController.getString(R.string.Continue), 3, (dlg, w) -> {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                    builder.setTitle(LocaleController.getString(R.string.TimerActivationDialogTitle));
+                    final NumberPicker numberPicker = new NumberPicker(getParentActivity());
+                    final List<Integer> durations = Arrays.asList(null, 1, 60, 5 * 60, 15 * 60, 30 * 60, 60 * 60,
+                            2 * 60 * 60, 4 * 60 * 60, 6 * 60 * 60, 8 * 60 * 60, 10 * 60 * 60, 12 * 60 * 60, 16 * 60 * 60, 24 * 60 * 60);
+                    numberPicker.setMinValue(0);
+                    numberPicker.setMaxValue(durations.size() - 1);
+                    int index = durations.indexOf(fakePasscode.activateByTimerTime);
+                    numberPicker.setValue(index != -1 ? index : 0);
+                    numberPicker.setFormatter(value -> {
+                        if (value == 0) {
+                            return LocaleController.getString(R.string.Disabled);
+                        } else {
+                            return LocaleController.formatString("AutoLockInTime", R.string.AutoLockInTime, LocaleController.formatDuration(durations.get(value)));
+                        }
+                    });
+                    builder.setView(numberPicker);
+                    builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
+                        fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
+                        SharedConfig.saveConfig();
+                        listAdapter.notifyItemChanged(position);
+                    });
+                    showDialog(builder.create());
+                });
+                showDialog(warningDialog);
+            } else if (position == fingerprintRow) {
+                TextCheckCell cell = (TextCheckCell) view;
+                fakePasscode.activateByFingerprint = !fakePasscode.activateByFingerprint;
+                if (fakePasscode.activateByFingerprint) {
+                    fakePasscode.allowLogin = true;
+                }
+                SharedConfig.saveConfig();
+                cell.setChecked(fakePasscode.activateByFingerprint);
+                updateRows();
+                if (listAdapter != null) {
+                    listAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -303,8 +318,10 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == activationMessageRow || position == badTriesToActivateRow
-                    || position == activateByTimerRow || position == fingerprintRow;
+            return position == activationMessageRow
+                    || (position == badTriesToActivateRow && !fakePasscode.replaceOriginalPasscode && !fakePasscode.passwordlessMode)
+                    || position == activateByTimerRow
+                    || (position == fingerprintRow && (FakePasscodeUtils.getFingerprintFakePasscode() == null || fakePasscode.activateByFingerprint));
         }
 
         @Override
@@ -395,6 +412,9 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                 TextCheckCell textCell = (TextCheckCell) holder.itemView;
                 if (holder.getAdapterPosition() == fingerprintRow) {
                     boolean enabled = FakePasscodeUtils.getFingerprintFakePasscode() == null || fakePasscode.activateByFingerprint;
+                    textCell.setEnabled(enabled, null);
+                } else if (holder.getAdapterPosition() == badTriesToActivateRow) {
+                    boolean enabled = !fakePasscode.replaceOriginalPasscode && !fakePasscode.passwordlessMode;
                     textCell.setEnabled(enabled, null);
                 } else {
                     textCell.setEnabled(isEnabled(holder), null);

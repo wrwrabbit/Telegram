@@ -316,18 +316,22 @@ public class FakePasscodeActivity extends BaseFragment {
                     if (!view.isEnabled()) {
                         if (position == allowFakePasscodeLoginRow) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                            if (fakePasscode.replaceOriginalPasscode) {
-                                builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
-                            } else if (fakePasscode.activateByFingerprint) {
-                                builder.setMessage(LocaleController.getString(R.string.CannotHideIfFingerprintEnabledDescription));
+                            String blockingSetting = "";
+                            if (fakePasscode.activateByFingerprint) {
+                                blockingSetting = LocaleController.getString(R.string.ActivateWithFingerprint);
+                            } else if (fakePasscode.replaceOriginalPasscode) {
+                                blockingSetting = LocaleController.getString(R.string.ReplaceOriginalPasscode);
+                            } else if (fakePasscode.passwordlessMode) {
+                                blockingSetting = LocaleController.getString(R.string.PasswordlessMode);
                             }
+                            builder.setMessage(LocaleController.formatString(R.string.CannotDisableLoginIfOptionEnabledDescription, blockingSetting));
                             builder.setTitle(LocaleController.getString(R.string.AppName));
                             builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                             AlertDialog alertDialog = builder.create();
                             showDialog(alertDialog);
                         } else if (position == passwordlessModeRow) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                            builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                            builder.setMessage(LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode)));
                             builder.setTitle(LocaleController.getString(R.string.AppName));
                             builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                             AlertDialog alertDialog = builder.create();
@@ -389,16 +393,35 @@ public class FakePasscodeActivity extends BaseFragment {
                         SharedConfig.saveConfig();
                         cell.setChecked(fakePasscode.deleteOtherPasscodesAfterActivation);
                     } else if (position == passwordlessModeRow) {
-                        TextCheckCell cell = (TextCheckCell) view;
-                        fakePasscode.passwordlessMode = !fakePasscode.passwordlessMode;
-                        SharedConfig.saveConfig();
-                        cell.setChecked(fakePasscode.passwordlessMode);
-                        updateRows();
-                        if (listAdapter != null) {
-                            listAdapter.notifyDataSetChanged();
+                        Runnable toggleSetting = () -> {
+                            TextCheckCell cell = (TextCheckCell) view;
+                            fakePasscode.passwordlessMode = !fakePasscode.passwordlessMode;
+                            SharedConfig.saveConfig();
+                            cell.setChecked(fakePasscode.passwordlessMode);
+                            updateRows();
+                            if (listAdapter != null) {
+                                listAdapter.notifyDataSetChanged();
+                            }
+                        };
+                        if (!fakePasscode.passwordlessMode && fakePasscode.hasPasswordlessIncompatibleSettings()) {
+                            if (getParentActivity() == null) {
+                                return;
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            builder.setMessage(LocaleController.getString(R.string.RemovePasswordlessIncompatibleSettingsDescription));
+                            builder.setTitle(LocaleController.getString(R.string.RemoveIncompatibleSettingsTitle));
+                            builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialogInterface, i) -> {
+                                fakePasscode.removePasswordlessIncompatibleSettings();
+                                toggleSetting.run();
+                            });
+                            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                            AlertDialog alertDialog = builder.create();
+                            showDialog(alertDialog);
+                        } else {
+                            toggleSetting.run();
                         }
                     } else if (position == replaceOriginalPasscodeRow) {
-                        Runnable toggleReplaceOriginalPasscode = () -> {
+                        Runnable toggleSetting = () -> {
                             TextCheckCell cell = (TextCheckCell) view;
                             fakePasscode.replaceOriginalPasscode = !fakePasscode.replaceOriginalPasscode;
                             SharedConfig.saveConfig();
@@ -408,24 +431,22 @@ public class FakePasscodeActivity extends BaseFragment {
                                 listAdapter.notifyDataSetChanged();
                             }
                         };
-                        if (!fakePasscode.replaceOriginalPasscode && fakePasscode.hasHidingOrMaskingActions()) {
+                        if (!fakePasscode.replaceOriginalPasscode && fakePasscode.hasReplaceOriginalPasscodeIncompatibleSettings()) {
                             if (getParentActivity() == null) {
                                 return;
                             }
                             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                            String buttonText;
-                            builder.setMessage(LocaleController.getString(R.string.RemoveHidingActionsDescription));
-                            builder.setTitle(LocaleController.getString(R.string.RemoveHidingActionsTitle));
-                            buttonText = LocaleController.getString(R.string.Continue);
-                            builder.setPositiveButton(buttonText, (dialogInterface, i) -> {
-                                fakePasscode.removeHidingAndMaskingActions();
-                                toggleReplaceOriginalPasscode.run();
+                            builder.setMessage(LocaleController.getString(R.string.RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription));
+                            builder.setTitle(LocaleController.getString(R.string.RemoveIncompatibleSettingsTitle));
+                            builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialogInterface, i) -> {
+                                fakePasscode.removeReplaceOriginalPasscodeIncompatibleSettings();
+                                toggleSetting.run();
                             });
                             builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                             AlertDialog alertDialog = builder.create();
                             showDialog(alertDialog);
                         } else {
-                            toggleReplaceOriginalPasscode.run();
+                            toggleSetting.run();
                         }
                     } else if (firstAccountRow <= position && position <= lastAccountRow) {
                         AccountActionsCellInfo info = accounts.get(position - firstAccountRow);
@@ -434,11 +455,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             presentFragment(new FakePasscodeAccountActionsActivity(actions, fakePasscode), false);
                         } else {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                            String buttonText;
                             builder.setMessage(LocaleController.getString("DeleteOldAccountActionsInfo", R.string.DeleteOldAccountActionsInfo));
                             builder.setTitle(LocaleController.getString("DeleteOldAccountActions", R.string.DeleteOldAccountActions));
-                            buttonText = LocaleController.getString("Delete", R.string.Delete);
-                            builder.setPositiveButton(buttonText, (dialogInterface, i) -> {
+                            builder.setPositiveButton(LocaleController.getString("Delete", R.string.Delete), (dialogInterface, i) -> {
                                 fakePasscode.accountActions.remove(info.actions);
                                 SharedConfig.saveConfig();
                                 updateRows();
@@ -465,11 +484,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             return;
                         }
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                        String buttonText;
                         builder.setMessage(LocaleController.getString("AreYouSureDeleteFakePasscode", R.string.AreYouSureDeleteFakePasscode));
                         builder.setTitle(LocaleController.getString("DeleteFakePasscode", R.string.DeleteFakePasscode));
-                        buttonText = LocaleController.getString("Delete", R.string.Delete);
-                        builder.setPositiveButton(buttonText, (dialogInterface, i) -> {
+                        builder.setPositiveButton(LocaleController.getString("Delete", R.string.Delete), (dialogInterface, i) -> {
                             fakePasscode.onDelete();
                             SharedConfig.fakePasscodes = SharedConfig.fakePasscodes.stream()
                                     .filter(a -> a != fakePasscode).collect(Collectors.toCollection(ArrayList::new));
@@ -1254,7 +1271,8 @@ public class FakePasscodeActivity extends BaseFragment {
                     || position == deleteOtherPasscodesAfterActivationRow
                     || (position == passwordlessModeRow && !fakePasscode.replaceOriginalPasscode)
                     || position == replaceOriginalPasscodeRow
-                    || (position == allowFakePasscodeLoginRow && !fakePasscode.replaceOriginalPasscode && !fakePasscode.activateByFingerprint)
+                    || (position == allowFakePasscodeLoginRow && !fakePasscode.replaceOriginalPasscode
+                        && !fakePasscode.activateByFingerprint && !fakePasscode.passwordlessMode)
                     || position == backupPasscodeRow
                     || position == deletePasscodeRow;
         }
@@ -1409,7 +1427,9 @@ public class FakePasscodeActivity extends BaseFragment {
             if (holder.getItemViewType() == 0) {
                 TextCheckCell textCell = (TextCheckCell) holder.itemView;
                 if (holder.getAdapterPosition() == allowFakePasscodeLoginRow) {
-                    textCell.setEnabled(!fakePasscode.activateByFingerprint && !fakePasscode.replaceOriginalPasscode, null);
+                    boolean enabled = !fakePasscode.activateByFingerprint && !fakePasscode.replaceOriginalPasscode
+                            && !fakePasscode.passwordlessMode;
+                    textCell.setEnabled(enabled, null);
                 } else if (holder.getAdapterPosition() == passwordlessModeRow) {
                     textCell.setEnabled(!fakePasscode.replaceOriginalPasscode, null);
                 } else {

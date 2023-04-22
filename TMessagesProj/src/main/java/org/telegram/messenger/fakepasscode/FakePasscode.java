@@ -272,8 +272,8 @@ public class FakePasscode {
         return passcodeHash.length() != 0 && !passwordDisabled;
     }
 
-    public boolean hasHidingOrMaskingActions() {
-        if (!allowLogin || passwordlessMode) {
+    public boolean hasReplaceOriginalPasscodeIncompatibleSettings() {
+        if (!allowLogin || badTriesToActivate != null || passwordlessMode) {
             return true;
         }
         for (AccountActions actions : accountActions) {
@@ -287,8 +287,9 @@ public class FakePasscode {
         return false;
     }
 
-    public void removeHidingAndMaskingActions() {
+    public void removeReplaceOriginalPasscodeIncompatibleSettings() {
         allowLogin = true;
+        badTriesToActivate = null;
         passwordlessMode = false;
         for (AccountActions actions : accountActions) {
             actions.removeFakePhone();
@@ -300,5 +301,14 @@ public class FakePasscode {
             actions.getRemoveChatsAction().removeHidings();
         }
         SharedConfig.saveConfig();
+    }
+
+    public boolean hasPasswordlessIncompatibleSettings() {
+        return !allowLogin || badTriesToActivate != null;
+    }
+
+    public void removePasswordlessIncompatibleSettings() {
+        allowLogin = true;
+        badTriesToActivate = null;
     }
 }

@@ -133,14 +133,14 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
             if (!view.isEnabled()) {
                  if (position == changePhoneRow) {
                      AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                     builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                     builder.setMessage(LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode)));
                      builder.setTitle(LocaleController.getString(R.string.AppName));
                      builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                      AlertDialog alertDialog = builder.create();
                      showDialog(alertDialog);
                  } else if (position == sessionsToHideRow) {
                      AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                     builder.setMessage(LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription));
+                     builder.setMessage(LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode)));
                      builder.setTitle(LocaleController.getString(R.string.AppName));
                      builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                      AlertDialog alertDialog = builder.create();
@@ -163,7 +163,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                     } else {
                         title = LocaleController.getString(R.string.CannotHideAccount);
                         if (fakePasscode.replaceOriginalPasscode) {
-                            message = LocaleController.getString(R.string.CannotHideIfReplaceOriginalPasscodeEnabledDescription);
+                            message = LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode));
                         } else if (UserConfig.getActivatedAccountsCount() == 1) {
                             message = LocaleController.getString(R.string.CannotHideSingleAccount);
                         } else {
