@@ -514,7 +514,7 @@ public class GroupCallUserCell extends FrameLayout {
 
             if (currentChat != null) {
                 nameTextView.setText(account.getUserConfig().getChatTitleOverride(currentChat));
-                if (currentChat.verified) {
+                if (currentChat.isVerified()) {
                     rightDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new VerifiedDrawable(getContext()) : verifiedDrawable), animated);
                 } else {
                     rightDrawable.set((Drawable) null, animated);

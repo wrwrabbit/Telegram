@@ -1099,14 +1099,14 @@ public class DialogCell extends BaseCell {
             } else {
                 if (currentDialogFolderId == 0) {
                     if (chat != null) {
-                        if (chat.scam) {
+                        if (chat.isScam()) {
                             drawScam = 1;
                             Theme.dialogs_scamDrawable.checkText();
-                        } else if (chat.fake) {
+                        } else if (chat.isFake()) {
                             drawScam = 2;
                             Theme.dialogs_fakeDrawable.checkText();
                         } else {
-                            drawVerified = !forbidVerified && chat.verified;
+                            drawVerified = !forbidVerified && chat.isVerified();
                         }
                     } else if (user != null) {
                         if (user.isScam()) {

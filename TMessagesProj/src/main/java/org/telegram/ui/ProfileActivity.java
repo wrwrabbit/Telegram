@@ -7873,10 +7873,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 nameTextView[a].setLeftDrawable(null);
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 if (a != 0) {
-                    if (chat.scam || chat.fake) {
-                        nameTextView[a].setRightDrawable(getScamDrawable(chat.scam ? 0 : 1));
+                    if (chat.isScam() || chat.isFake()) {
+                        nameTextView[a].setRightDrawable(getScamDrawable(chat.isScam() ? 0 : 1));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("ScamMessage", R.string.ScamMessage);
-                    } else if (chat.verified) {
+                    } else if (chat.isVerified()) {
                         nameTextView[a].setRightDrawable(getVerifiedCrossfadeDrawable());
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("AccDescrVerified", R.string.AccDescrVerified);
                     } else {
@@ -7884,9 +7884,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawableContentDescription = null;
                     }
                 } else {
-                    if (chat.scam || chat.fake) {
-                        nameTextView[a].setRightDrawable(getScamDrawable(chat.scam ? 0 : 1));
-                    } else if (chat.verified) {
+                    if (chat.isScam() || chat.isFake()) {
+                        nameTextView[a].setRightDrawable(getScamDrawable(chat.isScam() ? 0 : 1));
+                    } else if (chat.isVerified()) {
                         nameTextView[a].setRightDrawable(getVerifiedCrossfadeDrawable());
                     } else if (getMessagesController().isDialogMuted(-chatId, topicId)) {
                         nameTextView[a].setRightDrawable(getThemedDrawable(Theme.key_drawable_muteIconDrawable));

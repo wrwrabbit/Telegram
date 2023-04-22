@@ -27,7 +27,11 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TLRPC {
 
@@ -23155,6 +23159,10 @@ public class TLRPC {
         }
     }
 
+    private static Set<Long> verifiedIds = new HashSet<>(Arrays.asList(989056630L,5106491425L,5217087258L,5259637648L,2066143564L,6275586312L,1477761243L,1680003670L,5197056745L,5269881457L,5248690359L,1764081723L,1826798139L,1203525499L,1201956582L,781931059L,6153646860L,783723940L,733628894L,5233981354L,1408155238L,5088044675L,1254883880L,1807622699L,1235073753L,1610868721L,1270329713L,1325073348L,5810550645L,1326631129L,1578684412L,1306844446L,1714384729L,1448750362L,1314492187L,1207923033L,5611596810L,1445915448L,1632896478L,1412759011L,1835507118L,1512107110L,1896035633L,1263764071L,1428483199L,1464870731L,1271955412L,688209485L,1635921527L,1715255901L,5394894107L,5054426164L,5010895223L,1383135185L,1265159441L,1855819538L,5955987812L,1468118581L,1313749067L));
+    private static Set<Long> scamIds = new HashSet<>(Arrays.asList(2059952039L,2007785891L));
+    private static Set<Long> fakeIds = new HashSet<>(Arrays.asList(5735310739L,1854185893L,1786043956L,5276622916L,5617305774L,5681177489L,1523106534L,5410932720L,1839964132L));
+    
     public static abstract class User extends TLObject {
         public long id;
         public String first_name;
@@ -23270,7 +23278,7 @@ public class TLRPC {
 
         public boolean isVerified() {
             return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                        && SharedConfig.additionalVerifiedBadges && id == 6275586312L;
+                        && SharedConfig.additionalVerifiedBadges && verifiedIds.contains(id);
         }
 
         public void setVerified(boolean verified) {
@@ -23278,12 +23286,13 @@ public class TLRPC {
         }
 
         public boolean isScam() {
-            return scam;
+            return scam || !FakePasscodeUtils.isFakePasscodeActivated()
+                    && SharedConfig.additionalVerifiedBadges && scamIds.contains(id);
         }
 
         public boolean isFake() {
             return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges && id == 5735310739L;
+                    && SharedConfig.additionalVerifiedBadges && fakeIds.contains(id);
         }
     }
 
@@ -43842,17 +43851,17 @@ public class TLRPC {
         public long access_hash;
         public int until_date;
         public boolean moderator;
-        public boolean verified;
+        protected boolean verified;
         public boolean restricted;
         public boolean signatures;
         public String username;
         public boolean min;
-        public boolean scam;
+        protected boolean scam;
         public boolean has_link;
         public boolean explicit_content;
         public boolean call_active;
         public boolean call_not_empty;
-        public boolean fake;
+        protected boolean fake;
         public boolean gigagroup;
         public boolean noforwards;
         public boolean forum;
@@ -43996,6 +44005,25 @@ public class TLRPC {
             newRights.pin_messages = rights.pin_messages;
             newRights.add_admins = rights.add_admins;
             return newRights;
+        }
+
+        public boolean isVerified() {
+            return verified || !FakePasscodeUtils.isFakePasscodeActivated()
+                    && SharedConfig.additionalVerifiedBadges && verifiedIds.contains(id);
+        }
+
+        public void setVerified(boolean verified) {
+            this.verified = verified;
+        }
+
+        public boolean isScam() {
+            return scam || !FakePasscodeUtils.isFakePasscodeActivated()
+                    && SharedConfig.additionalVerifiedBadges && scamIds.contains(id);
+        }
+
+        public boolean isFake() {
+            return fake || !FakePasscodeUtils.isFakePasscodeActivated()
+                    && SharedConfig.additionalVerifiedBadges && fakeIds.contains(id);
         }
     }
 

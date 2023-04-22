@@ -104,7 +104,7 @@ public class DialogMeUrlCell extends BaseCell {
 
         if (recentMeUrl instanceof TLRPC.TL_recentMeUrlChat) {
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(recentMeUrl.chat_id);
-            drawVerified = chat.verified;
+            drawVerified = chat.isVerified();
 
             if (!LocaleController.isRTL) {
                 nameLockLeft = AndroidUtilities.dp(AndroidUtilities.leftBaseline);
@@ -157,7 +157,7 @@ public class DialogMeUrlCell extends BaseCell {
             if (recentMeUrl.chat_invite.chat != null) {
                 avatarDrawable.setInfo(recentMeUrl.chat_invite.chat, currentAccount);
                 nameString = UserConfig.getChatTitleOverride(currentAccount, recentMeUrl.chat_invite.chat);
-                drawVerified = recentMeUrl.chat_invite.chat.verified;
+                drawVerified = recentMeUrl.chat_invite.chat.isVerified();
                 avatarImage.setForUserOrChat(recentMeUrl.chat_invite.chat, avatarDrawable, recentMeUrl);
             } else {
                 nameString = recentMeUrl.chat_invite.title;
