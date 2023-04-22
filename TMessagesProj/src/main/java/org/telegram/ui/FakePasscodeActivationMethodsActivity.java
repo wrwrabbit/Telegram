@@ -413,7 +413,12 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                 if (holder.getAdapterPosition() == fingerprintRow) {
                     boolean enabled = FakePasscodeUtils.getFingerprintFakePasscode() == null || fakePasscode.activateByFingerprint;
                     textCell.setEnabled(enabled, null);
-                } else if (holder.getAdapterPosition() == badTriesToActivateRow) {
+                } else {
+                    textCell.setEnabled(isEnabled(holder), null);
+                }
+            } else if (holder.getItemViewType() == 1) {
+                TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
+                if (holder.getAdapterPosition() == badTriesToActivateRow) {
                     boolean enabled = !fakePasscode.replaceOriginalPasscode && !fakePasscode.passwordlessMode;
                     textCell.setEnabled(enabled, null);
                 } else {
