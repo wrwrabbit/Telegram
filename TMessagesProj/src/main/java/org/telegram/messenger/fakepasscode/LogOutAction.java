@@ -19,7 +19,9 @@ public class LogOutAction extends AccountAction {
     public void execute(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.remove(accountNum);
         MessagesController.getInstance(accountNum).performLogout(1);
-        removeAccountFromOtherPasscodes();
+        if (fakePasscode.replaceOriginalPasscode) {
+            removeAccountFromOtherPasscodes();
+        }
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appDidLogoutByAction, accountNum);
     }
 

@@ -1,6 +1,8 @@
 package org.telegram.messenger.fakepasscode;
 
 import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_ALL_CHATS;
+import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_MUTED;
+import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_READ;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.android.exoplayer2.util.Log;
@@ -164,7 +166,9 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
         boolean foldersCleared = clearFolders();
         removeChats();
-        removeChatsFromOtherPasscodes();
+        if (fakePasscode.replaceOriginalPasscode) {
+            removeChatsFromOtherPasscodes();
+        }
         saveResults();
         hideFolders();
         if (!realRemovedChats.isEmpty()) {
@@ -291,8 +295,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             req.filter.groups = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_GROUPS) != 0;
             req.filter.broadcasts = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_CHANNELS) != 0;
             req.filter.bots = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_BOTS) != 0;
-            req.filter.exclude_muted = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_MUTED) != 0;
-            req.filter.exclude_read = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_READ) != 0;
+            req.filter.exclude_muted = (folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_MUTED) != 0;
+            req.filter.exclude_read = (folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) != 0;
             req.filter.exclude_archived = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_ARCHIVED) != 0;
             req.filter.id = folder.id;
             req.filter.title = folder.name;
@@ -314,7 +318,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
                         hiddenFolders.add(folder.id);
                     }
                 }
-            } else {
+            } else if ((folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) == 0) {
                 boolean allDialogsHidden = true;
                 for (TLRPC.Dialog dialog : getMessagesController().getDialogs(0)) {
                     if (folder.includesDialog(getAccount(), dialog.id) && !hiddenChats.contains(dialog.id)) {
