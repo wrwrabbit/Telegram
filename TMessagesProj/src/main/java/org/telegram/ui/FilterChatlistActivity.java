@@ -664,7 +664,7 @@ public class FilterChatlistActivity extends BaseFragment {
                 if (did >= 0) {
                     TLRPC.User user = getMessagesController().getUser(did);
                     if (user != null) {
-                        name = UserObject.getUserName(user);
+                        name = UserObject.getUserName(user, getCurrentAccount());
                     }
                     object = user;
                 } else {

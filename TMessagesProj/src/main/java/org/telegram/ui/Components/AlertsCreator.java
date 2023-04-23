@@ -1366,7 +1366,7 @@ public class AlertsCreator {
                 imageView.setImage(null, null, avatarDrawable, user);
             } else {
                 avatarDrawable.setScaleSize(1f);
-                avatarDrawable.setInfo(user);
+                avatarDrawable.setInfo(user, account);
                 imageView.setForUserOrChat(user, avatarDrawable);
             }
         } else {
@@ -1447,7 +1447,7 @@ public class AlertsCreator {
                 imageView.setImage(null, null, avatarDrawable, user);
             } else {
                 avatarDrawable.setScaleSize(1f);
-                avatarDrawable.setInfo(user);
+                avatarDrawable.setInfo(user, fragment.getCurrentAccount());
                 imageView.setForUserOrChat(user, avatarDrawable);
             }
         }
@@ -1546,7 +1546,7 @@ public class AlertsCreator {
 
             cell[0] = new CheckBoxCell(context, 1, fragment.getResourceProvider());
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
-            cell[0].setText(AndroidUtilities.replaceTags(LocaleController.formatString("OpenUrlOption2", R.string.OpenUrlOption2, UserObject.getUserName(user))), "", true, false);
+            cell[0].setText(AndroidUtilities.replaceTags(LocaleController.formatString("OpenUrlOption2", R.string.OpenUrlOption2, UserObject.getUserName(user, UserConfig.selectedAccount))), "", true, false);
             cell[0].setPadding(LocaleController.isRTL ? AndroidUtilities.dp(16) : AndroidUtilities.dp(8), 0, LocaleController.isRTL ? AndroidUtilities.dp(8) : AndroidUtilities.dp(16), 0);
             cell[0].setChecked(true, false);
             frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));
@@ -1564,7 +1564,7 @@ public class AlertsCreator {
                 imageView.setImage(null, null, avatarDrawable, user);
             } else {
                 avatarDrawable.setScaleSize(1f);
-                avatarDrawable.setInfo(user);
+                avatarDrawable.setInfo(user, fragment.getCurrentAccount());
                 imageView.setForUserOrChat(user, avatarDrawable);
             }
         }
@@ -1740,7 +1740,7 @@ public class AlertsCreator {
                 imageView.setImage(null, null, avatarDrawable, user);
             } else {
                 avatarDrawable.setScaleSize(1f);
-                avatarDrawable.setInfo(user);
+                avatarDrawable.setInfo(user, account);
                 imageView.setForUserOrChat(user, avatarDrawable);
             }
         } else {
@@ -2029,7 +2029,7 @@ public class AlertsCreator {
         AvatarDrawable avatarDrawable = new AvatarDrawable();
         avatarDrawable.setTextSize(AndroidUtilities.dp(12));
         avatarDrawable.setScaleSize(1f);
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(user, account);
 
         BackupImageView imageView = new BackupImageView(context);
         imageView.setRoundRadius(AndroidUtilities.dp(20));

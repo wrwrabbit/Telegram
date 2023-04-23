@@ -1082,7 +1082,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             nameTextView.setTextColor(getThemedColor(Theme.key_dialogTextGray2));
             currentUser = user;
             nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
-            avatarDrawable.setInfo(user);
+            avatarDrawable.setInfo(user, getCurrentAccount());
             imageView.setForUserOrChat(user, avatarDrawable);
             imageView.setSize(-1, -1);
             imageView.setColorFilter(null);
@@ -1100,7 +1100,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             nameTextView.setTextColor(getThemedColor(Theme.key_dialogTextGray2));
             currentUser = user;
             nameTextView.setText(bot.short_name);
-            avatarDrawable.setInfo(user);
+            avatarDrawable.setInfo(user, getCurrentAccount());
 
             boolean animated = true;
             TLRPC.TL_attachMenuBotIcon icon = MediaDataController.getAnimatedAttachMenuBotIcon(bot);

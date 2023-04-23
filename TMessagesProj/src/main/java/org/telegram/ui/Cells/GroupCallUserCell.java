@@ -470,7 +470,7 @@ public class GroupCallUserCell extends FrameLayout {
         if (id > 0) {
             currentUser = accountInstance.getMessagesController().getUser(id);
             currentChat = null;
-            avatarDrawable.setInfo(currentUser);
+            avatarDrawable.setInfo(currentUser, account.getCurrentAccount());
 
             nameTextView.setText(UserObject.getUserName(currentUser, account.getCurrentAccount()));
             if (currentUser != null && currentUser.isVerified()) {

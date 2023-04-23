@@ -974,7 +974,7 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
                             did = peer.user_id;
                             TLRPC.User user = getBaseFragment().getMessagesController().getUser(peer.user_id);
                             object = user;
-                            name = UserObject.getUserName(user);
+                            name = UserObject.getUserName(user, getCurrentAccount());
                             if (user != null && user.bot) {
                                 status = LocaleController.getString("FilterInviteBot", R.string.FilterInviteBot);
                             } else {

@@ -536,7 +536,7 @@ public class UndoView extends FrameLayout {
                 icon = 0;
                 AvatarDrawable avatarDrawable = new AvatarDrawable();
                 avatarDrawable.setTextSize(AndroidUtilities.dp(12));
-                avatarDrawable.setInfo(user);
+                avatarDrawable.setInfo(user, currentAccount);
                 avatarImageView.setForUserOrChat(user, avatarDrawable);
                 avatarImageView.setVisibility(VISIBLE);
                 timeLeft = 3000;
@@ -571,7 +571,7 @@ public class UndoView extends FrameLayout {
                 String name;
                 if (infoObject instanceof TLRPC.User) {
                     TLRPC.User user = (TLRPC.User) infoObject;
-                    avatarDrawable.setInfo(user);
+                    avatarDrawable.setInfo(user, currentAccount);
                     avatarImageView.setForUserOrChat(user, avatarDrawable);
                     name = ContactsController.formatName(user.first_name, user.last_name);
                 } else {

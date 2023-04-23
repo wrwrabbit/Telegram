@@ -91,13 +91,13 @@ public class MentionCell extends LinearLayout {
             imageView.setImageDrawable(null);
             return;
         }
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
         if (user.photo != null && user.photo.photo_small != null) {
             imageView.setForUserOrChat(user, avatarDrawable);
         } else {
             imageView.setImageDrawable(avatarDrawable);
         }
-        nameTextView.setText(UserObject.getUserName(user));
+        nameTextView.setText(UserObject.getUserName(user, UserConfig.selectedAccount));
         if (UserObject.getPublicUsername(user) != null) {
             usernameTextView.setText("@" + UserObject.getPublicUsername(user));
         } else {
@@ -132,7 +132,7 @@ public class MentionCell extends LinearLayout {
             imageView.setImageDrawable(null);
             return;
         }
-        avatarDrawable.setInfo(chat);
+        avatarDrawable.setInfo(chat, UserConfig.selectedAccount);
         if (chat.photo != null && chat.photo.photo_small != null) {
             imageView.setForUserOrChat(chat, avatarDrawable);
         } else {
@@ -226,7 +226,7 @@ public class MentionCell extends LinearLayout {
         resetEmojiSuggestion();
         if (user != null) {
             imageView.setVisibility(VISIBLE);
-            avatarDrawable.setInfo(user);
+            avatarDrawable.setInfo(user, UserConfig.selectedAccount);
             if (user.photo != null && user.photo.photo_small != null) {
                 imageView.setForUserOrChat(user, avatarDrawable);
             } else {

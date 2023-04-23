@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -96,9 +97,9 @@ public class MemberRequestCell extends FrameLayout {
         setWillNotDraw(!isNeedDivider);
 
         TLRPC.User user = users.get(importer.user_id);
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
         avatarImageView.setForUserOrChat(user, avatarDrawable);
-        nameTextView.setText(UserObject.getUserName(user));
+        nameTextView.setText(UserObject.getUserName(user, UserConfig.selectedAccount));
         String dateText = LocaleController.formatDateAudio(importer.date, false);
         if (importer.via_chatlist) {
             statusTextView.setText(LocaleController.getString("JoinedViaFolder", R.string.JoinedViaFolder));
