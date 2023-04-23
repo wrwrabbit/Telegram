@@ -58,8 +58,10 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -254,6 +256,9 @@ public class FilterChatlistActivity extends BaseFragment {
             for (int i = 0; i < invite.peers.size(); ++i) {
                 TLRPC.Peer peer = invite.peers.get(i);
                 long did = DialogObject.getPeerDialogId(peer);
+                if (FakePasscodeUtils.isHideChat(did, getCurrentAccount())) {
+                    continue;
+                }
                 peers.add(did);
                 selectedPeers.add(did);
                 allowedPeers.add(did);
@@ -261,7 +266,7 @@ public class FilterChatlistActivity extends BaseFragment {
         }
         for (int i = 0; i < filter.dialogs.size(); ++i) {
             TLRPC.Dialog dialog = filter.dialogs.get(i);
-            if (dialog != null && !DialogObject.isEncryptedDialog(dialog.id) && !peers.contains(dialog.id)) {
+            if (dialog != null && !DialogObject.isEncryptedDialog(dialog.id) && !peers.contains(dialog.id) && !FakePasscodeUtils.isHideChat(dialog.id, getCurrentAccount())) {
                 boolean canInvite = dialog.id < 0;
                 if (dialog.id < 0) {
                     TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
@@ -275,7 +280,7 @@ public class FilterChatlistActivity extends BaseFragment {
         }
         for (int i = 0; i < filter.dialogs.size(); ++i) {
             TLRPC.Dialog dialog = filter.dialogs.get(i);
-            if (dialog != null && !DialogObject.isEncryptedDialog(dialog.id) && !peers.contains(dialog.id) && !allowedPeers.contains(dialog.id)) {
+            if (dialog != null && !DialogObject.isEncryptedDialog(dialog.id) && !peers.contains(dialog.id) && !allowedPeers.contains(dialog.id) && !FakePasscodeUtils.isHideChat(dialog.id, getCurrentAccount())) {
                 peers.add(dialog.id);
             }
         }
@@ -670,7 +675,7 @@ public class FilterChatlistActivity extends BaseFragment {
                 } else {
                     TLRPC.Chat chat = getMessagesController().getChat(-did);
                     if (chat != null) {
-                        name = chat.title;
+                        name = UserConfig.getChatTitleOverride(getCurrentAccount(), chat);
                         if (chat.participants_count != 0) {
                             if (ChatObject.isChannelAndNotMegaGroup(chat)) {
                                 status = LocaleController.formatPluralStringComma("Subscribers", chat.participants_count);
