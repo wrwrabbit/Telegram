@@ -23,12 +23,12 @@ public class LogOutAction extends AccountAction {
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appDidLogoutByAction, accountNum);
     }
 
-        private void removeAccountFromOtherPasscodes() {
-            for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
-                fakePasscode.removeAccountActions(accountNum);
-            }
-            SharedConfig.saveConfig();
+    private void removeAccountFromOtherPasscodes() {
+        for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+            fakePasscode.removeAccountActions(accountNum);
         }
+        SharedConfig.saveConfig();
+    }
 
     public void hideAccount(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.add(accountNum);
