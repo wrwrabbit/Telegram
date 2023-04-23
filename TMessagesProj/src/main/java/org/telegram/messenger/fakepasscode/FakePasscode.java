@@ -107,6 +107,8 @@ public class FakePasscode {
         }
         activationDate = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         actionsResult = new ActionsResult();
+        SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
+        SharedConfig.saveConfig();
         AndroidUtilities.runOnUIThread(() -> {
             for (Action action : actions()) {
                 try {
@@ -129,6 +131,10 @@ public class FakePasscode {
     }
 
     public void deactivate() {
+        if (SharedConfig.fakePasscodeActionsResult != null) {
+            SharedConfig.fakePasscodeActionsResult = null;
+             SharedConfig.saveConfig();
+        }
         AndroidUtilities.runOnUIThread(() -> {
             if (!actionsResult.hiddenAccounts.isEmpty()) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);

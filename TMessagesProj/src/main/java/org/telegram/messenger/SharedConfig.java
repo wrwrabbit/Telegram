@@ -30,6 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import org.json.JSONObject;
+import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.AppVersion;
@@ -37,7 +38,6 @@ import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
@@ -279,6 +279,8 @@ public class SharedConfig {
         public FakePasscodesWrapper() {}
     }
 
+    public static ActionsResult fakePasscodeActionsResult;
+
     public static boolean oldCacheCleared = false;
 
     public static boolean showVersion;
@@ -475,6 +477,7 @@ public class SharedConfig {
                 if (!fakePasscodeLoadedWithErrors || !fakePasscodes.isEmpty()) {
                     editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
                 }
+                editor.putString("fakePasscodeActionsResult", toJson(fakePasscodeActionsResult));
                 editor.putString("badPasscodeAttemptList", toJson(new BadPasscodeAttemptWrapper(badPasscodeAttemptList)));
                 editor.putBoolean("takePhotoOnBadPasscodeFront", takePhotoWithBadPasscodeFront);
                 editor.putBoolean("takePhotoOnBadPasscodeBack", takePhotoWithBadPasscodeBack);
@@ -597,16 +600,24 @@ public class SharedConfig {
             synchronized (FakePasscode.class) {
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
                 try {
-                    if (preferences.contains("fakePasscodes"))
+                    if (preferences.contains("fakePasscodes")) {
                         fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
+                    }
                 } catch (Exception e) {
                     fakePasscodeLoadedWithErrors = true;
                     //Log.e("SharedConfig", "error", e);
                 }
             }
             try {
-                if (preferences.contains("badPasscodeAttemptList"))
+                if (preferences.contains("fakePasscodeActionsResult")) {
+                    fakePasscodeActionsResult = fromJson(preferences.getString("fakePasscodeActionsResult", null), ActionsResult.class);
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                if (preferences.contains("badPasscodeAttemptList")) {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
+                }
             } catch (Exception ignored) {
             }
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
