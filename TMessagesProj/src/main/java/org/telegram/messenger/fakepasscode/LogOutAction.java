@@ -3,6 +3,7 @@
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.SharedConfig;
 
     @FakePasscodeSerializer.ToggleSerialization
 public class LogOutAction extends AccountAction {
@@ -18,8 +19,16 @@ public class LogOutAction extends AccountAction {
     public void execute(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.remove(accountNum);
         MessagesController.getInstance(accountNum).performLogout(1);
+        removeAccountFromOtherPasscodes();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appDidLogoutByAction, accountNum);
     }
+
+        private void removeAccountFromOtherPasscodes() {
+            for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+                fakePasscode.removeAccountActions(accountNum);
+            }
+            SharedConfig.saveConfig();
+        }
 
     public void hideAccount(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.add(accountNum);

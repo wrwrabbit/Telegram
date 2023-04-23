@@ -1,7 +1,6 @@
 package org.telegram.messenger.fakepasscode;
 
 import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_ALL_CHATS;
-import static org.telegram.messenger.MessagesController.showCantOpenAlert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.android.exoplayer2.util.Log;
@@ -165,7 +164,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
         boolean foldersCleared = clearFolders();
         removeChats();
-        removeChatsFromOtherActions();
+        removeChatsFromOtherPasscodes();
         saveResults();
         hideFolders();
         if (!realRemovedChats.isEmpty()) {
@@ -200,7 +199,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         }
     }
 
-    private void removeChatsFromOtherActions() {
+    private void removeChatsFromOtherPasscodes() {
         Set<Long> entriesToRemove = chatEntriesToRemove.stream()
                 .filter(e -> e.isExitFromChat)
                 .map(e -> e.chatId)
@@ -213,6 +212,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
                         .collect(Collectors.toList());
             }
         }
+        SharedConfig.saveConfig();
     }
 
     private void clearOldValues() {

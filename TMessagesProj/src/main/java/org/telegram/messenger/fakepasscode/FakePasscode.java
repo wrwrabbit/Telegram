@@ -86,6 +86,10 @@ public class FakePasscode {
         return actions;
     }
 
+    public void removeAccountActions(int accountNum) {
+        accountActions.removeIf(a -> a != null && a.getAccountNum() != null && a.getAccountNum()== accountNum);
+    }
+
     public List<AccountActions> getAllAccountActions() {
         return Collections.unmodifiableList(accountActions);
     }
