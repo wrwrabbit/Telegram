@@ -267,24 +267,6 @@ public class SharedConfig {
     public static boolean takePhotoWithBadPasscodeBack;
     public static boolean takePhotoMuteAudio;
 
-    public static class AccountChatsToRemove {
-        public ArrayList<Integer> chatsToRemove = new ArrayList<>();
-        public int accountNum = 0;
-
-        static AccountChatsToRemove deserialize(String str) {
-            ArrayList<Integer> ints = Arrays.stream(str.split(",")).filter(s -> !s.isEmpty())
-                    .map(Integer::parseInt).collect(Collectors.toCollection(ArrayList::new));
-            if (ints.isEmpty()) {
-                return null;
-            }
-            AccountChatsToRemove result = new AccountChatsToRemove();
-            result.accountNum = ints.get(ints.size() - 1);
-            ints.remove(ints.size() - 1);
-            result.chatsToRemove = ints;
-            return result;
-        }
-    }
-
     public static int fakePasscodeIndex = 1;
     public static int fakePasscodeActivatedIndex = -1;
     private static boolean fakePasscodeLoadedWithErrors = false;
