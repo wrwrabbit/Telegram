@@ -165,6 +165,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
         boolean foldersCleared = clearFolders();
         removeChats();
+        removeChatsFromOtherActions();
         saveResults();
         hideFolders();
         if (!realRemovedChats.isEmpty()) {
@@ -195,6 +196,21 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             } else if (entry.isExitFromChat) {
                 Utils.deleteDialog(accountNum, entry.chatId, entry.isDeleteFromCompanion);
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogDeletedByAction, entry.chatId);
+            }
+        }
+    }
+
+    private void removeChatsFromOtherActions() {
+        Set<Long> entriesToRemove = chatEntriesToRemove.stream()
+                .filter(e -> e.isExitFromChat)
+                .map(e -> e.chatId)
+                .collect(Collectors.toSet());
+        for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+            for (AccountActions accountActions : fakePasscode.getAllAccountActions()) {
+                RemoveChatsAction action = accountActions.getRemoveChatsAction();
+                action.chatEntriesToRemove = action.chatEntriesToRemove.stream()
+                        .filter(e -> !entriesToRemove.contains(e.chatId))
+                        .collect(Collectors.toList());
             }
         }
     }
