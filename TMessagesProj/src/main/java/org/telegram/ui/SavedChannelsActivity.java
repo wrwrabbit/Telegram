@@ -1009,7 +1009,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         updateLayout.setVisibility(View.INVISIBLE);
         updateLayout.setTranslationY(AndroidUtilities.dp(48));
         if (Build.VERSION.SDK_INT >= 21) {
-            updateLayout.setBackground(Theme.getSelectorDrawable(Theme.getColor(Theme.key_listSelector), null));
+            updateLayout.setBackground(Theme.getSelectorDrawable(0x40ffffff, false));
         }
         contentView.addView(updateLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.LEFT | Gravity.BOTTOM));
         updateLayout.setOnClickListener(v -> {
