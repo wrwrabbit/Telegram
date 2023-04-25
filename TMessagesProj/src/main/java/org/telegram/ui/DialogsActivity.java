@@ -45,6 +45,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.LongSparseArray;
 import android.util.Property;
 import android.util.StateSet;
@@ -86,6 +87,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BadPasscodeAttempt;
 import org.telegram.messenger.BuildVars;
@@ -439,7 +441,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private boolean afterSignup;
     private boolean showSetPasswordConfirm;
     private int otherwiseReloginDays;
-    private boolean allowGroups;
+    private boolean allowGroups, allowMegagroups, allowLegacyGroups;
     private boolean allowChannels;
     private boolean allowUsers;
     private boolean allowBots;
@@ -506,7 +508,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private Bulletin topBulletin;
 
-    private int animationIndex = -1;
+    private AnimationNotificationsLocker notificationsLocker = new AnimationNotificationsLocker();
     private boolean searchIsShowed;
     private boolean searchWasFullyShowed;
     public boolean whiteActionBar;
@@ -2275,6 +2277,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             showSetPasswordConfirm = arguments.getBoolean("showSetPasswordConfirm", showSetPasswordConfirm);
             otherwiseReloginDays = arguments.getInt("otherwiseRelogin");
             allowGroups = arguments.getBoolean("allowGroups", true);
+            allowMegagroups = arguments.getBoolean("allowMegagroups", true);
+            allowLegacyGroups = arguments.getBoolean("allowLegacyGroups", true);
             allowChannels = arguments.getBoolean("allowChannels", true);
             allowUsers = arguments.getBoolean("allowUsers", true);
             allowBots = arguments.getBoolean("allowBots", true);
@@ -2495,7 +2499,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (undoView[0] != null) {
             undoView[0].hide(true, 0);
         }
-        getNotificationCenter().onAnimationFinish(animationIndex);
+        notificationsLocker.unlock();
         delegate = null;
         SuggestClearDatabaseBottomSheet.dismissDialog();
     }
@@ -5986,7 +5990,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             searchViewPager.clear();
             if (folderId != 0 && (rightSlidingDialogContainer == null || !rightSlidingDialogContainer.hasFragment())) {
-                FiltersView.MediaFilterData filterData = new FiltersView.MediaFilterData(R.drawable.chats_archive, LocaleController.getString("ArchiveSearchFilter", R.string.ArchiveSearchFilter), null, FiltersView.FILTER_TYPE_ARCHIVE);
+                FiltersView.MediaFilterData filterData = new FiltersView.MediaFilterData(R.drawable.chats_archive, R.string.ArchiveSearchFilter, null, FiltersView.FILTER_TYPE_ARCHIVE);
                 addSearchFilter(filterData);
             }
         } else {
@@ -6094,7 +6098,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             searchAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    getNotificationCenter().onAnimationFinish(animationIndex);
+                    notificationsLocker.unlock();
                     if (searchAnimator != animation) {
                         return;
                     }
@@ -6147,7 +6151,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                 @Override
                 public void onAnimationCancel(Animator animation) {
-                    getNotificationCenter().onAnimationFinish(animationIndex);
+                    notificationsLocker.unlock();
                     if (searchAnimator == animation) {
                         if (show) {
                             viewPages[0].listView.hide();
@@ -6158,7 +6162,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             });
-            animationIndex = getNotificationCenter().setAnimationInProgress(animationIndex, null);
+            notificationsLocker.lock();
             searchAnimator.start();
             if (tabsAlphaAnimator != null) {
                 tabsAlphaAnimator.start();
@@ -6297,7 +6301,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         if (fragmentView != null) {
                             fragmentView.requestLayout();
                         }
-                        getNotificationCenter().onAnimationFinish(animationIndex);
+                        notificationsLocker.unlock();
                     }
                 });
                 filtersTabAnimator.addUpdateListener(valueAnimator -> {
@@ -6311,7 +6315,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 });
                 filtersTabAnimator.setDuration(220);
                 filtersTabAnimator.setInterpolator(CubicBezierInterpolator.DEFAULT);
-                animationIndex = getNotificationCenter().setAnimationInProgress(animationIndex, null);
+                notificationsLocker.lock();
                 filtersTabAnimator.start();
                 fragmentView.requestLayout();
             } else {
@@ -9300,6 +9304,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     public static final int DIALOGS_TYPE_START_ATTACH_BOT = 14;
     public static final int DIALOGS_TYPE_BOT_REQUEST_PEER = 15;
 
+    private ArrayList<TLRPC.Dialog> botShareDialogs;
+
     @NonNull
     public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
         if (frozen && frozenDialogsList != null) {
@@ -9365,22 +9371,42 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else if (dialogsType == DIALOGS_TYPE_BLOCK) {
             return (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(messagesController.dialogsForBlock, Optional.of(currentAccount));
         } else if (dialogsType == DIALOGS_TYPE_BOT_SHARE || dialogsType == DIALOGS_TYPE_START_ATTACH_BOT) {
-            ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
+            if (botShareDialogs != null) {
+                return botShareDialogs;
+            }
+            botShareDialogs = new ArrayList<>();
             if (allowUsers || allowBots) {
                 for (TLRPC.Dialog d : messagesController.dialogsUsersOnly) {
                     TLRPC.User user = messagesController.getUser(d.id);
                     if (user != null && !UserObject.isUserSelf(user) && (user.bot ? allowBots : allowUsers)) {
-                        dialogs.add(d);
+                        botShareDialogs.add(d);
                     }
                 }
             }
-            if (allowGroups) {
-                dialogs.addAll(messagesController.dialogsGroupsOnly);
+            if (allowGroups || (allowLegacyGroups && allowMegagroups)) {
+                for (TLRPC.Dialog d : messagesController.dialogsGroupsOnly) {
+                    TLRPC.Chat chat = messagesController.getChat(-d.id);
+                    if (chat != null && !ChatObject.isChannelAndNotMegaGroup(chat) && messagesController.canAddToForward(d)) {
+                        botShareDialogs.add(d);
+                    }
+                }
+            } else if (allowLegacyGroups || allowMegagroups) {
+                for (TLRPC.Dialog d : messagesController.dialogsGroupsOnly) {
+                    TLRPC.Chat chat = messagesController.getChat(-d.id);
+                    if (chat != null && !ChatObject.isChannelAndNotMegaGroup(chat) && messagesController.canAddToForward(d) && (allowLegacyGroups && !ChatObject.isMegagroup(chat) || allowMegagroups && ChatObject.isMegagroup(chat))) {
+                        botShareDialogs.add(d);
+                    }
+                }
             }
             if (allowChannels) {
-                dialogs.addAll(messagesController.dialogsChannelsOnly);
+                for (TLRPC.Dialog d : messagesController.dialogsChannelsOnly) {
+                    if (messagesController.canAddToForward(d)) {
+                        botShareDialogs.add(d);
+                    }
+                }
             }
-            return dialogs;
+            getMessagesController().sortDialogsList(botShareDialogs);
+            return botShareDialogs;
         } else if (dialogsType == DIALOGS_TYPE_BOT_REQUEST_PEER) {
             ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
             TLRPC.User bot = messagesController.getUser(requestPeerBotId);
@@ -9728,15 +9754,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         if ((mask & MessagesController.UPDATE_MASK_CHECK) != 0) {
                             cell.setChecked(false, (mask & MessagesController.UPDATE_MASK_CHAT) != 0);
                         } else {
-                            if ((mask & MessagesController.UPDATE_MASK_NEW_MESSAGE) != 0) {
-                                if (list.getAdapter() != null) {
-                                    viewPage.updateList(false);
-                                    break;
-                                }
-                                if (viewPages[c].isDefaultDialogType() && AndroidUtilities.isTablet()) {
-                                    cell.setDialogSelected(cell.getDialogId() == openedDialogId.dialogId);
-                                }
-                            } else if ((mask & MessagesController.UPDATE_MASK_SELECT_DIALOG) != 0) {
+                            if ((mask & MessagesController.UPDATE_MASK_SELECT_DIALOG) != 0) {
                                 if (viewPages[c].isDefaultDialogType() && AndroidUtilities.isTablet()) {
                                     cell.setDialogSelected(cell.getDialogId() == openedDialogId.dialogId);
                                 }

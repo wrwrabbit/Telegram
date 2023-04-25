@@ -58,6 +58,7 @@ import com.google.android.gms.vision.Frame;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
@@ -209,7 +210,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             AndroidUtilities.runOnUIThread(checkLocationRunnable, 1000);
         }
     };
-    private int animationIndex = -1;
+    private AnimationNotificationsLocker notificationsLocker = new AnimationNotificationsLocker();
+    private AnimationNotificationsLocker notificationsLocker2 = new AnimationNotificationsLocker(new int[]{
+            NotificationCenter.messagesDidLoad
+    });
+
 
     private boolean checkCallAfterAnimation;
     private boolean checkPlayerAfterAnimation;
@@ -1242,7 +1247,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             scheduleRunnableScheduled = false;
         }
         visible = false;
-        NotificationCenter.getInstance(account).onAnimationFinish(animationIndex);
+        notificationsLocker.unlock();
         topPadding = 0;
         if (isLocation) {
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.liveLocationsChanged);
@@ -1683,7 +1688,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         animatorSet.cancel();
                         animatorSet = null;
                     }
-                    animationIndex = NotificationCenter.getInstance(account).setAnimationInProgress(animationIndex, null);
+                    notificationsLocker.lock();
                     animatorSet = new AnimatorSet();
                     animatorSet.playTogether(ObjectAnimator.ofFloat(this, "topPadding", 0));
                     animatorSet.setDuration(200);
@@ -1693,7 +1698,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     animatorSet.addListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            NotificationCenter.getInstance(account).onAnimationFinish(animationIndex);
+                            notificationsLocker.unlock();
                             if (animatorSet != null && animatorSet.equals(animation)) {
                                 setVisibility(GONE);
                                 if (delegate != null) {
@@ -1740,7 +1745,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         animatorSet.cancel();
                         animatorSet = null;
                     }
-                    animationIndex = NotificationCenter.getInstance(account).setAnimationInProgress(animationIndex, null);
+                    notificationsLocker.lock();
                     animatorSet = new AnimatorSet();
                     if (additionalContextView != null && additionalContextView.getVisibility() == VISIBLE) {
                         ((LayoutParams) getLayoutParams()).topMargin = -AndroidUtilities.dp(getStyleHeight() + additionalContextView.getStyleHeight());
@@ -1755,7 +1760,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     animatorSet.addListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            NotificationCenter.getInstance(account).onAnimationFinish(animationIndex);
+                            notificationsLocker.unlock();
                             if (animatorSet != null && animatorSet.equals(animation)) {
                                 if (delegate != null) {
                                     delegate.onAnimation(false, true);
@@ -1871,7 +1876,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         animatorSet = null;
                     }
                     final int currentAccount = account;
-                    animationIndex = NotificationCenter.getInstance(currentAccount).setAnimationInProgress(animationIndex, null);
+                    notificationsLocker.lock();
                     animatorSet = new AnimatorSet();
                     animatorSet.playTogether(ObjectAnimator.ofFloat(this, "topPadding", 0));
                     animatorSet.setDuration(220);
@@ -1879,7 +1884,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     animatorSet.addListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            NotificationCenter.getInstance(currentAccount).onAnimationFinish(animationIndex);
+                            notificationsLocker.unlock();
                             if (animatorSet != null && animatorSet.equals(animation)) {
                                 setVisibility(GONE);
                                 animatorSet = null;
@@ -1922,7 +1927,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         animatorSet.cancel();
                         animatorSet = null;
                     }
-                    animationIndex = NotificationCenter.getInstance(account).setAnimationInProgress(animationIndex, null);
+                    notificationsLocker.lock();
                     animatorSet = new AnimatorSet();
                     if (additionalContextView != null && additionalContextView.getVisibility() == VISIBLE) {
                         ((LayoutParams) getLayoutParams()).topMargin = -AndroidUtilities.dp(getStyleHeight() + additionalContextView.getStyleHeight());
@@ -1937,7 +1942,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     animatorSet.addListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            NotificationCenter.getInstance(account).onAnimationFinish(animationIndex);
+                            notificationsLocker.unlock();
                             if (animatorSet != null && animatorSet.equals(animation)) {
                                 if (delegate != null) {
                                     delegate.onAnimation(false, true);
@@ -2018,7 +2023,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         animatorSet = null;
                     }
                     final int currentAccount = account;
-                    animationIndex = NotificationCenter.getInstance(currentAccount).setAnimationInProgress(animationIndex, null);
+                    notificationsLocker.lock();
                     animatorSet = new AnimatorSet();
                     animatorSet.playTogether(ObjectAnimator.ofFloat(this, "topPadding", 0));
                     animatorSet.setDuration(220);
@@ -2026,7 +2031,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     animatorSet.addListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            NotificationCenter.getInstance(currentAccount).onAnimationFinish(animationIndex);
+                            notificationsLocker.lock();
                             if (animatorSet != null && animatorSet.equals(animation)) {
                                 setVisibility(GONE);
                                 animatorSet = null;
@@ -2073,7 +2078,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     animatorSet = null;
                 }
                 final int currentAccount = account;
-                animationIndex = NotificationCenter.getInstance(currentAccount).setAnimationInProgress(animationIndex, null);
+                notificationsLocker.lock();
                 animatorSet = new AnimatorSet();
                 animatorSet.playTogether(ObjectAnimator.ofFloat(this, "topPadding", 0));
                 animatorSet.setDuration(220);
@@ -2081,7 +2086,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 animatorSet.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        NotificationCenter.getInstance(currentAccount).onAnimationFinish(animationIndex);
+                        notificationsLocker.unlock();
                         if (animatorSet != null && animatorSet.equals(animation)) {
                             visible = false;
                             animatorSet = null;
@@ -2168,14 +2173,14 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         ((LayoutParams) getLayoutParams()).topMargin = -AndroidUtilities.dp(getStyleHeight());
                     }
                     final int currentAccount = account;
-                    animationIndex = NotificationCenter.getInstance(currentAccount).setAnimationInProgress(animationIndex, new int[]{NotificationCenter.messagesDidLoad});
+                    notificationsLocker2.lock();
                     animatorSet.playTogether(ObjectAnimator.ofFloat(this, "topPadding", AndroidUtilities.dp2(getStyleHeight())));
                     animatorSet.setDuration(220);
                     animatorSet.setInterpolator(CubicBezierInterpolator.DEFAULT);
                     animatorSet.addListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            NotificationCenter.getInstance(currentAccount).onAnimationFinish(animationIndex);
+                            notificationsLocker2.unlock();
                             if (animatorSet != null && animatorSet.equals(animation)) {
                                 animatorSet = null;
                             }
@@ -2442,8 +2447,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         return getThemedColor(Theme.key_inappPlayerTitle);
     }
 
-    private int getThemedColor(String key) {
-        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
-        return color != null ? color : Theme.getColor(key);
+    private int getThemedColor(int key) {
+        return Theme.getColor(key, resourcesProvider);
     }
 }

@@ -42,6 +42,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -130,7 +131,6 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
 
     private DialogsActivity parentFragment;
     private boolean isTransitionSupport;
-    private boolean fromDiffUtils;
 
     private TLRPC.RequestPeerType requestPeerType;
     public boolean isEmpty;
@@ -144,6 +144,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         hasHints = folder == 0 && type == 0 && !onlySelect;
         selectedDialogs = selected;
         currentAccount = account;
+      //  setHasStableIds(true);
         if (folderId == 1) {
             SharedPreferences preferences = MessagesController.getGlobalMainSettings();
             showArchiveHint = preferences.getBoolean("archivehint", true);
@@ -202,6 +203,11 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
     }
 
     @Override
+    public long getItemId(int position) {
+        return itemInternals.get(position).stableId;
+    }
+
+    @Override
     public int getItemCount() {
         currentCount = itemInternals.size();
         return currentCount;
@@ -239,6 +245,9 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         return offset;
     }
 
+    int stableIdPointer = 10;
+    LongSparseIntArray dialogsStableIds = new LongSparseIntArray();
+
     private class ItemInternal extends AdapterWithDiffUtils.Item {
 
         TLRPC.Dialog dialog;
@@ -253,11 +262,25 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         public ItemInternal(TLRPC.TL_chatlists_chatlistUpdates updates) {
             super(VIEW_TYPE_FOLDER_UPDATE_HINT, true);
             this.chatlistUpdates = updates;
+            stableId = stableIdPointer++;
         }
+
+        private final int stableId;
 
         public ItemInternal(int viewType, TLRPC.Dialog dialog) {
             super(viewType, true);
             this.dialog = dialog;
+            if (dialog != null) {
+                int currentId = dialogsStableIds.get(dialog.id, -1);
+                if (currentId >= 0) {
+                    stableId = currentId;
+                } else {
+                    stableId = stableIdPointer++;
+                    dialogsStableIds.put(dialog.id, stableId);
+                }
+            } else {
+                stableId = stableIdPointer++;
+            }
             if (dialog != null) {
                 if (dialogsType == 7 || dialogsType == 8) {
                     MessagesController.DialogFilter filter = MessagesController.getInstance(currentAccount).selectedDialogFilter[dialogsType == 8 ? 1 : 0];
@@ -273,21 +296,35 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         public ItemInternal(int viewTypeMeUrl, TLRPC.RecentMeUrl recentMeUrl) {
             super(viewTypeMeUrl, true);
             this.recentMeUrl = recentMeUrl;
+            stableId = stableIdPointer++;
         }
 
         public ItemInternal(int viewTypeEmpty) {
             super(viewTypeEmpty, true);
             this.emptyType = emptyType;
+            stableId = stableIdPointer++;
         }
 
         public ItemInternal(int viewTypeEmpty, int emptyType) {
             super(viewTypeEmpty, true);
             this.emptyType = emptyType;
+            stableId = stableIdPointer++;
         }
 
         public ItemInternal(int viewTypeUser, TLRPC.TL_contact tl_contact) {
             super(viewTypeUser, true);
             contact = tl_contact;
+            if (contact != null) {
+                int currentId = dialogsStableIds.get(contact.user_id, -1);
+                if (currentId > 0) {
+                    stableId = currentId;
+                } else {
+                    stableId = stableIdPointer++;
+                    dialogsStableIds.put(contact.user_id, stableId);
+                }
+            } else {
+                stableId = stableIdPointer++;
+            }
         }
 
         boolean compare(ItemInternal itemInternal) {
@@ -435,9 +472,6 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                 layoutManager.scrollToPositionWithOffset(position, (int) offset);
             }
         }
-
-
-        fromDiffUtils = true;
         DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
             public int getOldListSize() {
@@ -459,7 +493,6 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                 return oldItems.get(oldItemPosition).viewType == itemInternals.get(newItemPosition).viewType;
             }
         }).dispatchUpdatesTo(this);
-        fromDiffUtils = false;
     }
 
     @Override
@@ -474,9 +507,6 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         if (holder.itemView instanceof DialogCell) {
             DialogCell dialogCell = (DialogCell) holder.itemView;
             dialogCell.onReorderStateChanged(isReordering, false);
-            int position = fixPosition(holder.getAdapterPosition());
-            //    dialogCell.setDialogIndex(position);
-            //   dialogCell.collapsed = collapsedView;
             dialogCell.checkCurrentDialogIndex(dialogsListFrozen);
             dialogCell.setChecked(selectedDialogs.contains(dialogCell.getDialogId()), false);
         }
