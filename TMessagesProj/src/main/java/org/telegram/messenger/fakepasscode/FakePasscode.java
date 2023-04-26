@@ -120,8 +120,9 @@ public class FakePasscode {
                 }
             }
             if (deleteOtherPasscodesAfterActivation) {
-                SharedConfig.fakePasscodes = SharedConfig.fakePasscodes.stream()
-                        .filter(passcode -> passcode == this).collect(Collectors.toList());
+                List<FakePasscode> newFakePasscodes = new ArrayList<>(Collections.singletonList(this));
+                SharedConfig.fakePasscodeActivatedIndex = 0;
+                SharedConfig.fakePasscodes = newFakePasscodes;
             }
             if (clearAfterActivation) {
                 clear();
