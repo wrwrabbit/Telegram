@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageReceiver;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLObject;
 import org.telegram.ui.ActionBar.Theme;
 
@@ -85,7 +86,7 @@ public class SimpleAvatarView extends View {
      * @param obj User or chat
      */
     public void setAvatar(TLObject obj) {
-        avatarDrawable.setInfo(obj);
+        avatarDrawable.setInfo(obj, UserConfig.selectedAccount);
         avatarImage.setForUserOrChat(obj, avatarDrawable);
     }
 

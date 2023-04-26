@@ -30,6 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import org.json.JSONObject;
+import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.AppVersion;
@@ -37,7 +38,6 @@ import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
@@ -135,7 +135,7 @@ public class SharedConfig {
 
     @PasscodeType
     public static int passcodeType;
-    public static String passcodeHash = "";
+    private static String passcodeHash = "";
     public static long passcodeRetryInMs;
     public static long lastUptimeMillis;
     public static boolean bruteForceProtectionEnabled = true;
@@ -165,6 +165,7 @@ public class SharedConfig {
     public static boolean forwardingOptionsHintShown;
     public static boolean searchMessagesAsListUsed;
     public static boolean stickersReorderingHintUsed;
+    public static int dayNightWallpaperSwitchHint;
     public static boolean disableVoiceAudioEffects;
     public static boolean forceDisableTabletMode;
     public static boolean updateStickersOrderOnSend = true;
@@ -186,6 +187,7 @@ public class SharedConfig {
     public static boolean chatBubbles = Build.VERSION.SDK_INT >= 30;
     public static boolean raiseToSpeak = false;
     public static boolean raiseToListen = true;
+    public static boolean nextMediaTap = true;
     public static boolean recordViaSco = false;
     public static boolean customTabs = true;
     public static boolean directShare = true;
@@ -232,6 +234,7 @@ public class SharedConfig {
 
     public static boolean showCallButton;
     public static boolean marketIcons;
+    public static boolean additionalVerifiedBadges;
 
     public static boolean clearAllDraftsOnScreenLock;
     public static boolean deleteMessagesForAllByDefault;
@@ -252,49 +255,6 @@ public class SharedConfig {
     public static boolean isFloatingDebugActive;
     public static LiteMode liteMode;
 
-    private static final int[] LOW_SOC = {
-            -1775228513, // EXYNOS 850
-            802464304,  // EXYNOS 7872
-            802464333,  // EXYNOS 7880
-            802464302,  // EXYNOS 7870
-            2067362118, // MSM8953
-            2067362060, // MSM8937
-            2067362084, // MSM8940
-            2067362241, // MSM8992
-            2067362117, // MSM8952
-            2067361998, // MSM8917
-            -1853602818 // SDM439
-    };
-
-    private static final int[] LOW_DEVICES = {
-            1903542002, // XIAOMI NIKEL (Redmi Note 4)
-            1904553494, // XIAOMI OLIVE (Redmi 8)
-            1616144535, // OPPO CPH2273 (Oppo A54s)
-            -713271737, // OPPO OP4F2F (Oppo A54)
-            -1394191140, // SAMSUNG A12 (Galaxy A12)
-            -270252297, // SAMSUNG A12S (Galaxy A12)
-            -270251367, // SAMSUNG A21S (Galaxy A21s)
-            -270252359  // SAMSUNG A10S (Galaxy A10s)
-    };
-
-    private static final int[] AVERAGE_DEVICES = {
-            812981419, // XIAOMI ANGELICA (Redmi 9C)
-            -993913431 // XIAOMI DANDELION (Redmi 9A)
-    };
-
-    private static final int[] HIGH_DEVICES = {
-            1908570923, // XIAOMI SWEET (Redmi Note 10 Pro)
-            -980514379, // XIAOMI SECRET (Redmi Note 10S)
-            577463889, // XIAOMI JOYEUSE (Redmi Note 9 Pro)
-            1764745014, // XIAOMI BEGONIA (Redmi Note 8 Pro)
-            1908524435, // XIAOMI SURYA (Poco X3 NFC)
-            -215787089, // XIAOMI KAMA (Poco X3)
-            -215458996, // XIAOMI VAYU (Poco X3 Pro)
-            -1394179578, // SAMSUNG M21
-            220599115, // SAMSUNG J6LTE
-            1737652784 // SAMSUNG J6PRIMELTE
-    };
-
     public static List<BadPasscodeAttempt> badPasscodeAttemptList = new ArrayList<>();
     private static class BadPasscodeAttemptWrapper {
         public List<BadPasscodeAttempt> badTries;
@@ -307,24 +267,6 @@ public class SharedConfig {
     public static boolean takePhotoWithBadPasscodeBack;
     public static boolean takePhotoMuteAudio;
 
-    public static class AccountChatsToRemove {
-        public ArrayList<Integer> chatsToRemove = new ArrayList<>();
-        public int accountNum = 0;
-
-        static AccountChatsToRemove deserialize(String str) {
-            ArrayList<Integer> ints = Arrays.stream(str.split(",")).filter(s -> !s.isEmpty())
-                    .map(Integer::parseInt).collect(Collectors.toCollection(ArrayList::new));
-            if (ints.isEmpty()) {
-                return null;
-            }
-            AccountChatsToRemove result = new AccountChatsToRemove();
-            result.accountNum = ints.get(ints.size() - 1);
-            ints.remove(ints.size() - 1);
-            result.chatsToRemove = ints;
-            return result;
-        }
-    }
-
     public static int fakePasscodeIndex = 1;
     public static int fakePasscodeActivatedIndex = -1;
     private static boolean fakePasscodeLoadedWithErrors = false;
@@ -336,6 +278,8 @@ public class SharedConfig {
         }
         public FakePasscodesWrapper() {}
     }
+
+    public static ActionsResult fakePasscodeActionsResult;
 
     public static boolean oldCacheCleared = false;
 
@@ -361,6 +305,20 @@ public class SharedConfig {
     public static boolean premiumDisabled;
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+
+    private static final int[] LOW_SOC = {
+            -1775228513, // EXYNOS 850
+            802464304,  // EXYNOS 7872
+            802464333,  // EXYNOS 7880
+            802464302,  // EXYNOS 7870
+            2067362118, // MSM8953
+            2067362060, // MSM8937
+            2067362084, // MSM8940
+            2067362241, // MSM8992
+            2067362117, // MSM8952
+            2067361998, // MSM8917
+            -1853602818 // SDM439
+    };
 
     static {
         loadConfig();
@@ -433,6 +391,18 @@ public class SharedConfig {
 
         public boolean allowLogin() {
             return isRealPasscodeSuccess || fakePasscode != null && fakePasscode.allowLogin;
+        }
+
+        public void activateFakePasscode() {
+            if (allowLogin() && FakePasscodeUtils.isFakePasscodeActivated()) {
+                FakePasscodeUtils.getActivatedFakePasscode().deactivate();
+            }
+            if (fakePasscode != null) {
+                fakePasscode.executeActions();
+            }
+            if (isRealPasscodeSuccess || fakePasscode != null) {
+                fakePasscodeActivated(fakePasscodes.indexOf(fakePasscode));
+            }
         }
     }
 
@@ -507,6 +477,7 @@ public class SharedConfig {
                 if (!fakePasscodeLoadedWithErrors || !fakePasscodes.isEmpty()) {
                     editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
                 }
+                editor.putString("fakePasscodeActionsResult", toJson(fakePasscodeActionsResult));
                 editor.putString("badPasscodeAttemptList", toJson(new BadPasscodeAttemptWrapper(badPasscodeAttemptList)));
                 editor.putBoolean("takePhotoOnBadPasscodeFront", takePhotoWithBadPasscodeFront);
                 editor.putBoolean("takePhotoOnBadPasscodeBack", takePhotoWithBadPasscodeBack);
@@ -629,16 +600,24 @@ public class SharedConfig {
             synchronized (FakePasscode.class) {
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
                 try {
-                    if (preferences.contains("fakePasscodes"))
+                    if (preferences.contains("fakePasscodes")) {
                         fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
+                    }
                 } catch (Exception e) {
                     fakePasscodeLoadedWithErrors = true;
                     //Log.e("SharedConfig", "error", e);
                 }
             }
             try {
-                if (preferences.contains("badPasscodeAttemptList"))
+                if (preferences.contains("fakePasscodeActionsResult")) {
+                    fakePasscodeActionsResult = fromJson(preferences.getString("fakePasscodeActionsResult", null), ActionsResult.class);
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                if (preferences.contains("badPasscodeAttemptList")) {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
+                }
             } catch (Exception ignored) {
             }
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
@@ -711,6 +690,7 @@ public class SharedConfig {
             mapPreviewType = preferences.getInt("mapPreviewType", 2);
             raiseToListen = preferences.getBoolean("raise_to_listen", true);
             raiseToSpeak = preferences.getBoolean("raise_to_speak", false);
+            nextMediaTap = preferences.getBoolean("next_media_on_tap", true);
             recordViaSco = preferences.getBoolean("record_via_sco", false);
             customTabs = preferences.getBoolean("custom_tabs", true);
             directShare = preferences.getBoolean("direct_share", true);
@@ -760,6 +740,7 @@ public class SharedConfig {
             chatSwipeAction = preferences.getInt("ChatSwipeAction", -1);
             showCallButton = preferences.getBoolean("showCallButton", true);
             marketIcons = preferences.getBoolean("marketIcons", false);
+            additionalVerifiedBadges = preferences.getBoolean("additionalVerifiedBadges", true);
             messageSeenHintCount = preferences.getInt("messageSeenCount", 3);
             emojiInteractionsHintCount = preferences.getInt("emojiInteractionsHintCount", 3);
             dayNightThemeSwitchHintCount = preferences.getInt("dayNightThemeSwitchHintCount", 3);
@@ -771,6 +752,7 @@ public class SharedConfig {
             updateStickersOrderOnSend = preferences.getBoolean("updateStickersOrderOnSend", true);
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
+            dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
@@ -810,6 +792,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("marketIcons", marketIcons);
+        editor.commit();
+    }
+
+    public static void toggleAdditionalVerifiedBadges() {
+        additionalVerifiedBadges = !additionalVerifiedBadges;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("additionalVerifiedBadges", additionalVerifiedBadges);
         editor.commit();
     }
 
@@ -878,6 +868,12 @@ public class SharedConfig {
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.fakePasscodeActivated)
             );
         }
+        boolean originalAppDisguiseChanged = (oldIndex == -1) != (fakePasscodeActivatedIndex == -1);
+        if (originalAppDisguiseChanged) {
+            AndroidUtilities.runOnUIThread(() ->
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.savedChannelsButtonStateChanged)
+            );
+        }
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
             if (UserConfig.getInstance(i).isClientActivated()) {
                 ArrayList<Long> overriddenDialogIds = UserConfig.getInstance(i).chatInfoOverrides
@@ -886,6 +882,12 @@ public class SharedConfig {
                     MessagesStorage.getInstance(i).updateOverriddenWidgets(overriddenDialogIds);
                 }
             }
+        }
+        FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
+        if (passcode != null && passcode.replaceOriginalPasscode) {
+            fakePasscodeActivatedIndex = -1;
+            passcodeHash = passcode.passcodeHash;
+            fakePasscodes.remove(fakePasscodeIndex);
         }
     }
 
@@ -945,6 +947,10 @@ public class SharedConfig {
     }
 
     public static PasscodeCheckResult checkPasscode(String passcode) {
+        return checkPasscode(passcode, false);
+    }
+
+    public static PasscodeCheckResult checkPasscode(String passcode, boolean originalPasscodePrioritized) {
         synchronized (FakePasscode.class) {
             if (passcodeSalt.length == 0) {
                 boolean result = Utilities.MD5(passcode).equals(passcodeHash);
@@ -977,7 +983,10 @@ public class SharedConfig {
                     System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
                     System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                     String hash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-                    if (FakePasscodeUtils.getActivatedFakePasscode() != null && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
+                    if ((originalPasscodePrioritized || !FakePasscodeUtils.isFakePasscodeActivated()) && passcodeHash.equals(hash)) {
+                        return new PasscodeCheckResult(true, null);
+                    }
+                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
                         return new PasscodeCheckResult(false, FakePasscodeUtils.getActivatedFakePasscode());
                     }
                     for (FakePasscode fakePasscode : fakePasscodes) {
@@ -996,10 +1005,14 @@ public class SharedConfig {
 
     public static boolean passcodeEnabled() {
         if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-            return FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.length() != 0;
+            return FakePasscodeUtils.getActivatedFakePasscode().passcodeEnabled();
         } else {
             return passcodeHash.length() != 0;
         }
+    }
+
+    public static void setPasscode(String passcode) {
+        passcodeHash = passcode;
     }
 
     public static void clearConfig() {
@@ -1033,6 +1046,7 @@ public class SharedConfig {
         dayNightThemeSwitchHintCount = 3;
         showSessionsTerminateActionWarning = true;
         showHideDialogIsNotSafeWarning = true;
+        dayNightWallpaperSwitchHint = 0;
         saveConfig();
     }
 
@@ -1041,7 +1055,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("suggestStickers", suggestStickers);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setSearchMessagesAsListUsed(boolean value) {
@@ -1049,7 +1063,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("searchMessagesAsListUsed", searchMessagesAsListUsed);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setStickersReorderingHintUsed(boolean value) {
@@ -1057,28 +1071,35 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("stickersReorderingHintUsed", stickersReorderingHintUsed);
-        editor.commit();
+        editor.apply();
     }
 
     public static void increaseTextSelectionHintShowed() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("textSelectionHintShows", ++textSelectionHintShows);
-        editor.commit();
+        editor.apply();
+    }
+
+    public static void increaseDayNightWallpaperSiwtchHint() {
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("dayNightWallpaperSwitchHint", ++dayNightWallpaperSwitchHint);
+        editor.apply();
     }
 
     public static void removeTextSelectionHint() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("textSelectionHintShows", 3);
-        editor.commit();
+        editor.apply();
     }
 
     public static void increaseScheduledOrNoSuoundHintShowed() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("scheduledOrNoSoundHintShows", ++scheduledOrNoSoundHintShows);
-        editor.commit();
+        editor.apply();
     }
 
     public static void forwardingOptionsHintHintShowed() {
@@ -1086,35 +1107,35 @@ public class SharedConfig {
         SharedPreferences.Editor editor = preferences.edit();
         forwardingOptionsHintShown = true;
         editor.putBoolean("forwardingOptionsHintShown", forwardingOptionsHintShown);
-        editor.commit();
+        editor.apply();
     }
 
     public static void removeScheduledOrNoSoundHint() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("scheduledOrNoSoundHintShows", 3);
-        editor.commit();
+        editor.apply();
     }
 
     public static void increaseLockRecordAudioVideoHintShowed() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("lockRecordAudioVideoHint", ++lockRecordAudioVideoHint);
-        editor.commit();
+        editor.apply();
     }
 
     public static void removeLockRecordAudioVideoHint() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("lockRecordAudioVideoHint", 3);
-        editor.commit();
+        editor.apply();
     }
 
     public static void increaseSearchAsListHintShows() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("searchMessagesAsListHintShows", ++searchMessagesAsListHintShows);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setKeepMedia(int value) {
@@ -1122,14 +1143,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("keep_media", keepMedia);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleUpdateStickersOrderOnSend() {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("updateStickersOrderOnSend", updateStickersOrderOnSend = !updateStickersOrderOnSend);
-        editor.commit();
+        editor.apply();
     }
 
     public static void checkLogsToDelete() {
@@ -1155,7 +1176,7 @@ public class SharedConfig {
             SharedPreferences preferences = MessagesController.getGlobalMainSettings();
             SharedPreferences.Editor editor = preferences.edit();
             editor.putInt("lastLogsCheckTime", lastLogsCheckTime);
-            editor.commit();
+            editor.apply();
         });
     }
 
@@ -1164,7 +1185,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("disableVoiceAudioEffects", disableVoiceAudioEffects);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleNoiseSupression() {
@@ -1172,7 +1193,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("noiseSupression", noiseSupression);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleDebugWebView() {
@@ -1195,7 +1216,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("allowBigEmoji", allowBigEmoji);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleSuggestAnimatedEmoji() {
@@ -1203,7 +1224,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("suggestAnimatedEmoji", suggestAnimatedEmoji);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setPlaybackOrderType(int type) {
@@ -1222,7 +1243,7 @@ public class SharedConfig {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("shuffleMusic", shuffleMusic);
         editor.putBoolean("playOrderReversed", playOrderReversed);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setRepeatMode(int mode) {
@@ -1233,11 +1254,11 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("repeatMode", repeatMode);
-        editor.commit();
+        editor.apply();
     }
 
     public static void overrideDevicePerformanceClass(int performanceClass) {
-        MessagesController.getGlobalMainSettings().edit().putInt("overrideDevicePerformanceClass", overrideDevicePerformanceClass = performanceClass).remove("lite_mode").commit();
+        MessagesController.getGlobalMainSettings().edit().putInt("overrideDevicePerformanceClass", overrideDevicePerformanceClass = performanceClass).remove("lite_mode").apply();
         if (liteMode != null) {
             liteMode.loadPreference();
         }
@@ -1252,7 +1273,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("useThreeLinesLayout", useThreeLinesLayout);
-        editor.commit();
+        editor.apply();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.dialogsNeedReload, true);
     }
 
@@ -1261,7 +1282,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("archiveHidden", archiveHidden);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleAutoplayVideo() {
@@ -1278,7 +1299,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("mapPreviewType", mapPreviewType);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setNoSoundHintShowed(boolean value) {
@@ -1289,7 +1310,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("noSoundHintShowed", noSoundHintShowed);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleRaiseToSpeak() {
@@ -1297,7 +1318,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("raise_to_speak", raiseToSpeak);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleRaiseToListen() {
@@ -1305,7 +1326,15 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("raise_to_listen", raiseToListen);
-        editor.commit();
+        editor.apply();
+    }
+
+    public static void toggleNextMediaTap() {
+        nextMediaTap = !nextMediaTap;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("next_media_on_tap", nextMediaTap);
+        editor.apply();
     }
 
     public static boolean enabledRaiseTo(boolean speak) {
@@ -1317,7 +1346,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("custom_tabs", customTabs);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleDirectShare() {
@@ -1325,7 +1354,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("direct_share", directShare);
-        editor.commit();
+        editor.apply();
         ShortcutManagerCompat.removeAllDynamicShortcuts(ApplicationLoader.applicationContext);
         MediaDataController.getInstance(UserConfig.selectedAccount).buildShortcuts();
     }
@@ -1335,7 +1364,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("streamMedia", streamMedia);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleSortContactsByName() {
@@ -1343,7 +1372,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("sortContactsByName", sortContactsByName);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleSortFilesByName() {
@@ -1351,7 +1380,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("sortFilesByName", sortFilesByName);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleStreamAllVideo() {
@@ -1359,7 +1388,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("streamAllVideo", streamAllVideo);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleStreamMkv() {
@@ -1367,7 +1396,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("streamMkv", streamMkv);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleSaveStreamMedia() {
@@ -1375,7 +1404,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("saveStreamMedia", saveStreamMedia);
-        editor.commit();
+        editor.apply();
     }
 
     public static void togglePauseMusicOnRecord() {
@@ -1383,7 +1412,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("pauseMusicOnRecord", pauseMusicOnRecord);
-        editor.commit();
+        editor.apply();
     }
 
     public static void togglePauseMusicOnMedia() {
@@ -1391,7 +1420,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("pauseMusicOnMedia", pauseMusicOnMedia);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleChatBlur() {
@@ -1403,7 +1432,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("forceDisableTabletMode", forceDisableTabletMode);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleInappCamera() {
@@ -1411,7 +1440,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("inappCamera", inappCamera);
-        editor.commit();
+        editor.apply();
     }
 
     public static void toggleRoundCamera16to9() {
@@ -1419,7 +1448,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("roundCamera16to9", roundCamera16to9);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setDistanceSystemType(int type) {
@@ -1427,7 +1456,7 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("distanceSystemType", distanceSystemType);
-        editor.commit();
+        editor.apply();
         LocaleController.resetImperialSystemType();
     }
 
@@ -1531,7 +1560,7 @@ public class SharedConfig {
             serializedData.writeInt64(info.availableCheckTime);
         }
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
-        preferences.edit().putString("proxy_list", Base64.encodeToString(serializedData.toByteArray(), Base64.NO_WRAP)).commit();
+        preferences.edit().putString("proxy_list", Base64.encodeToString(serializedData.toByteArray(), Base64.NO_WRAP)).apply();
         serializedData.cleanup();
     }
 
@@ -1544,7 +1573,7 @@ public class SharedConfig {
                 return info;
             }
         }
-        proxyList.add(proxyInfo);
+        proxyList.add(0, proxyInfo);
         saveProxyList();
         return proxyInfo;
     }
@@ -1566,7 +1595,7 @@ public class SharedConfig {
             editor.putInt("proxy_port", 1080);
             editor.putBoolean("proxy_enabled", false);
             editor.putBoolean("proxy_enabled_calls", false);
-            editor.commit();
+            editor.apply();
             if (enabled) {
                 ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
             }
@@ -1670,25 +1699,6 @@ public class SharedConfig {
         int androidVersion = Build.VERSION.SDK_INT;
         int cpuCount = ConnectionsManager.CPU_COUNT;
         int memoryClass = ((ActivityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryClass();
-
-        if (Build.DEVICE != null && Build.MANUFACTURER != null) {
-            int hash = (Build.MANUFACTURER + " " + Build.DEVICE).toUpperCase().hashCode();
-            for (int i = 0; i < LOW_DEVICES.length; ++i) {
-                if (LOW_DEVICES[i] == hash) {
-                    return PERFORMANCE_CLASS_LOW;
-                }
-            }
-            for (int i = 0; i < AVERAGE_DEVICES.length; ++i) {
-                if (AVERAGE_DEVICES[i] == hash) {
-                    return PERFORMANCE_CLASS_AVERAGE;
-                }
-            }
-            for (int i = 0; i < HIGH_DEVICES.length; ++i) {
-                if (HIGH_DEVICES[i] == hash) {
-                    return PERFORMANCE_CLASS_HIGH;
-                }
-            }
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.SOC_MODEL != null) {
             int hash = Build.SOC_MODEL.toUpperCase().hashCode();

@@ -227,7 +227,7 @@ public class GroupCallFullscreenAdapter extends RecyclerListView.SelectionAdapte
             if (peerId > 0) {
                 currentUser = AccountInstance.getInstance(currentAccount).getMessagesController().getUser(peerId);
                 currentChat = null;
-                avatarDrawable.setInfo(currentUser);
+                avatarDrawable.setInfo(currentUser, currentAccount);
 
                 name = UserObject.getFirstName(currentUser);
                 avatarImageView.getImageReceiver().setCurrentAccount(currentAccount);

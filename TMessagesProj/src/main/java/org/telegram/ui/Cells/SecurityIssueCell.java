@@ -70,7 +70,7 @@ public abstract class SecurityIssueCell extends LinearLayout {
         closeButton = new ImageView(context);
         closeButton.setScaleType(ImageView.ScaleType.CENTER);
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.msg_close);
-        drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteRedText2), PorterDuff.Mode.MULTIPLY));
+        drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_color_red), PorterDuff.Mode.MULTIPLY));
         closeButton.setImageDrawable(drawable);
         closeButton.setFocusable(true);
         closeButton.setContentDescription(LocaleController.getString(R.string.Close));

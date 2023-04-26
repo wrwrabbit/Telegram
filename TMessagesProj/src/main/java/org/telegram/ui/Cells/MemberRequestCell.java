@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -53,7 +54,7 @@ public class MemberRequestCell extends FrameLayout {
 
         int btnPadding = AndroidUtilities.dp(17);
         TextView addButton = new TextView(getContext());
-        addButton.setBackground(Theme.AdaptiveRipple.filledRect(Theme.key_featuredStickers_addButton, 4));
+        addButton.setBackground(Theme.AdaptiveRipple.filledRectByKey(Theme.key_featuredStickers_addButton, 4));
         addButton.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         addButton.setMaxLines(1);
         addButton.setPadding(btnPadding, 0, btnPadding, 0);
@@ -96,11 +97,13 @@ public class MemberRequestCell extends FrameLayout {
         setWillNotDraw(!isNeedDivider);
 
         TLRPC.User user = users.get(importer.user_id);
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
         avatarImageView.setForUserOrChat(user, avatarDrawable);
-        nameTextView.setText(UserObject.getUserName(user));
+        nameTextView.setText(UserObject.getUserName(user, UserConfig.selectedAccount));
         String dateText = LocaleController.formatDateAudio(importer.date, false);
-        if (importer.approved_by == 0) {
+        if (importer.via_chatlist) {
+            statusTextView.setText(LocaleController.getString("JoinedViaFolder", R.string.JoinedViaFolder));
+        } else if (importer.approved_by == 0) {
             statusTextView.setText(LocaleController.formatString("RequestedToJoinAt", R.string.RequestedToJoinAt, dateText));
         } else {
             TLRPC.User approvedByUser = users.get(importer.approved_by);

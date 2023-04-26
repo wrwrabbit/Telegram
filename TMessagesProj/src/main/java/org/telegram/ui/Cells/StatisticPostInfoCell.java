@@ -17,6 +17,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
@@ -141,7 +142,7 @@ public class StatisticPostInfoCell extends FrameLayout {
     }
 
     public void setData(StatisticActivity.MemberData memberData) {
-        avatarDrawable.setInfo(memberData.user);
+        avatarDrawable.setInfo(memberData.user, UserConfig.selectedAccount);
         imageView.setForUserOrChat(memberData.user, avatarDrawable);
         imageView.setRoundRadius(AndroidUtilities.dp(46) >> 1);
         message.setText(memberData.user.first_name);

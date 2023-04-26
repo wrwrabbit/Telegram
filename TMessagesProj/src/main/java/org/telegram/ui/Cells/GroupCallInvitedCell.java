@@ -36,7 +36,7 @@ public class GroupCallInvitedCell extends FrameLayout {
 
     private Paint dividerPaint;
 
-    private String grayIconColor = Theme.key_voipgroup_mutedIcon;
+    private int grayIconColor = Theme.key_voipgroup_mutedIcon;
 
     private boolean needDivider;
 
@@ -85,7 +85,7 @@ public class GroupCallInvitedCell extends FrameLayout {
 
     public void setData(int account, Long uid) {
         currentUser = MessagesController.getInstance(account).getUser(uid);
-        avatarDrawable.setInfo(currentUser);
+        avatarDrawable.setInfo(currentUser, account);
 
         String lastName = UserObject.getUserName(currentUser, account);
         nameTextView.setText(lastName);
@@ -99,10 +99,8 @@ public class GroupCallInvitedCell extends FrameLayout {
         invalidate();
     }
 
-    public void setGrayIconColor(String key, int value) {
-        if (!grayIconColor.equals(key)) {
-            grayIconColor = key;
-        }
+    public void setGrayIconColor(int key, int value) {
+        grayIconColor = key;
         muteButton.setColorFilter(new PorterDuffColorFilter(value, PorterDuff.Mode.MULTIPLY));
         statusTextView.setTextColor(value);
         Theme.setSelectorDrawableColor(muteButton.getDrawable(), value & 0x24ffffff, true);

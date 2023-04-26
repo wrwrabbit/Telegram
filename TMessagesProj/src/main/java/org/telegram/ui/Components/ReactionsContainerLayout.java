@@ -51,6 +51,7 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
@@ -164,6 +165,7 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
     private Paint selectedPaint;
     ChatScrimPopupContainerLayout parentLayout;
     private boolean animatePopup;
+    final AnimationNotificationsLocker notificationsLocker = new AnimationNotificationsLocker();
 
     public ReactionsContainerLayout(BaseFragment fragment, @NonNull Context context, int currentAccount, Theme.ResourcesProvider resourcesProvider) {
         super(context);
@@ -367,6 +369,7 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
             private static final int VIEW_TYPE_REACTION = 0;
             private static final int VIEW_TYPE_PREMIUM_BUTTON = 1;
             private static final int VIEW_TYPE_CUSTOM_EMOJI_BUTTON = 2;
+
             @Override
             public void notifyDataSetChanged() {
                 oldItems.clear();
@@ -1074,15 +1077,23 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
         this.animatePopup = animatePopup;
         setTransitionProgress(0);
         setAlpha(1f);
+        notificationsLocker.lock();
+        ObjectAnimator animator;
         if (allowSmoothEnterTransition()) {
-            ObjectAnimator animator = ObjectAnimator.ofFloat(this, ReactionsContainerLayout.TRANSITION_PROGRESS_VALUE, 0f, 1f).setDuration(250);
+            animator = ObjectAnimator.ofFloat(this, ReactionsContainerLayout.TRANSITION_PROGRESS_VALUE, 0f, 1f).setDuration(250);
             animator.setInterpolator(new OvershootInterpolator(0.5f));
-            animator.start();
         } else {
-            ObjectAnimator animator = ObjectAnimator.ofFloat(this, ReactionsContainerLayout.TRANSITION_PROGRESS_VALUE, 0f, 1f).setDuration(250);
+            animator = ObjectAnimator.ofFloat(this, ReactionsContainerLayout.TRANSITION_PROGRESS_VALUE, 0f, 1f).setDuration(250);
             animator.setInterpolator(new OvershootInterpolator(0.5f));
-            animator.start();
         }
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                notificationsLocker.unlock();
+            }
+        });
+        animator.start();
     }
 
     public int getTotalWidth() {
@@ -1171,7 +1182,7 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
         alertDialog.show();
         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
         if (button != null) {
-            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+            button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
         }
     }
 

@@ -327,9 +327,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                                 .setPositiveButton(LocaleController.getString(R.string.DisablePasscodeTurnOff), (dialog, which) -> {
                                     if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                                        FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = "";
+                                        FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = true;
                                     } else {
-                                        SharedConfig.passcodeHash = "";
+                                        SharedConfig.setPasscode("");
                                         for (FakePasscode passcode: SharedConfig.fakePasscodes) {
                                             passcode.onDelete();
                                         }
@@ -354,7 +354,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                     finishFragment();
                                 }).create();
                         alertDialog.show();
-                        ((TextView)alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                        ((TextView)alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     } else if (position == changePasscodeRow) {
                         if (SharedConfig.fakePasscodes.isEmpty() || FakePasscodeUtils.getActivatedFakePasscode() != null) {
                             presentFragment(new PasscodeActivity(TYPE_SETUP_CODE));
@@ -1264,9 +1264,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                 if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                     FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                    FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = false;
                     SharedConfig.autoLockIn = 60;
                 } else {
-                    SharedConfig.passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                    SharedConfig.setPasscode(Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)));
                     for (FakePasscode passcode: SharedConfig.fakePasscodes) {
                         passcode.onDelete();
                     }
@@ -1521,8 +1522,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (position == disablePasscodeRow) {
                         textCell.setText(LocaleController.getString(R.string.DisablePasscode), false);
-                        textCell.setTag(Theme.key_dialogTextRed);
-                        textCell.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                        textCell.setTag(Theme.key_text_RedBold);
+                        textCell.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     } else if (position == badPasscodeAttemptsRow) {
                         textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.badPasscodeAttemptList.size()),true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
@@ -1570,11 +1571,11 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         cell.getTextView().setGravity(Gravity.CENTER_HORIZONTAL);
                     } else if (position == autoLockDetailRow) {
                         cell.setText(LocaleController.getString(R.string.AutoLockInfo));
-                        cell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                        cell.setBackground(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                         cell.getTextView().setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
                     } else if (position == captureDetailRow) {
                         cell.setText(LocaleController.getString(R.string.ScreenCaptureInfo));
-                        cell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                        cell.setBackground(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                         cell.getTextView().setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
                     } else if (position == bruteForceProtectionDetailRow) {
                         cell.setText(LocaleController.getString("BruteForceProtectionInfo", R.string.BruteForceProtectionInfo));

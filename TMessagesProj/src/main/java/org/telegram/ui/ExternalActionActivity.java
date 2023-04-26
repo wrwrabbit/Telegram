@@ -200,7 +200,7 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
         handleIntent(getIntent(), false, savedInstanceState != null, false, UserConfig.selectedAccount, 0);
         needLayout();
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appDidLogoutByAction);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appHiddenByAction);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.accountHidingChanged);
     }
 
     private void showPasscodeActivity() {
@@ -450,7 +450,7 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
         }
         finished = true;
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appDidLogoutByAction);
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appHiddenByAction);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.accountHidingChanged);
     }
 
     public void presentFragment(BaseFragment fragment) {
@@ -688,12 +688,12 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.appHiddenByAction) {
+        if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.accountHidingChanged) {
             boolean launchActivityObservesToo = NotificationCenter.getGlobalInstance()
-                    .getObservers(NotificationCenter.appHiddenByAction)
+                    .getObservers(NotificationCenter.accountHidingChanged)
                     .stream().anyMatch(o -> o instanceof LaunchActivity);
             if (launchActivityObservesToo) {
-                NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appHiddenByAction);
+                NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.accountHidingChanged);
                 NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appDidLogoutByAction);
             } else if (FakePasscodeUtils.isNeedSwitchAccount()) {
                 switchToAvailableAccountOrLogout();

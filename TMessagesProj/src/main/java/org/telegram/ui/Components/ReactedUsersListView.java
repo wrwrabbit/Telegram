@@ -188,7 +188,7 @@ public class ReactedUsersListView extends FrameLayout {
                 return !customReactionsEmoji.isEmpty() && messageContainsEmojiButton != null ? messageContainsEmojiButton.getMeasuredHeight() + AndroidUtilities.dp(8) : 0;
             }
         };
-        loadingView.setColors(Theme.key_actionBarDefaultSubmenuBackground, Theme.key_listSelector, null);
+        loadingView.setColors(Theme.key_actionBarDefaultSubmenuBackground, Theme.key_listSelector, -1);
 
         loadingView.setIsSingleCell(true);
         loadingView.setItemsCount(predictiveCount);
@@ -463,7 +463,7 @@ public class ReactedUsersListView extends FrameLayout {
                 rightDrawable.set(documentId, false);
             }
 
-            avatarDrawable.setInfo(u);
+            avatarDrawable.setInfo(u, currentAccount);
             titleView.setText(UserObject.getUserName(u, currentAccount));
 
             Drawable thumb = avatarDrawable;

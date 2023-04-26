@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -88,7 +89,7 @@ public class PremiumGiftHeaderCell extends LinearLayout {
     public void bind(TLRPC.User user) {
         this.user = user;
 
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
         avatarImageView.setForUserOrChat(user, avatarDrawable);
 
         titleView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.GiftTelegramPremiumTitle)));

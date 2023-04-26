@@ -78,6 +78,7 @@ import java.util.Locale;
 
 public class PasscodeView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private final static float BACKGROUND_SPRING_STIFFNESS = 300f;
+    private boolean showed = false;
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
@@ -93,6 +94,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 if (fingerprintDialog != null) {
                     fingerprintDialog.dismiss();
                 }
+            }
+        } else if (id == NotificationCenter.fakePasscodeActivated) {
+            if (FakePasscodeUtils.isFakePasscodeActivated() && !FakePasscodeUtils.getActivatedFakePasscode().passcodeEnabled()) {
+                appUnlocked();
             }
         }
     }
@@ -949,14 +954,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             }
             SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
             synchronized (FakePasscode.class) {
-                if (result.fakePasscode != null) {
-                    result.fakePasscode.executeActions();
-                }
-                if (result.isRealPasscodeSuccess || result.fakePasscode != null) {
-                    SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(result.fakePasscode));
-                }
+                result.activateFakePasscode();
                 SharedConfig.saveConfig();
-                if (!result.allowLogin() || result.fakePasscode != null  || SharedConfig.bruteForceProtectionEnabled && SharedConfig.bruteForceRetryInMillis > 0) {
+                if (!result.allowLogin() || result.fakePasscode != null && !result.fakePasscode.replaceOriginalPasscode
+                        || SharedConfig.bruteForceProtectionEnabled && SharedConfig.bruteForceRetryInMillis > 0) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
                     SharedConfig.badPasscodeAttemptList.add(badAttempt);
                     SharedConfig.saveConfig();
@@ -988,10 +989,12 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             synchronized (FakePasscode.class) {
                 if (fakePasscode != null) {
                     fakePasscode.executeActions();
+                } else if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                    FakePasscodeUtils.getActivatedFakePasscode().deactivate();
                 }
                 SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(fakePasscode));
                 SharedConfig.saveConfig();
-                if (fakePasscode != null) {
+                if (fakePasscode != null && !fakePasscode.replaceOriginalPasscode) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, true);
                     SharedConfig.badPasscodeAttemptList.add(badAttempt);
                     SharedConfig.saveConfig();
@@ -1014,6 +1017,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             FingerprintController.deleteInvalidKey();
         }
 
+        appUnlocked();
+    }
+
+    private void appUnlocked() {
         SharedConfig.setAppLocked(false);
         SharedConfig.saveConfig();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
@@ -1022,20 +1029,26 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             delegate.didAcceptedPassword(this);
         }
 
-        AndroidUtilities.runOnUIThread(() -> {
-            AnimatorSet AnimatorSet = new AnimatorSet();
-            AnimatorSet.setDuration(200);
-            AnimatorSet.playTogether(
-                    ObjectAnimator.ofFloat(this, View.TRANSLATION_Y, AndroidUtilities.dp(20)),
-                    ObjectAnimator.ofFloat(this, View.ALPHA, AndroidUtilities.dp(0.0f)));
-            AnimatorSet.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    setVisibility(View.GONE);
-                }
-            });
-            AnimatorSet.start();
+        AndroidUtilities.runOnUIThread(this::hidePasscodeView);
+    }
+
+    private void hidePasscodeView() {
+        if (!showed) {
+            AndroidUtilities.runOnUIThread(this::hidePasscodeView, 500);
+            return;
+        }
+        AnimatorSet AnimatorSet = new AnimatorSet();
+        AnimatorSet.setDuration(200);
+        AnimatorSet.playTogether(
+                ObjectAnimator.ofFloat(this, View.TRANSLATION_Y, AndroidUtilities.dp(20)),
+                ObjectAnimator.ofFloat(this, View.ALPHA, AndroidUtilities.dp(0.0f)));
+        AnimatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                setVisibility(View.GONE);
+            }
         });
+        AnimatorSet.start();
     }
 
     private void shakeTextView(final float x, final int num) {
@@ -1164,6 +1177,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didGenerateFingerprintKeyPair);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.passcodeDismissed);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
     }
 
     @Override
@@ -1172,6 +1186,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didGenerateFingerprintKeyPair);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.passcodeDismissed);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
     }
 
     private void checkFingerprint() {
@@ -1334,6 +1349,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     }
 
     public void onShow(boolean fingerprint, boolean animated, int x, int y, Runnable onShow, Runnable onStart) {
+        showed = false;
         checkFingerprintButton();
         checkRetryTextView();
         Activity parentActivity = (Activity) getContext();
@@ -1355,6 +1371,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             checkFingerprint();
         }
         if (getVisibility() == View.VISIBLE) {
+            showed = true;
             return;
         }
         setTranslationY(0);
@@ -1564,6 +1581,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         }
 
         setOnTouchListener((v, event) -> true);
+        showed = true;
     }
 
     private void showFingerprintError(CharSequence error) {

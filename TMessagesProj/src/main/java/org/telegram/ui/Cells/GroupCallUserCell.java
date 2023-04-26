@@ -126,7 +126,7 @@ public class GroupCallUserCell extends FrameLayout {
         muteButton.playAnimation();
     };
 
-    private String grayIconColor = Theme.key_voipgroup_mutedIcon;
+    private int grayIconColor = Theme.key_voipgroup_mutedIcon;
 
     private Runnable checkRaiseRunnable = () -> applyParticipantChanges(true, true);
 
@@ -470,10 +470,10 @@ public class GroupCallUserCell extends FrameLayout {
         if (id > 0) {
             currentUser = accountInstance.getMessagesController().getUser(id);
             currentChat = null;
-            avatarDrawable.setInfo(currentUser);
+            avatarDrawable.setInfo(currentUser, account.getCurrentAccount());
 
             nameTextView.setText(UserObject.getUserName(currentUser, account.getCurrentAccount()));
-            if (currentUser != null && currentUser.verified) {
+            if (currentUser != null && currentUser.isVerified()) {
                 rightDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new VerifiedDrawable(getContext()) : verifiedDrawable), animated);
             } else if (currentUser != null && currentUser.emoji_status instanceof TLRPC.TL_emojiStatus) {
                 rightDrawable.set(((TLRPC.TL_emojiStatus) currentUser.emoji_status).document_id, animated);
@@ -514,7 +514,7 @@ public class GroupCallUserCell extends FrameLayout {
 
             if (currentChat != null) {
                 nameTextView.setText(account.getUserConfig().getChatTitleOverride(currentChat));
-                if (currentChat.verified) {
+                if (currentChat.isVerified()) {
                     rightDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new VerifiedDrawable(getContext()) : verifiedDrawable), animated);
                 } else {
                     rightDrawable.set((Drawable) null, animated);
@@ -586,8 +586,8 @@ public class GroupCallUserCell extends FrameLayout {
         applyParticipantChanges(animated, false);
     }
 
-    public void setGrayIconColor(String key, int value) {
-        if (!grayIconColor.equals(key)) {
+    public void setGrayIconColor(int key, int value) {
+        if (grayIconColor != key) {
             if (currentIconGray) {
                 lastMuteColor = Theme.getColor(key);
             }

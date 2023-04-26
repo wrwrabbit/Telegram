@@ -8,7 +8,7 @@ public class HideAccountAction extends AccountAction {
     @Override
     public void execute(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.add(accountNum);
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appHiddenByAction, accountNum);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
         AccountInstance.getInstance(accountNum).getNotificationsController().removeAllNotifications();
     }
 }

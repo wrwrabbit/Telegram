@@ -30,6 +30,7 @@ import android.transition.TransitionManager;
 import android.transition.TransitionSet;
 import android.transition.TransitionValues;
 import android.transition.Visibility;
+import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.util.TypedValue;
@@ -57,6 +58,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -72,6 +74,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
@@ -2103,7 +2106,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         } else {
                             participant = chatUsersAdapter.chatInfo.participants.participants.get(position);
                         }
-                        onMemberClick(participant, false);
+                        onMemberClick(participant, false, view);
                     } else if (mediaPage.listView.getAdapter() == groupUsersSearchAdapter) {
                         long user_id;
                         TLObject object = groupUsersSearchAdapter.getItem(position);
@@ -2198,7 +2201,15 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         return false;
                     }
                     participant = chatUsersAdapter.chatInfo.participants.participants.get(index);
-                    return onMemberClick(participant, true);
+                    RecyclerListView listView = (RecyclerListView) view.getParent();
+                    for (int i = 0; i < listView.getChildCount(); ++i) {
+                        View child = listView.getChildAt(i);
+                        if (listView.getChildAdapterPosition(child) == position) {
+                            view = child;
+                            break;
+                        }
+                    }
+                    return onMemberClick(participant, true, view);
                 } else if (mediaPage.selectedType == 1 && view instanceof SharedDocumentCell) {
                     return onItemLongClick(((SharedDocumentCell) view).getMessage(), view, 0);
                 } else if (mediaPage.selectedType == 3 && view instanceof SharedLinkCell) {
@@ -2644,7 +2655,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
     }
 
-    int animationIndex;
+    AnimationNotificationsLocker notificationsLocker = new AnimationNotificationsLocker();
 
     private void animateToMediaColumnsCount(int newColumnsCount) {
         MediaPage mediaPage = getMediaPage(0);
@@ -2664,7 +2675,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             saveScrollPosition();
             ValueAnimator animator = ValueAnimator.ofFloat(0, 1f);
             MediaPage finalMediaPage = mediaPage;
-            animationIndex = NotificationCenter.getInstance(profileActivity.getCurrentAccount()).setAnimationInProgress(animationIndex, null);
+            notificationsLocker.lock();
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -2675,7 +2686,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             animator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    NotificationCenter.getInstance(profileActivity.getCurrentAccount()).onAnimationFinish(animationIndex);
+                    notificationsLocker.unlock();
                     int oldItemCount = photoVideoAdapter.getItemCount();
                     photoVideoChangeColumnsAnimation = false;
                     sharedMediaData[0].setListFrozen(false);
@@ -3071,7 +3082,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     }
 
-    protected boolean onMemberClick(TLRPC.ChatParticipant participant, boolean isLong) {
+    protected boolean onMemberClick(TLRPC.ChatParticipant participant, boolean isLong, View view) {
         return false;
     }
 
@@ -6292,7 +6303,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             currentChat = delegate.getCurrentChat();
         }
 
-        private boolean createMenuForParticipant(TLObject participant, boolean resultOnly) {
+        private boolean createMenuForParticipant(TLObject participant, boolean resultOnly, View view) {
             if (participant instanceof TLRPC.ChannelParticipant) {
                 TLRPC.ChannelParticipant channelParticipant = (TLRPC.ChannelParticipant) participant;
                 TLRPC.TL_chatChannelParticipant p = new TLRPC.TL_chatChannelParticipant();
@@ -6302,7 +6313,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 p.date = channelParticipant.date;
                 participant = p;
             }
-            return delegate.onMemberClick((TLRPC.ChatParticipant) participant, true, resultOnly);
+            return delegate.onMemberClick((TLRPC.ChatParticipant) participant, true, resultOnly, view);
         }
 
         public void search(final String query, boolean animated) {
@@ -6369,7 +6380,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                                 continue;
                             }
 
-                            String name = UserObject.getUserName(user).toLowerCase();
+                            String name = UserObject.getUserName(user, UserConfig.selectedAccount).toLowerCase();
                             String tName = LocaleController.getInstance().getTranslitString(name);
                             if (name.equals(tName)) {
                                 tName = null;
@@ -6473,7 +6484,13 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 TLObject object = getItem((Integer) cell.getTag());
                 if (object instanceof TLRPC.ChannelParticipant) {
                     TLRPC.ChannelParticipant participant = (TLRPC.ChannelParticipant) object;
-                    return createMenuForParticipant(participant, !click);
+
+//                    int index = searchAdapterHelper.getGroupSearch().indexOf(object);
+//                    if (index >= 0) {
+//                        for ()
+//                    }
+
+                    return createMenuForParticipant(participant, !click, cell);
                 } else {
                     return false;
                 }
@@ -6500,7 +6517,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             String nameSearch = searchAdapterHelper.getLastFoundChannel();
 
             if (nameSearch != null) {
-                String u = UserObject.getUserName(user);
+                String u = UserObject.getUserName(user, UserConfig.selectedAccount);
                 name = new SpannableStringBuilder(u);
                 int idx = AndroidUtilities.indexOfIgnoreCase(u, nameSearch);
                 if (idx != -1) {
@@ -6731,15 +6748,17 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
     }
 
-    private int getThemedColor(String key) {
-        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
-        return color != null ? color : Theme.getColor(key);
+    private int getThemedColor(int key) {
+    if (resourcesProvider != null) {
+        return resourcesProvider.getColor(key);
     }
+    return Theme.getColor(key);
+}
 
     public interface Delegate {
         void scrollToSharedMedia();
 
-        boolean onMemberClick(TLRPC.ChatParticipant participant, boolean b, boolean resultOnly);
+        boolean onMemberClick(TLRPC.ChatParticipant participant, boolean b, boolean resultOnly, View view);
 
         TLRPC.Chat getCurrentChat();
 

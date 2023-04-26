@@ -225,7 +225,7 @@ public class ChatAttachAlertContactsLayout extends ChatAttachAlert.AttachAlertLa
             }
 
             if (currentUser != null) {
-                avatarDrawable.setInfo(currentUser);
+                avatarDrawable.setInfo(currentUser, currentAccount);
                 if (currentUser.status != null) {
                     lastStatus = currentUser.status.expires;
                 } else {
@@ -271,9 +271,8 @@ public class ChatAttachAlertContactsLayout extends ChatAttachAlert.AttachAlertLa
             }
         }
 
-        private int getThemedColor(String key) {
-            Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
-            return color != null ? color : Theme.getColor(key);
+        protected int getThemedColor(int key) {
+            return Theme.getColor(key, resourcesProvider);
         }
     }
 

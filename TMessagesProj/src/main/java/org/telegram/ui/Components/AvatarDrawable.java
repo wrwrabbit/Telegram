@@ -184,7 +184,7 @@ public class AvatarDrawable extends Drawable {
         return Theme.getColor(Theme.key_avatar_backgroundActionBarBlue, resourcesProvider);
     }
 
-    public static String getNameColorNameForId(long id) {
+    public static int getNameColorNameForId(long id) {
         return Theme.keys_avatar_nameInMessage[getColorIndex(id)];
     }
 
@@ -209,9 +209,9 @@ public class AvatarDrawable extends Drawable {
 
     public void setInfo(TLObject object) {
         if (object instanceof TLRPC.User) {
-            setInfo((TLRPC.User) object);
+            setInfo((TLRPC.User) object, UserConfig.selectedAccount);
         } else if (object instanceof TLRPC.Chat) {
-            setInfo((TLRPC.Chat) object);
+            setInfo((TLRPC.Chat) object, UserConfig.selectedAccount);
         } else if (object instanceof TLRPC.ChatInvite) {
             setInfo((TLRPC.ChatInvite) object);
         }
@@ -294,6 +294,7 @@ public class AvatarDrawable extends Drawable {
             setInfo(chat.id, chat.title, null, null);
         }
     }
+
     public void setInfo(TLRPC.ChatInvite chat) {
         if (chat != null) {
             setInfo(0, chat.title, null, null);
@@ -560,9 +561,8 @@ public class AvatarDrawable extends Drawable {
         return 0;
     }
 
-    private int getThemedColor(String key) {
-        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
-        return color != null ? color : Theme.getColor(key);
+    private int getThemedColor(int key) {
+        return Theme.getColor(key, resourcesProvider);
     }
 
     public void setRoundRadius(int roundRadius) {

@@ -179,7 +179,7 @@ public class FakePasscodeBackupActivity extends BaseFragment {
                         EditTextBoldCursor editText = (EditTextBoldCursor) holder.itemView;
                         editText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         editText.setBackgroundDrawable(null);
-                        editText.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_windowBackgroundWhiteRedText3));
+                        editText.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_color_red));
                         editText.setMaxLines(7);
                         editText.setPadding(AndroidUtilities.dp(LocaleController.isRTL ? 24 : 12), AndroidUtilities.dp(6), AndroidUtilities.dp(LocaleController.isRTL ? 12 : 24), AndroidUtilities.dp(6));
                         editText.setText(encodedStr, TextView.BufferType.NORMAL);

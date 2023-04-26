@@ -122,12 +122,17 @@ public class SvgHelper {
         private static WeakReference<Drawable> shiftDrawable;
         private ImageReceiver parentImageReceiver;
         private int[] currentColor = new int[2];
-        private String currentColorKey;
+        private int currentColorKey;
         private Integer overrideColor;
         private Theme.ResourcesProvider currentResourcesProvider;
         private float colorAlpha;
         private float crossfadeAlpha = 1.0f;
         SparseArray<Paint> overridePaintByPosition = new SparseArray<>();
+
+        private static boolean lite = LiteMode.isEnabled(LiteMode.FLAG_CHAT_BACKGROUND);
+        public static void updateLiteValues() {
+            lite = LiteMode.isEnabled(LiteMode.FLAG_CHAT_BACKGROUND);
+        }
 
         private boolean aspectFill = true;
         private boolean aspectCenter = false;
@@ -161,12 +166,12 @@ public class SvgHelper {
         }
 
         public void drawInternal(Canvas canvas, boolean drawInBackground, int threadIndex, long time, float x, float y, float w, float h) {
-            if (currentColorKey != null) {
+            if (currentColorKey >= 0) {
                 setupGradient(currentColorKey, currentResourcesProvider, colorAlpha, drawInBackground);
             }
 
             float scale = getScale((int) w, (int) h);
-            if (placeholderGradient[threadIndex] != null && gradientWidth > 0 && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BACKGROUND)) {
+            if (placeholderGradient[threadIndex] != null && gradientWidth > 0 && lite) {
                 if (drawInBackground) {
                     long dt = time - lastUpdateTime;
                     if (dt > 64) {
@@ -313,11 +318,11 @@ public class SvgHelper {
             parentImageReceiver = imageReceiver;
         }
 
-        public void setupGradient(String colorKey, float alpha, boolean drawInBackground) {
+        public void setupGradient(int colorKey, float alpha, boolean drawInBackground) {
             setupGradient(colorKey, null, alpha, drawInBackground);
         }
 
-        public void setupGradient(String colorKey, Theme.ResourcesProvider resourcesProvider, float alpha, boolean drawInBackground) {
+        public void setupGradient(int colorKey, Theme.ResourcesProvider resourcesProvider, float alpha, boolean drawInBackground) {
             int color = overrideColor == null ? Theme.getColor(colorKey, resourcesProvider) : overrideColor;
             int index = drawInBackground ? 1 : 0;
             currentResourcesProvider = resourcesProvider;
@@ -326,7 +331,7 @@ public class SvgHelper {
                 currentColorKey = colorKey;
                 currentColor[index] = color;
                 gradientWidth = AndroidUtilities.displaySize.x * 2;
-                if (!LiteMode.isEnabled(LiteMode.FLAG_CHAT_BACKGROUND)) {
+                if (!lite) {
                     int color2 = ColorUtils.setAlphaComponent(currentColor[index], 70);
                     if (drawInBackground) {
                         if (backgroundPaint == null) {
@@ -380,11 +385,11 @@ public class SvgHelper {
             }
         }
 
-        public void setColorKey(String colorKey) {
+        public void setColorKey(int colorKey) {
             currentColorKey = colorKey;
         }
 
-        public void setColorKey(String colorKey, Theme.ResourcesProvider resourcesProvider) {
+        public void setColorKey(int colorKey, Theme.ResourcesProvider resourcesProvider) {
             currentColorKey = colorKey;
             currentResourcesProvider = resourcesProvider;
         }

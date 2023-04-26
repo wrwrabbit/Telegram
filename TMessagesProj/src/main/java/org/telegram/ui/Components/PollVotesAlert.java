@@ -368,7 +368,7 @@ public class PollVotesAlert extends BottomSheet {
                 }
             }
 
-            avatarDrawable.setInfo(currentUser);
+            avatarDrawable.setInfo(currentUser, getCurrentAccount());
             if (currentUser.status != null) {
                 lastStatus = currentUser.status.expires;
             } else {

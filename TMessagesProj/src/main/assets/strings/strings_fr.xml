@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Modifier le message</string>
     <string name="AreYouSureDeleteFakePasscode">Confirmez-vous votre volonté d\'effacer le faux code d\'accès ?</string>
     <string name="PasscodeInUse">Le code coïncide avec celui courant</string>
-    <string name="ChangeFakePasscodeInfo">Vous pouvez modifier le faux code d\'accès sans l\'effacer.</string>
     <string name="AllowFakePasscodeLoginInfo">Si le faux code d\'accès ne donne pas d\'accès au compte, le malveillant n\'y accédera pas, tandis que les opérations sélectionnées seront accomplies.</string>
     <string name="DeleteFakePasscodeInfo">L\'option d\'effacer le faux code d\'accès effacera également toutes les sélections qui concernent les opérations. Afin de les garder, modifiez le faux code d\'accès sans l\'effacer.</string>
     <string name="FakePasscodeActionsHeader">Opérations</string>
