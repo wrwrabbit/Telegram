@@ -209,7 +209,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
                 position -= 2;
                 if (accountsShown) {
                     if (position < getAccountRowsCount()) {
-                        drawerActionCell.setTextAndIcon(101, LocaleController.getString(R.string.PremiumMore), R.drawable.msg_expand, 0);
+                        drawerActionCell.setTextAndIcon(101, LocaleController.getString(R.string.PremiumMore), R.drawable.msg_expand);
                         break;
                     }
                     position -= getAccountRowsCount();

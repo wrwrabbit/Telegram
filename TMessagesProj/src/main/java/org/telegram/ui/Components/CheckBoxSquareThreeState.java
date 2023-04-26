@@ -36,9 +36,9 @@ public class CheckBoxSquareThreeState extends View {
     private State state;
     private boolean isAlert;
 
-    private String key1;
-    private String key2;
-    private String key3;
+    private int key1;
+    private int key2;
+    private int key3;
 
     public CheckBoxSquareThreeState(Context context, boolean alert) {
         super(context);
@@ -56,7 +56,7 @@ public class CheckBoxSquareThreeState extends View {
         isAlert = alert;
     }
 
-    public void setColors(String unchecked, String checked, String check) {
+    public void setColors(int unchecked, int checked, int check) {
         key1 = unchecked;
         key2 = checked;
         key3 = check;

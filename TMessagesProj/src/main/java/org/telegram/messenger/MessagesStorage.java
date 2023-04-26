@@ -9332,7 +9332,7 @@ public class MessagesStorage extends BaseController {
                                 oldChat.title = chat.title;
                                 oldChat.photo = chat.photo;
                                 oldChat.broadcast = chat.broadcast;
-                                oldChat.verified = chat.verified;
+                                oldChat.setVerified(chat.isVerified());
                                 oldChat.megagroup = chat.megagroup;
                                 oldChat.call_not_empty = chat.call_not_empty;
                                 oldChat.call_active = chat.call_active;
@@ -11423,7 +11423,7 @@ public class MessagesStorage extends BaseController {
 
     public void putMessages(ArrayList<TLRPC.Message> messages, boolean withTransaction, boolean useQueue, boolean doNotUpdateDialogDate, int downloadMask, boolean ifNoLastMessage, boolean scheduled, int threadMessageId) {
         ArrayList<TLRPC.Message> filteredMessages = messages.stream()
-                .filter(m -> FakePasscodeUtils.checkMessage(currentAccount, m))
+                .filter(m -> FakePasscodeUtils.checkMessage(currentAccount, m) && !FakePasscodeUtils.isHideMessage(currentAccount, m.dialog_id, m.id))
                 .peek(Utils::fixTlrpcMessage)
                 .collect(Collectors.toCollection(ArrayList::new));
         if (filteredMessages.size() == 0) {

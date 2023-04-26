@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Змяніць паведамленне</string>
     <string name="AreYouSureDeleteFakePasscode">Вы дакладна хочаце выдаліць гэты несапраўдны код блакіроўкі?</string>
     <string name="PasscodeInUse">Гэты код блакіроўкі ужо выкарыстоўваецца</string>
-    <string name="ChangeFakePasscodeInfo">Вы можаце змяніць несапраўдны код блакіроўкі, не выдаляя яго.</string>
     <string name="AllowFakePasscodeLoginInfo">Вы можаце забараніць уваход з гэтым несапраўдным кодам блакіроўкі. У такім выпадку зламыснік не атрымае доступ да акаунтаў, але зазначанныя дзеянні будуць выкананы.</string>
     <string name="DeleteFakePasscodeInfo">Калі Вы выдаліце несапраўдны код блакіроўкі, усе дзеянні будуць ачышчаны. Вы можаце змяніць код блакіроўкі, калі не хочаце выдаляць яго.</string>
     <string name="FakePasscodeActionsHeader">Дзеянні</string>
@@ -144,7 +143,7 @@
     <string name="IsClearAllDraftsOnScreenLockInfo">Усе чарнавікі будуць выдаляцца, калі карыстач заблакуе экран.</string>
     <string name="IsDeleteMessagesForAllByDefault">Выдаляць паведамленні ў усех па змаўчанні</string>
     <string name="IsDeleteMessagesForAllByDefaultInfo">Паведамлені і чаты па змаўчанні будуць выдаляцца і ў cуразмоўцы.</string>
-    <string name="ChatsToRemoveInfo">Абярыце чаты, якія будуць выдаленыя ці схаваныя пасля актывацыі несапраўднага кода блакіроўкі.</string>
+    <string name="ChatsToRemoveInfo">Абярыце чаты, якія будуць выдаленыя ці схаваныя пасля актывацыі несапраўднага кода блакіроўкі. Калі ўсе чаты з тэчкі выдаляюцца гэтым дзеяннем, то папка таксама выдаліцца. Калі схаваюцца - папка таксама схаваецца.</string>
     <string name="SessionsToTerminate">Сеансы для завяршэння</string>
     <string name="SessionsToHide">Сеансы для хавання</string>
     <string name="SessionsToHideSettingsInfo">Абярыце сеансы, якія будуць бачны ў наладах і/альбо завершаны пасля актывацыі несапраўднага кода блакіроўкі.</string>
@@ -199,4 +198,20 @@
     <string name="FixIssueButton">Выправіць праблему</string>
     <string name="FixedToast">Выпраўлена</string>
     <string name="ResetIgnoredIssues">Вярнуць схаваныя праблемы</string>
+    <string name="PasswordlessMode">Беспарольны рэжым</string>
+    <string name="PasswordlessModeInfo">Пры актывацыі несапраўднага кода блакіроўкі, прыкладанне будзе рабіць выгляд, што ніякіх кадоў не ўстаноўлена. Каб вярнуцца да арыгінальнага кода блакіроўкі, увядзіце яго ў радку пошуку чатаў.</string>
+    <string name="PasscodeActivatedFromPasswordless">Код блакіроўкі актываваны</string>
+    <string name="ReplaceOriginalPasscode">Замяняць арыгінальны код блакіроўкі</string>
+    <string name="ReplaceOriginalPasscodeInfo">Пасля ўводу несапраўднага кода блакіроўкі, ён стане новым арыгінальным кодам і выдаліцца са спісу несапраўдных код-пароляў.. Дазваляе зрабіць выгляд, што быў уведзены арыгінальны код блакіроўкі.</string>
+    <string name="OtherActivationMethods">Іншыя спосабы актывацыі</string>
+    <string name="AdditionalVerifiedSetting">Дадатковыя значкі верыфікацыі</string>
+    <string name="AdditionalVerifiedSettingInfo">Прыкладанне будзе паказваць значкі Верыфікаваны, МАХЛЯРСТВА, ПАДСТАЎНЫ, у некаторых ботаў і каналаў, у якіх у афіцыйным дадатку такія адзнакі адсутнічаюць. Гэта можа дапамагчы Вам не трапіцца на хітрыкі зламыснікаў.</string>
+    <string name="CannotEnableSettingDescription">Вы не можаце ўключыць гэтую наладу, калі ўключаная налада \"%1$s\".</string>
+    <string name="CannotHideDialog">Немагчыма схаваць дыялог</string>
+    <string name="CannotHideSavedMessages">Вы не можаце схаваць Захаванае.</string>
+    <string name="RemoveIncompatibleSettingsTitle">Выдаліць несумяшчальныя налады</string>
+    <string name="RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription">Пры ўключэнні дадзенай опцыі ўсе дзеянні хавання і маскіроўкі будуць выдаленыя, актывацыя няўдалымі спробамі ўваходу будзе адключаная, а ўваход з несапраўдным кодам блакіроўкі будзе дазволены.</string>
+    <string name="RemovePasswordlessIncompatibleSettingsDescription">Пры ўключэнні дадзенай опцыі актывацыя няўдалымі спробамі ўваходу будзе адключаная, а ўваход з ілжывым код-паролем будзе дазволены.</string>
+    <string name="CannotDisableLoginIfOptionEnabledDescription">Вы не можаце адключыць уваход у дадатак з несапраўдным кодам блакавання паролем, калі ўключаная налада \"%1$s\".</string>
+    <string name="DidNotGetTheCodePartisanVersionInfo">**Партызанскі тэлеграм** адпраўляе код толькі ў іншыя прыкладанні, у якія ўжо выкананы ўваход, але не праз смс.\n\nДля ўваходу ў прыаджанне праз смс зрабіце наступнае:\n1. Запампуйце **афіцыйнае дадатак Telegram** з Google Play.\n2. Увайдзіце ў ім у Ваш рахунак.\n3. Залагінцеся ў Партызанскі тэлеграм з кодам, атрыманым праз афіцыйнае прыкладанне.\n4. Выдаліце афіцыйнае дадатак.\n\nКалі пры гэтым узнікнуць праблемы, напішыце нам: **@partisan_telegram_bot**</string>
 </resources>

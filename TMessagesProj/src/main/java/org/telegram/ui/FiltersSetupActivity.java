@@ -64,6 +64,7 @@ import org.telegram.ui.Components.UndoView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 public class FiltersSetupActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -496,7 +497,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         items.clear();
 
         ArrayList<TLRPC.TL_dialogFilterSuggested> suggestedFilters = getMessagesController().suggestedFilters;
-        ArrayList<MessagesController.DialogFilter> dialogFilters = getMessagesController().getDialogFilters();
+        ArrayList<MessagesController.DialogFilter> dialogFilters = (ArrayList<MessagesController.DialogFilter>)FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount);
         items.add(ItemInner.asHint());
         if (!suggestedFilters.isEmpty() && dialogFilters.size() < 10) {
             items.add(ItemInner.asHeader(LocaleController.getString("FilterRecommended", R.string.FilterRecommended)));
@@ -538,7 +539,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated);
             getMessagesStorage().saveDialogFiltersOrder();
             TLRPC.TL_messages_updateDialogFiltersOrder req = new TLRPC.TL_messages_updateDialogFiltersOrder();
-            ArrayList<MessagesController.DialogFilter> filters = getMessagesController().getDialogFilters();
+            ArrayList<MessagesController.DialogFilter> filters = (ArrayList<MessagesController.DialogFilter>) FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount);
             for (int a = 0, N = filters.size(); a < N; a++) {
                 MessagesController.DialogFilter filter = filters.get(a);
                 req.order.add(filter.id);
@@ -617,7 +618,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     presentFragment(new FilterCreateActivity(filter));
                 }
             } else if (item.viewType == VIEW_TYPE_BUTTON) {
-                final int count = getMessagesController().getDialogFilters().size();
+                final int count = FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount).size();
                 if (
                     count - 1 >= getMessagesController().dialogFiltersLimitDefault && !getUserConfig().isPremium() ||
                     count >= getMessagesController().dialogFiltersLimitPremium
@@ -973,6 +974,13 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             if (fromPosition < filtersStartPosition || toPosition < filtersStartPosition) {
                 return;
             }
+            List<ItemInner> originalItems = FiltersSetupActivity.this.items;
+            List<ItemInner> items = FakePasscodeUtils.filterItems(
+                    FiltersSetupActivity.this.items,
+                    Optional.of(currentAccount),
+                    (item, filter) -> !filter.isHideFolder(item.filter.id)
+            );
+
             ItemInner from = items.get(fromPosition);
             ItemInner to = items.get(toPosition);
             if (from == null || to == null || from.filter == null || to.filter == null) {
@@ -983,8 +991,12 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             to.filter.order = temp;
             ArrayList<MessagesController.DialogFilter> filters = getMessagesController().dialogFilters;
             try {
-                filters.set(fromPosition - filtersStartPosition, to.filter);
-                filters.set(toPosition - filtersStartPosition, from.filter);
+                int originalIdx1 = IntStream.range(0, originalItems.size())
+                        .filter(i -> originalItems.get(i).filter.id == from.filter.id).findFirst().getAsInt();
+                int originalIdx2 = IntStream.range(0, originalItems.size())
+                        .filter(i -> originalItems.get(i).filter.id == to.filter.id).findFirst().getAsInt();
+                filters.set(originalIdx1 - filtersStartPosition, to.filter);
+                filters.set(originalIdx2 - filtersStartPosition, from.filter);
             } catch (Exception ignore) {}
             orderChanged = true;
             updateRows(true);

@@ -159,7 +159,6 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.Utils;
@@ -2299,7 +2298,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.scheduledMessagesUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogDeleted);
-        getNotificationCenter().addObserver(this, NotificationCenter.dialogHiddenByAction);
+        getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
         getNotificationCenter().addObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsUnreadReactionsCounterChanged);
         getNotificationCenter().addObserver(this, NotificationCenter.groupStickersDidLoad);
@@ -2653,7 +2652,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.scheduledMessagesUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogDeleted);
-        getNotificationCenter().removeObserver(this, NotificationCenter.dialogHiddenByAction);
+        getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
         getNotificationCenter().removeObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSponsoredMessages);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSendAsPeers);
@@ -8949,16 +8948,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     }
                 }
-                for (int i = 0; i < chatListView.getChildCount(); i++) {
-                    View v = chatListView.getChildAt(i);
-                    if (v instanceof ChatMessageCell) {
-                        scrollToMessageObject = ((ChatMessageCell) v).getMessageObject();
-                        top = getScrollingOffsetForView(v);
-                        break;
-                    } else if (v instanceof ChatActionCell) {
-                        scrollToMessageObject = ((ChatActionCell) v).getMessageObject();
-                        top = getScrollingOffsetForView(v);
-                        break;
+                if (scrollToMessageObject == null) {
+                    for (int i = 0; i < chatListView.getChildCount(); i++) {
+                        View v = chatListView.getChildAt(i);
+                        if (v instanceof ChatMessageCell) {
+                            scrollToMessageObject = ((ChatMessageCell) v).getMessageObject();
+                            top = getScrollingOffsetForView(v);
+                            break;
+                        } else if (v instanceof ChatActionCell) {
+                            scrollToMessageObject = ((ChatActionCell) v).getMessageObject();
+                            top = getScrollingOffsetForView(v);
+                            break;
+                        }
                     }
                 }
 
@@ -9549,7 +9550,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             };
             chatAttachAlert.setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
                 @Override
-                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, boolean autoDeletable, int delay) {
+                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument) {
                     if (getParentActivity() == null || chatAttachAlert == null) {
                         return;
                     }
@@ -9611,10 +9612,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         chatAttachAlert.dismissWithButtonClick(button);
                     }
                     processSelectedAttach(button);
-                }
-                @Override
-                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument) {
-                    didPressedButton(button, arg, notify, scheduleDate, forceDocument, false, 0);
                 }
 
                 @Override
@@ -14683,18 +14680,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (chatMode == MODE_PINNED) {
             avatarContainer.setTitle(LocaleController.formatPluralString("PinnedMessagesCount", getPinnedMessagesCount()));
         } else if (currentChat != null) {
-            avatarContainer.setTitle(getUserConfig().getChatTitleOverride(currentChat), currentChat.scam, currentChat.fake, currentChat.verified, false, null, animated);
+            avatarContainer.setTitle(getUserConfig().getChatTitleOverride(currentChat), currentChat.isScam(), currentChat.isFake(), currentChat.isVerified(), false, null, animated);
         } else if (currentUser != null) {
             if (currentUser.self) {
                 avatarContainer.setTitle(LocaleController.getString("SavedMessages", R.string.SavedMessages));
             } else if (!MessagesController.isSupportUser(currentUser) && getContactsController().contactsDict.get(currentUser.id) == null && (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
                 if (!TextUtils.isEmpty(currentUser.phone)) {
-                    avatarContainer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
+                    avatarContainer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone), currentUser.isScam(), currentUser.isFake(), currentUser.isVerified(), getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 } else {
-                    avatarContainer.setTitle(UserObject.getUserName(currentUser, currentAccount), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
+                    avatarContainer.setTitle(UserObject.getUserName(currentUser, currentAccount), currentUser.isScam(), currentUser.isFake(), currentUser.isVerified(), getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 }
             } else {
-                avatarContainer.setTitle(UserObject.getUserName(currentUser, currentAccount), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
+                avatarContainer.setTitle(UserObject.getUserName(currentUser, currentAccount), currentUser.isScam(), currentUser.isFake(), currentUser.isVerified(), getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
             }
         }
         setParentActivityTitle(avatarContainer.getTitleTextView().getText());
@@ -18327,7 +18324,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     themeDelegate.setCurrentTheme(themeDelegate.chatTheme, themeDelegate.wallpaper, true, null);
                 }
             }
-        } else if (id == NotificationCenter.dialogHiddenByAction) {
+        } else if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
                 finishFragment();
             }

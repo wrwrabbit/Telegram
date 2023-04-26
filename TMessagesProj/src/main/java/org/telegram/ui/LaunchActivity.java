@@ -769,7 +769,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
         LiteMode.addOnPowerSaverAppliedListener(this::onPowerSaver);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appDidLogoutByAction);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appHiddenByAction);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.accountHidingChanged);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldKillApp);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldHideApp);
@@ -5450,7 +5450,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appUpdateAvailable);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.requestPermissions);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appDidLogoutByAction);
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appHiddenByAction);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.accountHidingChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.shouldKillApp);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldHideApp);
@@ -6459,7 +6459,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         } else if (id == NotificationCenter.chatSwithcedToForum) {
             long chatId = (long) args[0];
             ForumUtilities.switchAllFragmentsInStackToForum(chatId, actionBarLayout);
-        } else if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.appHiddenByAction) {
+        } else if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.accountHidingChanged) {
             switchToAvailableAccountIfCurrentAccountIsHidden();
             if (drawerLayoutAdapter != null) {
                 drawerLayoutAdapter.notifyDataSetChanged();

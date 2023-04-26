@@ -812,8 +812,8 @@ public class DialogCell extends BaseCell {
     }
 
     private CharSequence formatArchivedDialogNames() {
-        final MessagesController messagesController = FakePasscodeUtils.filterDialogs(MessagesController.getInstance(currentAccount).getDialogs(currentDialogFolderId), Optional.of(currentAccount));
-        ArrayList<TLRPC.Dialog> dialogs = messagesController.getDialogs(currentDialogFolderId);
+        final MessagesController messagesController = MessagesController.getInstance(currentAccount);
+        ArrayList<TLRPC.Dialog> dialogs = (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(messagesController.getDialogs(currentDialogFolderId), Optional.of(currentAccount));
         currentDialogFolderDialogsCount = dialogs.size();
         SpannableStringBuilder builder = new SpannableStringBuilder();
         for (int a = 0, N = dialogs.size(); a < N; a++) {
@@ -1099,24 +1099,24 @@ public class DialogCell extends BaseCell {
             } else {
                 if (currentDialogFolderId == 0) {
                     if (chat != null) {
-                        if (chat.scam) {
+                        if (chat.isScam()) {
                             drawScam = 1;
                             Theme.dialogs_scamDrawable.checkText();
-                        } else if (chat.fake) {
+                        } else if (chat.isFake()) {
                             drawScam = 2;
                             Theme.dialogs_fakeDrawable.checkText();
                         } else {
-                            drawVerified = !forbidVerified && chat.verified;
+                            drawVerified = !forbidVerified && chat.isVerified();
                         }
                     } else if (user != null) {
-                        if (user.scam) {
+                        if (user.isScam()) {
                             drawScam = 1;
                             Theme.dialogs_scamDrawable.checkText();
-                        } else if (user.fake) {
+                        } else if (user.isFake()) {
                             drawScam = 2;
                             Theme.dialogs_fakeDrawable.checkText();
                         } else {
-                            drawVerified =!forbidVerified && user.verified;
+                            drawVerified =!forbidVerified && user.isVerified();
                         }
                         drawPremium = MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
                         if (drawPremium) {

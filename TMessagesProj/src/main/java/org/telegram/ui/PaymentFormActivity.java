@@ -2299,7 +2299,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
                         }
                     }
 
-                    if (botUser != null && !botUser.verified) {
+                    if (botUser != null && !botUser.isVerified()) {
                         String botKey = "payment_warning_" + botUser.id;
                         SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                         if (!preferences.getBoolean(botKey, false)) {

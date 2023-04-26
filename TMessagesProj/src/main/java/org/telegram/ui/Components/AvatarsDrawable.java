@@ -296,7 +296,7 @@ public class AvatarsDrawable {
             long id = MessageObject.getPeerId(participant.peer);
             if (DialogObject.isUserDialog(id)) {
                 currentUser = MessagesController.getInstance(account).getUser(id);
-                animatingStates[index].avatarDrawable.setInfo(currentUser);
+                animatingStates[index].avatarDrawable.setInfo(currentUser, account);
             } else {
                 currentChat = MessagesController.getInstance(account).getChat(-id);
                 animatingStates[index].avatarDrawable.setInfo(currentChat, account);
@@ -323,7 +323,7 @@ public class AvatarsDrawable {
             } else {
                 animatingStates[index].avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_NORMAL);
                 animatingStates[index].avatarDrawable.setScaleSize(1f);
-                animatingStates[index].avatarDrawable.setInfo(currentUser);
+                animatingStates[index].avatarDrawable.setInfo(currentUser, account);
             }
             animatingStates[index].id = currentUser.id;
         } else {

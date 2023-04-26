@@ -423,9 +423,6 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
     public interface ChatAttachViewDelegate {
         void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument);
-        void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, boolean autoDeletable, int delay);
-        void onCameraOpened();
-
         default void onCameraOpened() {
         }
 
@@ -1084,7 +1081,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             nameTextView.setTextColor(getThemedColor(Theme.key_dialogTextGray2));
             currentUser = user;
             nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
-            avatarDrawable.setInfo(user);
+            avatarDrawable.setInfo(user, getCurrentAccount());
             imageView.setForUserOrChat(user, avatarDrawable);
             imageView.setSize(-1, -1);
             imageView.setColorFilter(null);
@@ -1102,7 +1099,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             nameTextView.setTextColor(getThemedColor(Theme.key_dialogTextGray2));
             currentUser = user;
             nameTextView.setText(bot.short_name);
-            avatarDrawable.setInfo(user);
+            avatarDrawable.setInfo(user, getCurrentAccount());
 
             boolean animated = true;
             TLRPC.TL_attachMenuBotIcon icon = MediaDataController.getAnimatedAttachMenuBotIcon(bot);
@@ -2797,7 +2794,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         }
         applyCaption();
         buttonPressed = true;
-        delegate.didPressedButton(7, true, notify, scheduleDate, false, autoDeletable, delay);
+        delegate.didPressedButton(7, true, notify, scheduleDate, false);
     }
 
     public void showLayout(AttachAlertLayout layout) {

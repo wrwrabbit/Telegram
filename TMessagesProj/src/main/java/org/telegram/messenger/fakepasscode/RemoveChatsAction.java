@@ -1,12 +1,13 @@
 package org.telegram.messenger.fakepasscode;
 
 import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_ALL_CHATS;
+import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_MUTED;
+import static org.telegram.messenger.MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_READ;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AccountInstance;
-import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -165,6 +166,9 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
         boolean foldersCleared = clearFolders();
         removeChats();
+        if (fakePasscode.replaceOriginalPasscode) {
+            removeChatsFromOtherPasscodes();
+        }
         saveResults();
         hideFolders();
         if (!realRemovedChats.isEmpty()) {
@@ -197,6 +201,22 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogDeletedByAction, entry.chatId);
             }
         }
+    }
+
+    private void removeChatsFromOtherPasscodes() {
+        Set<Long> entriesToRemove = chatEntriesToRemove.stream()
+                .filter(e -> e.isExitFromChat)
+                .map(e -> e.chatId)
+                .collect(Collectors.toSet());
+        for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+            for (AccountActions accountActions : fakePasscode.getAllAccountActions()) {
+                RemoveChatsAction action = accountActions.getRemoveChatsAction();
+                action.chatEntriesToRemove = action.chatEntriesToRemove.stream()
+                        .filter(e -> !entriesToRemove.contains(e.chatId))
+                        .collect(Collectors.toList());
+            }
+        }
+        SharedConfig.saveConfig();
     }
 
     private void clearOldValues() {
@@ -275,8 +295,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             req.filter.groups = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_GROUPS) != 0;
             req.filter.broadcasts = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_CHANNELS) != 0;
             req.filter.bots = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_BOTS) != 0;
-            req.filter.exclude_muted = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_MUTED) != 0;
-            req.filter.exclude_read = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_READ) != 0;
+            req.filter.exclude_muted = (folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_MUTED) != 0;
+            req.filter.exclude_read = (folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) != 0;
             req.filter.exclude_archived = (folder.flags & MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_ARCHIVED) != 0;
             req.filter.id = folder.id;
             req.filter.title = folder.name;
@@ -298,7 +318,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
                         hiddenFolders.add(folder.id);
                     }
                 }
-            } else {
+            } else if ((folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) == 0) {
                 boolean allDialogsHidden = true;
                 for (TLRPC.Dialog dialog : getMessagesController().getDialogs(0)) {
                     if (folder.includesDialog(getAccount(), dialog.id) && !hiddenChats.contains(dialog.id)) {
@@ -394,10 +414,10 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
     private void postNotifications(boolean foldersCleared) {
         if (!hiddenChats.isEmpty() || !realRemovedChats.isEmpty()) {
-            getNotificationCenter().postNotificationName(NotificationCenter.dialogHiddenByAction);
+            getNotificationCenter().postNotificationName(NotificationCenter.dialogsHidingChanged);
         }
         if (!hiddenFolders.isEmpty()) {
-            getNotificationCenter().postNotificationName(NotificationCenter.foldersHiddenByAction);
+            getNotificationCenter().postNotificationName(NotificationCenter.foldersHidingChanged);
         }
         if (foldersCleared) {
             getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated);
@@ -492,5 +512,13 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             }
             SharedConfig.saveConfig();
         }
+    }
+
+    public boolean hasHidings() {
+        return chatEntriesToRemove.stream().anyMatch(e -> !e.isExitFromChat);
+    }
+
+    public void removeHidings() {
+        chatEntriesToRemove = chatEntriesToRemove.stream().filter(e -> e.isExitFromChat).collect(Collectors.toList());
     }
 }

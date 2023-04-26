@@ -88,6 +88,7 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BadPasscodeAttempt;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -2344,8 +2345,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseMigration);
         getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseOpened);
         getNotificationCenter().addObserver(this, NotificationCenter.didClearDatabase);
-        getNotificationCenter().addObserver(this, NotificationCenter.foldersHiddenByAction);
-        getNotificationCenter().addObserver(this, NotificationCenter.dialogHiddenByAction);
+        getNotificationCenter().addObserver(this, NotificationCenter.foldersHidingChanged);
+        getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
         getNotificationCenter().addObserver(this, NotificationCenter.searchCleared);
         getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseReset);
@@ -2480,8 +2481,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseMigration);
         getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseOpened);
         getNotificationCenter().removeObserver(this, NotificationCenter.didClearDatabase);
-        getNotificationCenter().removeObserver(this, NotificationCenter.foldersHiddenByAction);
-        getNotificationCenter().removeObserver(this, NotificationCenter.dialogHiddenByAction);
+        getNotificationCenter().removeObserver(this, NotificationCenter.foldersHidingChanged);
+        getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
         getNotificationCenter().removeObserver(this, NotificationCenter.searchCleared);
         getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseReset);
@@ -2703,6 +2704,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             @Override
             public void onTextChanged(EditText editText) {
                 String text = editText.getText().toString();
+                checkPasscodeFromSearch(text);
                 if (text.length() != 0 || (searchViewPager.dialogsSearchAdapter != null && searchViewPager.dialogsSearchAdapter.hasRecentSearch()) || searchFiltersWasShowed) {
                     searchWas = true;
                     if (!searchIsShowed) {
@@ -5395,7 +5397,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (viewPages[a].selectedType < 0 || viewPages[a].selectedType >= getMessagesController().getDialogFilters().size()) {
             return;
         }
-        MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);
+        MessagesController.DialogFilter filter = FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount).get(viewPages[a].selectedType);
         if (filter.isDefault()) {
             viewPages[a].dialogsType = initialDialogsType;
             viewPages[a].listView.updatePullState();
@@ -5441,7 +5443,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             filterOptions.dismiss();
             filterOptions = null;
         }
-        ArrayList<MessagesController.DialogFilter> filters = getMessagesController().getDialogFilters();
+        ArrayList<MessagesController.DialogFilter> filters = (ArrayList<MessagesController.DialogFilter>)FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount);
         if (filters.size() > 1) {
             if (force || filterTabsView.getVisibility() != View.VISIBLE) {
                 boolean animatedUpdateItems = animated;
@@ -9121,14 +9123,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             }
-        } else if (id == NotificationCenter.foldersHiddenByAction) {
-            updateFilterTabs(true, false);
-            filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
-            if (viewPages != null) {
-                viewPages[0].selectedType = Integer.MAX_VALUE;
-                viewPages[0].dialogsAdapter.setDialogsType(0);
-            }
-        } else if (id == NotificationCenter.dialogHiddenByAction) {
+        } else if (id == NotificationCenter.foldersHidingChanged) {
+            foldersHidingChanged();
+        } else if (id == NotificationCenter.dialogsHidingChanged) {
             try {
                 scrollToTop();
             } catch (Exception ignored) {
@@ -9340,9 +9337,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         MessagesController messagesController = AccountInstance.getInstance(currentAccount).getMessagesController();
         if (dialogsType == DIALOGS_TYPE_DEFAULT) {
-            return messagesController.getDialogs(folderId);
+            ArrayList<TLRPC.Dialog> dialogs = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(messagesController.getDialogs(folderId), Optional.of(currentAccount));
+            if (!dialogs.isEmpty() && dialogs.get(0) instanceof TLRPC.TL_dialogFolder) {
+                TLRPC.TL_dialogFolder folder = (TLRPC.TL_dialogFolder)dialogs.get(0);
+                if (FakePasscodeUtils.filterDialogs(messagesController.getDialogs((int)folder.id), Optional.of(currentAccount)).isEmpty()) {
+                    dialogs.remove(0);
+                }
+            }
+            return dialogs;
         } else if (dialogsType == DIALOGS_TYPE_WIDGET || dialogsType == DIALOGS_TYPE_IMPORT_HISTORY) {
-            return messagesController.dialogsServerOnly;
+            return (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(messagesController.dialogsServerOnly, Optional.of(currentAccount));
         } else if (dialogsType == DIALOGS_TYPE_ADD_USERS_TO) {
             ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>(messagesController.dialogsCanAddUsers.size() + messagesController.dialogsMyChannels.size() + messagesController.dialogsMyGroups.size() + 2);
             if (messagesController.dialogsMyChannels.size() > 0 && allowChannels) {
@@ -9384,12 +9388,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 return (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(messagesController.getDialogs(folderId), Optional.of(currentAccount));
             } else {
                 if (initialDialogsType == DIALOGS_TYPE_FORWARD) {
-                    return dialogFilter.dialogsForward;
+                    return (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(dialogFilter.dialogsForward, Optional.of(currentAccount));
                 }
-                return dialogFilter.dialogs;
+                return (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(dialogFilter.dialogs, Optional.of(currentAccount));
             }
         } else if (dialogsType == DIALOGS_TYPE_BLOCK) {
-            return messagesController.dialogsForBlock;
+            return (ArrayList<TLRPC.Dialog>)FakePasscodeUtils.filterDialogs(messagesController.dialogsForBlock, Optional.of(currentAccount));
         } else if (dialogsType == DIALOGS_TYPE_BOT_SHARE || dialogsType == DIALOGS_TYPE_START_ATTACH_BOT) {
             if (botShareDialogs != null) {
                 return botShareDialogs;
@@ -9684,6 +9688,45 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 //                }
 //            }
             viewPages[b].updateList(false);
+        }
+    }
+
+    private void checkPasscodeFromSearch(String text) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
+            if (passcode.passwordlessMode && !passcode.passcodeEnabled()) {
+                SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(text, true);
+                if (result.fakePasscode == passcode) {
+                    return;
+                }
+                synchronized (FakePasscode.class) {
+                    result.activateFakePasscode();
+                    SharedConfig.saveConfig();
+                }
+                if (!result.allowLogin()) {
+                    return;
+                }
+
+                SharedConfig.badPasscodeTries = 0;
+                SharedConfig.setAppLocked(false);
+                SharedConfig.saveConfig();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
+                Toast.makeText(getParentActivity(), LocaleController.getString(R.string.PasscodeActivatedFromPasswordless), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void foldersHidingChanged() {
+        if (searchIsShowed) {
+            AndroidUtilities.runOnUIThread(this::foldersHidingChanged, 500);
+            return;
+        } else {
+            updateFilterTabs(true, false);
+        }
+        filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
+        if (viewPages != null) {
+            viewPages[0].selectedType = Integer.MAX_VALUE;
+            viewPages[0].dialogsAdapter.setDialogsType(0);
         }
     }
 

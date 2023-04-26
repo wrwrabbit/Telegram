@@ -4,15 +4,8 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserConfig;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-@FakePasscodeSerializer.ToggleSerialization
+    @FakePasscodeSerializer.ToggleSerialization
 public class LogOutAction extends AccountAction {
     private static final int WAIT_TIME = 0;
 
@@ -26,12 +19,22 @@ public class LogOutAction extends AccountAction {
     public void execute(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.remove(accountNum);
         MessagesController.getInstance(accountNum).performLogout(1);
+        if (fakePasscode.replaceOriginalPasscode) {
+            removeAccountFromOtherPasscodes();
+        }
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appDidLogoutByAction, accountNum);
+    }
+
+    private void removeAccountFromOtherPasscodes() {
+        for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+            fakePasscode.removeAccountActions(accountNum);
+        }
+        SharedConfig.saveConfig();
     }
 
     public void hideAccount(FakePasscode fakePasscode) {
         fakePasscode.actionsResult.hiddenAccounts.add(accountNum);
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appHiddenByAction, accountNum);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
         AccountInstance.getInstance(accountNum).getNotificationsController().removeAllNotifications();
     }
 }

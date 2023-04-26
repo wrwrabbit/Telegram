@@ -1729,7 +1729,7 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
                         showDialog(
                             new AlertDialog.Builder(getParentActivity())
                                 .setTitle(LocaleController.getString("AppName", R.string.AppName))
-                                .setMessage(LocaleController.formatString("AdminWillBeRemoved", R.string.AdminWillBeRemoved, UserObject.getUserName(user)))
+                                .setMessage(LocaleController.formatString("AdminWillBeRemoved", R.string.AdminWillBeRemoved, UserObject.getUserName(user, getCurrentAccount())))
                                 .setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog, which) -> openRightsFor.run(1))
                                 .setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null)
                                 .create()

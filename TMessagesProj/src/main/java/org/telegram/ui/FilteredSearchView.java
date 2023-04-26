@@ -472,7 +472,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                     .append(chatTitle);
             fromName = spannableStringBuilder;
         } else if (user != null) {
-            fromName = Emoji.replaceEmoji(UserObject.getUserName(user), null, AndroidUtilities.dp(12), false);
+            fromName = Emoji.replaceEmoji(UserObject.getUserName(user, messageObject.currentAccount), null, AndroidUtilities.dp(12), false);
         } else if (chatFrom != null) {
             CharSequence chatTitle = UserConfig.getChatTitleOverride(UserConfig.selectedAccount, chatFrom);
             if (ChatObject.isForum(chatFrom)) {

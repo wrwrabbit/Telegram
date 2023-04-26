@@ -280,7 +280,7 @@ public class SavedChannelCell extends BaseCell {
 
         if (needCheck) {
             checkBox = new CheckBox2(context, 21);
-            checkBox.setColor(null, Theme.key_windowBackgroundWhite, Theme.key_checkboxCheck);
+            checkBox.setColor(-1, Theme.key_windowBackgroundWhite, Theme.key_checkboxCheck);
             checkBox.setDrawUnchecked(false);
             checkBox.setDrawBackgroundAsArc(3);
             addView(checkBox);
@@ -515,14 +515,14 @@ public class SavedChannelCell extends BaseCell {
             }
         } else {
             if (chat != null) {
-                if (chat.scam) {
+                if (chat.isScam()) {
                     drawScam = 1;
                     Theme.dialogs_scamDrawable.checkText();
-                } else if (chat.fake) {
+                } else if (chat.isFake()) {
                     drawScam = 2;
                     Theme.dialogs_fakeDrawable.checkText();
                 } else {
-                    drawVerified = chat.verified;
+                    drawVerified = chat.isVerified();
                 }
                 if (SharedConfig.drawDialogIcons) {
                     if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
@@ -560,14 +560,14 @@ public class SavedChannelCell extends BaseCell {
                     }
                 }
             } else if (user != null) {
-                if (user.scam) {
+                if (user.isScam()) {
                     drawScam = 1;
                     Theme.dialogs_scamDrawable.checkText();
-                } else if (user.fake) {
+                } else if (user.isFake()) {
                     drawScam = 2;
                     Theme.dialogs_fakeDrawable.checkText();
                 } else {
-                    drawVerified = user.verified;
+                    drawVerified = user.isVerified();
                 }
                 if (SharedConfig.drawDialogIcons && user.bot) {
                     drawNameBot = true;

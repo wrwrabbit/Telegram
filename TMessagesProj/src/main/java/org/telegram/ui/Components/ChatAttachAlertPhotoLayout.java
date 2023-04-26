@@ -489,14 +489,14 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                 }
             }
             if (scheduleDate < 0) {
-                parentAlert.delegate.didPressedButton(7, true, notify, 0, forceDocument, true, -scheduleDate);
+                parentAlert.delegate.didPressedButton(7, true, notify, 0, forceDocument);
             } else {
                 parentAlert.delegate.didPressedButton(7, true, notify, scheduleDate, forceDocument);
+            }
             selectedPhotos.clear();
             cameraPhotos.clear();
             selectedPhotosOrder.clear();
             selectedPhotos.clear();
-            }
         }
     };
 

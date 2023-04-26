@@ -17,7 +17,6 @@
     <string name="ChangeMessage">تغییر پیامها</string>
     <string name="AreYouSureDeleteFakePasscode">آیا مطمئنید می خواهید این رمزعبور قلابی را حذف کنید؟</string>
     <string name="PasscodeInUse">این رمزعبور درحال حاضر در استفاده است</string>
-    <string name="ChangeFakePasscodeInfo">میتوانید بدون حذف رمزعبور قلابی آنرا تغییر دهید.</string>
     <string name="AllowFakePasscodeLoginInfo">شما میتوانید وارد شدن به اکانت با این رمزعبور قلابی را ممنوع کنید. در این صورت حمله کننده به محتوی اکانت دسترسی نخواهد داشت اما اعمال اجرا خواهند شد.</string>
     <string name="DeleteFakePasscodeInfo">اگر شما این رمزعبور قلابی را حذف کنید تمامی اعمال پاک خواهند شد. اگر نمی خواهید آن را حذف کنید، میتوانید آن را تغییر دهید.</string>
     <string name="FakePasscodeActionsHeader">اعمال</string>

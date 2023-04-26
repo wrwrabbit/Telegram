@@ -463,7 +463,7 @@ public class ReactedUsersListView extends FrameLayout {
                 rightDrawable.set(documentId, false);
             }
 
-            avatarDrawable.setInfo(u);
+            avatarDrawable.setInfo(u, currentAccount);
             titleView.setText(UserObject.getUserName(u, currentAccount));
 
             Drawable thumb = avatarDrawable;

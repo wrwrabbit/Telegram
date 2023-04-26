@@ -74,6 +74,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
@@ -6379,7 +6380,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                                 continue;
                             }
 
-                            String name = UserObject.getUserName(user).toLowerCase();
+                            String name = UserObject.getUserName(user, UserConfig.selectedAccount).toLowerCase();
                             String tName = LocaleController.getInstance().getTranslitString(name);
                             if (name.equals(tName)) {
                                 tName = null;
@@ -6516,7 +6517,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             String nameSearch = searchAdapterHelper.getLastFoundChannel();
 
             if (nameSearch != null) {
-                String u = UserObject.getUserName(user);
+                String u = UserObject.getUserName(user, UserConfig.selectedAccount);
                 name = new SpannableStringBuilder(u);
                 int idx = AndroidUtilities.indexOfIgnoreCase(u, nameSearch);
                 if (idx != -1) {

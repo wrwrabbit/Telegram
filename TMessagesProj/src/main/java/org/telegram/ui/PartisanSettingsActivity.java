@@ -83,6 +83,8 @@ public class PartisanSettingsActivity extends BaseFragment {
     private int isDeleteMessagesForAllByDefaultDetailRow;
     private int marketIconsRow;
     private int marketIconsDetailRow;
+    private int verifiedRow;
+    private int verifiedDetailRow;
 
     private class DangerousSettingSwitcher {
         public Context context;
@@ -274,6 +276,9 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == marketIconsRow) {
                 LauncherIconController.toggleMarketIcons();
                 ((TextCheckCell) view).setChecked(SharedConfig.marketIcons);
+            } else if (position == verifiedRow) {
+                SharedConfig.toggleAdditionalVerifiedBadges();
+                ((TextCheckCell) view).setChecked(SharedConfig.additionalVerifiedBadges);
             }
         });
 
@@ -328,6 +333,8 @@ public class PartisanSettingsActivity extends BaseFragment {
         isDeleteMessagesForAllByDefaultDetailRow = rowCount++;
         marketIconsRow = rowCount++;
         marketIconsDetailRow = rowCount++;
+        verifiedRow = rowCount++;
+        verifiedDetailRow = rowCount++;
     }
 
     @Override
@@ -434,6 +441,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     }  else if (position == marketIconsRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.MarketIcons),
                                 SharedConfig.marketIcons, false);
+                    } else if (position == verifiedRow) {
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.AdditionalVerifiedSetting),
+                                SharedConfig.additionalVerifiedBadges, false);
                     }
                     break;
                 }
@@ -481,6 +491,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     } else if (position == marketIconsDetailRow) {
                         cell.setText(LocaleController.getString(R.string.MarketIconsInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == verifiedDetailRow) {
+                        cell.setText(LocaleController.getString(R.string.AdditionalVerifiedSettingInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
                 }
@@ -511,14 +524,15 @@ public class PartisanSettingsActivity extends BaseFragment {
                     || position == renameChatRow || position == deleteMyMessagesRow || position == deleteAfterReadRow
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
                     || position == isClearAllDraftsOnScreenLockRow || position == showCallButtonRow
-                    || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow) {
+                    || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow
+                    || position == verifiedRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow || position == deleteAfterReadDetailRow
                     || position == savedChannelsDetailRow || position == reactionsDetailRow || position == foreignAgentsDetailRow
                     || position == onScreenLockActionDetailRow || position == isClearAllDraftsOnScreenLockDetailRow
                     || position == showCallButtonDetailRow || position == isDeleteMessagesForAllByDefaultDetailRow
-                    || position == marketIconsDetailRow) {
+                    || position == marketIconsDetailRow || position == verifiedDetailRow) {
                 return 1;
             } else if (position == onScreenLockActionRow) {
                 return 2;
