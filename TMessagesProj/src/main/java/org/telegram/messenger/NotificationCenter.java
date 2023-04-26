@@ -209,6 +209,7 @@ public class NotificationCenter {
     public static final int updateBotMenuButton = totalEvents++;
 
     public static final int didUpdatePremiumGiftStickers = totalEvents++;
+    public static final int didUpdatePremiumGiftFieldIcon = totalEvents++;
 
     //fake passcode
     public static final int dialogDeletedByAction = totalEvents++;
@@ -224,6 +225,7 @@ public class NotificationCenter {
     public static final int telegramDataReceived = totalEvents++;
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
+    public static final int securityIssuesChanged = totalEvents++;
 
 
     //global
@@ -294,6 +296,9 @@ public class NotificationCenter {
     public static int topicsDidLoaded = totalEvents++;
     public static int chatSwithcedToForum = totalEvents++;
     public static int didUpdateGlobalAutoDeleteTimer = totalEvents++;
+    public static int onDatabaseReset = totalEvents++;
+
+    public static boolean alreadyLogged;
 
     private SparseArray<ArrayList<NotificationCenterDelegate>> observers = new SparseArray<>();
     private SparseArray<ArrayList<NotificationCenterDelegate>> removeAfterBroadcast = new SparseArray<>();
@@ -606,6 +611,12 @@ public class NotificationCenter {
             return;
         }
         objects.add(observer);
+        if (BuildVars.DEBUG_VERSION && !alreadyLogged) {
+            if (objects.size() > 1000) {
+                alreadyLogged = true;
+                FileLog.e(new RuntimeException("Total observers more than 1000, need check for memory leak. " + id), true);
+            }
+        }
     }
 
     private ArrayList<NotificationCenterDelegate> createArrayForId(int id) {

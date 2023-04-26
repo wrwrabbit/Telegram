@@ -167,11 +167,7 @@ public class HintDialogCell extends FrameLayout {
             if (name != null) {
                 nameTextView.setText(name);
             } else if (chat != null) {
-                String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (title == null) {
-                    title = chat.title;
-                }
-                nameTextView.setText(title);
+                nameTextView.setText(UserConfig.getChatTitleOverride(currentAccount, chat));
             } else {
                 nameTextView.setText("");
             }

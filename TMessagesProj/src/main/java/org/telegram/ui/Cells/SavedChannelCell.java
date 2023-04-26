@@ -970,10 +970,7 @@ public class SavedChannelCell extends BaseCell {
         }
 
         if (chat != null) {
-            nameString = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-            if (nameString == null) {
-                nameString = chat.title;
-            }
+            nameString = UserConfig.getChatTitleOverride(currentAccount, chat);
         } else if (user != null) {
             if (UserObject.isReplyUser(user)) {
                 nameString = LocaleController.getString("RepliesTitle", R.string.RepliesTitle);

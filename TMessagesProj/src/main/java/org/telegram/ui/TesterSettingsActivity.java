@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,10 +13,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -33,7 +38,10 @@ import org.telegram.ui.DialogBuilder.DialogType;
 import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class TesterSettingsActivity extends BaseFragment {
@@ -76,6 +84,8 @@ public class TesterSettingsActivity extends BaseFragment {
     private int simpleDataEndRow;
     private int hideDialogIsNotSafeWarningRow;
     private int phoneOverrideRow;
+    private int resetSecurityIssuesRow;
+    private int activateAllSecurityIssuesRow;
 
     public static boolean showPlainBackup;
 
@@ -203,6 +213,13 @@ public class TesterSettingsActivity extends BaseFragment {
                 };
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
                 showDialog(dialog);
+            } else if (position == resetSecurityIssuesRow) {
+                setSecurityIssues(new HashSet<>());
+                SecurityChecker.checkSecurityIssuesAndSave(getParentActivity(), getCurrentAccount(), true);
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+            } else if (position == activateAllSecurityIssuesRow) {
+                setSecurityIssues(new HashSet<>(Arrays.asList(SecurityIssue.values())));
+                Toast.makeText(getParentActivity(), "Activated", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -230,6 +247,8 @@ public class TesterSettingsActivity extends BaseFragment {
         simpleDataEndRow = rowCount;
         hideDialogIsNotSafeWarningRow = rowCount++;
         phoneOverrideRow = rowCount++;
+        resetSecurityIssuesRow = rowCount++;
+        activateAllSecurityIssuesRow = rowCount++;
     }
 
     @Override
@@ -265,6 +284,21 @@ public class TesterSettingsActivity extends BaseFragment {
 
     private List<TLRPC.Dialog> getAllDialogs() {
         return Utils.getAllDialogs(currentAccount);
+    }
+
+    private void setSecurityIssues(Set<SecurityIssue> issues) {
+        SharedConfig.ignoredSecurityIssues = new HashSet<>();
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            UserConfig config = UserConfig.getInstance(a);
+            if (!config.isClientActivated()) {
+                continue;
+            }
+            config.currentSecurityIssues = issues;
+            config.ignoredSecurityIssues = new HashSet<>();
+            config.lastSecuritySuggestionsShow = 0;
+            config.showSecuritySuggestions = !issues.isEmpty();
+            config.saveConfig(false);
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -336,6 +370,10 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setTextAndValue(simpleData.name, simpleData.getValue.get(), true);
                     } else if (position == phoneOverrideRow) {
                         textCell.setTextAndValue("Phone Override", SharedConfig.phoneOverride, true);
+                    } else if (position == resetSecurityIssuesRow) {
+                        textCell.setText("Reset Security Issues", true);
+                    } else if (position == activateAllSecurityIssuesRow) {
+                        textCell.setText("Activate All Security Issues", true);
                     }
                     break;
                 }
@@ -349,7 +387,8 @@ public class TesterSettingsActivity extends BaseFragment {
                 return 0;
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
-                    || position == phoneOverrideRow) {
+                    || position == phoneOverrideRow || position == resetSecurityIssuesRow
+                    || position == activateAllSecurityIssuesRow) {
                 return 1;
             }
             return 0;

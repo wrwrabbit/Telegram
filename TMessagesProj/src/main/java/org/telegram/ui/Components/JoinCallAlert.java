@@ -630,7 +630,7 @@ public class JoinCallAlert extends BottomSheet {
                 doneButton.setText(LocaleController.formatString("VoipGroupContinueAs", R.string.VoipGroupContinueAs, UserObject.getFirstName(user)), animated);
             } else {
                 TLRPC.Chat peerChat = MessagesController.getInstance(currentAccount).getChat(-did);
-                doneButton.setText(LocaleController.formatString("VoipGroupContinueAs", R.string.VoipGroupContinueAs, peerChat != null ? UserConfig.getChatTitleOverride(currentAccount, peerChat.id, peerChat.title) : ""), animated);
+                doneButton.setText(LocaleController.formatString("VoipGroupContinueAs", R.string.VoipGroupContinueAs, peerChat != null ? UserConfig.getChatTitleOverride(getCurrentAccount(), peerChat) : ""), animated);
             }
         }
     }

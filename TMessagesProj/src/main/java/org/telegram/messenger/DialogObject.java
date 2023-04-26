@@ -131,7 +131,7 @@ public class DialogObject {
                     imageReceiver.setForUserOrChat(null, avatarDrawable);
                 }
             } else {
-                title = UserObject.getUserName(user);
+                title = UserObject.getUserName(user, accountNum);
                 if (avatarDrawable != null) {
                     avatarDrawable.setInfo(user, accountNum);
                 }
@@ -141,7 +141,7 @@ public class DialogObject {
             }
         } else if (dialog instanceof TLRPC.Chat) {
             TLRPC.Chat chat = (TLRPC.Chat) dialog;
-            title = UserConfig.getChatTitleOverride(accountNum, chat.id, chat.title);
+            title = UserConfig.getChatTitleOverride(accountNum, chat);
             if (avatarDrawable != null) {
                 avatarDrawable.setInfo(chat, accountNum);
             }

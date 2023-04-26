@@ -3067,6 +3067,11 @@ public class ArticleViewer implements NotificationCenter.NotificationCenterDeleg
                     return super.drawChild(canvas, child, drawingTime);
                 }
             }
+
+            @Override
+            public void invalidate() {
+                super.invalidate();
+            }
         };
         windowView.addView(containerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         //containerView.setFitsSystemWindows(true);
@@ -10564,10 +10569,7 @@ public class ArticleViewer implements NotificationCenter.NotificationCenterDeleg
             progressView.measure(MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(39), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(39), MeasureSpec.EXACTLY));
             imageView.measure(MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(39), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(39), MeasureSpec.EXACTLY));
             if (currentBlock != null) {
-                String title = UserConfig.getChatTitleOverride(currentAccount, currentBlock.channel.id);
-                if (title == null) {
-                    title = currentBlock.channel.title;
-                }
+                String title = UserConfig.getChatTitleOverride(currentAccount, currentBlock.channel);
                 textLayout = createLayoutForText(this, title, null, width - AndroidUtilities.dp(36 + 16) - buttonWidth, textY, currentBlock, StaticLayoutEx.ALIGN_LEFT(), 1, parentAdapter);
                 if (parentAdapter.isRtl) {
                     textX2 = textX;

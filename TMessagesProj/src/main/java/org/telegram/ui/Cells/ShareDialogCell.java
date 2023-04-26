@@ -155,10 +155,7 @@ public class ShareDialogCell extends FrameLayout {
             if (name != null) {
                 nameTextView.setText(name);
             } else if (chat != null) {
-                String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (title == null) {
-                    title = chat.title;
-                }
+                String title = UserConfig.getChatTitleOverride(currentAccount, chat);
                 nameTextView.setText(title);
             } else {
                 nameTextView.setText("");

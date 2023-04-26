@@ -25,6 +25,7 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -86,7 +87,7 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
 
     public PrivacyUsersActivity(int type, ArrayList<Long> users, boolean group, boolean always) {
         super();
-        uidArray = (ArrayList<Long>) FakePasscode.filterDialogIds(users, currentAccount);
+        uidArray = (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(users, currentAccount);
         isAlwaysShare = always;
         isGroup = group;
         blockedUsersActivity = false;

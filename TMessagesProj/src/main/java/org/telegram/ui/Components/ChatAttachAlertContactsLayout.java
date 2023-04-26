@@ -213,7 +213,7 @@ public class ChatAttachAlertContactsLayout extends ChatAttachAlert.AttachAlertLa
                 }
                 if (!continueUpdate && currentName == null && lastName != null && (mask & MessagesController.UPDATE_MASK_NAME) != 0) {
                     if (currentUser != null) {
-                        newName = UserObject.getUserName(currentUser);
+                        newName = UserObject.getUserName(currentUser, currentAccount);
                     }
                     if (!newName.equals(lastName)) {
                         continueUpdate = true;
@@ -242,7 +242,7 @@ public class ChatAttachAlertContactsLayout extends ChatAttachAlert.AttachAlertLa
                 nameTextView.setText(currentName);
             } else {
                 if (currentUser != null) {
-                    lastName = newName == null ? UserObject.getUserName(currentUser) : newName;
+                    lastName = newName == null ? UserObject.getUserName(currentUser, currentAccount) : newName;
                 } else {
                     lastName = "";
                 }

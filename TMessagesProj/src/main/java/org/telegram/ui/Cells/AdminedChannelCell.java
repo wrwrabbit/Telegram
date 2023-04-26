@@ -89,10 +89,7 @@ public class AdminedChannelCell extends FrameLayout {
         final String url = MessagesController.getInstance(currentAccount).linkPrefix + "/";
         currentChannel = channel;
         avatarDrawable.setInfo(channel, currentAccount);
-        String title = UserConfig.getChatTitleOverride(currentAccount, channel.id);
-        if (title != null) {
-            title = channel.title;
-        }
+        String title = UserConfig.getChatTitleOverride(currentAccount, channel);
         nameTextView.setText(title);
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder(url + ChatObject.getPublicUsername(channel));
         stringBuilder.setSpan(new URLSpanNoUnderline(""), url.length(), stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

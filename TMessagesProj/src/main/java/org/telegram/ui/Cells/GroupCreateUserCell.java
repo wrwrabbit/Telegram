@@ -264,11 +264,11 @@ public class GroupCreateUserCell extends FrameLayout {
             }
             avatarImageView.getLayoutParams().width = avatarImageView.getLayoutParams().height = AndroidUtilities.dp(46);
             if (checkBox != null) {
-                ((LayoutParams) checkBox.getLayoutParams()).topMargin = AndroidUtilities.dp(33) + padding;
+                ((LayoutParams) checkBox.getLayoutParams()).topMargin = AndroidUtilities.dp(29) + padding;
                 if (LocaleController.isRTL) {
                     ((LayoutParams) checkBox.getLayoutParams()).rightMargin = AndroidUtilities.dp(39) + padding;
                 } else {
-                    ((LayoutParams) checkBox.getLayoutParams()).leftMargin = AndroidUtilities.dp(40) + padding;
+                    ((LayoutParams) checkBox.getLayoutParams()).leftMargin = AndroidUtilities.dp(45) + padding;
                 }
             }
 
@@ -354,10 +354,7 @@ public class GroupCreateUserCell extends FrameLayout {
                         }
                     }
                     if (!continueUpdate && currentName == null && lastName != null && (mask & MessagesController.UPDATE_MASK_NAME) != 0) {
-                        newName = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                        if (newName == null) {
-                            newName = currentChat.title;
-                        }
+                        newName = UserConfig.getChatTitleOverride(currentAccount, currentChat);
                         if (!newName.equals(lastName)) {
                             continueUpdate = true;
                         }
@@ -373,11 +370,7 @@ public class GroupCreateUserCell extends FrameLayout {
                     lastName = null;
                     nameTextView.setText(currentName, true);
                 } else {
-                    String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                    if (title == null) {
-                        title = currentChat.title;
-                    }
-                    lastName = newName == null ? title : newName;
+                    lastName = newName == null ? UserConfig.getChatTitleOverride(currentAccount, currentChat) : newName;
                     nameTextView.setText(lastName);
                 }
 

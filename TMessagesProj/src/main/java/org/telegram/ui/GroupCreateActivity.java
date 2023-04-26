@@ -64,6 +64,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -284,8 +285,8 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
             allSpans.add(span);
             selectedContacts.put(span.getUid(), span);
 
-            editText.setHintVisible(false);
-            if (currentAnimation != null) {
+            editText.setHintVisible(false, TextUtils.isEmpty(editText.getText()));
+            if (currentAnimation != null && currentAnimation.isRunning()) {
                 currentAnimation.setupEndValues();
                 currentAnimation.cancel();
             }
@@ -330,7 +331,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                     animationStarted = false;
                     editText.setAllowDrawCursor(true);
                     if (allSpans.isEmpty()) {
-                        editText.setHintVisible(true);
+                        editText.setHintVisible(true, true);
                     }
                 }
             });
@@ -407,7 +408,11 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         allSpans.clear();
         selectedContacts.clear();
         currentDeletingSpan = null;
-        doneButtonVisible = chatType == ChatObject.CHAT_TYPE_CHANNEL;
+        if (chatType == ChatObject.CHAT_TYPE_CHANNEL) {
+            doneButtonVisible = true;
+        } else {
+            doneButtonVisible = !addToGroup;
+        }
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
@@ -813,7 +818,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         }
         frameLayout.addView(floatingButton);
         floatingButton.setOnClickListener(v -> onDonePressed(true));
-        if (chatType != ChatObject.CHAT_TYPE_CHANNEL) {
+        if (!doneButtonVisible) {
             floatingButton.setVisibility(View.INVISIBLE);
             floatingButton.setScaleX(0.0f);
             floatingButton.setScaleY(0.0f);
@@ -966,7 +971,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
     }
 
     private boolean onDonePressed(boolean alert) {
-        if (selectedContacts.size() == 0 && chatType != ChatObject.CHAT_TYPE_CHANNEL) {
+        if (selectedContacts.size() == 0 && (chatType != ChatObject.CHAT_TYPE_CHANNEL && addToGroup)) {
             return false;
         }
         if (alert && addToGroup) {
@@ -989,7 +994,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
             }
             TLRPC.Chat chat = getMessagesController().getChat(chatId != 0 ? chatId : channelId);
             if (selectedContacts.size() > 5) {
-                SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(AndroidUtilities.replaceTags(LocaleController.formatPluralString("AddManyMembersAlertNamesText", selectedContacts.size(), UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title))));
+                SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(AndroidUtilities.replaceTags(LocaleController.formatPluralString("AddManyMembersAlertNamesText", selectedContacts.size(), getUserConfig().getChatTitleOverride(chat))));
                 String countString = String.format("%d", selectedContacts.size());
                 int index = TextUtils.indexOf(spannableStringBuilder, countString);
                 if (index >= 0) {
@@ -997,11 +1002,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 }
                 builder.setMessage(spannableStringBuilder);
             } else {
-                String title = chat == null ? "" : UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (title == null) {
-                    title = chat.title;
-                }
-                builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("AddMembersAlertNamesText", R.string.AddMembersAlertNamesText, stringBuilder, title)));
+                builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("AddMembersAlertNamesText", R.string.AddMembersAlertNamesText, stringBuilder, chat != null ? getUserConfig().getChatTitleOverride(chat) : "")));
             }
             CheckBoxCell[] cells = new CheckBoxCell[1];
             if (!ChatObject.isChannel(chat)) {
@@ -1041,7 +1042,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 args2.putBoolean("just_created_chat", true);
                 presentFragment(new ChatActivity(args2), true);
             } else {
-                if (!doneButtonVisible || selectedContacts.size() == 0) {
+                if (!doneButtonVisible) {
                     return false;
                 }
                 if (addToGroup) {
@@ -1098,7 +1099,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 }
             }
         }
-        if (chatType != ChatObject.CHAT_TYPE_CHANNEL) {
+        if (chatType != ChatObject.CHAT_TYPE_CHANNEL && addToGroup) {
             if (doneButtonVisible && allSpans.isEmpty()) {
                 if (currentDoneButtonAnimation != null) {
                     currentDoneButtonAnimation.cancel();
@@ -1163,7 +1164,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         public GroupCreateAdapter(Context ctx) {
             context = ctx;
 
-            ArrayList<TLRPC.TL_contact> arrayList = (ArrayList<TLRPC.TL_contact>) FakePasscode.filterContacts(getContactsController().contacts, currentAccount);
+            ArrayList<TLRPC.TL_contact> arrayList = (ArrayList<TLRPC.TL_contact>) FakePasscodeUtils.filterContacts(getContactsController().contacts, currentAccount);
             for (int a = 0; a < arrayList.size(); a++) {
                 TLRPC.User user = getMessagesController().getUser(arrayList.get(a).user_id);
                 if (user == null || user.self || user.deleted) {
@@ -1172,7 +1173,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 contacts.add(user);
             }
             if (isNeverShare || isAlwaysShare) {
-                ArrayList<TLRPC.Dialog> dialogs = (ArrayList<TLRPC.Dialog>) FakePasscode.filterDialogs(getMessagesController().getAllDialogs(), Optional.of(currentAccount));
+                ArrayList<TLRPC.Dialog> dialogs = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(getMessagesController().getAllDialogs(), Optional.of(currentAccount));
                 for (int a = 0, N = dialogs.size(); a < N; a++) {
                     TLRPC.Dialog dialog = dialogs.get(a);
                     if (!DialogObject.isChatDialog(dialog.id)) {
@@ -1191,11 +1192,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                             return ContactsController.formatName(user.first_name, user.last_name);
                         } else {
                             TLRPC.Chat chat = (TLRPC.Chat) object;
-                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                            if (title == null) {
-                                title = chat.title;
-                            }
-                            return title;
+                            return getUserConfig().getChatTitleOverride(chat);
                         }
                     }
 
@@ -1238,10 +1235,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 lastName = user.last_name;
             } else {
                 TLRPC.Chat chat = (TLRPC.Chat) object;
-                firstName = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (firstName == null) {
-                    firstName = chat.title;
-                }
+                firstName = getUserConfig().getChatTitleOverride(chat);
                 lastName = "";
             }
             if (LocaleController.nameDisplayOrder == 1) {
@@ -1526,7 +1520,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                                 username = UserObject.getPublicUsername(user);
                             } else {
                                 TLRPC.Chat chat = (TLRPC.Chat) object;
-                                name = UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title);
+                                name = getUserConfig().getChatTitleOverride(chat);
                                 username = ChatObject.getPublicUsername(chat);
                             }
                             String tName = LocaleController.getInstance().getTranslitString(name);
@@ -1549,11 +1543,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
                                         } else {
                                             TLRPC.Chat chat = (TLRPC.Chat) object;
-                                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                                            if (title == null) {
-                                                title = chat.title;
-                                            }
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(title, null, q));
+                                            resultArrayNames.add(AndroidUtilities.generateSearchName(getUserConfig().getChatTitleOverride(chat), null, q));
                                         }
                                     } else {
                                         resultArrayNames.add(AndroidUtilities.generateSearchName("@" + username, null, "@" + q));

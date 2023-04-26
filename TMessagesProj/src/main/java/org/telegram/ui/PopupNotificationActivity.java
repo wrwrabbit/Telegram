@@ -1296,14 +1296,14 @@ public class PopupNotificationActivity extends Activity implements NotificationC
         if (currentChat != null) {
             nameTextView.setText(currentChat.title);
             if (currentUser != null) {
-                onlineTextView.setText(UserObject.getUserName(currentUser));
+                onlineTextView.setText(UserObject.getUserName(currentUser, lastResumedAccount));
             } else {
                 onlineTextView.setText(null);
             }
             nameTextView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             nameTextView.setCompoundDrawablePadding(0);
         } else if (currentUser != null) {
-            nameTextView.setText(UserObject.getUserName(currentUser));
+            nameTextView.setText(UserObject.getUserName(currentUser, lastResumedAccount));
             if (DialogObject.isEncryptedDialog(dialogId)) {
                 nameTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_lock_white, 0, 0, 0);
                 nameTextView.setCompoundDrawablePadding(AndroidUtilities.dp(4));
@@ -1330,10 +1330,10 @@ public class PopupNotificationActivity extends Activity implements NotificationC
             if (currentUser.phone != null && currentUser.phone.length() != 0) {
                 nameTextView.setText(PhoneFormat.getInstance().format("+" + currentUser.phone));
             } else {
-                nameTextView.setText(UserObject.getUserName(currentUser));
+                nameTextView.setText(UserObject.getUserName(currentUser, lastResumedAccount));
             }
         } else {
-            nameTextView.setText(UserObject.getUserName(currentUser));
+            nameTextView.setText(UserObject.getUserName(currentUser, lastResumedAccount));
         }
         if (currentUser != null && currentUser.id == 777000) {
             onlineTextView.setText(LocaleController.getString("ServiceNotifications", R.string.ServiceNotifications));

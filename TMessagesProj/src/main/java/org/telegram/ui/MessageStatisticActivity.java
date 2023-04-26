@@ -225,11 +225,7 @@ public class MessageStatisticActivity extends BaseFragment implements Notificati
                 TLRPC.Chat chatLocal = getMessagesController().getChat(chatId);
                 if (chatLocal != null) {
                     avatarContainer.setChatAvatar(chatLocal);
-                    String title = UserConfig.getChatTitleOverride(currentAccount, chatLocal.id);
-                    if (title == null) {
-                        title = chatLocal.title;
-                    }
-                    avatarContainer.setTitle(title);
+                    avatarContainer.setTitle(getUserConfig().getChatTitleOverride(chatLocal));
                 }
                 chat = chatFull;
                 loadStat();
@@ -371,11 +367,7 @@ public class MessageStatisticActivity extends BaseFragment implements Notificati
         TLRPC.Chat chatLocal = getMessagesController().getChat(chatId);
         if (chatLocal != null) {
             avatarContainer.setChatAvatar(chatLocal);
-            String title = UserConfig.getChatTitleOverride(currentAccount, chatLocal.id);
-            if (title == null) {
-                title = chatLocal.title;
-            }
-            avatarContainer.setTitle(title);
+            avatarContainer.setTitle(getUserConfig().getChatTitleOverride(chatLocal));
         }
 
         boolean hasThumb = false;

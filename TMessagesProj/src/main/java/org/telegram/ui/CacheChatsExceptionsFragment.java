@@ -17,6 +17,7 @@ import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -209,6 +210,9 @@ public class CacheChatsExceptionsFragment extends BaseFragment {
         items.add(new Item(VIEW_TYPE_ADD_EXCEPTION, null));
         boolean added = false;
         for (CacheByChatsController.KeepMediaException exception : exceptionsDialogs) {
+            if (FakePasscodeUtils.isHideChat(exception.dialogId, currentAccount)) {
+                continue;
+            }
             items.add(new Item(VIEW_TYPE_CHAT, exception));
             added = true;
         }
@@ -281,7 +285,7 @@ public class CacheChatsExceptionsFragment extends BaseFragment {
                     }
                 } else if (object instanceof TLRPC.Chat) {
                     TLRPC.Chat chat = (TLRPC.Chat) object;
-                    title = UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title);
+                    title = getUserConfig().getChatTitleOverride(chat);
                 }
                 cell.setSelfAsSavedMessages(true);
                 cell.setData(object, title, CacheByChatsController.getKeepMediaString(exception.keepMedia), 0, !(position != items.size() - 1 && items.get(position + 1).viewType != VIEW_TYPE_CHAT));

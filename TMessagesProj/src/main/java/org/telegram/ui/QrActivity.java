@@ -282,7 +282,7 @@ public class QrActivity extends BaseFragment {
             if (user != null) {
                 username = UserObject.getPublicUsername(user);
                 if (username == null) {
-                    userfullname = UserObject.getUserName(user);
+                    userfullname = UserObject.getUserName(user, getCurrentAccount());
                     if (phoneIsPublic()) {
                         username = user.phone;
                         if (username != null && !username.startsWith("+")) {

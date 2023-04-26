@@ -83,6 +83,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLObject;
@@ -684,7 +685,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                     ignoreLayout = false;
                 }
                 fullHeight = contentSize >= totalHeight;
-                topOffset = (fullHeight || !SharedConfig.smoothKeyboard) ? 0 : totalHeight - contentSize;
+                topOffset = fullHeight ? 0 : totalHeight - contentSize;
                 ignoreLayout = true;
                 checkCurrentList(false);
                 ignoreLayout = false;
@@ -699,7 +700,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
                 widthSize -= backgroundPaddingLeft * 2;
 
-                int keyboardSize = SharedConfig.smoothKeyboard ? 0 : measureKeyboardHeight();
+                int keyboardSize = 0;
                 if (!commentTextView.isWaitingForKeyboardOpen() && keyboardSize <= AndroidUtilities.dp(20) && !commentTextView.isPopupShowing() && !commentTextView.isAnimatePopupClosing()) {
                     ignoreLayout = true;
                     commentTextView.hideEmojiView();
@@ -710,7 +711,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                 if (keyboardSize <= AndroidUtilities.dp(20)) {
                     if (!AndroidUtilities.isInMultiwindow) {
                         int paddingBottom;
-                        if (SharedConfig.smoothKeyboard && keyboardVisible) {
+                        if (keyboardVisible) {
                             paddingBottom = 0;
                         } else {
                             paddingBottom = commentTextView.getEmojiPadding();
@@ -764,7 +765,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
                 int keyboardSize = measureKeyboardHeight();
                 int paddingBottom;
-                if (SharedConfig.smoothKeyboard && keyboardVisible) {
+                if (keyboardVisible) {
                     paddingBottom = 0;
                 } else {
                     paddingBottom = keyboardSize <= AndroidUtilities.dp(20) && !AndroidUtilities.isInMultiwindow && !AndroidUtilities.isTablet() ? commentTextView.getEmojiPadding() : 0;
@@ -2024,6 +2025,10 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
     }
 
+    protected boolean doSend(LongSparseArray<TLRPC.Dialog> dids, TLRPC.TL_forumTopic topic) {
+        return false;
+    }
+
     private int getCurrentTop() {
         if (gridView.getChildCount() != 0) {
             View child = gridView.getChildAt(0);
@@ -2320,13 +2325,13 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
             long selfUserId = UserConfig.getInstance(currentAccount).clientUserId;
             if (!MessagesController.getInstance(currentAccount).dialogsForward.isEmpty()) {
                 TLRPC.Dialog dialog = MessagesController.getInstance(currentAccount).dialogsForward.get(0);
-                if (!FakePasscode.isHideChat(dialog.id, currentAccount)) {
+                if (!FakePasscodeUtils.isHideChat(dialog.id, currentAccount)) {
                     dialogs.add(dialog);
                     dialogsMap.put(dialog.id, dialog);
                 }
             }
             ArrayList<TLRPC.Dialog> archivedDialogs = new ArrayList<>();
-            List<TLRPC.Dialog> allDialogs = FakePasscode.filterDialogs(MessagesController.getInstance(currentAccount).getAllDialogs(), Optional.of(currentAccount));
+            List<TLRPC.Dialog> allDialogs = FakePasscodeUtils.filterDialogs(MessagesController.getInstance(currentAccount).getAllDialogs(), Optional.of(currentAccount));
             for (int a = 0; a < allDialogs.size(); a++) {
                 TLRPC.Dialog dialog = allDialogs.get(a);
                 if (!(dialog instanceof TLRPC.TL_dialog)) {
@@ -2665,11 +2670,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                                         data.reuse();
                                         if (!(chat == null || ChatObject.isNotInChat(chat) || ChatObject.isChannel(chat) && !chat.creator && (chat.admin_rights == null || !chat.admin_rights.post_messages) && !chat.megagroup)) {
                                             DialogSearchResult dialogSearchResult = dialogsResult.get(-(long) chat.id);
-                                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                                            if (title == null) {
-                                                title = chat.title;
-                                            }
-                                            dialogSearchResult.name = AndroidUtilities.generateSearchName(title, null, q);
+                                            dialogSearchResult.name = AndroidUtilities.generateSearchName(UserConfig.getChatTitleOverride(getCurrentAccount(), chat), null, q);
                                             dialogSearchResult.object = chat;
                                             dialogSearchResult.dialog.id = -chat.id;
                                             resultCount++;
@@ -2737,7 +2738,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                     }
                     cursor.dispose();
 
-                    searchResults = (ArrayList<Object>) FakePasscode.filterItems(searchResults,
+                    searchResults = (ArrayList<Object>) FakePasscodeUtils.filterItems(searchResults,
                             Optional.of(currentAccount),
                             (o, filter) -> !filter.isHideChat(((DialogSearchResult)o).dialog.id));
                     Collections.sort(searchResults, (lhs, rhs) -> {
@@ -2971,7 +2972,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                                 cell.setColors(Theme.key_voipgroup_nameText, Theme.key_voipgroup_inviteMembersBackground);
                             }
 
-                            TLRPC.TL_topPeer peer = FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).get(position);
+                            TLRPC.TL_topPeer peer = FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).get(position);
                             TLRPC.Chat chat = null;
                             TLRPC.User user = null;
                             long did = 0;
@@ -2998,7 +2999,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                         }
                     });
                     horizontalListView.setOnItemClickListener((view1, position) -> {
-                        TLRPC.TL_topPeer peer = FakePasscode.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).get(position);
+                        TLRPC.TL_topPeer peer = FakePasscodeUtils.filterHints(MediaDataController.getInstance(currentAccount).hints, currentAccount).get(position);
                         TLRPC.Dialog dialog = new TLRPC.TL_dialog();
                         TLRPC.Chat chat = null;
                         TLRPC.User user = null;
@@ -3097,10 +3098,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                     } else {
                         TLRPC.Chat chat = (TLRPC.Chat) object;
                         id = -chat.id;
-                        name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                        if (name == null) {
-                            name = chat.title;
-                        }
+                        name = UserConfig.getChatTitleOverride(getCurrentAccount(), chat);
                     }
                     String foundUserName = searchAdapterHelper.getLastFoundUsername();
                     if (!TextUtils.isEmpty(foundUserName)) {

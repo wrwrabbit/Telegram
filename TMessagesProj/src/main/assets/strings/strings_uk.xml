@@ -28,7 +28,7 @@
     <string name="FakePasscodeTelegramMessageInfo">Налаштуйте повідомлення, які будуть відправлятися якщо ввести фальшивий код блокування.</string>
     <string name="TelegramMessages">Повідомлення Telegram</string>
     <string name="CannotBeEmpty">Не може бути порожнім</string>
-    <string name="ConfirmDeletion">Підтвердити видалення</string>
+    <string name="ConfirmAction">Підтвердіть дію</string>
     <string name="AllFakePasscodesWillBeDeleted">Усі фальшиві коди блокування будуть видалені. Бажаєте продовжити?</string>
     <string name="FakePasscodeAccountsInfo">Налаштуйте дії для облікових записів.</string>
     <string name="BruteForceProtection">Захист від підбору коду блокування</string>
@@ -177,4 +177,25 @@
     <string name="ActivateWithFingerprint">Активувати відбитком пальця</string>
     <string name="ActivateWithFingerprintInfo">Коли цю функцію ввімкнено, розблокування відбитком пальця буде втягнуто до цього фальшивого пароля. Цей параметр можна увімкнути лише для одного фальшивого пароля.</string>
     <string name="TakePhotoWarning">При створенні фото, можуть бути відтворені звуки камери, сповіщення з фото та інші показники. Додаток намагатиметься видалити їх, але це неможливо у всіх випадках. Будь ласка, перевірте правильність роботи цієї функції.</string>
+    <string name="TimerActivationFakePasscode">Активація за таймером</string>
+    <string name="TimerActivationFakePasscodeInfo">Активувати помилковий код-пароль у разі невикористання програми. Час, коли програма заблокована код-паролем, вважається неактивністю. Для коректної роботи функції ми рекомендуємо не закривати програму та вимкнути обмеження використання батареї.</string>
+    <string name="TimerActivationDialogTitle">Таймер активації</string>
+    <string name="TimerActivationFakePasscodeWarningTitle">Увага!</string>
+    <string name="TimerActivationFakePasscodeWarning">Таймер може не завжди спрацьовувати коректно. Програма може бути закрита системою, а фонова робота може бути обмежена. Для коректної роботи функції ми рекомендуємо не закривати програму та вимкнути обмеження використання батареї. Також ми рекомендуємо продумати запасний план на випадок неспрацьовування таймера.</string>
+    <string name="SecurityIssuesProfileSuggestionHeader">Проблеми з безпекою</string>
+    <string name="SecurityIssuesProfileSuggestionDetail">Ми знайшли кілька проблем, які можуть наразити Ваш обліковий запис небезпеки. Бажаєте подивитися на них?</string>
+    <string name="SecurityIssuesProfileSuggestionYes">Закрити</string>
+    <string name="SecurityIssuesProfileSuggestionNo">Переглянути проблеми</string>
+    <string name="SecurityIssuesTitle">Проблеми безпеки</string>
+    <string name="RootIssueTitle">Root</string>
+    <string name="RootIssueText">Root може дозволити зловмиснику отримати доступ до даних програми (наприклад, до повідомлень) без входу до неї.</string>
+    <string name="UsbDebuggingIssueTitle">USB налагодження</string>
+    <string name="UsbDebuggingIssueText">USB налагодження може наражати дані на телефоні на небезпеку в деяких випадках, таких, як підключення пристрою до загальнодоступної USB зарядної станції. Ми рекомендуємо вимикати цю опцію, коли вона не використовується.</string>
+    <string name="TwoStepAutentificationIssueTitle">Хмарний пароль</string>
+    <string name="TwoStepAutentificationIssueText">Відсутність хмарного пароля може дозволити зловмисникові увійти в обліковий запис шляхом перехоплення смс з кодом для входу.</string>
+    <string name="PrivacyIssueTitle">Налаштування конфіденційності</string>
+    <string name="PrivacyIssueText">Низькі налаштування конфіденційності можуть дозволити іншим користувачам деанонімізувати Вас, наприклад, за номером телефону або за останнім часом у мережі.</string>
+    <string name="FixIssueButton">Виправити проблему</string>
+    <string name="FixedToast">Виправлено</string>
+    <string name="ResetIgnoredIssues">Повернути приховані проблеми</string>
 </resources>

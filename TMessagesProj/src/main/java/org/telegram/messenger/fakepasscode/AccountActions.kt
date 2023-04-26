@@ -166,6 +166,7 @@ class AccountActions : Action {
     fun isLogOut() = logOutAction != null
     fun isHideAccount() = hideAccountAction != null
     fun isLogOutOrHideAccount() = logOutAction != null || hideAccountAction != null
+    fun isPreventStickersBulletin() = deleteStickersAction?.isPreventBulletin ?: false
 
     fun getChatsToRemoveCount() = removeChatsAction.chatEntriesToRemove.size
 

@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.LaunchActivity;
 
@@ -70,7 +71,7 @@ public class LocationSharingService extends Service implements NotificationCente
             if (handler != null) {
                 handler.post(() -> {
                     ArrayList<LocationController.SharingLocationInfo> infos = getInfos();
-                    if (infos.isEmpty() || infos.stream().allMatch(i -> FakePasscode.isHideChat(i.did, i.account))) {
+                    if (infos.isEmpty() || infos.stream().allMatch(i -> FakePasscodeUtils.isHideChat(i.did, i.account))) {
                         stopSelf();
                     } else {
                         updateNotification(true);
@@ -81,7 +82,7 @@ public class LocationSharingService extends Service implements NotificationCente
             if (handler != null) {
                 handler.post(() -> {
                     ArrayList<LocationController.SharingLocationInfo> infos = getInfos();
-                    if (infos.isEmpty() || infos.stream().allMatch(i -> FakePasscode.isHideChat(i.did, i.account))) {
+                    if (infos.isEmpty() || infos.stream().allMatch(i -> FakePasscodeUtils.isHideChat(i.did, i.account))) {
                         stopSelf();
                     }
                 });

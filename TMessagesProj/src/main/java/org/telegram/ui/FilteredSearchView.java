@@ -44,6 +44,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -438,7 +439,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
             chatTo = messageObject.messageOwner.peer_id.chat_id != 0 ? MessagesController.getInstance(UserConfig.selectedAccount).getChat(messageObject.messageOwner.peer_id.chat_id) : null;
         }
         if (user != null && chatTo != null) {
-            CharSequence chatTitle = UserConfig.getChatTitleOverride(UserConfig.selectedAccount, user.id, chatTo.title);
+            CharSequence chatTitle = UserConfig.getChatTitleOverride(UserConfig.selectedAccount, chatTo);
             if (ChatObject.isForum(chatTo)) {
                 TLRPC.TL_forumTopic topic = MessagesController.getInstance(UserConfig.selectedAccount).getTopicsController().findTopic(chatTo.id, MessageObject.getTopicId(messageObject.messageOwner, true));
                 if (topic != null) {
@@ -452,10 +453,9 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                     .append(chatTitle);
             fromName = spannableStringBuilder;
         } else if (user != null) {
-            String name = ContactsController.formatName(user.first_name, user.last_name);
-            fromName = UserConfig.getChatTitleOverride(UserConfig.selectedAccount, user.id, name);
+            String name = ContactsController.formatNameWithOverride(UserConfig.selectedAccount, user);
         } else if (chatFrom != null) {
-            CharSequence chatTitle = UserConfig.getChatTitleOverride(UserConfig.selectedAccount, chatFrom.id, chatFrom.title);
+            CharSequence chatTitle = UserConfig.getChatTitleOverride(UserConfig.selectedAccount, chatFrom);
             if (ChatObject.isForum(chatFrom)) {
                 TLRPC.TL_forumTopic topic = MessagesController.getInstance(UserConfig.selectedAccount).getTopicsController().findTopic(chatFrom.id, MessageObject.getTopicId(messageObject.messageOwner, true));
                 if (topic != null) {
@@ -634,7 +634,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                     int n = messageObjects.size();
                     for (int i = 0; i < n; i++) {
                         MessageObject messageObject = messageObjects.get(i);
-                        if (FakePasscode.isHideChat(messageObject.getDialogId(), currentAccount)) {
+                        if (FakePasscodeUtils.isHideChat(messageObject.getDialogId(), currentAccount)) {
                             continue;
                         }
                         ArrayList<MessageObject> messageObjectsByDate = sectionArrays.get(messageObject.monthKey);

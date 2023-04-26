@@ -48,6 +48,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -148,7 +149,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
         ArrayList<TLRPC.TL_contact> arrayList = ContactsController.getInstance(account).contacts;
         for (int a = 0; a < arrayList.size(); a++) {
             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(arrayList.get(a).user_id);
-            if (user == null || user.self || user.deleted || FakePasscode.isHideChat(user.id, currentAccount)) {
+            if (user == null || user.self || user.deleted || FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                 continue;
             }
             contacts.add(user);
@@ -316,7 +317,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
                 }
                 TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(chatId);
                 if (selectedContacts.size() > 5) {
-                    SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(AndroidUtilities.replaceTags(LocaleController.formatPluralString("AddManyMembersAlertNamesText", selectedContacts.size(), UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title))));
+                    SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(AndroidUtilities.replaceTags(LocaleController.formatPluralString("AddManyMembersAlertNamesText", selectedContacts.size(), UserConfig.getChatTitleOverride(getCurrentAccount(), chat))));
                     String countString = String.format("%d", selectedContacts.size());
                     int index = TextUtils.indexOf(spannableStringBuilder, countString);
                     if (index >= 0) {
@@ -324,11 +325,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
                     }
                     builder.setMessage(spannableStringBuilder);
                 } else {
-                    String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                    if (title == null) {
-                        title = chat.title;
-                    }
-                    builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("AddMembersAlertNamesText", R.string.AddMembersAlertNamesText, stringBuilder, title)));
+                    builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("AddMembersAlertNamesText", R.string.AddMembersAlertNamesText, stringBuilder, UserConfig.getChatTitleOverride(currentAccount, chat))));
                 }
                 builder.setPositiveButton(LocaleController.getString("Add", R.string.Add), (dialogInterface, i) -> onAddToGroupDone(0));
                 builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
@@ -562,7 +559,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.dialogsNeedReload) {
             if (dialogsDelegate != null && dialogsServerOnly.isEmpty()) {
-                dialogsServerOnly = (ArrayList<TLRPC.Dialog>) FakePasscode.filterDialogs(MessagesController.getInstance(currentAccount).dialogsServerOnly, Optional.of(currentAccount));
+                dialogsServerOnly = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(MessagesController.getInstance(currentAccount).dialogsServerOnly, Optional.of(currentAccount));
                 listViewAdapter.notifyDataSetChanged();
             }
         }
@@ -960,7 +957,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
                                 username = UserObject.getPublicUsername(user);
                             } else {
                                 TLRPC.Chat chat = (TLRPC.Chat) object;
-                                name = UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title);
+                                name = UserConfig.getChatTitleOverride(getCurrentAccount(), chat);
                                 username = ChatObject.getPublicUsername(chat);
                             }
                             String tName = LocaleController.getInstance().getTranslitString(name);
@@ -983,11 +980,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
                                         } else {
                                             TLRPC.Chat chat = (TLRPC.Chat) object;
-                                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                                            if (title == null) {
-                                                title = chat.title;
-                                            }
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(title, null, q));
+                                            resultArrayNames.add(AndroidUtilities.generateSearchName(UserConfig.getChatTitleOverride(getCurrentAccount(), chat), null, q));
                                         }
                                     } else {
                                         resultArrayNames.add(AndroidUtilities.generateSearchName("@" + username, null, "@" + q));
@@ -1330,7 +1323,7 @@ public class InviteMembersBottomSheet extends UsersAlertBase implements Notifica
     public void setDelegate(InviteMembersBottomSheetDelegate inviteMembersBottomSheetDelegate, ArrayList<Long> selectedDialogs) {
         dialogsDelegate = inviteMembersBottomSheetDelegate;
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.dialogsNeedReload);
-        dialogsServerOnly = (ArrayList<TLRPC.Dialog>) FakePasscode.filterDialogs(MessagesController.getInstance(currentAccount).dialogsServerOnly, Optional.of(currentAccount));
+        dialogsServerOnly = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(MessagesController.getInstance(currentAccount).dialogsServerOnly, Optional.of(currentAccount));
         updateRows();
     }
 

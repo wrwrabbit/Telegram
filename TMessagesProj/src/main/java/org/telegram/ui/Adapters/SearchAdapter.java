@@ -24,6 +24,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.messenger.ChatObject;
@@ -173,7 +174,7 @@ public class SearchAdapter extends RecyclerListView.SelectionAdapter {
                 for (int a = 0; a < contactsCopy.size(); a++) {
                     TLRPC.TL_contact contact = contactsCopy.get(a);
                     TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(contact.user_id);
-                    if (!allowSelf && user.self || onlyMutual && !user.mutual_contact || ignoreUsers != null && ignoreUsers.indexOfKey(contact.user_id) >= 0 || FakePasscode.isHideChat(user.id, currentAccount)) {
+                    if (!allowSelf && user.self || onlyMutual && !user.mutual_contact || ignoreUsers != null && ignoreUsers.indexOfKey(contact.user_id) >= 0 || FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                         continue;
                     }
 

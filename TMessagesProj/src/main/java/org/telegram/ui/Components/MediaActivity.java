@@ -27,7 +27,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -222,9 +221,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
 
             @Override
             protected void onSearchStateChanged(boolean expanded) {
-                if (SharedConfig.smoothKeyboard) {
-                    AndroidUtilities.removeAdjustResize(getParentActivity(), classGuid);
-                }
+                AndroidUtilities.removeAdjustResize(getParentActivity(), classGuid);
                 AndroidUtilities.updateViewVisibilityAnimated(avatarContainer, !expanded, 0.95f, true);
             }
 
@@ -275,7 +272,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         } else {
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
             if (chat != null) {
-                nameTextView.setText(UserConfig.getChatTitleOverride(currentAccount, chat.id, chat.title));
+                nameTextView.setText(getUserConfig().getChatTitleOverride(chat));
                 avatarDrawable.setInfo(chat, currentAccount);
                 avatarObject = chat;
             }
@@ -287,7 +284,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         } else if (avatarObject instanceof TLRPC.User) {
             id = ((TLRPC.User) avatarObject).id;
         }
-        if (UserConfig.isAvatarEnabled(currentAccount, id)) {
+        if (getUserConfig().isAvatarEnabled(id)) {
             final ImageLocation thumbLocation = ImageLocation.getForUserOrChat(avatarObject, ImageLocation.TYPE_SMALL);
             avatarImageView.setImage(thumbLocation, "50_50", avatarDrawable, avatarObject);
         }

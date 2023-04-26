@@ -3,6 +3,7 @@ package org.telegram.messenger;
 import android.text.TextUtils;
 import android.util.LongSparseArray;
 
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class CacheByChatsController {
         } else if (type == KEEP_MEDIA_TYPE_GROUP) {
             return KEEP_MEDIA_ONE_MONTH;
         } else if (type == KEEP_MEDIA_TYPE_CHANNEL) {
-            return KEEP_MEDIA_ONE_MONTH;
+            return KEEP_MEDIA_ONE_WEEK;
         }
         return SharedConfig.keepMedia;
     }
@@ -61,16 +62,16 @@ public class CacheByChatsController {
 
     public static long getDaysInSeconds(int keepMedia) {
         long seconds;
-        if (keepMedia == CacheByChatsController.KEEP_MEDIA_FOREVER) {
-            seconds = Long.MAX_VALUE;
-        } else if (keepMedia == CacheByChatsController.KEEP_MEDIA_ONE_WEEK) {
+        if (keepMedia == CacheByChatsController.KEEP_MEDIA_ONE_WEEK) {
             seconds =  60L * 60L * 24L * 7L;
         } else if (keepMedia == CacheByChatsController.KEEP_MEDIA_ONE_MONTH) {
             seconds = 60L * 60L * 24L * 30L;
         } else if (keepMedia == CacheByChatsController.KEEP_MEDIA_ONE_DAY) {
             seconds = 60L * 60L * 24L;
-        } else { //one min
+        } else if (keepMedia == CacheByChatsController.KEEP_MEDIA_ONE_MINUTE && BuildVars.DEBUG_PRIVATE_VERSION) { //one min
             seconds = 60L;
+        } else {
+            seconds = Long.MAX_VALUE;
         }
         return seconds;
     }
@@ -86,7 +87,7 @@ public class CacheByChatsController {
             int n = byteBuffer.getInt();
             for (int i = 0; i < n; i++) {
                 KeepMediaException exception = new KeepMediaException(byteBuffer.getLong(), byteBuffer.getInt());
-                if (!idsSet.contains(exception.dialogId)) {
+                if (!idsSet.contains(exception.dialogId) && !FakePasscodeUtils.isHideChat(exception.dialogId, currentAccount)) {
                     idsSet.add(exception.dialogId);
                     exceptions.add(exception);
                 }

@@ -41,6 +41,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -724,7 +725,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                         TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialog.id);
                         if (user != null) {
                             object = user;
-                            title = UserObject.getUserName(user);
+                            title = UserObject.getUserName(user, currentAccount);
                             if (!UserObject.isReplyUser(user)) {
                                 if (user.bot) {
                                     subtitle = LocaleController.getString("Bot", R.string.Bot);
@@ -1100,7 +1101,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
             return false;
         }
         List<TLRPC.Dialog> dialogs = controller.getDialogs(1);
-        return dialogs != null && !FakePasscode.filterDialogs(dialogs, Optional.of(currentAccount)).isEmpty();
+        return dialogs != null && !FakePasscodeUtils.filterDialogs(dialogs, Optional.of(currentAccount)).isEmpty();
     }
 
     public class LastEmptyView extends View {
@@ -1227,7 +1228,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
             itemInternals.add(new ItemInternal(VIEW_TYPE_SHADOW));
             itemInternals.add(new ItemInternal(VIEW_TYPE_HEADER));
             itemInternals.add(new ItemInternal(VIEW_TYPE_CONTACTS_FLICKER));
-        } else if (onlineContacts != null) {
+        } else if (onlineContacts != null && !onlineContacts.isEmpty()) {
             if (dialogsCount == 0) {
                 isEmpty = true;
                 itemInternals.add(new ItemInternal(requestPeerType == null ? VIEW_TYPE_EMPTY : VIEW_TYPE_REQUIRED_EMPTY));
@@ -1239,11 +1240,11 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                 }
                 itemInternals.add(new ItemInternal(VIEW_TYPE_SHADOW));
                 itemInternals.add(new ItemInternal(VIEW_TYPE_HEADER));
-                for (int k = 0; k < onlineContacts.size(); k++) {
-                    itemInternals.add(new ItemInternal(VIEW_TYPE_USER, onlineContacts.get(k)));
-                }
-                itemInternals.add(new ItemInternal(VIEW_TYPE_LAST_EMPTY));
             }
+            for (int k = 0; k < onlineContacts.size(); k++) {
+                itemInternals.add(new ItemInternal(VIEW_TYPE_USER, onlineContacts.get(k)));
+            }
+            itemInternals.add(new ItemInternal(VIEW_TYPE_LAST_EMPTY));
             stopUpdate = true;
         } else if (hasHints) {
             int count = MessagesController.getInstance(currentAccount).hintDialogs.size();
@@ -1274,18 +1275,20 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                     itemInternals.add(new ItemInternal(VIEW_TYPE_DIALOG, array.get(k)));
                 }
             }
-        }
 
-        if (!forceShowEmptyCell && dialogsType != 7 && dialogsType != 8 && !MessagesController.getInstance(currentAccount).isDialogsEndReached(folderId)) {
-            itemInternals.add(new ItemInternal(VIEW_TYPE_FLICKER));
-        } else if (dialogsCount == 0) {
-            isEmpty = true;
-            itemInternals.add(new ItemInternal(requestPeerType == null ? VIEW_TYPE_EMPTY : VIEW_TYPE_REQUIRED_EMPTY));
-        } else {
-            if (folderId == 0 && dialogsCount > 10 && dialogsType == DialogsActivity.DIALOGS_TYPE_DEFAULT) {
-                itemInternals.add(new ItemInternal(VIEW_TYPE_NEW_CHAT_HINT));
+            if (!forceShowEmptyCell && dialogsType != 7 && dialogsType != 8 && !MessagesController.getInstance(currentAccount).isDialogsEndReached(folderId)) {
+                if (dialogsCount != 0) {
+                    itemInternals.add(new ItemInternal(VIEW_TYPE_FLICKER));
+                }
+            } else if (dialogsCount == 0) {
+                isEmpty = true;
+                itemInternals.add(new ItemInternal(requestPeerType == null ? VIEW_TYPE_EMPTY : VIEW_TYPE_REQUIRED_EMPTY));
+            } else {
+                if (folderId == 0 && dialogsCount > 10 && dialogsType == DialogsActivity.DIALOGS_TYPE_DEFAULT) {
+                    itemInternals.add(new ItemInternal(VIEW_TYPE_NEW_CHAT_HINT));
+                }
+                itemInternals.add(new ItemInternal(VIEW_TYPE_LAST_EMPTY));
             }
-            itemInternals.add(new ItemInternal(VIEW_TYPE_LAST_EMPTY));
         }
     }
 }

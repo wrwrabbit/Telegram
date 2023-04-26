@@ -351,7 +351,7 @@ public class BotWebViewContainer extends FrameLayout implements NotificationCent
                     callback.invoke(origin, false, false);
                     return;
                 }
-                lastPermissionsDialog = AlertsCreator.createWebViewPermissionsRequestDialog(parentActivity, resourcesProvider, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, R.raw.permission_request_location, LocaleController.formatString(R.string.BotWebViewRequestGeolocationPermission, UserObject.getUserName(botUser)), LocaleController.formatString(R.string.BotWebViewRequestGeolocationPermissionWithHint, UserObject.getUserName(botUser)), allow -> {
+                lastPermissionsDialog = AlertsCreator.createWebViewPermissionsRequestDialog(parentActivity, resourcesProvider, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, R.raw.permission_request_location, LocaleController.formatString(R.string.BotWebViewRequestGeolocationPermission, UserObject.getUserName(botUser, currentAccount)), LocaleController.formatString(R.string.BotWebViewRequestGeolocationPermissionWithHint, UserObject.getUserName(botUser)), allow -> {
                     if (lastPermissionsDialog != null) {
                         lastPermissionsDialog = null;
 
@@ -397,7 +397,7 @@ public class BotWebViewContainer extends FrameLayout implements NotificationCent
 
                     switch (resource) {
                         case PermissionRequest.RESOURCE_AUDIO_CAPTURE: {
-                            lastPermissionsDialog = AlertsCreator.createWebViewPermissionsRequestDialog(parentActivity, resourcesProvider, new String[] {Manifest.permission.RECORD_AUDIO}, R.raw.permission_request_microphone, LocaleController.formatString(R.string.BotWebViewRequestMicrophonePermission, UserObject.getUserName(botUser)), LocaleController.formatString(R.string.BotWebViewRequestMicrophonePermissionWithHint, UserObject.getUserName(botUser)), allow -> {
+                            lastPermissionsDialog = AlertsCreator.createWebViewPermissionsRequestDialog(parentActivity, resourcesProvider, new String[] {Manifest.permission.RECORD_AUDIO}, R.raw.permission_request_microphone, LocaleController.formatString(R.string.BotWebViewRequestMicrophonePermission, UserObject.getUserName(botUser, currentAccount)), LocaleController.formatString(R.string.BotWebViewRequestMicrophonePermissionWithHint, UserObject.getUserName(botUser)), allow -> {
                                 if (lastPermissionsDialog != null) {
                                     lastPermissionsDialog = null;
 
@@ -419,7 +419,7 @@ public class BotWebViewContainer extends FrameLayout implements NotificationCent
                             break;
                         }
                         case PermissionRequest.RESOURCE_VIDEO_CAPTURE: {
-                            lastPermissionsDialog = AlertsCreator.createWebViewPermissionsRequestDialog(parentActivity, resourcesProvider, new String[] {Manifest.permission.CAMERA}, R.raw.permission_request_camera, LocaleController.formatString(R.string.BotWebViewRequestCameraPermission, UserObject.getUserName(botUser)), LocaleController.formatString(R.string.BotWebViewRequestCameraPermissionWithHint, UserObject.getUserName(botUser)), allow -> {
+                            lastPermissionsDialog = AlertsCreator.createWebViewPermissionsRequestDialog(parentActivity, resourcesProvider, new String[] {Manifest.permission.CAMERA}, R.raw.permission_request_camera, LocaleController.formatString(R.string.BotWebViewRequestCameraPermission, UserObject.getUserName(botUser, currentAccount)), LocaleController.formatString(R.string.BotWebViewRequestCameraPermissionWithHint, UserObject.getUserName(botUser)), allow -> {
                                 if (lastPermissionsDialog != null) {
                                     lastPermissionsDialog = null;
 
@@ -937,6 +937,21 @@ public class BotWebViewContainer extends FrameLayout implements NotificationCent
         switch (eventType) {
             case "web_app_close": {
                 delegate.onCloseRequested(null);
+                break;
+            }
+            case "web_app_switch_inline_query": {
+                try {
+                    JSONObject jsonObject = new JSONObject(eventData);
+                    List<String> types = new ArrayList<>();
+                    JSONArray arr = jsonObject.getJSONArray("chat_types");
+                    for (int i = 0; i < arr.length(); i++) {
+                        types.add(arr.getString(i));
+                    }
+
+                    delegate.onWebAppSwitchInlineQuery(botUser, jsonObject.getString("query"), types);
+                } catch (JSONException e) {
+                    FileLog.e(e);
+                }
                 break;
             }
             case "web_app_read_text_from_clipboard": {
@@ -1488,6 +1503,15 @@ public class BotWebViewContainer extends FrameLayout implements NotificationCent
          * Called when WebView requests to expand viewport
          */
         void onWebAppExpand();
+
+        /**
+         * Called when web apps requests to switch to inline mode picker
+         *
+         * @param botUser Bot user
+         * @param query Inline query
+         * @param chatTypes Chat types
+         */
+        void onWebAppSwitchInlineQuery(TLRPC.User botUser, String query, List<String> chatTypes);
 
         /**
          * Called when web app attempts to open invoice

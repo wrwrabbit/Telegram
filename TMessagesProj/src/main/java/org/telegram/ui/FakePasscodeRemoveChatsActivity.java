@@ -489,7 +489,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                         showDialog(alertDialog);
                         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                         if (button != null) {
-                            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                         }
                     } else {
                         if (editText.length() > 0) {
@@ -727,7 +727,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         selectedDialogsCountTextView.setOnTouchListener((v, event) -> true);
 
         deleteItem = actionMode.addItemWithWidth(delete, R.drawable.msg_delete, AndroidUtilities.dp(54), LocaleController.getString("Delete", R.string.Delete));
-        addItem = actionMode.addItemWithWidth(add, R.drawable.add, AndroidUtilities.dp(54), LocaleController.getString("Add", R.string.Add));
+        addItem = actionMode.addItemWithWidth(add, R.drawable.msg_add, AndroidUtilities.dp(54), LocaleController.getString("Add", R.string.Add));
         editItem = actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString("Edit", R.string.Edit));
 
         actionModeViews.add(deleteItem);
@@ -1105,11 +1105,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
                                         } else if (object instanceof TLRPC.Chat){
                                             TLRPC.Chat chat = (TLRPC.Chat) object;
-                                            String title = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                                            if (title == null) {
-                                                title = chat.title;
-                                            }
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(title, null, q));
+                                            resultArrayNames.add(AndroidUtilities.generateSearchName(getUserConfig().getChatTitleOverride(chat), null, q));
                                         } else {
                                             RemoveChatsAction.RemoveChatEntry entry = (RemoveChatsAction.RemoveChatEntry) object;
                                             resultArrayNames.add(AndroidUtilities.generateSearchName(entry.title, null, q));

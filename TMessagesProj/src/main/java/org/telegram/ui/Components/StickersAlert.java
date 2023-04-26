@@ -1252,7 +1252,7 @@ public class StickersAlert extends BottomSheet implements NotificationCenter.Not
 
         EditTextBoldCursor editText = new EditTextBoldCursor(context);
         editText.setBackground(null);
-        editText.setLineColors(Theme.getColor(Theme.key_dialogInputField), Theme.getColor(Theme.key_dialogInputFieldActivated), Theme.getColor(Theme.key_dialogTextRed2));
+        editText.setLineColors(Theme.getColor(Theme.key_dialogInputField), Theme.getColor(Theme.key_dialogInputFieldActivated), Theme.getColor(Theme.key_dialogTextRed));
         editText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         editText.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
         editText.setMaxLines(1);
@@ -1662,7 +1662,7 @@ public class StickersAlert extends BottomSheet implements NotificationCenter.Not
             params.leftMargin = params.topMargin = params.rightMargin = params.bottomMargin = AndroidUtilities.dp(8);
             emptyParams.bottomMargin = gridParams.bottomMargin = shadowParams.bottomMargin = AndroidUtilities.dp(64);
         } else {
-            pickerBottomLayout.setBackground(Theme.createSelectorWithBackgroundDrawable(getThemedColor(Theme.key_dialogBackground), getThemedColor(Theme.key_listSelector)));
+            pickerBottomLayout.setBackground(Theme.createSelectorWithBackgroundDrawable(getThemedColor(Theme.key_dialogBackground), Theme.multAlpha(getThemedColor(Theme.key_dialogTextRed), .1f)));
             pickerBottomFrameLayout.setBackgroundColor(Color.TRANSPARENT);
             params.leftMargin = params.topMargin = params.rightMargin = params.bottomMargin = 0;
             emptyParams.bottomMargin = gridParams.bottomMargin = shadowParams.bottomMargin = AndroidUtilities.dp(48);

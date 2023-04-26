@@ -95,10 +95,7 @@ public class JoinGroupAlert extends BottomSheet {
         if (chatInvite != null) {
             if (chatInvite.chat != null) {
                 avatarDrawable = new AvatarDrawable(chatInvite.chat, false, currentAccount);
-                title = UserConfig.getChatTitleOverride(currentAccount, chatInvite.chat.id);
-                if (title == null) {
-                    title = chatInvite.chat.title;
-                }
+                title = UserConfig.getChatTitleOverride(getCurrentAccount(), chatInvite.chat);
                 participants_count = chatInvite.chat.participants_count;
                 avatarImageView.setForUserOrChat(chatInvite.chat, avatarDrawable, chatInvite);
             } else {
@@ -112,10 +109,7 @@ public class JoinGroupAlert extends BottomSheet {
             about = chatInvite.about;
         } else if (currentChat != null) {
             avatarDrawable = new AvatarDrawable(currentChat, false, currentAccount);
-            title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-            if (title == null) {
-                title = currentChat.title;
-            }
+            title = UserConfig.getChatTitleOverride(getCurrentAccount(), currentChat);
             TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount).getChatFull(currentChat.id);
             about = chatFull != null ? chatFull.about : null;
             participants_count = Math.max(currentChat.participants_count, chatFull != null ? chatFull.participants_count : 0);

@@ -283,10 +283,7 @@ public class ManageChatUserCell extends FrameLayout {
                     }
                 }
                 if (!continueUpdate && currentName == null && lastName != null && (mask & MessagesController.UPDATE_MASK_NAME) != 0) {
-                    newName = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                    if (newName == null) {
-                        newName = currentChat.title;
-                    }
+                    newName = UserConfig.getChatTitleOverride(currentAccount, currentChat);
                     if (!newName.equals(lastName)) {
                         continueUpdate = true;
                     }
@@ -302,11 +299,7 @@ public class ManageChatUserCell extends FrameLayout {
                 lastName = null;
                 nameTextView.setText(currentName);
             } else {
-                String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                if (title == null) {
-                    title = currentChat.title;
-                }
-                lastName = newName == null ? title : newName;
+                lastName = newName == null ? UserConfig.getChatTitleOverride(currentAccount, currentChat) : newName;
                 nameTextView.setText(lastName);
             }
             if (currrntStatus != null) {

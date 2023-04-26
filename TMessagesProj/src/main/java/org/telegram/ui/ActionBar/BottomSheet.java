@@ -467,11 +467,6 @@ public class BottomSheet extends Dialog {
         }
 
         @Override
-        public void requestLayout() {
-            super.requestLayout();
-        }
-
-        @Override
         protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
             layoutCount--;
             if (containerView != null) {
@@ -746,7 +741,7 @@ public class BottomSheet extends Dialog {
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private int getAdditionalMandatoryOffsets() {
-        if (!calcMandatoryInsets) {
+        if (!calcMandatoryInsets || lastInsets == null) {
             return 0;
         }
         Insets insets = lastInsets.getSystemGestureInsets();
@@ -1100,7 +1095,8 @@ public class BottomSheet extends Dialog {
                 containerView.setClipChildren(false);
                 container.setClipToPadding(false);
                 container.setClipChildren(false);
-                containerView.addView(customView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, customViewGravity, 0, -backgroundPaddingTop + topOffset, 0, 0));
+                containerView.addView(customView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, customViewGravity, 0, topOffset, 0, 0));
+                ((ViewGroup.MarginLayoutParams) customView.getLayoutParams()).topMargin = -backgroundPaddingTop + AndroidUtilities.dp(topOffset);
             } else {
                 containerView.addView(customView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, customViewGravity, 0, topOffset, 0, 0));
             }
@@ -1239,7 +1235,7 @@ public class BottomSheet extends Dialog {
     }
 
     public int getBackgroundPaddingTop() {
-        return backgroundPaddingTop;
+        return backgroundPaddingTop ;
     }
 
     public void setAllowDrawContent(boolean value) {
@@ -1544,7 +1540,6 @@ public class BottomSheet extends Dialog {
         onDismissAnimationStart();
         if (!allowCustomAnimation || !onCustomCloseAnimation()) {
             currentSheetAnimationType = 2;
-            currentSheetAnimation = new AnimatorSet();
             if (navigationBarAnimation != null) {
                 navigationBarAnimation.cancel();
             }
@@ -1555,11 +1550,14 @@ public class BottomSheet extends Dialog {
                     container.invalidate();
                 }
             });
-            currentSheetAnimation.playTogether(
-                containerView == null ? null : ObjectAnimator.ofFloat(containerView, View.TRANSLATION_Y, getContainerViewHeight() + container.keyboardHeight + AndroidUtilities.dp(10) + (scrollNavBar ? getBottomInset() : 0)),
-                ObjectAnimator.ofInt(backDrawable, AnimationProperties.COLOR_DRAWABLE_ALPHA, 0),
-                navigationBarAnimation
-            );
+            currentSheetAnimation = new AnimatorSet();
+            ArrayList<Animator> animators = new ArrayList<>();
+            if (containerView != null) {
+                animators.add(ObjectAnimator.ofFloat(containerView, View.TRANSLATION_Y, getContainerViewHeight() + container.keyboardHeight + AndroidUtilities.dp(10) + (scrollNavBar ? getBottomInset() : 0)));
+            }
+            animators.add(ObjectAnimator.ofInt(backDrawable, AnimationProperties.COLOR_DRAWABLE_ALPHA, 0));
+            animators.add(navigationBarAnimation);
+            currentSheetAnimation.playTogether(animators);
 //            if (useFastDismiss) {
 //                int height = containerView.getMeasuredHeight();
 //                duration = Math.max(60, (int) (250 * (height - containerView.getTranslationY()) / (float) height));

@@ -64,6 +64,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
@@ -82,7 +83,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.didGenerateFingerprintKeyPair) {
             checkFingerprintButton();
-            if ((boolean) args[0] && SharedConfig.appLocked) {
+            if ((boolean) args[0] && SharedConfig.isAppLocked()) {
                 checkFingerprint();
             }
         } else if (id == NotificationCenter.passcodeDismissed) {
@@ -983,7 +984,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 return;
             }
         } else {
-            FakePasscode fakePasscode = FakePasscode.getFingerprintFakePasscode();
+            FakePasscode fakePasscode = FakePasscodeUtils.getFingerprintFakePasscode();
             synchronized (FakePasscode.class) {
                 if (fakePasscode != null) {
                     fakePasscode.executeActions();
@@ -1013,7 +1014,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             FingerprintController.deleteInvalidKey();
         }
 
-        SharedConfig.appLocked = false;
+        SharedConfig.setAppLocked(false);
         SharedConfig.saveConfig();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
         setOnTouchListener(null);

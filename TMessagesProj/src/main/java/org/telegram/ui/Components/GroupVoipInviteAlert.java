@@ -207,8 +207,8 @@ public class GroupVoipInviteAlert extends UsersAlertBase {
         int currentTime = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
         MessagesController messagesController = MessagesController.getInstance(currentAccount);
         Collections.sort(contacts, (o1, o2) -> {
-            TLRPC.User user1 = messagesController.getUser(((TLRPC.TL_contact) o2).user_id);
-            TLRPC.User user2 = messagesController.getUser(((TLRPC.TL_contact) o1).user_id);
+            TLRPC.User user1 = o2 instanceof TLRPC.TL_contact ? messagesController.getUser(((TLRPC.TL_contact) o2).user_id) : null;
+            TLRPC.User user2 = o1 instanceof TLRPC.TL_contact ? messagesController.getUser(((TLRPC.TL_contact) o1).user_id) : null;
             int status1 = 0;
             int status2 = 0;
             if (user1 != null) {
@@ -545,7 +545,7 @@ public class GroupVoipInviteAlert extends UsersAlertBase {
                                 continue;
                             }
 
-                            String name = UserObject.getUserName(user).toLowerCase();
+                            String name = UserObject.getUserName(user, getCurrentAccount()).toLowerCase();
                             String tName = LocaleController.getInstance().getTranslitString(name);
                             if (name.equals(tName)) {
                                 tName = null;
@@ -739,7 +739,7 @@ public class GroupVoipInviteAlert extends UsersAlertBase {
                     }
 
                     if (nameSearch != null) {
-                        String u = UserObject.getUserName(user);
+                        String u = UserObject.getUserName(user, getCurrentAccount());
                         name = new SpannableStringBuilder(u);
                         int idx = AndroidUtilities.indexOfIgnoreCase(u, nameSearch);
                         if (idx != -1) {

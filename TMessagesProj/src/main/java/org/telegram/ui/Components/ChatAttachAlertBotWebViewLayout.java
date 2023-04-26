@@ -356,7 +356,7 @@ public class ChatAttachAlertBotWebViewLayout extends ChatAttachAlert.AttachAlert
 
     @Override
     void onShow(ChatAttachAlert.AttachAlertLayout previousLayout) {
-        parentAlert.actionBar.setTitle(UserObject.getUserName(MessagesController.getInstance(currentAccount).getUser(botId)));
+        parentAlert.actionBar.setTitle(UserObject.getUserName(MessagesController.getInstance(currentAccount).getUser(botId), currentAccount));
         swipeContainer.setSwipeOffsetY(0);
         if (webViewContainer.getWebView() != null) {
             webViewContainer.getWebView().scrollTo(0, 0);
@@ -696,7 +696,7 @@ public class ChatAttachAlertBotWebViewLayout extends ChatAttachAlert.AttachAlert
                             ev.recycle();
 
                             return true;
-                        } else if (webView != null && webView.canScrollHorizontally(distanceX >= 0 ? 1 : -1)) {
+                        } else if (webView != null && webView.canScrollHorizontally(distanceX >= 0 ? 1 : -1) || Math.abs(distanceX) >= touchSlop && Math.abs(distanceX) * 1.5f >= Math.abs(distanceY)) {
                             isSwipeDisallowed = true;
                         }
                     }

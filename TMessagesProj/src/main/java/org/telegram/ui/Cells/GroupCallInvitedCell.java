@@ -87,7 +87,7 @@ public class GroupCallInvitedCell extends FrameLayout {
         currentUser = MessagesController.getInstance(account).getUser(uid);
         avatarDrawable.setInfo(currentUser);
 
-        String lastName = UserObject.getUserName(currentUser);
+        String lastName = UserObject.getUserName(currentUser, account);
         nameTextView.setText(lastName);
 
         avatarImageView.getImageReceiver().setCurrentAccount(account);

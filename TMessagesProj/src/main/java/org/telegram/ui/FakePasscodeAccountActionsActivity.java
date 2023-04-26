@@ -480,6 +480,8 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                             < UserConfig.getFakePasscodeMaxAccountCount())
                             || !actions.isHideAccount() && ((hiddenAccountCount < accountCount - 1) || actions.isLogOut());
                     textCell.setEnabled(enabled, null);
+                } else {
+                    textCell.setEnabled(isEnabled(holder), null);
                 }
             }
         }

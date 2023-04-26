@@ -44,6 +44,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -470,7 +471,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                 }
             } else if (position == inappSoundRow) {
                 SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
@@ -691,19 +692,19 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
 
         if (position == privateRow) {
             exceptions = exceptionUsers;
-            List<NotificationException> filteredExceptions = FakePasscode.filterNotificationExceptions(exceptions, currentAccount);
+            List<NotificationException> filteredExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
             if (exceptions != null && !filteredExceptions.isEmpty()) {
                 alertText = LocaleController.formatPluralString("ChatsException", filteredExceptions.size());
             }
         } else if (position == groupRow) {
             exceptions = exceptionChats;
-            List<NotificationException> filteredExceptions = FakePasscode.filterNotificationExceptions(exceptions, currentAccount);
+            List<NotificationException> filteredExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
             if (exceptions != null && !filteredExceptions.isEmpty()) {
                 alertText = LocaleController.formatPluralString("Groups", filteredExceptions.size());
             }
         } else {
             exceptions = exceptionChannels;
-            List<NotificationException> filteredExceptions = FakePasscode.filterNotificationExceptions(exceptions, currentAccount);
+            List<NotificationException> filteredExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
             if (exceptions != null && !filteredExceptions.isEmpty()) {
                 alertText = LocaleController.formatPluralString("Channels", filteredExceptions.size());
             }
@@ -896,7 +897,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                         iconType = 2;
                     }
                     StringBuilder builder = new StringBuilder();
-                    if (exceptions != null && !FakePasscode.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
+                    if (exceptions != null && !FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
                         if (enabled = offUntil < currentTime) {
                             builder.append(LocaleController.getString("NotificationsOn", R.string.NotificationsOn));
                         } else if (offUntil - 60 * 60 * 24 * 365 >= currentTime) {
@@ -907,7 +908,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                         if (builder.length() != 0) {
                             builder.append(", ");
                         }
-                        builder.append(LocaleController.formatPluralString("Exception", FakePasscode.filterNotificationExceptions(exceptions, currentAccount).size()));
+                        builder.append(LocaleController.formatPluralString("Exception", FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).size()));
                     } else {
                         builder.append(LocaleController.getString("TapToChange", R.string.TapToChange));
                     }

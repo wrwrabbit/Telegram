@@ -32,6 +32,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import androidx.annotation.NonNull;
+
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.LocaleController;
@@ -538,6 +540,11 @@ public class SimpleTextView extends View implements Drawable.Callback {
         }
     }
 
+    @Override
+    protected boolean verifyDrawable(@NonNull Drawable who) {
+        return who == rightDrawable || who == leftDrawable || super.verifyDrawable(who);
+    }
+
     public void replaceTextWithDrawable(Drawable drawable, String replacedText) {
         if (replacedDrawable == drawable) {
             return;
@@ -906,7 +913,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
         }
 
         if (rightDrawable != null && rightDrawableOutside) {
-            int x = Math.min(textOffsetX + textWidth + drawablePadding + (scrollingOffset == 0 ? -nextScrollX : (int) -scrollingOffset) + nextScrollX, getMaxTextWidth() - paddingRight + drawablePadding - AndroidUtilities.dp(4));
+            int x = Math.min(textOffsetX + textWidth + drawablePadding + (scrollingOffset == 0 ? -nextScrollX : (int) -scrollingOffset) + nextScrollX, getMaxTextWidth() - paddingRight + drawablePadding);
             int dw = (int) (rightDrawable.getIntrinsicWidth() * rightDrawableScale);
             int dh = (int) (rightDrawable.getIntrinsicHeight() * rightDrawableScale);
             int y;

@@ -36,6 +36,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -73,6 +74,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
 
     private int privacySectionRow;
     private int blockedRow;
+    private int securityIssuesRow;
     private int phoneNumberRow;
     private int lastSeenRow;
     private int profilePhotoRow;
@@ -245,6 +247,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 }
             } if (position == blockedRow) {
                 presentFragment(new PrivacyUsersActivity());
+            } else if (position == securityIssuesRow) {
+                presentFragment(new SecurityIssuesActivity());
             } else if (position == sessionsRow) {
                 sessionsActivityPreload.resetFragment();
                 presentFragment(sessionsActivityPreload);
@@ -434,7 +438,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                 }
             } else if (position == contactsSuggestRow) {
                 final TextCheckCell cell = (TextCheckCell) view;
@@ -458,7 +462,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     showDialog(alertDialog);
                     TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                        button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                     }
                 } else {
                     cell.setChecked(newSuggest = true);
@@ -546,7 +550,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     showDialog(alertDialog);
                     TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                        button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                     }
                 });
                 builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
@@ -556,7 +560,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
                 }
             } else if (position == passportRow) {
                 presentFragment(new PassportActivity(PassportActivity.TYPE_PASSWORD, 0, "", "", null, null, null, null, null));
@@ -613,6 +617,11 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
             emailLoginRow = -1;
         }
         blockedRow = rowCount++;
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+            securityIssuesRow = rowCount++;
+        } else {
+            securityIssuesRow = -1;
+        }
         if (currentPassword != null) {
             boolean hasEmail = currentPassword.login_email_pattern != null;
             if (SharedConfig.hasEmailLogin != hasEmail) {
@@ -741,7 +750,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
             TLRPC.PrivacyRule rule = privacyRules.get(a);
             if (rule instanceof TLRPC.TL_privacyValueAllowChatParticipants) {
                 TLRPC.TL_privacyValueAllowChatParticipants participants = (TLRPC.TL_privacyValueAllowChatParticipants) rule;
-                List<Long> chats = FakePasscode.filterDialogIds(participants.chats, accountInstance.getCurrentAccount());
+                List<Long> chats = FakePasscodeUtils.filterDialogIds(participants.chats, accountInstance.getCurrentAccount());
                 for (int b = 0, N = chats.size(); b < N; b++) {
                     TLRPC.Chat chat = accountInstance.getMessagesController().getChat(participants.chats.get(b));
                     if (chat == null) {
@@ -751,7 +760,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 }
             } else if (rule instanceof TLRPC.TL_privacyValueDisallowChatParticipants) {
                 TLRPC.TL_privacyValueDisallowChatParticipants participants = (TLRPC.TL_privacyValueDisallowChatParticipants) rule;
-                List<Long> chats = FakePasscode.filterDialogIds(participants.chats, accountInstance.getCurrentAccount());
+                List<Long> chats = FakePasscodeUtils.filterDialogIds(participants.chats, accountInstance.getCurrentAccount());
                 for (int b = 0, N = chats.size(); b < N; b++) {
                     TLRPC.Chat chat = accountInstance.getMessagesController().getChat(participants.chats.get(b));
                     if (chat == null) {
@@ -761,10 +770,10 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 }
             } else if (rule instanceof TLRPC.TL_privacyValueAllowUsers) {
                 TLRPC.TL_privacyValueAllowUsers privacyValueAllowUsers = (TLRPC.TL_privacyValueAllowUsers) rule;
-                plus += FakePasscode.filterDialogIds(privacyValueAllowUsers.users, accountInstance.getCurrentAccount()).size();
+                plus += FakePasscodeUtils.filterDialogIds(privacyValueAllowUsers.users, accountInstance.getCurrentAccount()).size();
             } else if (rule instanceof TLRPC.TL_privacyValueDisallowUsers) {
                 TLRPC.TL_privacyValueDisallowUsers privacyValueDisallowUsers = (TLRPC.TL_privacyValueDisallowUsers) rule;
-                minus += FakePasscode.filterDialogIds(privacyValueDisallowUsers.users, accountInstance.getCurrentAccount()).size();
+                minus += FakePasscodeUtils.filterDialogIds(privacyValueDisallowUsers.users, accountInstance.getCurrentAccount()).size();
             } else if (type == -1) {
                 if (rule instanceof TLRPC.TL_privacyValueAllowAll) {
                     type = 0;
@@ -852,7 +861,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == passcodeRow || position == passwordRow || position == blockedRow || position == sessionsRow || position == secretWebpageRow || position == webSessionsRow ||
+            return position == passcodeRow || position == passwordRow || position == blockedRow || position == securityIssuesRow || position == sessionsRow || position == secretWebpageRow || position == webSessionsRow ||
                     position == groupsRow && !getContactsController().getLoadingPrivacyInfo(ContactsController.PRIVACY_RULES_TYPE_INVITE) ||
                     position == lastSeenRow && !getContactsController().getLoadingPrivacyInfo(ContactsController.PRIVACY_RULES_TYPE_LASTSEEN) ||
                     position == callsRow && !getContactsController().getLoadingPrivacyInfo(ContactsController.PRIVACY_RULES_TYPE_CALLS) ||
@@ -1025,21 +1034,18 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     break;
                 case 1:
                     TextInfoPrivacyCell privacyCell = (TextInfoPrivacyCell) holder.itemView;
+                    boolean last = position == getItemCount() - 1;
+                    privacyCell.setBackground(Theme.getThemedDrawable(mContext, last ? R.drawable.greydivider_bottom : R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     if (position == deleteAccountDetailRow) {
                         privacyCell.setText(LocaleController.getString("DeleteAccountHelp", R.string.DeleteAccountHelp));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == groupsDetailRow) {
                         privacyCell.setText(LocaleController.getString("GroupsAndChannelsHelp", R.string.GroupsAndChannelsHelp));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == sessionsDetailRow) {
                         privacyCell.setText(LocaleController.getString("SessionsSettingsInfo", R.string.SessionsSettingsInfo));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == secretDetailRow) {
                         privacyCell.setText(LocaleController.getString("SecretWebPageInfo", R.string.SecretWebPageInfo));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == botsDetailRow) {
                         privacyCell.setText(LocaleController.getString("PrivacyBotsInfo", R.string.PrivacyBotsInfo));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == contactsDetailRow) {
                         /*if (newSync) {
                             privacyCell.setText(LocaleController.getString("SyncContactsInfoOn", R.string.SyncContactsInfoOn));
@@ -1047,10 +1053,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                             privacyCell.setText(LocaleController.getString("SyncContactsInfoOff", R.string.SyncContactsInfoOff));
                         }*/
                         privacyCell.setText(LocaleController.getString("SuggestContactsInfo", R.string.SuggestContactsInfo));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == newChatsSectionRow) {
                         privacyCell.setText(LocaleController.getString("ArchiveAndMuteInfo", R.string.ArchiveAndMuteInfo));
-                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
                 case 2:
@@ -1100,7 +1104,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         } else {
                             value = LocaleController.getString("PasswordOff", R.string.PasswordOff);
                         }
-                        textCell2.setTextAndValueAndColorfulIcon(LocaleController.getString("AutoDeleteMessages", R.string.AutoDeleteMessages), value, true, R.drawable.msg_filled_autodelete, getThemedColor(Theme.key_color_lightblue), true);
+                        textCell2.setTextAndValueAndIcon(LocaleController.getString("AutoDeleteMessages", R.string.AutoDeleteMessages), value, true, R.drawable.msg2_autodelete, true);
                     } else if (position == sessionsRow) {
                         String count = "";
                         if (sessionsActivityPreload.getSessionsCount() == 0) {
@@ -1113,7 +1117,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                             count = String.format(LocaleController.getInstance().getCurrentLocale(), "%d", sessionsActivityPreload.getSessionsCount());
                         }
                         getMessagesController().lastKnownSessionsCount = sessionsActivityPreload.getSessionsCount();
-                        textCell2.setTextAndValueAndColorfulIcon(LocaleController.getString("SessionsTitle", R.string.SessionsTitle), count, true, R.drawable.msg_filled_devices, getThemedColor(Theme.key_color_yellow), false);
+                        textCell2.setTextAndValueAndIcon(LocaleController.getString("SessionsTitle", R.string.SessionsTitle), count, true, R.drawable.msg2_devices, false);
                     } else if (position == emailLoginRow) {
                         CharSequence val = "";
                         if (currentPassword == null) {
@@ -1132,7 +1136,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                             val = spannable;
                         }
                         textCell2.setPrioritizeTitleOverValue(true);
-                        textCell2.setTextAndSpoilersValueAndColorfulIcon(LocaleController.getString(R.string.EmailLogin), val, R.drawable.msg_filled_email, getThemedColor(Theme.key_color_orange), true);
+                        textCell2.setTextAndSpoilersValueAndIcon(LocaleController.getString(R.string.EmailLogin), val, R.drawable.msg2_email, true);
                     } else if (position == passwordRow) {
                         value = "";
                         if (currentPassword == null) {
@@ -1142,17 +1146,17 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         } else {
                             value = LocaleController.getString("PasswordOff", R.string.PasswordOff);
                         }
-                        textCell2.setTextAndValueAndColorfulIcon(LocaleController.getString("TwoStepVerification", R.string.TwoStepVerification), value, true, R.drawable.msg_filled_permissions, getThemedColor(Theme.key_color_blue), true);
+                        textCell2.setTextAndValueAndIcon(LocaleController.getString("TwoStepVerification", R.string.TwoStepVerification), value, true, R.drawable.msg2_permissions, true);
                     } else if (position == passcodeRow) {
                         int icon;
                         if (SharedConfig.passcodeHash.length() != 0) {
                             value = LocaleController.getString("PasswordOn", R.string.PasswordOn);
-                            icon = R.drawable.msg_filled_passcode_on;
+                            icon = R.drawable.msg2_secret;
                         } else {
                             value = LocaleController.getString("PasswordOff", R.string.PasswordOff);
-                            icon = R.drawable.msg_filled_passcode_off;
+                            icon = R.drawable.msg2_secret;
                         }
-                        textCell2.setTextAndValueAndColorfulIcon(LocaleController.getString("Passcode", R.string.Passcode), value, true, icon, getThemedColor(Theme.key_color_green), true);
+                        textCell2.setTextAndValueAndIcon(LocaleController.getString("Passcode", R.string.Passcode), value, true, icon, true);
                     } else if (position == blockedRow) {
                         int totalCount = getMessagesController().totalBlockedCount;
                         if (totalCount == 0) {
@@ -1163,7 +1167,10 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                             showLoading = true;
                             value = "";
                         }
-                        textCell2.setTextAndValueAndColorfulIcon(LocaleController.getString("BlockedUsers", R.string.BlockedUsers), value, true, R.drawable.msg_filled_blocked, getThemedColor(Theme.key_color_red), true);
+                        textCell2.setTextAndValueAndIcon(LocaleController.getString("BlockedUsers", R.string.BlockedUsers), value, true, R.drawable.msg2_block2, true);
+                    } else if (position == securityIssuesRow) {
+                        value = Integer.toString(getUserConfig().getActiveSecurityIssues().size());
+                        textCell2.setTextAndValueAndIcon(LocaleController.getString(R.string.SecurityIssuesTitle), value, true, R.drawable.msg2_policy, true);
                     }
                     textCell2.setDrawLoading(showLoading, loadingLen, animated);
                     break;
@@ -1184,7 +1191,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 return 3;
             } else if (position == privacyShadowRow) {
                 return 4;
-            } else if (position == autoDeleteMesages || position == sessionsRow || position == emailLoginRow || position == passwordRow || position == passcodeRow || position == blockedRow) {
+            } else if (position == autoDeleteMesages || position == sessionsRow || position == emailLoginRow || position == passwordRow || position == passcodeRow || position == blockedRow || position == securityIssuesRow) {
                 return 5;
             }
             return 0;

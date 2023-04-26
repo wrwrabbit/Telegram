@@ -85,6 +85,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
+import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -1715,7 +1716,9 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
         }
         groupCallInstance.parentActivity = activity;
         AndroidUtilities.runOnUIThread(() -> {
-            groupCallInstance.show();
+            if (groupCallInstance != null) {
+                groupCallInstance.show();
+            }
         });
     }
 
@@ -2019,11 +2022,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                     editText.setGravity(Gravity.LEFT | Gravity.TOP);
                     editText.setSingleLine(true);
                     editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-                    String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-                    if (title == null) {
-                        title = currentChat.title;
-                    }
-                    editText.setHint(title);
+                    editText.setHint(UserConfig.getChatTitleOverride(currentAccount, currentChat));
                     editText.setHintTextColor(Theme.getColor(Theme.key_voipgroup_lastSeenText));
                     editText.setCursorColor(Theme.getColor(Theme.key_voipgroup_nameText));
                     editText.setCursorSize(AndroidUtilities.dp(20));
@@ -3960,7 +3959,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                        // cy += translation;
                         float scale = BlobDrawable.SCALE_BIG_MIN + BlobDrawable.SCALE_BIG * amplitude * 0.5f;
                         canvas.scale(scale * showLightingProgress, scale * showLightingProgress, cx, cy);
-                        if (i == 1 && !SharedConfig.getLiteMode().enabled()) {
+                        if (i == 1 && LiteMode.isEnabled(LiteMode.FLAG_CALLS_ANIMATIONS)) {
                             float scaleLight = 0.7f + BlobDrawable.LIGHT_GRADIENT_SIZE * scheduleButtonsScale;
                             canvas.save();
                             canvas.scale(scaleLight, scaleLight, cx, cy);
@@ -4815,7 +4814,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                 containerView.invalidate();
             }
         };
-        avatarsViewPager.setImagesLayerNum(8192);
+        avatarsViewPager.setImagesLayerNum(Integer.MAX_VALUE);
         avatarsViewPager.setInvalidateWithParent(true);
         avatarPagerIndicator.setProfileGalleryView(avatarsViewPager);
         avatarPreviewContainer = new FrameLayout(context) {
@@ -5797,10 +5796,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                 titleTextView.setText(call.call.title, animated);
             }
         } else {
-            String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-            if (title == null) {
-                title = currentChat.title;
-            }
+            String title = UserConfig.getChatTitleOverride(getCurrentAccount(), currentChat);
             if (!title.equals(actionBar.getTitle())) {
                 if (animated) {
                     actionBar.setTitleAnimated(title, true, 180);
@@ -7021,10 +7017,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             } else {
                 TLRPC.Chat chat = (TLRPC.Chat) object;
                 imageView.setForUserOrChat(chat, avatarDrawable);
-                name = UserConfig.getChatTitleOverride(currentAccount, chat.id);
-                if (name == null) {
-                    name = chat.title;
-                }
+                name = UserConfig.getChatTitleOverride(currentAccount, chat);
             }
 
             TextView textView = new TextView(getContext());
@@ -7036,10 +7029,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             textView.setSingleLine(true);
             textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
             textView.setEllipsize(TextUtils.TruncateAt.END);
-            String title = UserConfig.getChatTitleOverride(currentAccount, currentChat.id);
-            if (title == null) {
-                title = currentChat.title;
-            }
+            String title = UserConfig.getChatTitleOverride(currentAccount, currentChat);
             if (option == 2) {
                 textView.setText(LocaleController.getString("VoipGroupRemoveMemberAlertTitle2", R.string.VoipGroupRemoveMemberAlertTitle2));
                 if (ChatObject.isChannelOrGiga(currentChat)) {
@@ -7459,6 +7449,10 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             TLRPC.User currentUser = accountInstance.getMessagesController().getUser(peerId);
             imageLocation = ImageLocation.getForUserOrChat(currentUser, ImageLocation.TYPE_BIG, currentAccount);
             thumbLocation = ImageLocation.getForUserOrChat(currentUser, ImageLocation.TYPE_SMALL, currentAccount);
+            final TLRPC.UserFull userFull = MessagesController.getInstance(currentAccount).getUserFull(peerId);
+            if (userFull == null) {
+                MessagesController.getInstance(currentAccount).loadUserInfo(currentUser, false, 0);
+            }
         } else {
             TLRPC.Chat currentChat = accountInstance.getMessagesController().getChat(-peerId);
             imageLocation = ImageLocation.getForUserOrChat(currentChat, ImageLocation.TYPE_BIG, currentAccount);

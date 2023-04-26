@@ -954,14 +954,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         fragmentLocationContextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.LEFT, 0, -36, 0, 0));
         contentView.addView(fragmentLocationContextView);
 
-        fragmentContextView = new FragmentContextView(context, this, false) {
-            @Override
-            protected void playbackSpeedChanged(float value) {
-                if (Math.abs(value - 1.0f) > 0.001f || Math.abs(value - 1.8f) > 0.001f) {
-                    getUndoView().showWithAction(0, Math.abs(value - 1.0f) > 0.001f ? UndoView.ACTION_PLAYBACK_SPEED_ENABLED : UndoView.ACTION_PLAYBACK_SPEED_DISABLED, value, null, null);
-                }
-            }
-        };
+        fragmentContextView = new FragmentContextView(context, this, false);
         fragmentContextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.LEFT, 0, -36, 0, 0));
         contentView.addView(fragmentContextView);
 
@@ -1700,7 +1693,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
                 return;
             }
             if (AndroidUtilities.isTablet()) {
-                boolean close = (Boolean) args[1];
+                boolean close = (Boolean) args[2];
                 long dialog_id = (Long) args[0];
                 if (close) {
                     if (dialog_id == openedDialogId) {
@@ -2155,10 +2148,10 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogLinkSelection));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextBlue));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextBlue2));
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextBlue3));
+        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextBlue2));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextBlue4));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextRed));
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextRed2));
+        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextRed));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextGray));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextGray2));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogTextGray3));
@@ -2174,14 +2167,11 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogCheckboxSquareDisabled));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogRadioBackground));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogRadioBackgroundChecked));
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogProgressCircle));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogButton));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogButtonSelector));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogScrollGlow));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogRoundCheckBox));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogRoundCheckBoxCheck));
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogBadgeBackground));
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogBadgeText));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogLineProgress));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogLineProgressBackground));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_dialogGrayLine));
@@ -2198,10 +2188,8 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_sheet_scrollUp));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_sheet_other));
 
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_actionBar));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_actionBarSelector));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_actionBarTitle));
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_actionBarTop));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_actionBarSubtitle));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_actionBarItems));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_background));
@@ -2212,7 +2200,6 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_button));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, null, Theme.key_player_buttonActive));
 
-        arrayList.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_actionBarTipBackground));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_windowBackgroundWhiteBlackText));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_player_time));
         arrayList.add(new ThemeDescription(null, 0, null, null, null, cellDelegate, Theme.key_chat_messagePanelCursor));

@@ -26,6 +26,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.INavigationLayout;
@@ -72,7 +73,7 @@ public class BubbleActivity extends BasePermissionsActivity implements INavigati
 
         super.onCreate(savedInstanceState);
 
-        if (SharedConfig.passcodeEnabled() && SharedConfig.appLocked) {
+        if (SharedConfig.passcodeEnabled() && SharedConfig.isAppLocked()) {
             SharedConfig.lastPauseTime = (int) (SystemClock.elapsedRealtime() / 1000);
         }
 
@@ -111,7 +112,7 @@ public class BubbleActivity extends BasePermissionsActivity implements INavigati
         if (passcodeView == null) {
             return;
         }
-        SharedConfig.appLocked = true;
+        SharedConfig.setAppLocked(true);
         if (SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible()) {
             SecretMediaViewer.getInstance().closePhoto(false, false);
         } else if (PhotoViewer.hasInstance() && PhotoViewer.getInstance().isVisible()) {
@@ -209,6 +210,7 @@ public class BubbleActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
+        FakePasscodeUtils.updateLastPauseFakePasscodeTime();
         actionBarLayout.onPause();
         ApplicationLoader.externalInterfacePaused = true;
         onPasscodePause();
@@ -292,7 +294,7 @@ public class BubbleActivity extends BasePermissionsActivity implements INavigati
                     }
                 }
             };
-            if (SharedConfig.appLocked) {
+            if (SharedConfig.isAppLocked()) {
                 AndroidUtilities.runOnUIThread(lockRunnable, 1000);
             } else if (SharedConfig.getAutoLockIn() != 0) {
                 AndroidUtilities.runOnUIThread(lockRunnable, (long) SharedConfig.getAutoLockIn() * 1000 + 1000);
