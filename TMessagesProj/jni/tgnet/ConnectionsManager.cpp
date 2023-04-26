@@ -479,6 +479,9 @@ void ConnectionsManager::loadConfig() {
                     auto datacenter = new Datacenter(instanceNum, buffer);
                     datacenters[datacenter->getDatacenterId()] = datacenter;
                     if (LOGS_ENABLED) DEBUG_D("datacenter(%p) %u loaded (hasAuthKey = %d, 0x%" PRIx64 ")", datacenter, datacenter->getDatacenterId(), (int) datacenter->hasPermanentAuthKey(), datacenter->getPermanentAuthKeyId());
+                    if (datacenter->isCdnDatacenter && !datacenter->hasPermanentAuthKey()) {
+                        datacenter->clearAuthKey(HandshakeTypePerm);
+                    }
                 }
             }
         }
@@ -899,7 +902,7 @@ void ConnectionsManager::onConnectionDataReceived(Connection *connection, Native
                     delegate->onProxyError(instanceNum);
                 }
             } else if (code == -404 && (datacenter->isCdnDatacenter || PFS_ENABLED)) {
-                if (!datacenter->isHandshaking(connection->isMediaConnection)) {
+                if (!datacenter->isHandshaking(connection->isMediaConnection) || datacenter->isCdnDatacenter) {
                     datacenter->clearAuthKey(connection->isMediaConnection ? HandshakeTypeMediaTemp : HandshakeTypeTemp);
                     datacenter->beginHandshake(connection->isMediaConnection ? HandshakeTypeMediaTemp : HandshakeTypeTemp, true);
                     if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) reset auth key due to -404 error", connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType());
@@ -1371,6 +1374,12 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                                     request->serverFailureCount++;
                                 }
                                 discardResponse = true;
+                            } else if (error->error_code == -504) {
+                                discardResponse = (request->requestFlags & RequestFlagIgnoreFloodWait) == 0;
+                                request->failedByFloodWait = 2;
+                                request->startTime = 0;
+                                request->startTimeMillis = 0;
+                                request->minStartTime = (int32_t) (getCurrentTimeMonotonicMillis() / 1000 + 2);
                             } else if (error->error_code == 420) {
                                 int32_t waitTime = 2;
                                 static std::string floodWait = "FLOOD_WAIT_";
@@ -3202,21 +3211,7 @@ void ConnectionsManager::moveToDatacenter(uint32_t datacenterId) {
 
     Datacenter *currentDatacenter = getDatacenterWithId(currentDatacenterId);
     clearRequestsForDatacenter(currentDatacenter, HandshakeTypeAll);
-
-    if (currentUserId) {
-        auto request = new TL_auth_exportAuthorization();
-        request->dc_id = datacenterId;
-        sendRequest(request, [&, datacenterId](TLObject *response, TL_error *error, int32_t networkType, int64_t responseTime, int64_t msgId) {
-            if (error == nullptr) {
-                movingAuthorization = std::move(((TL_auth_exportedAuthorization *) response)->bytes);
-                authorizeOnMovingDatacenter();
-            } else {
-                moveToDatacenter(datacenterId);
-            }
-        }, nullptr, RequestFlagWithoutLogin, DEFAULT_DATACENTER_ID, ConnectionTypeGeneric, true);
-    } else {
-        authorizeOnMovingDatacenter();
-    }
+    authorizeOnMovingDatacenter();
 }
 
 void ConnectionsManager::authorizeOnMovingDatacenter() {
