@@ -35,7 +35,8 @@ public class FakePasscodeUtils {
     }
 
     public static boolean isFakePasscodeActivated() {
-        return SharedConfig.fakePasscodeActivatedIndex != -1;
+        return SharedConfig.fakePasscodeActivatedIndex > -1
+                && SharedConfig.fakePasscodeActivatedIndex < SharedConfig.fakePasscodes.size();
     }
 
     public static boolean checkMessage(int accountNum, TLRPC.Message message) {
