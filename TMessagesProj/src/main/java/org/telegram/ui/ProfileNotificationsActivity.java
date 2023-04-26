@@ -381,7 +381,7 @@ public class ProfileNotificationsActivity extends BaseFragment implements Notifi
                 showDialog(dialog);
                 TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                    button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                 }
             } else if (position == soundRow) {
                 Bundle bundle = new Bundle();
@@ -738,7 +738,7 @@ public class ProfileNotificationsActivity extends BaseFragment implements Notifi
                     SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                     if (position == customResetRow) {
                         textCell.setText(LocaleController.getString(R.string.ResetCustomNotifications), false);
-                        textCell.setTextColor(getThemedColor(Theme.key_dialogTextRed));
+                        textCell.setTextColor(getThemedColor(Theme.key_text_RedBold));
                     } else {
                         textCell.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
                         if (position == soundRow) {
@@ -815,20 +815,20 @@ public class ProfileNotificationsActivity extends BaseFragment implements Notifi
                     TextInfoPrivacyCell textCell = (TextInfoPrivacyCell) holder.itemView;
                     if (position == popupInfoRow) {
                         textCell.setText(LocaleController.getString("ProfilePopupNotificationInfo", R.string.ProfilePopupNotificationInfo));
-                        textCell.setBackground(Theme.getThemedDrawable(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                        textCell.setBackground(Theme.getThemedDrawableByKey(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == ledInfoRow) {
                         textCell.setText(LocaleController.getString("NotificationsLedInfo", R.string.NotificationsLedInfo));
-                        textCell.setBackground(Theme.getThemedDrawable(context, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                        textCell.setBackground(Theme.getThemedDrawableByKey(context, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == priorityInfoRow) {
                         if (priorityRow == -1) {
                             textCell.setText("");
                         } else {
                             textCell.setText(LocaleController.getString("PriorityInfo", R.string.PriorityInfo));
                         }
-                        textCell.setBackground(Theme.getThemedDrawable(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                        textCell.setBackground(Theme.getThemedDrawableByKey(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == ringtoneInfoRow) {
                         textCell.setText(LocaleController.getString("VoipRingtoneInfo", R.string.VoipRingtoneInfo));
-                        textCell.setBackground(Theme.getThemedDrawable(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                        textCell.setBackground(Theme.getThemedDrawableByKey(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
                 }

@@ -61,7 +61,7 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
         oneMonth = ActionBarMenuItem.addItem(this, R.drawable.msg_autodelete_1m, LocaleController.formatPluralString("Months", 1), false, null);
         forever = ActionBarMenuItem.addItem(this, R.drawable.msg_cancel, LocaleController.getString("AutoDeleteMediaNever", R.string.AutoDeleteMediaNever), false, null);
         delete = ActionBarMenuItem.addItem(this, R.drawable.msg_delete, LocaleController.getString("DeleteException", R.string.DeleteException), false, null);
-        delete.setColors(Theme.getColor(Theme.key_windowBackgroundWhiteRedText), Theme.getColor(Theme.key_windowBackgroundWhiteRedText));
+        delete.setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
         checkItems.add(new CheckItem(oneDay, CacheByChatsController.KEEP_MEDIA_ONE_DAY));
         checkItems.add(new CheckItem(oneWeek, CacheByChatsController.KEEP_MEDIA_ONE_WEEK));
         checkItems.add(new CheckItem(oneMonth, CacheByChatsController.KEEP_MEDIA_ONE_MONTH));
@@ -72,7 +72,7 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
         gap = new FrameLayout(context);
         gap.setBackgroundColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuSeparator));
         View gapShadow = new View(context);
-        gapShadow.setBackground(Theme.getThemedDrawable(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow, null));
+        gapShadow.setBackground(Theme.getThemedDrawableByKey(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow, null));
         gap.addView(gapShadow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         gap.setTag(R.id.fit_width_tag, 1);
         addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));

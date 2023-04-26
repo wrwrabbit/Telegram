@@ -500,7 +500,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
             AlertDialog alertDialog = builder.show();
             TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
             if (button != null) {
-                button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
             }
 
         } else if (id == speedItemId) {
@@ -948,7 +948,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
             } else if (items.get(position).type == DOWNLOADS_TYPE) {
                 return LocaleController.getString("DownloadsTabs", R.string.DownloadsTabs);
             } else {
-                return FiltersView.filters[items.get(position).filterIndex].title;
+                return FiltersView.filters[items.get(position).filterIndex].getTitle();
             }
         }
 

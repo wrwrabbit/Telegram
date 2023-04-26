@@ -109,7 +109,7 @@ public class GroupCreateUserCell extends FrameLayout {
 
         if (checkBoxType == 1) {
             checkBox = new CheckBox2(context, 21);
-            checkBox.setColor(null, Theme.key_windowBackgroundWhite, Theme.key_checkboxCheck);
+            checkBox.setColor(-1, Theme.key_windowBackgroundWhite, Theme.key_checkboxCheck);
             checkBox.setDrawUnchecked(false);
             checkBox.setDrawBackgroundAsArc(3);
             addView(checkBox, LayoutHelper.createFrame(24, 24, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 0 : 40 + padding, 33, LocaleController.isRTL ? 39 + padding : 0, 0));
@@ -133,6 +133,14 @@ public class GroupCreateUserCell extends FrameLayout {
         currentName = name;
         drawDivider = false;
         update(0);
+    }
+
+    public void setForbiddenCheck(boolean forbidden) {
+        checkBox.setForbidden(forbidden);
+    }
+
+    public CheckBox2 getCheckBox() {
+        return checkBox;
     }
 
     public void setChecked(boolean checked, boolean animated) {
@@ -266,9 +274,9 @@ public class GroupCreateUserCell extends FrameLayout {
             if (checkBox != null) {
                 ((LayoutParams) checkBox.getLayoutParams()).topMargin = AndroidUtilities.dp(29) + padding;
                 if (LocaleController.isRTL) {
-                    ((LayoutParams) checkBox.getLayoutParams()).rightMargin = AndroidUtilities.dp(39) + padding;
+                    ((LayoutParams) checkBox.getLayoutParams()).rightMargin = AndroidUtilities.dp(40) + padding;
                 } else {
-                    ((LayoutParams) checkBox.getLayoutParams()).leftMargin = AndroidUtilities.dp(45) + padding;
+                    ((LayoutParams) checkBox.getLayoutParams()).leftMargin = AndroidUtilities.dp(40) + padding;
                 }
             }
 

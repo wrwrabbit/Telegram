@@ -689,7 +689,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
         if (foundContextBot != null) {
             return foundContextBot.bot_inline_placeholder;
         } else if (searchingContextUsername != null && searchingContextUsername.equals("gif")) {
-            return "Search GIFs";
+            return LocaleController.getString("SearchGifsTitle", R.string.SearchGifsTitle);
         }
         return null;
     }
@@ -740,9 +740,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
                 if (searchResultBotContextSwitch == null) {
                     searchResultBotContextSwitch = res.switch_pm;
                 }
-                if (searchResultBotWebViewSwitch == null) {
-                    searchResultBotWebViewSwitch = res.switch_webview;
-                }
+                searchResultBotWebViewSwitch = res.switch_webview;
                 for (int a = 0; a < res.results.size(); a++) {
                     TLRPC.BotInlineResult result = res.results.get(a);
                     if (!(result.document instanceof TLRPC.TL_document) && !(result.photo instanceof TLRPC.TL_photo) && !"game".equals(result.type) && result.content == null && result.send_message instanceof TLRPC.TL_botInlineMessageMediaAuto) {
@@ -1064,10 +1062,14 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
             }
         }
         if (foundType == -1) {
+            contextMedia = false;
+            searchResultBotContext = null;
             delegate.needChangePanelVisibility(false);
             return;
         }
         if (foundType == 0) {
+            contextMedia = false;
+            searchResultBotContext = null;
             final ArrayList<Long> users = new ArrayList<>();
             for (int a = 0; a < Math.min(100, messageObjects.size()); a++) {
                 long from_id = messageObjects.get(a).getFromChatId();
@@ -1112,14 +1114,27 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
                 chat = null;
                 threadId = 0;
             }
+            TLRPC.User me = UserConfig.getInstance(currentAccount).getCurrentUser();
             if (chat != null && info != null && info.participants != null && (!ChatObject.isChannel(chat) || chat.megagroup)) {
-                for (int a = (forSearch ? -1 : 0); a < info.participants.participants.size(); a++) {
+                for (int a = -2; a < info.participants.participants.size(); a++) {
                     String username;
                     String firstName;
                     String lastName;
                     TLObject object;
                     long id;
-                    if (a == -1) {
+                    if (a == -2) {
+                        if (me == null || !usernameOnly) {
+                            continue;
+                        }
+                        firstName = me.first_name;
+                        lastName = me.last_name;
+                        username = UserObject.getPublicUsername(me);
+                        object = me;
+                        id = me.id;
+                    } else if (a == -1) {
+                        if (!forSearch) {
+                            continue;
+                        }
                         if (usernameString.length() == 0) {
                             newResult.add(chat);
                             continue;
@@ -1131,8 +1146,11 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
                         id = -chat.id;
                     } else {
                         TLRPC.ChatParticipant chatParticipant = info.participants.participants.get(a);
+                        if (me != null && chatParticipant.user_id == me.id) {
+                            continue;
+                        }
                         TLRPC.User user = messagesController.getUser(chatParticipant.user_id);
-                        if (user == null || !usernameOnly && UserObject.isUserSelf(user) || newResultsHashMap.indexOfKey(user.id) >= 0) {
+                        if (user == null || UserObject.isUserSelf(user) || newResultsHashMap.indexOfKey(user.id) >= 0) {
                             continue;
                         }
                         if (usernameString.length() == 0) {
@@ -1284,6 +1302,8 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
             searchResultCommandsHelp = null;
             searchResultCommandsUsers = null;
             searchResultSuggestions = null;
+            contextMedia = false;
+            searchResultBotContext = null;
             notifyDataSetChanged();
             delegate.needChangePanelVisibility(!searchResultHashtags.isEmpty());
         } else if (foundType == 2) {
@@ -1310,6 +1330,8 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
             searchResultCommands = newResult;
             searchResultCommandsHelp = newResultHelp;
             searchResultCommandsUsers = newResultUsers;
+            contextMedia = false;
+            searchResultBotContext = null;
             notifyDataSetChanged();
             delegate.needChangePanelVisibility(!newResult.isEmpty());
         } else if (foundType == 3) {
@@ -1661,8 +1683,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
         }
     }
 
-    private int getThemedColor(String key) {
-        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
-        return color != null ? color : Theme.getColor(key);
+    private int getThemedColor(int key) {
+        return Theme.getColor(key, resourcesProvider);
     }
 }

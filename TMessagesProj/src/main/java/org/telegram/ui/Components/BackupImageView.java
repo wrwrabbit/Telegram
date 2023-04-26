@@ -37,11 +37,12 @@ public class BackupImageView extends View {
 
     protected boolean hasBlur;
     protected boolean blurAllowed;
+    public boolean drawFromStart;
 
     public BackupImageView(Context context) {
         super(context);
         imageReceiver = new ImageReceiver(this);
-
+        imageReceiver.setAllowLoadingOnAttachedOnly(true);
         imageReceiver.setDelegate((imageReceiver1, set, thumb, memCache) -> {
             if (set && !thumb) {
                 checkCreateBlurredImage();
@@ -73,7 +74,7 @@ public class BackupImageView extends View {
         checkCreateBlurredImage();
     }
 
-    private void onNewImageSet() {
+    public void onNewImageSet() {
         if (hasBlur) {
             if (blurImageReceiver.getBitmap() != null && !blurImageReceiver.getBitmap().isRecycled()) {
                 blurImageReceiver.getBitmap().recycle();
@@ -95,6 +96,10 @@ public class BackupImageView extends View {
 
     public void setOrientation(int angle, boolean center) {
         imageReceiver.setOrientation(angle, center);
+    }
+
+    public void setOrientation(int angle, int invert, boolean center) {
+        imageReceiver.setOrientation(angle, invert, center);
     }
 
     public void setImage(SecureDocument secureDocument, String filter) {
@@ -289,9 +294,16 @@ public class BackupImageView extends View {
             return;
         }
         if (width != -1 && height != -1) {
-            imageReceiver.setImageCoords((getWidth() - width) / 2, (getHeight() - height) / 2, width, height);
-            if (blurAllowed) {
-                blurImageReceiver.setImageCoords((getWidth() - width) / 2, (getHeight() - height) / 2, width, height);
+            if (drawFromStart) {
+                imageReceiver.setImageCoords(0, 0, width, height);
+                if (blurAllowed) {
+                    blurImageReceiver.setImageCoords(0, 0, width, height);
+                }
+            } else {
+                imageReceiver.setImageCoords((getWidth() - width) / 2, (getHeight() - height) / 2, width, height);
+                if (blurAllowed) {
+                    blurImageReceiver.setImageCoords((getWidth() - width) / 2, (getHeight() - height) / 2, width, height);
+                }
             }
         } else {
             imageReceiver.setImageCoords(0, 0, getWidth(), getHeight());

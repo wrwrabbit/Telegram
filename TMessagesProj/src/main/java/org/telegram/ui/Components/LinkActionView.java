@@ -3,6 +3,7 @@ package org.telegram.ui.Components;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -148,6 +149,7 @@ public class LinkActionView extends LinearLayout {
         addView(linearLayout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 20, 0, 0));
 
         avatarsContainer = new AvatarsContainer(context);
+        avatarsContainer.avatarsImageView.setAvatarsTextSize(AndroidUtilities.dp(18));
         addView(avatarsContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 28 + 16, 0, 12, 0, 0));
         copyView.setOnClickListener(view -> {
             try {
@@ -229,7 +231,7 @@ public class LinkActionView extends LinearLayout {
             if (!hideRevokeOption) {
                 subItem = new ActionBarMenuSubItem(context, false, true);
                 subItem.setTextAndIcon(LocaleController.getString("RevokeLink", R.string.RevokeLink), R.drawable.msg_delete);
-                subItem.setColors(Theme.getColor(Theme.key_windowBackgroundWhiteRedText), Theme.getColor(Theme.key_windowBackgroundWhiteRedText));
+                subItem.setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
                 subItem.setOnClickListener(view1 -> {
                     if (actionBarPopupWindow != null) {
                         actionBarPopupWindow.dismiss();
@@ -358,8 +360,13 @@ public class LinkActionView extends LinearLayout {
         point[1] = y;
     }
 
+    private String qrText;
+    public void setQrText(String text) {
+        qrText = text;
+    }
+
     private void showQrCode() {
-        qrCodeBottomSheet = new QRCodeBottomSheet(getContext(), LocaleController.getString("InviteByQRCode", R.string.InviteByQRCode), link, isChannel ? LocaleController.getString("QRCodeLinkHelpChannel", R.string.QRCodeLinkHelpChannel) : LocaleController.getString("QRCodeLinkHelpGroup", R.string.QRCodeLinkHelpGroup), false) {
+        qrCodeBottomSheet = new QRCodeBottomSheet(getContext(), LocaleController.getString("InviteByQRCode", R.string.InviteByQRCode), link, qrText == null ? (isChannel ? LocaleController.getString("QRCodeLinkHelpChannel", R.string.QRCodeLinkHelpChannel) : LocaleController.getString("QRCodeLinkHelpGroup", R.string.QRCodeLinkHelpGroup)) : qrText, false) {
             @Override
             public void dismiss() {
                 super.dismiss();
@@ -469,14 +476,19 @@ public class LinkActionView extends LinearLayout {
             return;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getParentActivity());
-        builder.setMessage(LocaleController.getString("RevokeAlert", R.string.RevokeAlert));
         builder.setTitle(LocaleController.getString("RevokeLink", R.string.RevokeLink));
+        builder.setMessage(LocaleController.getString("RevokeAlert", R.string.RevokeAlert));
         builder.setPositiveButton(LocaleController.getString("RevokeButton", R.string.RevokeButton), (dialogInterface, i) -> {
             if (delegate != null) {
                 delegate.revokeLink();
             }
         });
         builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        AlertDialog dialog = builder.create();
+        TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        if (button != null) {
+            button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
+        }
         builder.show();
     }
 
@@ -485,6 +497,10 @@ public class LinkActionView extends LinearLayout {
     }
 
     public void setUsers(int usersCount, ArrayList<TLRPC.User> importers) {
+        setUsers(usersCount, importers, false);
+    }
+
+    public void setUsers(int usersCount, ArrayList<TLRPC.User> importers, boolean animated) {
         this.usersCount = usersCount;
         if (usersCount == 0) {
             avatarsContainer.setVisibility(View.GONE);
@@ -496,48 +512,59 @@ public class LinkActionView extends LinearLayout {
             avatarsContainer.requestLayout();
         }
         if (importers != null) {
-            for (int i = 0; i < 3; i++) {
-                if (i < importers.size()) {
-                    MessagesController.getInstance(UserConfig.selectedAccount).putUser(importers.get(i), false);
-                    avatarsContainer.avatarsImageView.setObject(i, UserConfig.selectedAccount, importers.get(i));
-                } else {
-                    avatarsContainer.avatarsImageView.setObject(i, UserConfig.selectedAccount, null);
-                }
+            for (int i = 0; i < importers.size(); ++i) {
+                MessagesController.getInstance(UserConfig.selectedAccount).putUser(importers.get(i), false);
             }
-            avatarsContainer.avatarsImageView.commitTransition(false);
+
+            final int count = Math.min(3, Math.min(usersCount, importers.size()));
+            avatarsContainer.avatarsImageView.setCount(count);
+            for (int i = 0; i < count; ++i) {
+                avatarsContainer.avatarsImageView.setObject(i, UserConfig.selectedAccount, importers.get(i));
+            }
+        } else {
+            avatarsContainer.avatarsImageView.setCount(0);
         }
+        avatarsContainer.avatarsImageView.commitTransition(animated);
     }
+
+    private String loadedInviteLink;
 
     public void loadUsers(TLRPC.TL_chatInviteExported invite, long chatId) {
         if (invite == null) {
-            setUsers(0, null);
+            setUsers(0, null, false);
             return;
         }
-        setUsers(invite.usage, invite.importers);
-        if (invite.usage > 0 && invite.importers == null && !loadingImporters) {
-            TLRPC.TL_messages_getChatInviteImporters req = new TLRPC.TL_messages_getChatInviteImporters();
-            req.link = invite.link;
-            req.peer = MessagesController.getInstance(UserConfig.selectedAccount).getInputPeer(-chatId);
-            req.offset_user = new TLRPC.TL_inputUserEmpty();
-            req.limit = Math.min(invite.usage, 3);
+        if (!TextUtils.equals(loadedInviteLink, invite.link)) {
+            setUsers(invite.usage, invite.importers, false);
+            if (invite.usage > 0 && invite.importers == null && !loadingImporters) {
+                TLRPC.TL_messages_getChatInviteImporters req = new TLRPC.TL_messages_getChatInviteImporters();
+                if (invite.link != null) {
+                    req.flags |= 2;
+                    req.link = invite.link;
+                }
+                req.peer = MessagesController.getInstance(UserConfig.selectedAccount).getInputPeer(-chatId);
+                req.offset_user = new TLRPC.TL_inputUserEmpty();
+                req.limit = Math.min(invite.usage, 3);
 
-            loadingImporters = true;
-            ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(req, (response, error) -> {
-                AndroidUtilities.runOnUIThread(() -> {
-                    loadingImporters = false;
-                    if (error == null) {
-                        TLRPC.TL_messages_chatInviteImporters inviteImporters = (TLRPC.TL_messages_chatInviteImporters) response;
-                        if (invite.importers == null) {
-                            invite.importers = new ArrayList<>(3);
+                loadingImporters = true;
+                ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(req, (response, error) -> {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        loadingImporters = false;
+                        loadedInviteLink = invite.link;
+                        if (error == null) {
+                            TLRPC.TL_messages_chatInviteImporters inviteImporters = (TLRPC.TL_messages_chatInviteImporters) response;
+                            if (invite.importers == null) {
+                                invite.importers = new ArrayList<>(3);
+                            }
+                            invite.importers.clear();
+                            for (int i = 0; i < inviteImporters.users.size(); i++) {
+                                invite.importers.addAll(inviteImporters.users);
+                            }
+                            setUsers(invite.usage, invite.importers, true);
                         }
-                        invite.importers.clear();
-                        for (int i = 0; i < inviteImporters.users.size(); i++) {
-                            invite.importers.addAll(inviteImporters.users);
-                        }
-                        setUsers(invite.usage, invite.importers);
-                    }
+                    });
                 });
-            });
+            }
         }
     }
 

@@ -19,8 +19,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -28,9 +31,11 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Pair;
 import android.util.SparseArray;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.graphics.ColorUtils;
 import androidx.exifinterface.media.ExifInterface;
 
 import org.json.JSONArray;
@@ -43,6 +48,8 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Components.AnimatedFileDrawable;
+import org.telegram.ui.Components.BackgroundGradientDrawable;
+import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.Point;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.SlotsDrawable;
@@ -866,6 +873,9 @@ public class ImageLoader {
                 } catch (Throwable e) {
                     FileLog.e(e);
                 }
+                if (bitmap != null && !TextUtils.isEmpty(cacheImage.filter) && cacheImage.filter.contains("wallpaper") && cacheImage.parentObject instanceof TLRPC.WallPaper) {
+                    bitmap = applyWallpaperSetting(bitmap, (TLRPC.WallPaper) cacheImage.parentObject);
+                }
                 onPostExecute(bitmap != null ? new BitmapDrawable(bitmap) : null);
             } else if (cacheImage.imageType == FileLoader.IMAGE_TYPE_LOTTIE) {
                 int w = Math.min(512, AndroidUtilities.dp(170.6f));
@@ -1082,6 +1092,7 @@ public class ImageLoader {
                 boolean mediaIsVideo = false;
                 Bitmap image = null;
                 boolean needInvert = false;
+                int invert = 0;
                 int orientation = 0;
                 File cacheFileFinal = cacheImage.finalFilePath;
                 boolean inEncryptedFile = cacheImage.secureDocument != null || cacheImage.encryptionKeyPath != null && cacheFileFinal != null && cacheFileFinal.getAbsolutePath().endsWith(".enc");
@@ -1443,23 +1454,9 @@ public class ImageLoader {
                                         is = new FileInputStream(cacheFileFinal);
                                     }
                                     if (cacheImage.imageLocation.document instanceof TLRPC.TL_document) {
-                                        try {
-                                            ExifInterface exif = new ExifInterface(is);
-                                            int attribute = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-                                            switch (attribute) {
-                                                case ExifInterface.ORIENTATION_ROTATE_90:
-                                                    orientation = 90;
-                                                    break;
-                                                case ExifInterface.ORIENTATION_ROTATE_180:
-                                                    orientation = 180;
-                                                    break;
-                                                case ExifInterface.ORIENTATION_ROTATE_270:
-                                                    orientation = 270;
-                                                    break;
-                                            }
-                                        } catch (Throwable ignore) {
-
-                                        }
+                                        Pair<Integer, Integer> orientationValues = AndroidUtilities.getImageOrientation(is);
+                                        orientation = orientationValues.first;
+                                        invert = orientationValues.second;
                                         if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
                                             is.close();
                                             if (secureDocumentKey != null) {
@@ -1578,12 +1575,60 @@ public class ImageLoader {
                 if (BuildVars.LOGS_ENABLED && inEncryptedFile) {
                     FileLog.e("Image Loader image is empty = " + (image == null) + " " + cacheFileFinal);
                 }
-                if (needInvert || orientation != 0) {
-                    onPostExecute(image != null ? new ExtendedBitmapDrawable(image, needInvert, orientation) : null);
+                if (image != null && !TextUtils.isEmpty(cacheImage.filter) && cacheImage.filter.contains("wallpaper") && cacheImage.parentObject instanceof TLRPC.WallPaper) {
+                    image = applyWallpaperSetting(image, (TLRPC.WallPaper) cacheImage.parentObject);
+                }
+                if (needInvert || orientation != 0 || invert != 0) {
+                    onPostExecute(image != null ? new ExtendedBitmapDrawable(image, orientation, invert) : null);
                 } else {
                     onPostExecute(image != null ? new BitmapDrawable(image) : null);
                 }
             }
+        }
+
+        private Bitmap applyWallpaperSetting(Bitmap bitmap, TLRPC.WallPaper wallPaper) {
+            if (!wallPaper.pattern || wallPaper.settings == null) {
+                if (wallPaper.settings != null && wallPaper.settings.blur) {
+                    return Utilities.blurWallpaper(bitmap);
+                }
+                return bitmap;
+            }
+            Bitmap finalBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(finalBitmap);
+            int patternColor;
+
+            boolean applyPattern = true;
+            if (wallPaper.settings.second_background_color == 0) { //one color
+                patternColor = AndroidUtilities.getPatternColor(wallPaper.settings.background_color);
+                canvas.drawColor(ColorUtils.setAlphaComponent(wallPaper.settings.background_color, 255));
+            } else if (wallPaper.settings.third_background_color == 0) { //two color
+                int color1 = ColorUtils.setAlphaComponent(wallPaper.settings.background_color, 255);
+                int color2 = ColorUtils.setAlphaComponent(wallPaper.settings.second_background_color, 255);
+                patternColor = AndroidUtilities.getAverageColor(color1, color2);
+                GradientDrawable gradientDrawable = new GradientDrawable(BackgroundGradientDrawable.getGradientOrientation(wallPaper.settings.rotation), new int[]{color1, color2});
+                gradientDrawable.setBounds(0, 0, finalBitmap.getWidth(), finalBitmap.getHeight());
+                gradientDrawable.draw(canvas);
+            } else {
+                int color1 = ColorUtils.setAlphaComponent(wallPaper.settings.background_color, 255);
+                int color2 = ColorUtils.setAlphaComponent(wallPaper.settings.second_background_color, 255);
+                int color3 = ColorUtils.setAlphaComponent(wallPaper.settings.third_background_color, 255);
+                int color4 = wallPaper.settings.fourth_background_color == 0 ? 0 :  ColorUtils.setAlphaComponent(wallPaper.settings.fourth_background_color, 255);
+                patternColor = MotionBackgroundDrawable.getPatternColor(color1, color2, color3, color4);
+                MotionBackgroundDrawable motionBackgroundDrawable = new MotionBackgroundDrawable();
+                motionBackgroundDrawable.setColors(color1, color2, color3, color4);
+                motionBackgroundDrawable.setBounds(0, 0, finalBitmap.getWidth(), finalBitmap.getHeight());
+                motionBackgroundDrawable.setPatternBitmap(wallPaper.settings.intensity, bitmap);
+                motionBackgroundDrawable.draw(canvas);
+                applyPattern = false;
+            }
+
+            if (applyPattern) {
+                Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+                paint.setColorFilter(new PorterDuffColorFilter(patternColor, PorterDuff.Mode.SRC_IN));
+                paint.setAlpha((int) (wallPaper.settings.intensity / 100.0f * 255));
+                canvas.drawBitmap(bitmap, 0, 0, paint);
+            }
+            return finalBitmap;
         }
 
         private void loadLastFrame(RLottieDrawable lottieDrawable, int w, int h, boolean lastFrame, boolean reaction) {
@@ -2277,8 +2322,12 @@ public class ImageLoader {
                     newPath = ApplicationLoader.applicationContext.getExternalFilesDir(null);
                     telegramPath = new File(newPath, "Telegram");
                 } else {
-                    if (!(path.exists() ? path.isDirectory() : path.mkdirs()) || !path.canWrite()) {
-                        path = ApplicationLoader.applicationContext.getExternalFilesDir(null);
+                    boolean isSdCard = !TextUtils.isEmpty(SharedConfig.storageCacheDir) && path.getAbsolutePath().startsWith(SharedConfig.storageCacheDir);
+                    if (!isSdCard) {
+                        if (!(path.exists() ? path.isDirectory() : path.mkdirs()) || !path.canWrite()) {
+                            FileLog.d("can't write to this directory = " + path + " use files dir");
+                            path = ApplicationLoader.applicationContext.getExternalFilesDir(null);
+                        }
                     }
                     telegramPath = new File(path, "Telegram");
                 }
@@ -3693,35 +3742,28 @@ public class ImageLoader {
 
         Matrix matrix = null;
         try {
-            int orientation = 0;
-            if (path != null) {
-                ExifInterface exif = new ExifInterface(path);
-                orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-            } else if (uri != null) {
-                try (InputStream stream = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri)) {
-                    ExifInterface exif = new ExifInterface(stream);
-                    orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            Pair<Integer, Integer> orientation = AndroidUtilities.getImageOrientation(path);
+            if (orientation.first == 0 && orientation.second == 0) {
+                InputStream stream = null;
+                try {
+                    stream = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri);
+                    orientation = AndroidUtilities.getImageOrientation(stream);
                 } catch (Throwable ignore) {
 
+                } finally {
+                    if (stream != null) {
+                        stream.close();
+                    }
                 }
             }
-            switch (orientation) {
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    matrix = new Matrix();
-                    matrix.postRotate(90);
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_180:
-                    matrix = new Matrix();
-                    matrix.postRotate(180);
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_270:
-                    matrix = new Matrix();
-                    matrix.postRotate(270);
-                    break;
+            if (orientation.first != 0 || orientation.second != 0) {
+                matrix = new Matrix();
+                if (orientation.second != 0)
+                    matrix.postScale(orientation.second == 1 ? -1 : 1, orientation.second == 2 ? -1 : 1);
+                if (orientation.first != 0)
+                    matrix.postRotate(orientation.first);
             }
-        } catch (Throwable ignore) {
-
-        }
+        } catch (Throwable ignore) {}
 
         scaleFactor /= bmOptions.inSampleSize;
         if (scaleFactor > 1) {
