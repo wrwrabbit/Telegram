@@ -52,8 +52,8 @@ import java.util.stream.Stream;
 
 public class Utils {
     private static final Pattern FOREIGN_AGENT_REGEX = Pattern.compile("\\s*данное\\s*сообщение\\s*\\(материал\\)\\s*создано\\s*и\\s*\\(или\\)\\s*распространено\\s*(иностранным\\s*)?средством\\s*массовой\\s*информации,\\s*выполняющим\\s*функции\\s*иностранного\\s*агента,\\s*и\\s*\\(или\\)\\s*российским\\s*юридическим\\s*лицом,\\s*выполняющим\\s*функции\\s*иностранного\\s*агента[\\.\\s\\r\\n]*", CASE_INSENSITIVE);
-    private static final Pattern FOREIGN_AGENT_REGEX2 = Pattern.compile("\\s*настоящий\\s*материал\\s*\\(информация\\)\\s*произвед[её]н,\\s*распространен(\\s*и\\s*\\(или\\)\\s*направлен)?\\s*иностранным\\s*агентом\\s*.*(\\s*либо\\s*касается\\s*деятельности\\s*иностранного\\s*агента\\s*.*)?[\\.\\s\\r\\n]*", CASE_INSENSITIVE);
-
+    private static final Pattern FOREIGN_AGENT_REGEX2 = Pattern.compile("\\s*настоящий\\s*материал\\s*(\\(информация\\))?\\s*произвед[её]н,\\s*распространен(\\s*и\\s*\\(или\\)\\s*направлен)?\\s*иностранным\\s*агентом\\s*.*(\\s*либо\\s*касается\\s*деятельности\\s*иностранного\\s*агента\\s*.*)?[\\.\\s\\r\\n]*", CASE_INSENSITIVE);
+    private static final Pattern FOREIGN_AGENT_REGEX_WWF = Pattern.compile("\\s*настоящий\\s*материал\\s*(\\(информация\\))?\\s*произвед[её]н(,|\\s*и)\\s*распространен\\s*[\\w\\s]+,\\s*внесенным\\s*в\\s*реестр\\s*иностранных\\s*агентов,\\s*либо\\s*касается\\s*деятельности\\s*[\\w\\s]+,\\s*внесенного\\s*в\\s*реестр\\s*иностранных\\s*агентов.[\\.\\s\\r\\n]*", CASE_INSENSITIVE);
     static Location getLastLocation() {
         boolean permissionGranted = ContextCompat.checkSelfPermission(ApplicationLoader.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
         if (!permissionGranted) {
@@ -381,7 +381,7 @@ public class Utils {
     private static CharSequence cutForeignAgentPart(CharSequence message, boolean leaveEmpty) {
         int lastEnd = -1;
         SpannableStringBuilder builder = new SpannableStringBuilder();
-        for (Pattern regex : Arrays.asList(FOREIGN_AGENT_REGEX, FOREIGN_AGENT_REGEX2)) {
+        for (Pattern regex : Arrays.asList(FOREIGN_AGENT_REGEX, FOREIGN_AGENT_REGEX2, FOREIGN_AGENT_REGEX_WWF)) {
             Matcher matcher = regex.matcher(message);
             while (matcher.find()) {
                 if (lastEnd == -1) {
