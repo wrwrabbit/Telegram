@@ -164,7 +164,9 @@ class AccountActions : Action {
     fun isClearSavedChannels() = clearSavedChannelsAction != null
     fun isClearDraftsAction() = clearDraftsAction != null
     fun isLogOut() = logOutAction != null
-    fun isHideAccount() = hideAccountAction != null
+    fun isHideAccount() = isHideAccount(false)
+    fun isHideAccount(strictHiding: Boolean)
+        = hideAccountAction != null && (!strictHiding || hideAccountAction?.strictHiding ?: false)
     fun isLogOutOrHideAccount() = logOutAction != null || hideAccountAction != null
     fun isPreventStickersBulletin() = deleteStickersAction?.isPreventBulletin ?: false
 

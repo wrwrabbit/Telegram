@@ -137,7 +137,7 @@ public class FakePasscode {
              SharedConfig.saveConfig();
         }
         AndroidUtilities.runOnUIThread(() -> {
-            if (!actionsResult.hiddenAccounts.isEmpty()) {
+            if (!actionsResult.hiddenAccountEntries.isEmpty()) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
             }
             for (int account : actionsResult.removeChatsResults.keySet()) {
@@ -146,7 +146,7 @@ public class FakePasscode {
                     continue;
                 }
                 NotificationCenter notificationCenter = NotificationCenter.getInstance(account);
-                if (!removeResult.hiddenChats.isEmpty()) {
+                if (!removeResult.hiddenChatEntries.isEmpty()) {
                     notificationCenter.postNotificationName(NotificationCenter.dialogsHidingChanged);
                 }
                 if (!removeResult.hiddenFolders.isEmpty()) {
@@ -171,6 +171,9 @@ public class FakePasscode {
 
     public void migrate() {
         actions().stream().forEach(Action::migrate);
+        if (actionsResult != null) {
+            actionsResult.migrate();
+        }
         passcodeVersion = CURRENT_PASSCODE_VERSION;
     }
 

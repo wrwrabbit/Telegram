@@ -36,6 +36,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         public boolean isDeleteNewMessages;
         public boolean isDeleteFromCompanion;
         public String title;
+        public boolean strictHiding;
 
         public RemoveChatEntry() {}
         public RemoveChatEntry(long chatId) {
@@ -48,6 +49,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             isDeleteNewMessages = true;
             isDeleteFromCompanion = false;
             this.title = title;
+            strictHiding = false;
         }
 
         public RemoveChatEntry copy() {
@@ -58,7 +60,28 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             copy.isDeleteNewMessages = isDeleteNewMessages;
             copy.isDeleteFromCompanion = isDeleteFromCompanion;
             copy.title = title;
+            copy.strictHiding = strictHiding;
             return copy;
+        }
+    }
+
+    public static class HiddenChatEntry {
+        public long chatId;
+        public boolean strictHiding;
+
+        public HiddenChatEntry(long chatId, boolean strictHiding) {
+            this.chatId = chatId;
+            this.strictHiding = strictHiding;
+        }
+
+        public boolean isHideChat(long chatId, boolean strictHiding) {
+            if (this.chatId != chatId && this.chatId != -chatId) {
+                return false;
+            }
+            if (strictHiding && !this.strictHiding) {
+                return false;
+            }
+            return true;
         }
     }
 
@@ -68,7 +91,11 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     @FakePasscodeSerializer.Ignore
     private ArrayList<Long> realRemovedChats = new ArrayList<>(); // Removed chats
     @FakePasscodeSerializer.Ignore
+    @Deprecated
     private ArrayList<Long> hiddenChats = new ArrayList<>();
+
+    @FakePasscodeSerializer.Ignore
+    private ArrayList<HiddenChatEntry> hiddenChatEntries = new ArrayList<>();
     @FakePasscodeSerializer.Ignore
     private ArrayList<Integer> hiddenFolders = new ArrayList<>();
 
@@ -102,8 +129,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     }
 
     @Override
-    public boolean isHideChat(long chatId) {
-        if (hiddenChats != null && (hiddenChats.contains(chatId) || hiddenChats.contains(-chatId))) {
+    public boolean isHideChat(long chatId, boolean strictHiding) {
+        if (hiddenChatEntries != null && hiddenChatEntries.stream().anyMatch(entry -> entry.isHideChat(chatId, strictHiding))) {
             return true;
         } else if (pendingRemovalChats.contains(chatId) || pendingRemovalChats.contains(-chatId)) {
             return true;
@@ -178,8 +205,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         SharedConfig.saveConfig();
         getMessagesStorage().removeChatsActionExecuted();
         postNotifications(foldersCleared);
-        LongSparseIntArray dialogsToUpdate = new LongSparseIntArray(hiddenChats.size());
-        hiddenChats.stream().forEach(c -> dialogsToUpdate.put(c, 0));
+        LongSparseIntArray dialogsToUpdate = new LongSparseIntArray(hiddenChatEntries.size());
+        hiddenChatEntries.stream().forEach(entry -> dialogsToUpdate.put(entry.chatId, 0));
         getAccount().getNotificationsController().processDialogsUpdateRead(dialogsToUpdate);
         Utilities.globalQueue.postRunnable(this::checkChatsRemoved, 3000);
     }
@@ -231,6 +258,9 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         }
         if (hiddenChats != null) {
             hiddenChats.clear();
+        }
+        if (hiddenChatEntries != null) {
+            hiddenChatEntries.clear();
         }
         if (hiddenFolders != null) {
             hiddenFolders.clear();
@@ -321,7 +351,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             } else if ((folder.flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) == 0) {
                 boolean allDialogsHidden = true;
                 for (TLRPC.Dialog dialog : getMessagesController().getDialogs(0)) {
-                    if (folder.includesDialog(getAccount(), dialog.id) && !hiddenChats.contains(dialog.id)) {
+                    if (folder.includesDialog(getAccount(), dialog.id) && hiddenChatEntries.stream().noneMatch(entry -> entry.chatId == dialog.id)) {
                         allDialogsHidden = false;
                         break;
                     }
@@ -394,7 +424,10 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         RemoveChatsResult result = fakePasscode.actionsResult.getOrCreateRemoveChatsResult(accountNum);
         result.removeNewMessagesChats = removedChats = getFilteredEntriesIds(e -> e.isExitFromChat && e.isDeleteNewMessages);
         result.removedChats = realRemovedChats = getFilteredEntriesIds(e -> e.isExitFromChat && !DialogObject.isEncryptedDialog(e.chatId));
-        result.hiddenChats = hiddenChats = getFilteredEntriesIds(e -> !e.isExitFromChat);
+        result.hiddenChatEntries = hiddenChatEntries = chatEntriesToRemove.stream()
+                .filter(e -> !e.isExitFromChat)
+                .map(e -> new HiddenChatEntry(e.chatId, e.strictHiding))
+                .collect(Collectors.toCollection(ArrayList::new));
         result.hiddenFolders = hiddenFolders;
         chatEntriesToRemove = getFilteredEntries(e -> !e.isExitFromChat || !DialogObject.isEncryptedDialog(e.chatId));
     }
@@ -413,7 +446,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     }
 
     private void postNotifications(boolean foldersCleared) {
-        if (!hiddenChats.isEmpty() || !realRemovedChats.isEmpty()) {
+        if (!hiddenChatEntries.isEmpty() || !realRemovedChats.isEmpty()) {
             getNotificationCenter().postNotificationName(NotificationCenter.dialogsHidingChanged);
         }
         if (!hiddenFolders.isEmpty()) {
@@ -426,7 +459,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     }
 
     private void unpinHiddenDialogs() {
-        for (Long did : hiddenChats) {
+        for (HiddenChatEntry entry : hiddenChatEntries) {
+            long did = entry.chatId;
             TLRPC.Dialog dialog = getMessagesController().dialogs_dict.get(did);
             if (dialog != null && dialog.pinned) {
                 getMessagesController().pinDialog(did, false, null, -1);
@@ -520,5 +554,14 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
     public void removeHidings() {
         chatEntriesToRemove = chatEntriesToRemove.stream().filter(e -> e.isExitFromChat).collect(Collectors.toList());
+    }
+
+    @Override
+    public void migrate() {
+        super.migrate();
+        for (Long hiddenChatId : hiddenChats) {
+            hiddenChatEntries.add(new HiddenChatEntry(hiddenChatId, false));
+        }
+        hiddenChats.clear();
     }
 }

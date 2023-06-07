@@ -6815,4 +6815,6 @@
     <string name="RemovePasswordlessIncompatibleSettingsDescription">When this option is enabled activation by bad login attempts will be disabled, and login with the fake passcode will be allowed.</string>
     <string name="CannotDisableLoginIfOptionEnabledDescription">You cannot disable app login with the fake passcode if \"%1$s\" setting is enabled.</string>
     <string name="DidNotGetTheCodePartisanVersionInfo">**Partisan Telegram** sends the code only to other applications that are already logined in, and not via SMS.\n\nTo log in to the application via SMS, do the following:\n1. Download **the official Telegram app** from Google Play.\n2. Sign in to your account.\n3. Log in to the Partisan Telegram with the code received through the official app.\n4. Remove the official app.\n\nIf you have any problems with this, write to us: **@partisan_telegram_bot**</string>
+    <string name="StrictHidingDialog">Strict Hiding</string>
+    <string name="StrictHidingDialogDescription">Strict hiding description</string>
 </resources>
