@@ -69,6 +69,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         public long chatId;
         public boolean strictHiding;
 
+        public HiddenChatEntry() {}
+
         public HiddenChatEntry(long chatId, boolean strictHiding) {
             this.chatId = chatId;
             this.strictHiding = strictHiding;

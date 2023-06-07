@@ -14,6 +14,8 @@ public class ActionsResult {
         public int accountNum;
         public boolean strictHiding;
 
+        public HiddenAccountEntry() {}
+
         public HiddenAccountEntry(int accountNum, boolean strictHiding) {
             this.accountNum = accountNum;
             this.strictHiding = strictHiding;
