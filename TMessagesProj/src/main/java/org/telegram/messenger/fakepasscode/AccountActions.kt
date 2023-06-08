@@ -33,7 +33,7 @@ class AccountActions : Action {
         private set(value) { field = value; SharedConfig.saveConfig() }
     private var logOutAction: LogOutAction? = null
         private set(value) { field = value; SharedConfig.saveConfig() }
-    private var hideAccountAction: HideAccountAction? = null
+    var hideAccountAction: HideAccountAction? = null
         private set(value) { field = value; SharedConfig.saveConfig() }
     var fakePhone = ""
         set(value) { field = value; SharedConfig.saveConfig() }

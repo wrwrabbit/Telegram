@@ -554,7 +554,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                         String title = LocaleController.getString("DeleteAllMyMessages", R.string.DeleteAllMyMessages);
                         checkBoxCell.setText(title, "", getDeleteAllMyMessagesState(), false);
                     } else if (position == strictHidingRow) {
-                        String title = LocaleController.getString(R.string.StrictHidingDialog);
+                        String title = LocaleController.getString(R.string.StrictHiding);
                         checkBoxCell.setText(title, "", getStrictHidingState(), false);
                     }
                     break;
@@ -570,7 +570,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                     } else if (position == hideDialogDetailsRow) {
                         textCell.setText(LocaleController.getString("HideDialogDetails", R.string.HideDialogDetails));
                     } else if (position == strictHidingDetailsRow) {
-                        textCell.setText(LocaleController.getString(R.string.StrictHidingDialog));
+                        textCell.setText(LocaleController.getString(R.string.StrictHiding));
                     }
                     break;
                 }
