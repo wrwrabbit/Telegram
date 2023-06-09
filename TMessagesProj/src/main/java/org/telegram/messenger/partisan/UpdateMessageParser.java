@@ -6,13 +6,17 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.tgnet.TLRPC;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 class UpdateMessageParser {
     private Pattern VERSION_REGEX = Pattern.compile("(\\d+).(\\d+).(\\d+)");
+    private String TARGET_FILE_NAME = "PTelegram.apk";
     private UpdateData currentUpdate;
     private MessageObject currentMessage;
     private boolean newLine = true;
@@ -22,14 +26,22 @@ class UpdateMessageParser {
     private int langInaccuracy = 0;
 
     private final int currentAccount;
-    private final long dialogId;
+    private final Map<Long, List<MessageObject>> messagesByGroupId = new HashMap<>();
 
-    public UpdateMessageParser(int currentAccount, long dialogId) {
+    public UpdateMessageParser(int currentAccount) {
         this.currentAccount = currentAccount;
-        this.dialogId = dialogId;
     }
 
     public UpdateData parseMessage(MessageObject message) {
+        if (message.getGroupId() != 0) {
+            if (!messagesByGroupId.containsKey(message.getGroupId())) {
+                messagesByGroupId.put(message.getGroupId(), new ArrayList<>());
+            }
+            List<MessageObject> messages = messagesByGroupId.get(message.getGroupId());
+            if (messages != null) {
+                messages.add(message);
+            }
+        }
         if (!message.isReply() || message.replyMessageObject.getDocument() == null
                 || message.messageText == null) {
             return null;
@@ -37,9 +49,12 @@ class UpdateMessageParser {
 
         currentUpdate = new UpdateData();
         currentUpdate.accountNum = currentAccount;
-        currentUpdate.message = message.replyMessageObject.messageOwner;
-        currentUpdate.document = message.replyMessageObject.getDocument();
-
+        MessageObject targetMessage = findTargetFileMessage(message);
+        if (targetMessage == null) {
+            return null;
+        }
+        currentUpdate.message = targetMessage.messageOwner;
+        currentUpdate.document = targetMessage.getDocument();
         currentMessage = message;
         try {
             CharSequence text = message.messageText;
@@ -74,6 +89,34 @@ class UpdateMessageParser {
         } catch (Exception ignore) {
         }
         return null;
+    }
+
+    private MessageObject findTargetFileMessage(MessageObject descriptionMessage) {
+        MessageObject replyMessage = descriptionMessage.replyMessageObject;
+        if (replyMessage == null) {
+            return null;
+        }
+        if (isTargetDocument(replyMessage.getDocument())) {
+            return replyMessage;
+        } else if (replyMessage.getGroupId() != 0) {
+            List<MessageObject> messagesFromGroup = messagesByGroupId.get(replyMessage.getGroupId());
+            if (messagesFromGroup != null) {
+                for (MessageObject message : messagesFromGroup) {
+                    if (isTargetDocument(message.getDocument())) {
+                        return message;
+                    }
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
+    }
+
+    private boolean isTargetDocument(TLRPC.Document document) {
+        return document != null
+                && document.file_name_fixed != null
+                && document.file_name_fixed.equals(TARGET_FILE_NAME);
     }
 
     private void processDescription(CharSequence text, int start, int end) {
@@ -136,7 +179,7 @@ class UpdateMessageParser {
         String[] parts = command.split("=");
         String name = parts[0];
         String value = parts.length == 2 ? parts[1] : null;
-        if (name.equals("version")) {
+        if (name.equals("version") || name.equals("appVersion")) {
             currentUpdate.version = AppVersion.parseVersion(value, VERSION_REGEX);
         } else if (name.equals("originalVersion")) {
             currentUpdate.originalVersion = AppVersion.parseVersion(value, VERSION_REGEX);
@@ -151,6 +194,13 @@ class UpdateMessageParser {
             if (stickerValueParts.length == 2) {
                 currentUpdate.stickerPackName = stickerValueParts[0];
                 currentUpdate.stickerEmoji = stickerValueParts[1];
+            }
+        } else if (name.equals("formatVersion")) {
+            if (value != null) {
+                try {
+                    currentUpdate.formatVersion = Integer.parseInt(value);
+                } catch (NumberFormatException ignore) {
+                }
             }
         }
     }
