@@ -270,6 +270,9 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                         builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                         showDialog(builder.create());
                     }
+                    if (listAdapter != null) {
+                        listAdapter.notifyItemChanged(hideAccountRow);
+                    }
                     ContactsController.getInstance(actions.getAccountNum()).checkAppAccount();
                     NotificationsController.getInstance(actions.getAccountNum()).cleanupSystemSettings();
                 } else {
@@ -467,9 +470,16 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                 case 3: {
                     NotificationsCheckCell textCell = (NotificationsCheckCell) holder.itemView;
                     if (position == hideAccountRow) {
-                        String value = actions.getHideAccountAction() != null && actions.getHideAccountAction().strictHiding
-                                ? LocaleController.getString(R.string.StrictHiding)
-                                : "";
+                        String value;
+                        if (actions.getHideAccountAction() != null) {
+                            if (actions.getHideAccountAction().strictHiding) {
+                                value = LocaleController.getString(R.string.StrictHiding);
+                            } else {
+                                value = LocaleController.getString(R.string.PopupEnabled);
+                            }
+                        } else {
+                            value = LocaleController.getString(R.string.PopupDisabled);
+                        }
                         textCell.setTextAndValueAndCheck(LocaleController.getString(R.string.HideAccount), value,
                                 actions.isHideAccount(), false);
                     }

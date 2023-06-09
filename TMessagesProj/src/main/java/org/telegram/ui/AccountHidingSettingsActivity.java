@@ -18,7 +18,6 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.HideAccountAction;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -192,7 +191,7 @@ public class AccountHidingSettingsActivity extends BaseFragment {
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_SHADOW:
-                    view = new ShadowSectionCell(mContext, 0);
+                    view = new ShadowSectionCell(mContext);
                     break;
                 case VIEW_TYPE_HEADER:
                     view = new HeaderCell(mContext);
@@ -216,6 +215,7 @@ public class AccountHidingSettingsActivity extends BaseFragment {
                     } else if (position == strictHidingRow) {
                         boolean checked = actions.getHideAccountAction() != null && actions.getHideAccountAction().strictHiding;
                         textCell.setTextAndCheck(LocaleController.getString(R.string.StrictHiding), checked, false);
+                        textCell.setEnabled(isEnabled(holder));
                     }
                     break;
                 }
