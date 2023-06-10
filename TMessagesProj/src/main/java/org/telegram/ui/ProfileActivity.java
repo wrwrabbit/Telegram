@@ -239,7 +239,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
+public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate, AllowShowingActivityInterface {
     private final static int PHONE_OPTION_CALL = 0,
         PHONE_OPTION_COPY = 1,
         PHONE_OPTION_TELEGRAM_CALL = 2,
@@ -1532,6 +1532,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             getNotificationCenter().addObserver(this, NotificationCenter.blockedUsersDidLoad);
             getNotificationCenter().addObserver(this, NotificationCenter.botInfoDidLoad);
             getNotificationCenter().addObserver(this, NotificationCenter.userInfoDidLoad);
+            getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
             getNotificationCenter().addObserver(this, NotificationCenter.privacyRulesUpdated);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.reloadInterface);
 
@@ -1690,6 +1691,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             getNotificationCenter().removeObserver(this, NotificationCenter.blockedUsersDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.botInfoDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.userInfoDidLoad);
+            getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
             getNotificationCenter().removeObserver(this, NotificationCenter.privacyRulesUpdated);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.reloadInterface);
             getMessagesController().cancelLoadFullUser(userId);
@@ -6327,6 +6329,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 updateAutoDeleteItem();
                 updateTtlIcon();
             }
+        }  else if (id == NotificationCenter.dialogsHidingChanged) {
+            if (!allowShowing()) {
+                finishFragment();
+            }
         } else if (id == NotificationCenter.privacyRulesUpdated) {
             if (qrItem != null) {
                 updateQrItemVisibility(true);
@@ -6449,6 +6455,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        if (!allowShowing()) {
+            finishFragment();
+            return;
+        }
+
         if (sharedMediaLayout != null) {
             sharedMediaLayout.onResume();
         }
@@ -11114,5 +11125,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         }
 
+    }
+
+    @Override
+    public boolean allowShowing() {
+        return !FakePasscodeUtils.isHideChat(dialogId, currentAccount)
+                && !FakePasscodeUtils.isHideChat(chatId, currentAccount)
+                && !FakePasscodeUtils.isHideChat(userId, currentAccount);
     }
 }
