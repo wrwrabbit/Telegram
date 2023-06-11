@@ -570,7 +570,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                     } else if (position == hideDialogDetailsRow) {
                         textCell.setText(LocaleController.getString("HideDialogDetails", R.string.HideDialogDetails));
                     } else if (position == strictHidingDetailsRow) {
-                        textCell.setText(LocaleController.getString(R.string.StrictHiding));
+                        textCell.setText(LocaleController.getString(R.string.StrictHidingDialogDescription));
                     }
                     break;
                 }
