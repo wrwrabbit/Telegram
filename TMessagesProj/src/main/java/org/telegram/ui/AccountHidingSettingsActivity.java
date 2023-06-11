@@ -234,11 +234,9 @@ public class AccountHidingSettingsActivity extends BaseFragment {
                     break;
                 }
                 case VIEW_TYPE_INFO: {
-                    TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+                    TextInfoPrivacyCell textCell = (TextInfoPrivacyCell) holder.itemView;
                     if (position == strictHidingDetailsRow) {
-                        cell.setText(LocaleController.getString(R.string.StrictHidingAccountDescription));
-                        cell.setBackground(null);
-                        cell.getTextView().setGravity(Gravity.CENTER_HORIZONTAL);
+                        textCell.setText(LocaleController.getString(R.string.StrictHidingAccountDescription));
                     }
                     break;
                 }
