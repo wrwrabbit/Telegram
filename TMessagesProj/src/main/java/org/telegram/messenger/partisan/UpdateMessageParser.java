@@ -80,8 +80,14 @@ class UpdateMessageParser {
                     }
                 }
                 if (pos == text.length()) {
-                    if (blockStart < pos) {
-                        processDescription(text, blockStart, pos);
+                    if (controlLine) {
+                        processControlLine(text.subSequence(blockStart, pos).toString());
+                        controlLine = false;
+                        blockStart = pos + 1;
+                    } else {
+                        if (blockStart < pos) {
+                            processDescription(text, blockStart, pos);
+                        }
                     }
                 }
             }
