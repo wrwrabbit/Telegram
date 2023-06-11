@@ -606,7 +606,10 @@ public class SharedConfig {
                     }
                 } catch (Exception e) {
                     fakePasscodeLoadedWithErrors = true;
-                    if (BuildVars.LOGS_ENABLED) {
+                    boolean logsEnabled = ApplicationLoader.applicationContext
+                            .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
+                            .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
+                    if (BuildVars.LOGS_ENABLED || logsEnabled) {
                         Log.e("SharedConfig", "error", e);
                     }
                 }
