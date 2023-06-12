@@ -2,11 +2,16 @@ package org.telegram.messenger.fakepasscode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.telegram.messenger.SharedConfig;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ActionsResult {
 
@@ -37,7 +42,7 @@ public class ActionsResult {
     public Map<Integer, String> fakePhoneNumbers = new HashMap<>();
     @Deprecated
     public Set<Integer> hiddenAccounts = Collections.synchronizedSet(new HashSet<>());
-    public Set<HiddenAccountEntry> hiddenAccountEntries = Collections.synchronizedSet(new HashSet<>());
+    public List<HiddenAccountEntry> hiddenAccountEntries = Collections.synchronizedList(new ArrayList<>());
 
     @JsonIgnore
     public Set<Action> actionsPreventsLogoutAction = Collections.synchronizedSet(new HashSet<>());
@@ -83,5 +88,12 @@ public class ActionsResult {
         if (removeChatsResults != null) {
             removeChatsResults.values().stream().forEach(RemoveChatsResult::migrate);
         }
+        if (hiddenAccounts != null) {
+            hiddenAccountEntries = hiddenAccounts.stream()
+                    .map(id -> new HiddenAccountEntry(id, false))
+                    .collect(Collectors.toList());
+            hiddenAccounts.clear();
+        }
+        SharedConfig.saveConfig();
     }
 }
