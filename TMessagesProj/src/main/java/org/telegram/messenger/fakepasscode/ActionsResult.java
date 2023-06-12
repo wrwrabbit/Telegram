@@ -36,7 +36,7 @@ public class ActionsResult {
     public Map<Integer, TelegramMessageResult> telegramMessageResults = new HashMap<>();
     public Map<Integer, String> fakePhoneNumbers = new HashMap<>();
     @Deprecated
-    private Set<Integer> hiddenAccounts = Collections.synchronizedSet(new HashSet<>());
+    public Set<Integer> hiddenAccounts = Collections.synchronizedSet(new HashSet<>());
     public Set<HiddenAccountEntry> hiddenAccountEntries = Collections.synchronizedSet(new HashSet<>());
 
     @JsonIgnore
