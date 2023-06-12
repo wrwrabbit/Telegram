@@ -87,6 +87,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int resetSecurityIssuesRow;
     private int activateAllSecurityIssuesRow;
     private int editSavedChannelsRow;
+    private int resetUpdateRow;
 
     public static boolean showPlainBackup;
 
@@ -262,6 +263,10 @@ public class TesterSettingsActivity extends BaseFragment {
                 };
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
                 showDialog(dialog);
+            } else if (position == resetUpdateRow) {
+                SharedConfig.pendingPtgAppUpdate = null;
+                SharedConfig.saveConfig();
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -292,6 +297,7 @@ public class TesterSettingsActivity extends BaseFragment {
         resetSecurityIssuesRow = rowCount++;
         activateAllSecurityIssuesRow = rowCount++;
         editSavedChannelsRow = rowCount++;
+        resetUpdateRow = rowCount++;
     }
 
     @Override
@@ -419,6 +425,8 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setText("Activate All Security Issues", true);
                     } else if (position == editSavedChannelsRow) {
                         textCell.setTextAndValue("Saved Channels", Integer.toString(getUserConfig().savedChannels.size()), true);
+                    } else if (position == resetUpdateRow) {
+                        textCell.setText("Reset Update", true);
                     }
                     break;
                 }
@@ -433,7 +441,8 @@ public class TesterSettingsActivity extends BaseFragment {
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
-                    || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow) {
+                    || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
+                    || position == resetUpdateRow) {
                 return 1;
             }
             return 0;
