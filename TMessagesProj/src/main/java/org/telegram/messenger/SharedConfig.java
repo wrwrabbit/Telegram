@@ -18,6 +18,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
@@ -605,7 +606,12 @@ public class SharedConfig {
                     }
                 } catch (Exception e) {
                     fakePasscodeLoadedWithErrors = true;
-                    //Log.e("SharedConfig", "error", e);
+                    boolean logsEnabled = ApplicationLoader.applicationContext
+                            .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
+                            .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
+                    if (BuildVars.LOGS_ENABLED || logsEnabled) {
+                        Log.e("SharedConfig", "error", e);
+                    }
                 }
             }
             try {

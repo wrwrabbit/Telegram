@@ -231,17 +231,21 @@ public class FakePasscodeUtils {
     }
 
     public static boolean isHideAccount(int account) {
+        return isHideAccount(account, false);
+    }
+
+    public static boolean isHideAccount(int account, boolean strictHiding) {
         FakePasscode passcode = getActivatedFakePasscode();
         ActionsResult actionsResult = getActivatedActionsResult();
         if (passcode == null && actionsResult == null) {
             return false;
         }
-        if (actionsResult.hiddenAccounts.contains(account)) {
+        if (actionsResult.isHideAccount(account, strictHiding)) {
             return true;
         }
         if (passcode != null) {
             AccountActions actions = passcode.getAccountActions(account);
-            return actions != null && actions.isHideAccount();
+            return actions != null && actions.isHideAccount(strictHiding);
         } else {
             return false;
         }
@@ -294,6 +298,10 @@ public class FakePasscodeUtils {
     }
 
     public static boolean isHideMessage(int accountNum, Long dialogId, Integer messageId) {
+        return isHideMessage(accountNum, dialogId, messageId, false);
+    }
+
+    public static boolean isHideMessage(int accountNum, Long dialogId, Integer messageId, boolean strictHiding) {
         FakePasscode passcode = getActivatedFakePasscode();
         ActionsResult actionsResult = getActivatedActionsResult();
         if (passcode == null && actionsResult == null) {
@@ -301,15 +309,15 @@ public class FakePasscodeUtils {
         }
 
         RemoveChatsResult removeChatsResult = actionsResult.getRemoveChatsResult(accountNum);
-        if (removeChatsResult != null && removeChatsResult.isHideChat(dialogId)) {
+        if (removeChatsResult != null && removeChatsResult.isHideChat(dialogId, strictHiding)) {
             return true;
         }
         if (passcode != null) {
             AccountActions actions = passcode.getAccountActions(accountNum);
             if (actions != null) {
                 RemoveChatsAction removeChatsAction = passcode.getAccountActions(accountNum).getRemoveChatsAction();
-                boolean hideAccount = passcode.getAccountActions(accountNum).isHideAccount();
-                if (hideAccount || removeChatsAction.isHideChat(dialogId)) {
+                boolean hideAccount = passcode.getAccountActions(accountNum).isHideAccount(strictHiding);
+                if (hideAccount || removeChatsAction.isHideChat(dialogId, strictHiding)) {
                     return true;
                 }
             }
@@ -348,7 +356,7 @@ public class FakePasscodeUtils {
         boolean isCurrentAccountCorrect = false;
         int accountIndex = 0;
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a)) {
+            if (UserConfig.getInstance(a).isClientActivated() && !FakePasscodeUtils.isHideAccount(a, false)) {
                 if (a == UserConfig.selectedAccount) {
                     isCurrentAccountCorrect = true;
                     break;

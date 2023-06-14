@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class UpdateData {
     public AppVersion version;
     public AppVersion originalVersion;
+    public int formatVersion = 0;
     public boolean canNotSkip;
     public String text;
     public TLRPC.Message message;
