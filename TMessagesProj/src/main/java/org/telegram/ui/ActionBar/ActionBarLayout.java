@@ -53,6 +53,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.ui.AllowShowingActivityInterface;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.BackButtonMenu;
 import org.telegram.ui.Components.Bulletin;
@@ -1186,7 +1187,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         if (fragment == null || checkTransitionAnimation() || delegate != null && check && !delegate.needPresentFragment(this, params) || !fragment.onFragmentCreate()) {
             return false;
         }
-        if (fragment instanceof ChatActivity && !((ChatActivity) fragment).allowShowing()) {
+        if (fragment instanceof AllowShowingActivityInterface && !((AllowShowingActivityInterface) fragment).allowShowing()) {
             return false;
         }
         if (BuildVars.LOGS_ENABLED) {

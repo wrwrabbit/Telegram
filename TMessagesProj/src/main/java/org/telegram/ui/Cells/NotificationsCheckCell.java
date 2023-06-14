@@ -95,6 +95,17 @@ public class NotificationsCheckCell extends FrameLayout {
     }
 
     @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        checkBox.setEnabled(enabled);
+        textView.setAlpha(enabled ? 1.0f : 0.5f);
+        checkBox.setAlpha(enabled ? 1.0f : 0.5f);
+        if (valueTextView.getVisibility() == VISIBLE) {
+            valueTextView.setAlpha(enabled ? 1.0f : 0.5f);
+        }
+    }
+
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (isMultiline) {
             super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));

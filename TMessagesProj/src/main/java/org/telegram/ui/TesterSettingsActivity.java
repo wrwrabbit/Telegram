@@ -86,6 +86,8 @@ public class TesterSettingsActivity extends BaseFragment {
     private int phoneOverrideRow;
     private int resetSecurityIssuesRow;
     private int activateAllSecurityIssuesRow;
+    private int editSavedChannelsRow;
+    private int resetUpdateRow;
 
     public static boolean showPlainBackup;
 
@@ -220,6 +222,51 @@ public class TesterSettingsActivity extends BaseFragment {
             } else if (position == activateAllSecurityIssuesRow) {
                 setSecurityIssues(new HashSet<>(Arrays.asList(SecurityIssue.values())));
                 Toast.makeText(getParentActivity(), "Activated", Toast.LENGTH_SHORT).show();
+            } else if (position == editSavedChannelsRow) {
+                DialogTemplate template = new DialogTemplate();
+                template.type = DialogType.EDIT;
+                String title = "Saved Channels";
+                template.title = title;
+                String value = getUserConfig().savedChannels.stream().reduce("", (acc, name) -> {
+                    String result = acc;
+                    if (!acc.isEmpty()) {
+                        result += "\n";
+                    }
+                    if (getUserConfig().pinnedSavedChannels.contains(name)) {
+                        result += "*";
+                    }
+                    result += name;
+                    return result;
+                });
+                template.addEditTemplate(value, "Phone Override", false);
+                template.positiveListener = views -> {
+                    String text = ((EditTextCaption)views.get(0)).getText().toString();
+                    getUserConfig().pinnedSavedChannels = new ArrayList<>();
+                    getUserConfig().savedChannels = new HashSet<>();
+                    for (String line : text.split("\n")) {
+                        String name = line.replace("*", "");
+                        if (line.startsWith("*")) {
+                            getUserConfig().pinnedSavedChannels.add(name);
+                        }
+                        getUserConfig().savedChannels.add(name);
+                    }
+                    getUserConfig().saveConfig(false);
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    cell.setTextAndValue(title, Integer.toString(getUserConfig().savedChannels.size()), true);
+                };
+                template.negativeListener = (dlg, whichButton) -> {
+                    getUserConfig().pinnedSavedChannels = new ArrayList<>();
+                    getUserConfig().savedChannels = new HashSet<>();
+                    getUserConfig().saveConfig(false);
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    cell.setTextAndValue(title, "0", true);
+                };
+                AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
+                showDialog(dialog);
+            } else if (position == resetUpdateRow) {
+                SharedConfig.pendingPtgAppUpdate = null;
+                SharedConfig.saveConfig();
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -249,6 +296,8 @@ public class TesterSettingsActivity extends BaseFragment {
         phoneOverrideRow = rowCount++;
         resetSecurityIssuesRow = rowCount++;
         activateAllSecurityIssuesRow = rowCount++;
+        editSavedChannelsRow = rowCount++;
+        resetUpdateRow = rowCount++;
     }
 
     @Override
@@ -374,6 +423,10 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setText("Reset Security Issues", true);
                     } else if (position == activateAllSecurityIssuesRow) {
                         textCell.setText("Activate All Security Issues", true);
+                    } else if (position == editSavedChannelsRow) {
+                        textCell.setTextAndValue("Saved Channels", Integer.toString(getUserConfig().savedChannels.size()), true);
+                    } else if (position == resetUpdateRow) {
+                        textCell.setText("Reset Update", true);
                     }
                     break;
                 }
@@ -388,7 +441,8 @@ public class TesterSettingsActivity extends BaseFragment {
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
-                    || position == activateAllSecurityIssuesRow) {
+                    || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
+                    || position == resetUpdateRow) {
                 return 1;
             }
             return 0;

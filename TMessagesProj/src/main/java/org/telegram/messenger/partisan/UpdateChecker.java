@@ -16,7 +16,10 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class UpdateChecker implements NotificationCenter.NotificationCenterDelegate {
     public interface UpdateCheckedDelegate {
@@ -25,6 +28,7 @@ public class UpdateChecker implements NotificationCenter.NotificationCenterDeleg
 
     private final long CYBER_PARTISAN_SECURITY_TG_CHANNEL_ID = BuildVars.isAlphaApp() ? -1716369838 : -1808776994;  // For checking for updates
     private final String CYBER_PARTISAN_SECURITY_TG_CHANNEL_USERNAME = BuildVars.isAlphaApp() ? "ptg_update_test" : "ptgprod";
+    private final int CURRENT_FORMAT_VERSION = 1;
 
     private boolean partisanTgChannelLastMessageLoaded = false;
     private boolean appUpdatesChecked = false;
@@ -118,11 +122,15 @@ public class UpdateChecker implements NotificationCenter.NotificationCenterDeleg
 
     private void processPartisanTgChannelMessages(ArrayList<MessageObject> messages) {
         UpdateData update = new UpdateData();
-        UpdateMessageParser parser = new UpdateMessageParser(currentAccount, getUpdateTgChannelId());
-        for (MessageObject message : messages) {
+        UpdateMessageParser parser = new UpdateMessageParser(currentAccount);
+        List<MessageObject> sortedMessages = messages.stream()
+                .sorted(Comparator.comparingInt(MessageObject::getId))
+                .collect(Collectors.toList());
+        for (MessageObject message : sortedMessages) {
             UpdateData currentUpdate = parser.parseMessage(message);
-            if (currentUpdate != null && currentUpdate.version != null &&
-                    (update.version == null || currentUpdate.version.greater(update.version))) {
+            if (currentUpdate != null && currentUpdate.version != null
+                    && (update.version == null || currentUpdate.version.greater(update.version))
+                    && currentUpdate.formatVersion <= CURRENT_FORMAT_VERSION) {
                 update = currentUpdate;
             }
         }

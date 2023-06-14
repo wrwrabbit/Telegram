@@ -213,7 +213,8 @@ public class NotificationsSettingsFacade {
             } else {
                 String path = NotificationsSoundActivity.findRingtonePathByName(localSound.title);
                 if (path == null) {
-                    settings = new TLRPC.TL_notificationSoundDefault();
+//                    settings = new TLRPC.TL_notificationSoundDefault();
+                    return;
                 } else {
                     localSound.data = path;
                 }
@@ -236,7 +237,7 @@ public class NotificationsSettingsFacade {
         } else if (settings instanceof TLRPC.TL_notificationSoundRingtone) {
             TLRPC.TL_notificationSoundRingtone soundRingtone = (TLRPC.TL_notificationSoundRingtone) settings;
             editor.putLong(soundDocPref, soundRingtone.id);
-            MediaDataController.getInstance(currentAccount).checkRingtones();
+            MediaDataController.getInstance(currentAccount).checkRingtones(true);
             if (serverUpdate && dialogId != 0) {
                 editor.putBoolean("custom_" + dialogId, true);
             }
