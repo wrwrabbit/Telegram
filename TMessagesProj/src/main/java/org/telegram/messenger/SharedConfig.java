@@ -25,8 +25,13 @@ import androidx.annotation.IntDef;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
@@ -36,9 +41,13 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
+import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
+import org.telegram.messenger.partisan.TlrpcJsonSerializer;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLObject;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
@@ -414,6 +423,23 @@ public class SharedConfig {
             return jsonMapper;
         }
         jsonMapper = new ObjectMapper();
+        SimpleModule tlrpcModule = new SimpleModule();
+        tlrpcModule.addSerializer(TLRPC.Message.class, new TlrpcJsonSerializer());
+        tlrpcModule.addSerializer(TLRPC.Document.class, new TlrpcJsonSerializer());
+        tlrpcModule.addDeserializer(TLObject.class, new TlrpcJsonDeserializer(TLObject.class));
+        tlrpcModule.setDeserializerModifier(new BeanDeserializerModifier() {
+            @Override
+            public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+                JsonDeserializer<?> configuredDeserializer = super.modifyDeserializer(config, beanDesc, deserializer);
+                if (TLRPC.Document.class.isAssignableFrom(beanDesc.getBeanClass())
+                        || TLRPC.Message.class.isAssignableFrom(beanDesc.getBeanClass())) {
+                    configuredDeserializer = new TlrpcJsonDeserializer(beanDesc.getBeanClass());
+                }
+
+                return configuredDeserializer;
+            }
+        });
+        jsonMapper.registerModule(tlrpcModule);
         jsonMapper.registerModule(new JavaTimeModule());
         jsonMapper.registerModule(new KotlinModule());
         jsonMapper.activateDefaultTyping(jsonMapper.getPolymorphicTypeValidator());

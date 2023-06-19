@@ -2,7 +2,6 @@ package org.telegram.messenger.partisan;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
-import org.telegram.messenger.MessagesStorage;
 import org.telegram.tgnet.TLRPC;
 
 import java.lang.reflect.Field;
