@@ -1200,6 +1200,14 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             onPasscodeError();
             return;
         }
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
+            SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
+            if (result.isRealPasscodeSuccess || result.fakePasscode != null && result.fakePasscode != FakePasscodeUtils.getActivatedFakePasscode()) {
+                onPasscodeError();
+                return;
+            }
+        }
 
         if (otherItem != null) {
             otherItem.setVisibility(View.GONE);
