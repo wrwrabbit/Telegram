@@ -324,7 +324,9 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                         title = "";
                     }
                 }
-                entries.add(new RemoveChatsAction.RemoveChatEntry(id, title));
+                boolean isExitFromChat = !fakePasscode.passwordlessMode
+                        || id == getUserConfig().clientUserId;
+                entries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat));
             }
         }
     }
