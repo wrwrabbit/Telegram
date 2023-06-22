@@ -20,7 +20,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Outline;
@@ -65,8 +64,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -1200,14 +1197,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             onPasscodeError();
             return;
         }
-        if (FakePasscodeUtils.isFakePasscodeActivated()) {
-            String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
-            SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
-            if (result.isRealPasscodeSuccess || result.fakePasscode != null && result.fakePasscode != FakePasscodeUtils.getActivatedFakePasscode()) {
-                onPasscodeError();
-                return;
-            }
-        }
 
         if (otherItem != null) {
             otherItem.setVisibility(View.GONE);
@@ -1240,7 +1229,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }
         String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_CODE) {
-            if (!firstPassword.equals(password)) {
+            if (!firstPassword.equals(password) || isNewPasscodeIdenticalOtherPasscode(password)) {
                 AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, true);
                 for (CodeNumberField f : codeFieldContainer.codeField) {
                     f.setText("");
@@ -1364,6 +1353,15 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 presentFragment(passcodeActivity, true);
             });
         }
+    }
+
+    private boolean isNewPasscodeIdenticalOtherPasscode(String password) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
+            return result.isRealPasscodeSuccess
+                    || result.fakePasscode != null && result.fakePasscode != FakePasscodeUtils.getActivatedFakePasscode();
+        }
+        return false;
     }
 
     private void onPasscodeError() {
