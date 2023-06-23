@@ -154,7 +154,7 @@ public class SharedConfig {
     public static int badPasscodeTries;
     public static byte[] passcodeSalt = new byte[0];
     private static boolean appLocked;
-    public static int autoLockIn = 60 * 60;
+    public static int autoLockIn = 60;
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
