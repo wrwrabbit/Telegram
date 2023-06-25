@@ -795,9 +795,17 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         switch (fragmentName) {
                             case "chat":
                                 if (args != null) {
-                                    ChatActivity chat = new ChatActivity(args);
-                                    if (actionBarLayout.addFragmentToStack(chat)) {
-                                        chat.restoreSelfArgs(savedInstanceState);
+                                    long chatId = args.getLong("chat_id", 0);
+                                    long userId = args.getLong("user_id", 0);
+                                    boolean isSavedChannel = args.getBoolean("is_saved_channel", false);
+                                    boolean allowShowing = !FakePasscodeUtils.isHideChat(chatId, currentAccount)
+                                            && !FakePasscodeUtils.isHideChat(userId, currentAccount)
+                                            && !(FakePasscodeUtils.isFakePasscodeActivated() && isSavedChannel);
+                                    if (allowShowing) {
+                                        ChatActivity chat = new ChatActivity(args);
+                                        if (actionBarLayout.addFragmentToStack(chat)) {
+                                            chat.restoreSelfArgs(savedInstanceState);
+                                        }
                                     }
                                 }
                                 break;
