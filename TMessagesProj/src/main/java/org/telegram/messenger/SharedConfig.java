@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
@@ -713,6 +714,8 @@ public class SharedConfig {
                         pendingPtgAppUpdate = null;
                         AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
                     }
+                } else if (update != null) {
+                    Utilities.globalQueue.postRunnable(() -> Utils.clearCache(null), 1000);
                 }
             } catch (Exception ignore) {
             }
