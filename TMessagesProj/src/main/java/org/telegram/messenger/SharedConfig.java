@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.UpdateApkRemoveRunnable;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
@@ -702,23 +703,9 @@ public class SharedConfig {
                 if (update != null) {
                     pendingPtgAppUpdate = fromJson(update, UpdateData.class);
                 }
-                if (pendingPtgAppUpdate != null) {
-                    if (AppVersion.getCurrentVersion().greaterOrEquals(pendingPtgAppUpdate.version)) {
-                        UpdateData pendingPtgAppUpdateFinal = pendingPtgAppUpdate;
-                        Utilities.globalQueue.postRunnable(() -> {
-                            ImageLoader.getInstance(); // init media dirs
-                            FileLoader fileLoader = FileLoader.getInstance(pendingPtgAppUpdateFinal.accountNum);
-                            File path = fileLoader.getPathToAttach(pendingPtgAppUpdateFinal.document, true);
-                            path.delete();
-                        }, 1000);
-                        pendingPtgAppUpdate = null;
-                        AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
-                    }
-                } else if (update != null) {
-                    Utilities.globalQueue.postRunnable(() -> Utils.clearCache(null), 1000);
-                }
             } catch (Exception ignore) {
             }
+            Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
             SaveToGallerySettingsHelper.load(preferences);
