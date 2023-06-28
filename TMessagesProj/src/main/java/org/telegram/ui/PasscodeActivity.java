@@ -20,7 +20,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Outline;
@@ -65,8 +64,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -334,9 +331,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                             passcode.onDelete();
                                         }
                                         SharedConfig.fakePasscodes.clear();
-                                    }
-                                    if (FakePasscodeUtils.isFakePasscodeActivated()) {
-                                        SharedConfig.autoLockIn = 60;
                                     }
                                     SharedConfig.setAppLocked(false);
                                     SharedConfig.saveConfig();
@@ -1232,7 +1226,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }
         String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_CODE) {
-            if (!firstPassword.equals(password)) {
+            if (!firstPassword.equals(password) || isNewPasscodeIdenticalOtherPasscode(password)) {
                 AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, true);
                 for (CodeNumberField f : codeFieldContainer.codeField) {
                     f.setText("");
@@ -1265,7 +1259,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                     FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
                     FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = false;
-                    SharedConfig.autoLockIn = 60;
                 } else {
                     SharedConfig.setPasscode(Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)));
                     for (FakePasscode passcode: SharedConfig.fakePasscodes) {
@@ -1279,8 +1272,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
             if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                 SharedConfig.allowScreenCapture = true;
-            } else {
-                SharedConfig.autoLockIn = 60;
             }
 
             SharedConfig.passcodeType = currentPasswordType;
@@ -1356,6 +1347,15 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 presentFragment(passcodeActivity, true);
             });
         }
+    }
+
+    private boolean isNewPasscodeIdenticalOtherPasscode(String password) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
+            return result.isRealPasscodeSuccess
+                    || result.fakePasscode != null && result.fakePasscode != FakePasscodeUtils.getActivatedFakePasscode();
+        }
+        return false;
     }
 
     private void onPasscodeError() {

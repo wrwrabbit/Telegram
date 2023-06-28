@@ -2,7 +2,6 @@ package org.telegram.messenger.partisan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;

@@ -105,7 +105,6 @@ import androidx.core.graphics.ColorUtils;
 import androidx.dynamicanimation.animation.FloatValueHolder;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
-import androidx.exifinterface.media.ExifInterface;
 import androidx.recyclerview.widget.ChatListItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManagerFixed;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -115,13 +114,11 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.util.Log;
 import com.google.zxing.common.detector.MathUtils;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.BuildVars;
@@ -786,6 +783,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private int lastViewedMessageId;
     private int lastViewedMessageOffset;
     private boolean startLoadFromMessageRestored;
+    private boolean isSavedChannel;
 
     private boolean first = true;
     private int first_unread_id;
@@ -2092,6 +2090,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (startFromVideoTimestamp >= 0) {
             startFromVideoMessageId = startLoadFromMessageId;
         }
+        isSavedChannel = arguments.getBoolean("is_saved_channel", false);
         reportType = arguments.getInt("report", -1);
         pulled = arguments.getBoolean("pulled", false);
         boolean historyPreloaded = arguments.getBoolean("historyPreloaded", false);
@@ -32050,6 +32049,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(dialog_id, currentAccount);
+        return !FakePasscodeUtils.isHideChat(dialog_id, currentAccount)
+                && !(FakePasscodeUtils.isFakePasscodeActivated() && isSavedChannel);
     }
 }

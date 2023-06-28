@@ -1341,6 +1341,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
         } else {
             args.putLong("chat_id", -dialogId);
         }
+        args.putBoolean("is_saved_channel", true);
         if (AndroidUtilities.isTablet()) {
             if (openedDialogId == dialogId) {
                 return;

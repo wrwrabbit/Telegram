@@ -40,13 +40,13 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
         public RemoveChatEntry() {}
         public RemoveChatEntry(long chatId) {
-            this(chatId, "Unknown");
+            this(chatId, "Unknown", true);
         }
-        public RemoveChatEntry(long chatId, String title) {
+        public RemoveChatEntry(long chatId, String title, boolean isExitFromChat) {
             this.chatId = chatId;
             isClearChat = false;
-            isExitFromChat = true;
-            isDeleteNewMessages = true;
+            this.isExitFromChat = isExitFromChat;
+            isDeleteNewMessages = isExitFromChat;
             isDeleteFromCompanion = false;
             this.title = title;
             strictHiding = false;
@@ -153,11 +153,6 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
     public boolean contains(long chatId) {
         return chatEntriesToRemove.stream().anyMatch(e -> e.chatId == chatId);
-    }
-
-    public void add(long chatId, String title) {
-        RemoveChatEntry entry = new RemoveChatEntry(chatId, title);
-        add(entry);
     }
 
     public void add(RemoveChatEntry entry) {
