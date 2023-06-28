@@ -25,8 +25,13 @@ import androidx.annotation.IntDef;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
@@ -34,11 +39,17 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.UpdateApkRemoveRunnable;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
+import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
+import org.telegram.messenger.partisan.TlrpcJsonSerializer;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLObject;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
@@ -145,7 +156,7 @@ public class SharedConfig {
     public static int badPasscodeTries;
     public static byte[] passcodeSalt = new byte[0];
     private static boolean appLocked;
-    public static int autoLockIn = 60 * 60;
+    public static int autoLockIn = 60;
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
@@ -414,6 +425,23 @@ public class SharedConfig {
             return jsonMapper;
         }
         jsonMapper = new ObjectMapper();
+        SimpleModule tlrpcModule = new SimpleModule();
+        tlrpcModule.addSerializer(TLRPC.Message.class, new TlrpcJsonSerializer());
+        tlrpcModule.addSerializer(TLRPC.Document.class, new TlrpcJsonSerializer());
+        tlrpcModule.addDeserializer(TLObject.class, new TlrpcJsonDeserializer(TLObject.class));
+        tlrpcModule.setDeserializerModifier(new BeanDeserializerModifier() {
+            @Override
+            public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+                JsonDeserializer<?> configuredDeserializer = super.modifyDeserializer(config, beanDesc, deserializer);
+                if (TLRPC.Document.class.isAssignableFrom(beanDesc.getBeanClass())
+                        || TLRPC.Message.class.isAssignableFrom(beanDesc.getBeanClass())) {
+                    configuredDeserializer = new TlrpcJsonDeserializer(beanDesc.getBeanClass());
+                }
+
+                return configuredDeserializer;
+            }
+        });
+        jsonMapper.registerModule(tlrpcModule);
         jsonMapper.registerModule(new JavaTimeModule());
         jsonMapper.registerModule(new KotlinModule());
         jsonMapper.activateDefaultTyping(jsonMapper.getPolymorphicTypeValidator());
@@ -675,21 +703,9 @@ public class SharedConfig {
                 if (update != null) {
                     pendingPtgAppUpdate = fromJson(update, UpdateData.class);
                 }
-                if (pendingPtgAppUpdate != null) {
-                    if (AppVersion.getCurrentVersion().greaterOrEquals(pendingPtgAppUpdate.version)) {
-                        UpdateData pendingPtgAppUpdateFinal = pendingPtgAppUpdate;
-                        Utilities.globalQueue.postRunnable(() -> {
-                            ImageLoader.getInstance(); // init media dirs
-                            FileLoader fileLoader = FileLoader.getInstance(pendingPtgAppUpdateFinal.accountNum);
-                            File path = fileLoader.getPathToAttach(pendingPtgAppUpdateFinal.document, true);
-                            path.delete();
-                        }, 1000);
-                        pendingPtgAppUpdate = null;
-                        AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
-                    }
-                }
             } catch (Exception ignore) {
             }
+            Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
             SaveToGallerySettingsHelper.load(preferences);
