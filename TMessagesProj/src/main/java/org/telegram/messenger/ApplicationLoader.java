@@ -622,4 +622,12 @@ public class ApplicationLoader extends Application {
         }
         file.delete();
     }
+    public static void logDualCamera(boolean success, boolean vendor) {
+        applicationLoaderInstance.logDualCameraInternal(success, vendor);
+    }
+
+    protected void logDualCameraInternal(boolean success, boolean vendor) {
+
+    }
+
 }
