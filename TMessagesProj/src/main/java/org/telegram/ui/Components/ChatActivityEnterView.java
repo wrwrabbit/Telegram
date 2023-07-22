@@ -5550,7 +5550,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             if (playing != null && playing == audioToSendMessageObject) {
                 MediaController.getInstance().cleanupPlayer(true, true);
             }
-            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, audioToSendPath, dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, scheduleDate, 0, null, autoDeleteDelay);
+            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, audioToSendPath, dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, scheduleDate, 0, null, null, false, autoDeleteDelay);
             applyStoryToSendMessageParams(params);
             SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
             if (delegate != null) {

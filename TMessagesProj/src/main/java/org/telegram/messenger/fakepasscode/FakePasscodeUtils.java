@@ -191,6 +191,9 @@ public class FakePasscodeUtils {
 
     public static List<NotificationsSettingsActivity.NotificationException> filterNotificationExceptions(
             List<NotificationsSettingsActivity.NotificationException> exceptions, int account) {
+        if (exceptions == null) {
+            return null;
+        }
         return filterItems(exceptions, Optional.of(account), (e, filter) -> !filter.isHideChat(e.did));
     }
 

@@ -1112,7 +1112,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                 if (index > 0) {
                     name = name.substring(0, index);
                 }
-                if (user.verified) {
+                if (user.isVerified()) {
                     if (verifiedDrawable == null) {
                         verifiedDrawable = createVerifiedDrawable();
                     }

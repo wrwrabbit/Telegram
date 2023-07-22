@@ -3621,7 +3621,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     if (hasStories && !rightSlidingDialogContainer.hasFragment() && !fixScrollYAfterArchiveOpened) {
                         pTop -= AndroidUtilities.dp(DialogStoriesCell.HEIGHT_IN_DP);
                     }
-                    boolean hasHidenArchive = !fixScrollYAfterArchiveOpened && viewPage.dialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && folderId == 0 && getMessagesController().hasHiddenArchive() && viewPage.archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN &&  && hasHiddenArchive();
+                    boolean hasHidenArchive = !fixScrollYAfterArchiveOpened && viewPage.dialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && folderId == 0 && getMessagesController().hasHiddenArchive() && viewPage.archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN && hasHiddenArchive();
                     if ((hasHidenArchive || (hasStories && !rightSlidingDialogContainer.hasFragment())) && dy < 0) {
                         viewPage.listView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
                         int currentPosition = viewPage.layoutManager.findFirstVisibleItemPosition();
@@ -10147,7 +10147,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             foldersHidingChanged();
         } else if (id == NotificationCenter.dialogsHidingChanged) {
             try {
-                scrollToTop();
+                scrollToTop(false, false);
             } catch (Exception ignored) {
             }
         } else if (id == NotificationCenter.fakePasscodeActivated) {

@@ -1371,10 +1371,10 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
             }
         }
         exceptionsEnd = items.size() - 1;
-        if (currentType != -1 || exceptions != null && !filteredExceptions.isEmpty()) {
+        if (currentType != -1 || exceptions != null && !exceptions.isEmpty()) {
             items.add(ItemInner.asShadow(null));
         }
-        if (exceptions != null && !filteredExceptions.isEmpty()) {
+        if (exceptions != null && !exceptions.isEmpty()) {
             items.add(ItemInner.asButton(7, 0, LocaleController.getString("NotificationsDeleteAllException", R.string.NotificationsDeleteAllException)));
         }
         if (adapter != null) {
