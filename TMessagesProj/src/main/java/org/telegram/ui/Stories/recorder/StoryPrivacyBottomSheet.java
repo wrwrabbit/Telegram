@@ -1563,7 +1563,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                     view = new View(context);
                     view.setTag(34);
                 } else if (viewType == VIEW_TYPE_USER) {
-                    view = new UserCell(context, resourcesProvider);
+                    view = new UserCell(context, resourcesProvider, currentAccount);
                 } else if (viewType == VIEW_TYPE_HEADER2) {
                     view = new HeaderCell2(context, resourcesProvider);
                 } else if (viewType == VIEW_TYPE_NO_USERS) {
@@ -2330,15 +2330,17 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
 
         private final SimpleTextView titleTextView;
         private final SimpleTextView subtitleTextView;
+        private final int accountNum;
 
         private final CheckBox2 checkBox;
         private final RadioButton radioButton;
 
         private final Paint dividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        public UserCell(Context context, Theme.ResourcesProvider resourcesProvider) {
+        public UserCell(Context context, Theme.ResourcesProvider resourcesProvider, int accountNum) {
             super(context);
             this.resourcesProvider = resourcesProvider;
+            this.accountNum = accountNum;
 
             avatarDrawable.setRoundRadius(AndroidUtilities.dp(40));
 
@@ -2392,10 +2394,10 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
         private boolean[] isOnline = new boolean[1];
 
         public void setUser(TLRPC.User user) {
-            avatarDrawable.setInfo(user);
+            avatarDrawable.setInfo(user, accountNum);
             imageView.setForUserOrChat(user, avatarDrawable);
 
-            CharSequence text = UserObject.getUserName(user);
+            CharSequence text = UserObject.getUserName(user, accountNum);
             text = Emoji.replaceEmoji(text, titleTextView.getPaint().getFontMetricsInt(), false);
             titleTextView.setText(text);
             isOnline[0] = false;
@@ -2407,10 +2409,10 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
         }
 
         public void setChat(TLRPC.Chat chat, int participants_count) {
-            avatarDrawable.setInfo(chat);
+            avatarDrawable.setInfo(chat, accountNum);
             imageView.setForUserOrChat(chat, avatarDrawable);
 
-            titleTextView.setText(chat.title);
+            titleTextView.setText(UserConfig.getChatTitleOverride(accountNum, chat));
             isOnline[0] = false;
             String subtitle;
             if (ChatObject.isChannel(chat) && !chat.megagroup) {
