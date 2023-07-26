@@ -77,6 +77,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -158,7 +159,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                 set.addAll(userIds);
             }
         }
-        return set;
+        return new HashSet<>(FakePasscodeUtils.filterDialogIds(new ArrayList<>(set), currentAccount));
     }
 
     private final ArrayList<Long> messageUsers = new ArrayList<>();
@@ -921,7 +922,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                 ));
                 items.add(ItemInner.asType(TYPE_EVERYONE, selectedType == TYPE_EVERYONE));
                 ItemInner item;
-                items.add(item = ItemInner.asType(TYPE_CONTACTS, selectedType == TYPE_CONTACTS, excludedContacts.size()));
+                items.add(item = ItemInner.asType(TYPE_CONTACTS, selectedType == TYPE_CONTACTS, FakePasscodeUtils.filterDialogIds(excludedContacts, currentAccount).size()));
                 if (excludedContacts.size() == 1) {
                     item.user = MessagesController.getInstance(currentAccount).getUser(excludedContacts.get(0));
                 }
@@ -1296,7 +1297,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                     button.setCount(0, animated);
                 } else {
                     button.setText(LocaleController.getString("StoryPrivacyButtonExcludeContacts", R.string.StoryPrivacyButtonExcludeContacts), animated);
-                    button.setCount(selectedUsers.size(), animated);
+                    button.setCount(filteredSelectedUsers().size(), animated);
                 }
                 button2.setVisibility(View.GONE);
             } else if (pageType == PAGE_TYPE_SEND_AS_MESSAGE) {
@@ -1381,6 +1382,10 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
             }
 
             updateSectionCell(animated);
+        }
+
+        ArrayList<Long> filteredSelectedUsers() {
+            return (ArrayList<Long>) FakePasscodeUtils.filterDialogIds(selectedUsers, currentAccount);
         }
         
         public void updateLastSeen() {
@@ -2199,7 +2204,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                 final TLRPC.TL_contact contact = contacts.get(i);
                 if (contact != null) {
                     final TLRPC.User user = messagesController.getUser(contact.user_id);
-                    if (user != null && !UserObject.isUserSelf(user) && !user.bot && user.id != 777000) {
+                    if (user != null && !UserObject.isUserSelf(user) && !user.bot && user.id != 777000 && !FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                         chats.add(user);
                     }
                 }
@@ -2246,7 +2251,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
             if (DialogObject.isUserDialog(dialog.id)) {
                 TLRPC.User user = messagesController.getUser(dialog.id);
                 if (user != null && !user.bot && user.id != 777000 && !UserObject.isUserSelf(user)) {
-                    if (onlyContacts && (contacts == null || contacts.get(user.id) == null)) {
+                    if (onlyContacts && (contacts == null || contacts.get(user.id) == null) || FakePasscodeUtils.isHideChat(dialog.id, currentAccount)) {
                         continue;
                     }
                     contains.put(user.id, true);
@@ -2254,7 +2259,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                 }
             } else if (includeSmallChats && DialogObject.isChatDialog(dialog.id)) {
                 TLRPC.Chat chat = messagesController.getChat(-dialog.id);
-                if (chat == null || ChatObject.isForum(chat) || ChatObject.isChannelAndNotMegaGroup(chat)) {
+                if (chat == null || ChatObject.isForum(chat) || ChatObject.isChannelAndNotMegaGroup(chat) || FakePasscodeUtils.isHideChat(dialog.id, currentAccount)) {
                     continue;
                 }
                 int participants_count = getParticipantsCount(chat);
@@ -2269,7 +2274,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                 long id = e.getKey();
                 if (!contains.containsKey(id)) {
                     TLRPC.User user = messagesController.getUser(id);
-                    if (user != null && !user.bot && user.id != 777000 && !UserObject.isUserSelf(user)) {
+                    if (user != null && !user.bot && user.id != 777000 && !UserObject.isUserSelf(user) && !FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                         users.add(user);
                         contains.put(user.id, true);
                     }
