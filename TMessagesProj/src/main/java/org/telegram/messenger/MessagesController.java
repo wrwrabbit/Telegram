@@ -344,6 +344,23 @@ public class MessagesController extends BaseController implements NotificationCe
         return dialogFilters;
     }
 
+    public int getActualFilterIndex(int filteredIndex) {
+        int currentFilteredIndex = 0;
+        int currentActualIndex = 0;
+        for (DialogFilter filter : getDialogFilters()) {
+            if (FakePasscodeUtils.isHideFolder(filter.id, currentAccount)) {
+                currentActualIndex++;
+                continue;
+            }
+            if (currentFilteredIndex == filteredIndex) {
+                return currentActualIndex;
+            }
+            currentActualIndex++;
+            currentFilteredIndex++;
+        }
+        return -1;
+    }
+
     private final CacheFetcher<Integer, TLRPC.TL_help_appConfig> appConfigFetcher = new CacheFetcher<Integer, TLRPC.TL_help_appConfig>() {
         @Override
         protected void getRemote(int currentAccount, Integer arguments, long hash, Utilities.Callback4<Boolean, TLRPC.TL_help_appConfig, Long, Boolean> onResult) {

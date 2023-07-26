@@ -3325,7 +3325,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     if (tabView.getId() == filterTabsView.getDefaultTabId()) {
                         dialogFilter = null;
                     } else {
-                        dialogFilter = getMessagesController().getDialogFilters().get(tabView.getId());
+                        dialogFilter = getMessagesController().getDialogFilters().get(getMessagesController().getActualFilterIndex(tabView.getId()));
                     }
 
                     boolean defaultTab = dialogFilter == null;
