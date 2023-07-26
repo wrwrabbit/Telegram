@@ -10771,7 +10771,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
         if (viewPages != null) {
             viewPages[0].selectedType = Integer.MAX_VALUE;
-            viewPages[0].dialogsAdapter.setDialogsType(0);
+            MessagesController.DialogFilter filter = FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount).get(0);
+            int dialogsType;
+            if (filter.isDefault()) {
+                dialogsType = initialDialogsType;
+            } else {
+                dialogsType = viewPages[0].dialogsType;
+            }
+            viewPages[0].dialogsAdapter.setDialogsType(dialogsType);
         }
     }
 
