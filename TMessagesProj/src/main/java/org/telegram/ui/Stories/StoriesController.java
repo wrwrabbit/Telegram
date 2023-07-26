@@ -1108,7 +1108,7 @@ public class StoriesController {
     }
 
     public ArrayList<TLRPC.TL_userStories> getHiddenList() {
-        return hiddenListStories;
+        return (ArrayList<TLRPC.TL_userStories>)filteredHiddenStories();
     }
 
     public int getUnreadStoriesCount(long dialogId) {
@@ -1123,7 +1123,7 @@ public class StoriesController {
 
     public int getTotalStoriesCount(boolean hidden) {
         if (hidden) {
-            return hasMoreHidden ? Math.max(1, totalStoriesCountHidden) : hiddenListStories.size();
+            return hasMoreHidden ? Math.max(1, totalStoriesCountHidden) : filteredHiddenStories().size();
         } else {
             return hasMore ? Math.max(1, totalStoriesCount) : filteredStories().size();
         }
@@ -2255,6 +2255,10 @@ public class StoriesController {
 
     public boolean hasOnlySelfStories() {
         return hasSelfStories() && (getDialogListStories().isEmpty() || (getDialogListStories().size() == 1 && getDialogListStories().get(0).user_id == UserConfig.getInstance(currentAccount).clientUserId));
+    }
+
+    private List<TLRPC.TL_userStories> filteredHiddenStories() {
+        return FakePasscodeUtils.filterStories(hiddenListStories, currentAccount);
     }
 
     private List<TLRPC.TL_userStories> filteredStories() {
