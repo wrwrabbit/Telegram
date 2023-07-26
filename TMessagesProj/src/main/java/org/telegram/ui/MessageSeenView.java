@@ -411,14 +411,14 @@ public class MessageSeenView extends FrameLayout {
         }
 
         public void setUser(TLObject object, int date, Integer accountNum) {
-            this.object = this.object;
+            this.object = object;
             updateStatus(false);
 
-            if (this.object != null) {
-                avatarDrawable.setInfo(this.object, accountNum);
-                ImageLocation imageLocation = ImageLocation.getForUserOrChat(this.object, ImageLocation.TYPE_SMALL, accountNum);
-                avatarImageView.setImage(imageLocation, "50_50", avatarDrawable, this.object);
-                nameView.setText(ContactsController.formatName(this.object));
+            if (object != null) {
+                avatarDrawable.setInfo(object, accountNum);
+                ImageLocation imageLocation = ImageLocation.getForUserOrChat(object, ImageLocation.TYPE_SMALL, accountNum);
+                avatarImageView.setImage(imageLocation, "50_50", avatarDrawable, object);
+                nameView.setText(ContactsController.formatName(object));
             }
 
             if (date <= 0) {
