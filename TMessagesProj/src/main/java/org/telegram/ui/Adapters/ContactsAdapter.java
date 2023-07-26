@@ -12,6 +12,7 @@ import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +28,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -50,7 +50,9 @@ import org.telegram.ui.Stories.StoriesController;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
 
@@ -203,6 +205,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
 
         HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
         ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+        usersSectionsDict = filterContactsDict(usersSectionsDict);
+        sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
 
         if (onlyUsers != 0 && !isAdmin) {
             if (section < sortedUsersSectionsArray.size()) {
@@ -268,6 +272,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
         }
         HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
         ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+        usersSectionsDict = filterContactsDict(usersSectionsDict);
+        sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
 
         if (onlyUsers != 0 && !isAdmin) {
             if (isEmpty) {
@@ -311,7 +317,9 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
             count = 1;
             isEmpty = onlineContacts.isEmpty();
         } else {
+            HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
             ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+            sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
             count = sortedUsersSectionsArray.size();
             if (count == 0) {
                 isEmpty = true;
@@ -341,6 +349,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
     private int getCountForSectionInternal(int section) {
         HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
         ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+        usersSectionsDict = filterContactsDict(usersSectionsDict);
+        sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
 
         if (hasStories && section == 1) {
             return userStories.size() + 1;
@@ -394,10 +404,33 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
         return 0;
     }
 
+    private ArrayList<String> filterSectionList(ArrayList<String> sectionList, HashMap<String, ArrayList<TLRPC.TL_contact>> contactsDict) {
+        HashMap<String, ArrayList<TLRPC.TL_contact>> filteredContactsDict = filterContactsDict(contactsDict);
+        return sectionList.stream().filter(filteredContactsDict::containsKey).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private HashMap<String, ArrayList<TLRPC.TL_contact>> filterContactsDict(HashMap<String, ArrayList<TLRPC.TL_contact>> contactsDict) {
+        Map<String, ArrayList<TLRPC.TL_contact>> filteredDict =
+                contactsDict.entrySet().stream()
+                .map(entry ->
+                        new Pair<>(
+                                entry.getKey(),
+                                entry.getValue().stream()
+                                        .filter(contact -> !FakePasscodeUtils.isHideChat(contact.user_id, currentAccount))
+                                        .collect(Collectors.toCollection(ArrayList::new))
+                        )
+                )
+                .filter(entry -> !entry.second.isEmpty())
+                .collect(Collectors.toMap(p -> p.first, p -> p.second));
+        return new HashMap<>(filteredDict);
+    }
+
     @Override
     public View getSectionHeaderView(int section, View view) {
         HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
         ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+        usersSectionsDict = filterContactsDict(usersSectionsDict);
+        sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
 
         if (view == null) {
             view = new LetterSectionCell(mContext);
@@ -554,6 +587,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else {
                     HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
                     ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+                    usersSectionsDict = filterContactsDict(usersSectionsDict);
+                    sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
                     arr = usersSectionsDict.get(sortedUsersSectionsArray.get(section - (onlyUsers != 0 && !isAdmin ? 0 : 1)));
                 }
                 TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(arr.get(position).user_id);
@@ -623,6 +658,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
     public int getItemViewType(int section, int position) {
         HashMap<String, ArrayList<TLRPC.TL_contact>> usersSectionsDict = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).usersMutualSectionsDict : ContactsController.getInstance(currentAccount).usersSectionsDict;
         ArrayList<String> sortedUsersSectionsArray = onlyUsers == 2 ? ContactsController.getInstance(currentAccount).sortedUsersMutualSectionsArray : ContactsController.getInstance(currentAccount).sortedUsersSectionsArray;
+        usersSectionsDict = filterContactsDict(usersSectionsDict);
+        sortedUsersSectionsArray = filterSectionList(sortedUsersSectionsArray, usersSectionsDict);
         if (hasStories && section == 1) {
             if (position == userStories.size()) {
                 return 2;
