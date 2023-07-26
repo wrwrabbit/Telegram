@@ -197,6 +197,13 @@ public class FakePasscodeUtils {
         return filterItems(exceptions, Optional.of(account), (e, filter) -> !filter.isHideChat(e.did));
     }
 
+    public static List<TLRPC.TL_userStories> filterStories(List<TLRPC.TL_userStories> stories, int account) {
+        if (stories == null) {
+            return null;
+        }
+        return filterItems(stories, Optional.of(account), (s, filter) -> !filter.isHideChat(s.user_id));
+    }
+
     public static boolean isHideChat(long chatId, int account) {
         FakePasscode passcode = getActivatedFakePasscode();
         ActionsResult actionsResult = getActivatedActionsResult();
