@@ -1165,6 +1165,7 @@ public class StoriesController {
         }
         storiesStorage.deleteAllUserStories(dialogId);
         MessagesController.getInstance(currentAccount).checkArchiveFolder();
+        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesUpdated);
     }
 
     public StoriesStorage getStoriesStorage() {
@@ -1181,6 +1182,7 @@ public class StoriesController {
     }
 
     private void checkExpireStories(ArrayList<TLRPC.TL_userStories> dialogListStories) {
+        boolean notify = false;
         for (int k = 0; k < dialogListStories.size(); k++) {
             TLRPC.TL_userStories stories = dialogListStories.get(k);
             for (int i = 0; i < stories.stories.size(); i++) {
@@ -1192,7 +1194,11 @@ public class StoriesController {
             if (stories.stories.isEmpty()) {
                 allStoriesMap.remove(stories.user_id);
                 dialogListStories.remove(stories);
+                notify = true;
             }
+        }
+        if (notify) {
+            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesUpdated);
         }
     }
 
@@ -1207,6 +1213,7 @@ public class StoriesController {
         if (userStories.stories.isEmpty()) {
             dialogListStories.remove(userStories);
             hiddenListStories.remove(userStories);
+            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesUpdated);
         }
     }
 
@@ -1589,7 +1596,7 @@ public class StoriesController {
         }
     }
 
-    private HashMap<Integer, StoriesList> storiesLists;
+    private final HashMap<Long, StoriesList>[] storiesLists = new HashMap[2];
 
     @NonNull
     public StoriesList getStoriesList(long userId, int type) {
@@ -1597,13 +1604,12 @@ public class StoriesController {
     }
 
     private StoriesList getStoriesList(long userId, int type, boolean createIfNotExist) {
-        int key = Objects.hash(userId, type);
-        if (storiesLists == null) {
-            storiesLists = new HashMap<>();
+        if (storiesLists[type] == null) {
+            storiesLists[type] = new HashMap<>();
         }
-        StoriesList list = storiesLists.get(key);
+        StoriesList list = storiesLists[type].get(userId);
         if (list == null && createIfNotExist) {
-            storiesLists.put(key, list = new StoriesList(currentAccount, userId, type, this::destroyStoryList));
+            storiesLists[type].put(userId, list = new StoriesList(currentAccount, userId, type, this::destroyStoryList));
         }
         return list;
     }
@@ -1631,9 +1637,8 @@ public class StoriesController {
     }
 
     public void destroyStoryList(StoriesList list) {
-        int key = Objects.hash(list.userId, list.type);
-        if (storiesLists != null) {
-            storiesLists.remove(key);
+        if (storiesLists[list.type] != null) {
+            storiesLists[list.type].remove(list.userId);
         }
     }
 
@@ -1862,7 +1867,7 @@ public class StoriesController {
             return false;
         }
 
-        private long day(MessageObject messageObject) {
+        public static long day(MessageObject messageObject) {
             if (messageObject == null) {
                 return 0;
             }
@@ -1877,6 +1882,19 @@ public class StoriesController {
 
         public SortedSet<Integer> getStoryDayGroup(MessageObject messageObject) {
             return groupedByDay.get(day(messageObject));
+        }
+
+        public ArrayList<ArrayList<Integer>> getDays() {
+            final ArrayList<Long> keys = new ArrayList<>(groupedByDay.keySet());
+            Collections.sort(keys, (a, b) -> (int) (b - a));
+            final ArrayList<ArrayList<Integer>> days = new ArrayList<>();
+            for (Long key : keys) {
+                TreeSet<Integer> storyIds = groupedByDay.get(key);
+                if (storyIds != null) {
+                    days.add(new ArrayList<>(storyIds));
+                }
+            }
+            return days;
         }
 
         public void invalidateCache() {
@@ -2158,6 +2176,10 @@ public class StoriesController {
                 fill(true);
                 saveCache();
             }
+        }
+
+        public MessageObject findMessageObject(int storyId) {
+            return messageObjectsMap.get(storyId);
         }
 
         public boolean equal(TLRPC.StoryItem a, TLRPC.StoryItem b) {
