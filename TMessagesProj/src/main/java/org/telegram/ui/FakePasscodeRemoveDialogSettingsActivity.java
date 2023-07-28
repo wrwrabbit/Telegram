@@ -414,8 +414,8 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         String buttonText;
-        builder.setMessage(LocaleController.getString("DiscardChanges", R.string.DiscardChanges));
-        builder.setTitle(LocaleController.getString("PhotoEditorDiscardAlert", R.string.PhotoEditorDiscardAlert));
+        builder.setTitle(LocaleController.getString("DiscardChanges", R.string.DiscardChanges));
+        builder.setMessage(LocaleController.getString("PhotoEditorDiscardAlert", R.string.PhotoEditorDiscardAlert));
         buttonText = LocaleController.getString("PassportDiscard", R.string.PassportDiscard);
         builder.setPositiveButton(buttonText, (dialogInterface, i) -> finishFragment());
         builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
