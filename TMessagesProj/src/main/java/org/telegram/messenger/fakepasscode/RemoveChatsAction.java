@@ -457,10 +457,13 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
     private void unpinHiddenDialogs() {
         for (HiddenChatEntry entry : hiddenChatEntries) {
-            long did = entry.chatId;
-            TLRPC.Dialog dialog = getMessagesController().dialogs_dict.get(did);
-            if (dialog != null && dialog.pinned) {
-                getMessagesController().pinDialog(did, false, null, -1);
+            if (entry.strictHiding) {
+                long did = entry.chatId;
+                TLRPC.Dialog dialog = getMessagesController().dialogs_dict.get(did);
+                if (dialog != null && dialog.pinned) {
+                    getMessagesController().pinDialog(did, false, null, -1);
+                    getMessagesController().reorderPinnedDialogs(0, null, 0);
+                }
             }
         }
     }
