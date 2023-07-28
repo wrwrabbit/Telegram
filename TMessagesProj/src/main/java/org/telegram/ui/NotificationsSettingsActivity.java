@@ -237,7 +237,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     }
 
                     long did = Utilities.parseLong(key);
-                    if (did != 0 && did != selfId) {
+                    if (did != 0 && did != selfId && !FakePasscodeUtils.isHideChat(did, currentAccount)) {
                         NotificationException exception = new NotificationException();
                         exception.did = did;
                         exception.hasCustom = preferences.getBoolean("custom_" + did, false);
@@ -264,7 +264,9 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                                     continue;
                                 }
                             }
-                            usersResult.add(exception);
+                            if (!FakePasscodeUtils.isHideChat(encryptedChatId, currentAccount)) {
+                                usersResult.add(exception);
+                            }
                         } else if (DialogObject.isUserDialog(did)) {
                             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);
                             if (user == null) {
@@ -299,7 +301,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     key = key.substring(8);
                     try {
                         long did = Utilities.parseLong(key);
-                        if (did != 0 && did != selfId) {
+                        if (did != 0 && did != selfId && !FakePasscodeUtils.isHideChat(did, currentAccount)) {
                             NotificationsSettingsActivity.NotificationException exception = new NotificationsSettingsActivity.NotificationException();
                             exception.did = did;
                             exception.notify = ((Boolean) entry.getValue()) ? 0 : Integer.MAX_VALUE;
@@ -324,7 +326,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 for (int i = Math.max(0, topPeers.size() - 5); i < topPeers.size(); ++i) {
                     TLRPC.TL_topPeer topPeer = topPeers.get(i);
                     final long did = DialogObject.getPeerDialogId(topPeer.peer);
-                    if (!customStories.contains(did)) {
+                    if (!customStories.contains(did) && !FakePasscodeUtils.isHideChat(did, currentAccount)) {
                         NotificationsSettingsActivity.NotificationException exception = new NotificationsSettingsActivity.NotificationException();
                         exception.did = did;
                         exception.notify = 0;
