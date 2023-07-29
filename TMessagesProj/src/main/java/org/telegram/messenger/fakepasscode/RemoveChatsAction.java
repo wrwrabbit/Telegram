@@ -219,7 +219,7 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
                         pendingRemovalChats.add(entry.chatId);
                     }
                 }
-                getMessagesController().deleteAllMessagesFromDialogByUser(getUserConfig().clientUserId, entry.chatId, null);
+                getMessagesController().deleteAllMessagesFromDialogByUser(getUserConfig().clientUserId, entry.chatId, 0, null);
             } else if (entry.isExitFromChat) {
                 Utils.deleteDialog(accountNum, entry.chatId, entry.isDeleteFromCompanion);
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogDeletedByAction, entry.chatId);
