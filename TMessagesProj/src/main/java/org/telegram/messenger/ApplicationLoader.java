@@ -590,6 +590,13 @@ public class ApplicationLoader extends Application {
 
     }
 
+    public static void logDualCamera(boolean success, boolean vendor) {
+        applicationLoaderInstance.logDualCameraInternal(success, vendor);
+    }
+
+    protected void logDualCameraInternal(boolean success, boolean vendor) {
+
+    }
 
     private boolean copyUpdaterDirectory(String name) {
         File updaterDirectory = new File(getFilesDir(), name);
