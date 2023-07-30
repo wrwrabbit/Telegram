@@ -80,7 +80,7 @@ public class DrawerActionCell extends FrameLayout {
                     || !FakePasscodeUtils.isFakePasscodeActivated() && UserConfig.getInstance(UserConfig.selectedAccount).showSecuritySuggestions) {
                 int countTop = AndroidUtilities.dp(12.5f);
                 int countWidth = AndroidUtilities.dp(9);
-                int countLeft = getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
+                int countLeft = LocaleController.isRTL ? countWidth + AndroidUtilities.dp(25) : getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
 
                 int x = countLeft - AndroidUtilities.dp(5.5f);
                 rect.set(x, countTop, x + countWidth + AndroidUtilities.dp(14), countTop + AndroidUtilities.dp(23));
@@ -124,6 +124,10 @@ public class DrawerActionCell extends FrameLayout {
         } catch (Throwable e) {
             FileLog.e(e);
         }
+    }
+
+    public ImageView getImageView() {
+        return imageView;
     }
 
     @Override

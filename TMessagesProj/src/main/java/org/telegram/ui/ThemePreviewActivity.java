@@ -4867,11 +4867,6 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                     }
 
                     @Override
-                    public boolean contains(int key) {
-                        return true;
-                    }
-
-                    @Override
                     public Drawable getDrawable(String drawableKey) {
                         if (drawableKey.equals(Theme.key_drawable_msgOut)) {
                             return msgOutDrawable;

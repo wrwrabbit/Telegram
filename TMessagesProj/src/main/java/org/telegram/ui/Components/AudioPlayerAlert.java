@@ -1472,7 +1472,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
                     for (int a = 0; a < dids.size(); a++) {
                         long did = dids.get(a).dialogId;
                         if (message != null) {
-                            SendMessagesHelper.getInstance(currentAccount).sendMessage(message.toString(), did, null, null, null, true, null, null, null, true, 0, null, false);
+                            SendMessagesHelper.getInstance(currentAccount).sendMessage(SendMessagesHelper.SendMessageParams.of(message.toString(), did, null, null, null, true, null, null, null, true, 0, null, false));
                         }
                         SendMessagesHelper.getInstance(currentAccount).sendMessage(fmessages, did, false, false, true, 0);
                     }
@@ -1588,7 +1588,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             if (path == null || path.length() == 0) {
                 path = FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner).toString();
             }
-            MediaController.saveFile(path, parentActivity, 3, fileName, messageObject.getDocument() != null ? messageObject.getDocument().mime_type : "", () -> BulletinFactory.of((FrameLayout) containerView, resourcesProvider).createDownloadBulletin(BulletinFactory.FileType.AUDIO).show());
+            MediaController.saveFile(path, parentActivity, 3, fileName, messageObject.getDocument() != null ? messageObject.getDocument().mime_type : "", uri -> BulletinFactory.of((FrameLayout) containerView, resourcesProvider).createDownloadBulletin(BulletinFactory.FileType.AUDIO).show());
         }
     }
 
@@ -2011,7 +2011,13 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             } else {
                 optionsButton.setVisibility(View.VISIBLE);
             }
-            if (MessagesController.getInstance(currentAccount).isChatNoForwards(messageObject.getChatId())) {
+            final long dialogId = messageObject.getDialogId();
+            final boolean noforwards = (
+                dialogId < 0 && MessagesController.getInstance(currentAccount).isChatNoForwards(-dialogId) ||
+                MessagesController.getInstance(currentAccount).isChatNoForwards(messageObject.getChatId()) ||
+                messageObject.messageOwner.noforwards
+            );
+            if (noforwards) {
                 optionsButton.hideSubItem(1);
                 optionsButton.hideSubItem(2);
                 optionsButton.hideSubItem(5);
@@ -2039,7 +2045,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             titleTextView.setText(title);
             authorTextView.setText(author);
 
-            int duration = lastDuration = messageObject.getDuration();
+            int duration = lastDuration = (int) messageObject.getDuration();
 
             if (durationTextView != null) {
                 durationTextView.setText(duration != 0 ? AndroidUtilities.formatShortDuration(duration) : "-:--");
