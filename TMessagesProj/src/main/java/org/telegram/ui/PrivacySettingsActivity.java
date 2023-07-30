@@ -1162,7 +1162,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         textCell2.setTextAndValueAndIcon(LocaleController.getString("TwoStepVerification", R.string.TwoStepVerification), value, true, R.drawable.msg2_permissions, true);
                     } else if (position == passcodeRow) {
                         int icon;
-                        if (SharedConfig.passcodeHash.length() != 0) {
+                        if (SharedConfig.passcodeEnabled()) {
                             value = LocaleController.getString("PasswordOn", R.string.PasswordOn);
                             icon = R.drawable.msg2_secret;
                         } else {

@@ -2867,7 +2867,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         }
 
         private ArrayList<Rect> exclusionRects;
-
+        
         public void updateExclusionRects() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (exclusionRects == null) {
@@ -12521,7 +12521,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 TLRPC.Chat chat = parentChatActivity.getCurrentChat();
                 if (chat != null) {
                     title = null;
-                    actionBarContainer.setTitle(chat.title);
+                    actionBarContainer.setTitle(UserConfig.getChatTitleOverride(currentAccount, chat));
                 } else {
                     TLRPC.User user = parentChatActivity.getCurrentUser();
                     if (user != null) {

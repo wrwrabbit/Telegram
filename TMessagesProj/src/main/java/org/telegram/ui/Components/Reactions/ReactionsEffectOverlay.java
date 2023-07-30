@@ -151,7 +151,7 @@ public class ReactionsEffectOverlay {
                             if (user == null) {
                                 continue;
                             }
-                            avatarDrawable.setInfo(user);
+                            avatarDrawable.setInfo(user, currentAccount);
                             imageReceiver.setForUserOrChat(user, avatarDrawable);
                         }
 

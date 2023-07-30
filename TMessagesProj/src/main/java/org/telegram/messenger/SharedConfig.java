@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
@@ -28,19 +29,30 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import org.json.JSONObject;
+import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.UpdateApkRemoveRunnable;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
+import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
+import org.telegram.messenger.partisan.TlrpcJsonSerializer;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -219,7 +231,7 @@ public class SharedConfig {
 
     @PasscodeType
     public static int passcodeType;
-    public static String passcodeHash = "";
+    private static String passcodeHash = "";
     public static long passcodeRetryInMs;
     public static long lastUptimeMillis;
     public static boolean bruteForceProtectionEnabled = true;
@@ -228,7 +240,7 @@ public class SharedConfig {
     public static int badPasscodeTries;
     public static byte[] passcodeSalt = new byte[0];
     private static boolean appLocked;
-    public static int autoLockIn = 60 * 60;
+    public static int autoLockIn = 60;
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
@@ -319,6 +331,7 @@ public class SharedConfig {
 
     public static boolean showCallButton;
     public static boolean marketIcons;
+    public static boolean additionalVerifiedBadges;
 
     public static boolean clearAllDraftsOnScreenLock;
     public static boolean deleteMessagesForAllByDefault;
@@ -340,20 +353,6 @@ public class SharedConfig {
     public static boolean isFloatingDebugActive;
     public static LiteMode liteMode;
 
-    private static final int[] LOW_SOC = {
-            -1775228513, // EXYNOS 850
-            802464304,  // EXYNOS 7872
-            802464333,  // EXYNOS 7880
-            802464302,  // EXYNOS 7870
-            2067362118, // MSM8953
-            2067362060, // MSM8937
-            2067362084, // MSM8940
-            2067362241, // MSM8992
-            2067362117, // MSM8952
-            2067361998, // MSM8917
-            -1853602818 // SDM439
-    };
-
     public static List<BadPasscodeAttempt> badPasscodeAttemptList = new ArrayList<>();
     private static class BadPasscodeAttemptWrapper {
         public List<BadPasscodeAttempt> badTries;
@@ -366,24 +365,6 @@ public class SharedConfig {
     public static boolean takePhotoWithBadPasscodeBack;
     public static boolean takePhotoMuteAudio;
 
-    public static class AccountChatsToRemove {
-        public ArrayList<Integer> chatsToRemove = new ArrayList<>();
-        public int accountNum = 0;
-
-        static AccountChatsToRemove deserialize(String str) {
-            ArrayList<Integer> ints = Arrays.stream(str.split(",")).filter(s -> !s.isEmpty())
-                    .map(Integer::parseInt).collect(Collectors.toCollection(ArrayList::new));
-            if (ints.isEmpty()) {
-                return null;
-            }
-            AccountChatsToRemove result = new AccountChatsToRemove();
-            result.accountNum = ints.get(ints.size() - 1);
-            ints.remove(ints.size() - 1);
-            result.chatsToRemove = ints;
-            return result;
-        }
-    }
-
     public static int fakePasscodeIndex = 1;
     public static int fakePasscodeActivatedIndex = -1;
     private static boolean fakePasscodeLoadedWithErrors = false;
@@ -395,6 +376,8 @@ public class SharedConfig {
         }
         public FakePasscodesWrapper() {}
     }
+
+    public static ActionsResult fakePasscodeActionsResult;
 
     public static boolean oldCacheCleared = false;
 
@@ -420,6 +403,20 @@ public class SharedConfig {
     public static boolean premiumDisabled;
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+
+    private static final int[] LOW_SOC = {
+            -1775228513, // EXYNOS 850
+            802464304,  // EXYNOS 7872
+            802464333,  // EXYNOS 7880
+            802464302,  // EXYNOS 7870
+            2067362118, // MSM8953
+            2067362060, // MSM8937
+            2067362084, // MSM8940
+            2067362241, // MSM8992
+            2067362117, // MSM8952
+            2067361998, // MSM8917
+            -1853602818 // SDM439
+    };
 
     static {
         loadConfig();
@@ -493,6 +490,18 @@ public class SharedConfig {
         public boolean allowLogin() {
             return isRealPasscodeSuccess || fakePasscode != null && fakePasscode.allowLogin;
         }
+
+        public void activateFakePasscode() {
+            if (allowLogin() && FakePasscodeUtils.isFakePasscodeActivated()) {
+                FakePasscodeUtils.getActivatedFakePasscode().deactivate();
+            }
+            if (fakePasscode != null) {
+                fakePasscode.executeActions();
+            }
+            if (isRealPasscodeSuccess || fakePasscode != null) {
+                fakePasscodeActivated(fakePasscodes.indexOf(fakePasscode));
+            }
+        }
     }
 
     private static ObjectMapper jsonMapper = null;
@@ -502,6 +511,23 @@ public class SharedConfig {
             return jsonMapper;
         }
         jsonMapper = new ObjectMapper();
+        SimpleModule tlrpcModule = new SimpleModule();
+        tlrpcModule.addSerializer(TLRPC.Message.class, new TlrpcJsonSerializer());
+        tlrpcModule.addSerializer(TLRPC.Document.class, new TlrpcJsonSerializer());
+        tlrpcModule.addDeserializer(TLObject.class, new TlrpcJsonDeserializer(TLObject.class));
+        tlrpcModule.setDeserializerModifier(new BeanDeserializerModifier() {
+            @Override
+            public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+                JsonDeserializer<?> configuredDeserializer = super.modifyDeserializer(config, beanDesc, deserializer);
+                if (TLRPC.Document.class.isAssignableFrom(beanDesc.getBeanClass())
+                        || TLRPC.Message.class.isAssignableFrom(beanDesc.getBeanClass())) {
+                    configuredDeserializer = new TlrpcJsonDeserializer(beanDesc.getBeanClass());
+                }
+
+                return configuredDeserializer;
+            }
+        });
+        jsonMapper.registerModule(tlrpcModule);
         jsonMapper.registerModule(new JavaTimeModule());
         jsonMapper.registerModule(new KotlinModule());
         jsonMapper.activateDefaultTyping(jsonMapper.getPolymorphicTypeValidator());
@@ -566,6 +592,7 @@ public class SharedConfig {
                 if (!fakePasscodeLoadedWithErrors || !fakePasscodes.isEmpty()) {
                     editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
                 }
+                editor.putString("fakePasscodeActionsResult", toJson(fakePasscodeActionsResult));
                 editor.putString("badPasscodeAttemptList", toJson(new BadPasscodeAttemptWrapper(badPasscodeAttemptList)));
                 editor.putBoolean("takePhotoOnBadPasscodeFront", takePhotoWithBadPasscodeFront);
                 editor.putBoolean("takePhotoOnBadPasscodeBack", takePhotoWithBadPasscodeBack);
@@ -688,16 +715,29 @@ public class SharedConfig {
             synchronized (FakePasscode.class) {
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
                 try {
-                    if (preferences.contains("fakePasscodes"))
+                    if (preferences.contains("fakePasscodes")) {
                         fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
+                    }
                 } catch (Exception e) {
                     fakePasscodeLoadedWithErrors = true;
-                    //Log.e("SharedConfig", "error", e);
+                    boolean logsEnabled = ApplicationLoader.applicationContext
+                            .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
+                            .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
+                    if (BuildVars.LOGS_ENABLED || logsEnabled) {
+                        Log.e("SharedConfig", "error", e);
+                    }
                 }
             }
             try {
-                if (preferences.contains("badPasscodeAttemptList"))
+                if (preferences.contains("fakePasscodeActionsResult")) {
+                    fakePasscodeActionsResult = fromJson(preferences.getString("fakePasscodeActionsResult", null), ActionsResult.class);
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                if (preferences.contains("badPasscodeAttemptList")) {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
+                }
             } catch (Exception ignored) {
             }
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
@@ -749,21 +789,9 @@ public class SharedConfig {
                 if (update != null) {
                     pendingPtgAppUpdate = fromJson(update, UpdateData.class);
                 }
-                if (pendingPtgAppUpdate != null) {
-                    if (AppVersion.getCurrentVersion().greaterOrEquals(pendingPtgAppUpdate.version)) {
-                        UpdateData pendingPtgAppUpdateFinal = pendingPtgAppUpdate;
-                        Utilities.globalQueue.postRunnable(() -> {
-                            ImageLoader.getInstance(); // init media dirs
-                            FileLoader fileLoader = FileLoader.getInstance(pendingPtgAppUpdateFinal.accountNum);
-                            File path = fileLoader.getPathToAttach(pendingPtgAppUpdateFinal.document, true);
-                            path.delete();
-                        }, 1000);
-                        pendingPtgAppUpdate = null;
-                        AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
-                    }
-                }
             } catch (Exception ignore) {
             }
+            Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
             SaveToGallerySettingsHelper.load(preferences);
@@ -820,6 +848,7 @@ public class SharedConfig {
             chatSwipeAction = preferences.getInt("ChatSwipeAction", -1);
             showCallButton = preferences.getBoolean("showCallButton", true);
             marketIcons = preferences.getBoolean("marketIcons", false);
+            additionalVerifiedBadges = preferences.getBoolean("additionalVerifiedBadges", true);
             messageSeenHintCount = preferences.getInt("messageSeenCount", 3);
             emojiInteractionsHintCount = preferences.getInt("emojiInteractionsHintCount", 3);
             dayNightThemeSwitchHintCount = preferences.getInt("dayNightThemeSwitchHintCount", 3);
@@ -830,9 +859,9 @@ public class SharedConfig {
             hasEmailLogin = preferences.getBoolean("hasEmailLogin", false);
             isFloatingDebugActive = preferences.getBoolean("floatingDebugActive", false);
             updateStickersOrderOnSend = preferences.getBoolean("updateStickersOrderOnSend", true);
-            dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
+            dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useSurfaceInStories = preferences.getBoolean("useSurfaceInStories", Build.VERSION.SDK_INT >= 30);
 
@@ -873,6 +902,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("marketIcons", marketIcons);
+        editor.commit();
+    }
+
+    public static void toggleAdditionalVerifiedBadges() {
+        additionalVerifiedBadges = !additionalVerifiedBadges;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("additionalVerifiedBadges", additionalVerifiedBadges);
         editor.commit();
     }
 
@@ -941,6 +978,12 @@ public class SharedConfig {
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.fakePasscodeActivated)
             );
         }
+        boolean originalAppDisguiseChanged = (oldIndex == -1) != (fakePasscodeActivatedIndex == -1);
+        if (originalAppDisguiseChanged) {
+            AndroidUtilities.runOnUIThread(() ->
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.savedChannelsButtonStateChanged)
+            );
+        }
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
             if (UserConfig.getInstance(i).isClientActivated()) {
                 ArrayList<Long> overriddenDialogIds = UserConfig.getInstance(i).chatInfoOverrides
@@ -949,6 +992,12 @@ public class SharedConfig {
                     MessagesStorage.getInstance(i).updateOverriddenWidgets(overriddenDialogIds);
                 }
             }
+        }
+        FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
+        if (passcode != null && passcode.replaceOriginalPasscode) {
+            fakePasscodeActivatedIndex = -1;
+            passcodeHash = passcode.passcodeHash;
+            fakePasscodes.remove(fakePasscodeIndex);
         }
     }
 
@@ -1008,6 +1057,10 @@ public class SharedConfig {
     }
 
     public static PasscodeCheckResult checkPasscode(String passcode) {
+        return checkPasscode(passcode, false);
+    }
+
+    public static PasscodeCheckResult checkPasscode(String passcode, boolean originalPasscodePrioritized) {
         synchronized (FakePasscode.class) {
             if (passcodeSalt.length == 0) {
                 boolean result = Utilities.MD5(passcode).equals(passcodeHash);
@@ -1040,7 +1093,10 @@ public class SharedConfig {
                     System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
                     System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                     String hash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-                    if (FakePasscodeUtils.getActivatedFakePasscode() != null && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
+                    if ((originalPasscodePrioritized || !FakePasscodeUtils.isFakePasscodeActivated()) && passcodeHash.equals(hash)) {
+                        return new PasscodeCheckResult(true, null);
+                    }
+                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
                         return new PasscodeCheckResult(false, FakePasscodeUtils.getActivatedFakePasscode());
                     }
                     for (FakePasscode fakePasscode : fakePasscodes) {
@@ -1059,10 +1115,14 @@ public class SharedConfig {
 
     public static boolean passcodeEnabled() {
         if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-            return FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.length() != 0;
+            return FakePasscodeUtils.getActivatedFakePasscode().passcodeEnabled();
         } else {
             return passcodeHash.length() != 0;
         }
+    }
+
+    public static void setPasscode(String passcode) {
+        passcodeHash = passcode;
     }
 
     public static void clearConfig() {
@@ -1094,9 +1154,9 @@ public class SharedConfig {
         messageSeenHintCount = 3;
         emojiInteractionsHintCount = 3;
         dayNightThemeSwitchHintCount = 3;
-        dayNightWallpaperSwitchHint = 0;
         showSessionsTerminateActionWarning = true;
         showHideDialogIsNotSafeWarning = true;
+        dayNightWallpaperSwitchHint = 0;
         saveConfig();
     }
 

@@ -2,7 +2,6 @@ package org.telegram.messenger.partisan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import java.util.ArrayList;
 public class UpdateData {
     public AppVersion version;
     public AppVersion originalVersion;
+    public int formatVersion = 0;
     public boolean canNotSkip;
     public String text;
     public TLRPC.Message message;

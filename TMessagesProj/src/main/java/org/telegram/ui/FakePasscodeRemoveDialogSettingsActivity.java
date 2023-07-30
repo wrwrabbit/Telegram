@@ -19,8 +19,8 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -44,12 +44,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
+    private FakePasscode fakePasscode;
     private RemoveChatsAction action;
     int accountNum;
     Collection<Long> dialogIds;
@@ -69,19 +69,23 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
     private int deleteAllMyMessagesDetailsRow;
     private int hideDialogRow;
     private int hideDialogDetailsRow;
+    private int strictHidingRow;
+    private int strictHidingDetailsRow;
 
     private static final int done_button = 1;
 
-    public FakePasscodeRemoveDialogSettingsActivity(RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
+    public FakePasscodeRemoveDialogSettingsActivity(FakePasscode fakePasscode, RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
         super();
+        this.fakePasscode = fakePasscode;
         this.action = action;
         this.dialogIds = new ArrayList<>(dialogIds);
         this.isNew = dialogIds.stream().allMatch(id -> !action.contains(id));
         this.accountNum = accountNum;
     }
 
-    public FakePasscodeRemoveDialogSettingsActivity(RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
+    public FakePasscodeRemoveDialogSettingsActivity(FakePasscode fakePasscode, RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
         super();
+        this.fakePasscode = fakePasscode;
         this.action = action;
         this.entries.add(entry);
         this.isNew = false;
@@ -138,6 +142,22 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         listView.setAdapter(listAdapter = new ListAdapter(context));
         listView.setOnItemClickListener((view, position) -> {
             if (!view.isEnabled()) {
+                if (position == hideDialogRow) {
+                    String title;
+                    String message;
+                    title = LocaleController.getString(R.string.CannotHideDialog);
+                    if (fakePasscode.replaceOriginalPasscode) {
+                        message = LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode));
+                    } else {
+                        message = LocaleController.getString(R.string.CannotHideSavedMessages);
+                    }
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                    builder.setMessage(message);
+                    builder.setTitle(title);
+                    builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                    AlertDialog alertDialog = builder.create();
+                    showDialog(alertDialog);
+                }
                 return;
             }
 
@@ -147,6 +167,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                 }
                 for (RemoveChatsAction.RemoveChatEntry entry : entries) {
                     entry.isExitFromChat = true;
+                    entry.strictHiding = false;
                 }
                 updateRows();
                 listAdapter.notifyDataSetChanged();
@@ -190,6 +211,14 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                 }
                 updateRows();
                 listAdapter.notifyDataSetChanged();
+            } else if (position == strictHidingRow) {
+                changed = true;
+                CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
+                boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
+                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                    entry.strictHiding = !checked;
+                }
+                checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
             }
         });
 
@@ -239,6 +268,8 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         deleteDialogDetailsEmptyRow = -1;
         hideDialogRow = -1;
         hideDialogDetailsRow = -1;
+        strictHidingRow = -1;
+        strictHidingDetailsRow = -1;
 
         deleteDialogRow = rowCount++;
 
@@ -264,6 +295,9 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         if (!hasOnlySavedMessages()) {
             hideDialogRow = rowCount++;
             hideDialogDetailsRow = rowCount++;
+
+            strictHidingRow = rowCount++;
+            strictHidingDetailsRow = rowCount++;
         }
     }
 
@@ -290,7 +324,9 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                         title = "";
                     }
                 }
-                entries.add(new RemoveChatsAction.RemoveChatEntry(id, title));
+                boolean isExitFromChat = !fakePasscode.passwordlessMode
+                        || id == getUserConfig().clientUserId;
+                entries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat));
             }
         }
     }
@@ -368,7 +404,8 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         }
         return getDeleteFromCompanionState() == CheckBoxSquareThreeState.State.INDETERMINATE
                 || getDeleteNewMessagesState() == CheckBoxSquareThreeState.State.INDETERMINATE
-                || getDeleteAllMyMessagesState() == CheckBoxSquareThreeState.State.INDETERMINATE;
+                || getDeleteAllMyMessagesState() == CheckBoxSquareThreeState.State.INDETERMINATE
+                || getStrictHidingState() == CheckBoxSquareThreeState.State.INDETERMINATE;
     }
 
     private void confirmExit() {
@@ -386,7 +423,7 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         showDialog(alertDialog);
         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
         if (button != null) {
-            button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+            button.setTextColor(Theme.getColor(Theme.key_color_red));
         }
     }
 
@@ -422,6 +459,10 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
         return getState(e -> e.isClearChat);
     }
 
+    private CheckBoxSquareThreeState.State getStrictHidingState() {
+        return getState(e -> e.strictHiding);
+    }
+
     @Override
     public void onConfigurationChanged(android.content.res.Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -452,7 +493,9 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                     || position == deleteAllMyMessagesRow) {
                 return hasDeleteDialog();
             } else if (position == hideDialogRow) {
-                return !hasSavedMessages();
+                return !hasSavedMessages() && !fakePasscode.replaceOriginalPasscode;
+            } else if (position == strictHidingRow) {
+                return hasHideDialog();
             }
             return true;
         }
@@ -512,6 +555,9 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                     } else if (position == deleteAllMyMessagesRow) {
                         String title = LocaleController.getString("DeleteAllMyMessages", R.string.DeleteAllMyMessages);
                         checkBoxCell.setText(title, "", getDeleteAllMyMessagesState(), false);
+                    } else if (position == strictHidingRow) {
+                        String title = LocaleController.getString(R.string.StrictHiding);
+                        checkBoxCell.setText(title, "", getStrictHidingState(), false);
                     }
                     break;
                 }
@@ -525,6 +571,8 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
                         textCell.setText(LocaleController.getString("DeleteAllMyMessagesDetails", R.string.DeleteAllMyMessagesDetails));
                     } else if (position == hideDialogDetailsRow) {
                         textCell.setText(LocaleController.getString("HideDialogDetails", R.string.HideDialogDetails));
+                    } else if (position == strictHidingDetailsRow) {
+                        textCell.setText(LocaleController.getString(R.string.StrictHidingDialogDescription));
                     }
                     break;
                 }
@@ -536,10 +584,11 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
             if (position == deleteDialogRow || position == hideDialogRow) {
                 return 0;
             } else if (position == deleteFromCompanionRow || position == deleteNewMessagesRow
-                    || position == deleteAllMyMessagesRow) {
+                    || position == deleteAllMyMessagesRow || position == strictHidingRow) {
                 return 1;
             } else if (position == deleteFromCompanionDetailsRow || position == deleteNewMessagesDetailsRow
-                    || position == deleteAllMyMessagesDetailsRow || position == hideDialogDetailsRow) {
+                    || position == deleteAllMyMessagesDetailsRow || position == hideDialogDetailsRow
+                    || position == strictHidingDetailsRow) {
                 return 2;
             } else if (position == deleteDialogDetailsEmptyRow) {
                 return 3;

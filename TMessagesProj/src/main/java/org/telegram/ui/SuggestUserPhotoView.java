@@ -108,7 +108,7 @@ public class SuggestUserPhotoView extends View {
 
 
     public void setImages(TLObject setAvatarFor, View containerView, PhotoCropView photoCropView) {
-        avatarDrawable.setInfo(setAvatarFor);
+        avatarDrawable.setInfo(setAvatarFor, UserConfig.selectedAccount);
         currentPhoto.setForUserOrChat(setAvatarFor, avatarDrawable);
         this.containterView = containerView;
         this.photoCropView = photoCropView;

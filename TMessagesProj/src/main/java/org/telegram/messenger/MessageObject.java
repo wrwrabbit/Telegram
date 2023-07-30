@@ -4571,7 +4571,7 @@ public class MessageObject {
             String id;
             TLObject spanObject = null;
             if (object instanceof TLRPC.User) {
-                name = UserObject.getUserName((TLRPC.User) object).replace('\n', ' ');
+                name = UserObject.getUserName((TLRPC.User) object, UserConfig.selectedAccount).replace('\n', ' ');
                 id = "" + ((TLRPC.User) object).id;
             } else if (object instanceof TLRPC.Chat) {
                 name = ((TLRPC.Chat) object).title.replace('\n', ' ');
@@ -6017,7 +6017,7 @@ public class MessageObject {
 
     public static String getPeerObjectName(TLObject object) {
         if (object instanceof TLRPC.User) {
-            return UserObject.getUserName((TLRPC.User) object);
+            return UserObject.getUserName((TLRPC.User) object, UserConfig.selectedAccount);
         } else if (object instanceof TLRPC.Chat) {
             return ((TLRPC.Chat) object).title;
         }

@@ -1,61 +1,53 @@
-/*
- * This is the source code of Telegram for Android v. 5.x.x
- * It is licensed under GNU GPL v. 2 or later.
- * You should have received a copy of the license in this archive (see LICENSE).
- *
- * Copyright Nikolai Kudashov, 2013-2018.
- */
-
 package org.telegram.ui;
 
 import android.content.Context;
-import android.text.InputType;
-import android.util.Base64;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.EditorInfo;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.telegram.messenger.AndroidUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.AccountActions;
+import org.telegram.messenger.fakepasscode.HideAccountAction;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
+import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
-import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.ArrayList;
 
-public class FakePasscodeRestoreActivity extends BaseFragment {
-
+public class AccountHidingSettingsActivity extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
+    private final AccountActions actions;
+
     private int rowCount;
 
-    private int textRow;
-    private int detailsRow;
+    private int enableRow;
+    private int settingsSectionDelimiterRow;
+    private int settingsHeaderRow;
+    private int strictHidingRow;
+    private int strictHidingDetailsRow;
 
-    private EditTextBoldCursor editText;
-
-    private final static int done_button = 1;
-
-    public FakePasscodeRestoreActivity() {
+    public AccountHidingSettingsActivity(@NotNull AccountActions actions) {
         super();
+        this.actions = actions;
     }
 
     @Override
@@ -69,21 +61,11 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(false);
-        ActionBarMenu menu = actionBar.createMenu();
-        menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
-                } else if (id == done_button) {
-                    String base64 = editText.getText().toString().trim();
-                    try {
-                        byte[] encryptedPasscode = Base64.decode(base64, Base64.NO_WRAP);
-                        presentFragment(new FakePasscodeActivity(encryptedPasscode));
-                    } catch(Exception ex) {
-                        Toast.makeText(getParentActivity(), ex.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
                 }
             }
         });
@@ -91,9 +73,10 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
 
-        actionBar.setTitle(LocaleController.getString("FakePasscodeRestore", R.string.FakePasscodeRestore));
+        actionBar.setTitle(LocaleController.getString(R.string.AccountHidingSettingsTitle));
+
         frameLayout.setTag(Theme.key_windowBackgroundGray);
-        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
         listView = new RecyclerListView(context);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false) {
             @Override
@@ -106,6 +89,30 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
         listView.setLayoutAnimation(null);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter = new ListAdapter(context));
+        listView.setOnItemClickListener((view, position) -> {
+            if (!view.isEnabled()) {
+                return;
+            }
+
+            if (position == enableRow) {
+                actions.toggleHideAccountAction();
+                SharedConfig.saveConfig();
+                if (listAdapter != null) {
+                    listAdapter.notifyItemChanged(enableRow);
+                    listAdapter.notifyItemChanged(strictHidingRow);
+                }
+            } else if (position == strictHidingRow) {
+                HideAccountAction action = actions.getHideAccountAction();
+                if (action != null) {
+                    action.strictHiding = !action.strictHiding;
+                    SharedConfig.saveConfig();
+                    if (listAdapter != null) {
+                        listAdapter.notifyItemChanged(strictHidingRow);
+                    }
+                }
+            }
+        });
+
         return fragmentView;
     }
 
@@ -119,8 +126,17 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
 
     private void updateRows() {
         rowCount = 0;
-        textRow = rowCount++;
-        detailsRow = rowCount++;
+
+        enableRow = rowCount++;
+        settingsSectionDelimiterRow = rowCount++;
+        settingsHeaderRow = rowCount++;
+        strictHidingRow = rowCount++;
+        strictHidingDetailsRow = rowCount++;
+    }
+
+    @Override
+    public AccountInstance getAccountInstance() {
+        return AccountInstance.getInstance(actions.getAccountNum());
     }
 
     @Override
@@ -139,6 +155,10 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
+        private final static int VIEW_TYPE_CHECK = 0,
+                VIEW_TYPE_SHADOW = 1,
+                VIEW_TYPE_HEADER = 2,
+                VIEW_TYPE_INFO = 3;
 
         private Context mContext;
 
@@ -149,7 +169,12 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position != detailsRow;
+            if (position == strictHidingRow) {
+                return actions.isHideAccount();
+            } else if (position == enableRow) {
+                return true;
+            }
+            return false;
         }
 
         @Override
@@ -161,11 +186,18 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
             switch (viewType) {
-                case 0:
-                    view = new EditTextBoldCursor(mContext);
+                case VIEW_TYPE_CHECK:
+                    view = new TextCheckCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 1:
+                case VIEW_TYPE_SHADOW:
+                    view = new ShadowSectionCell(mContext);
+                    break;
+                case VIEW_TYPE_HEADER:
+                    view = new HeaderCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case VIEW_TYPE_INFO:
                 default:
                     view = new TextInfoPrivacyCell(mContext);
                     break;
@@ -176,36 +208,36 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
-                case 0: {
-                    EditTextBoldCursor editText = (EditTextBoldCursor) holder.itemView;
-                    FakePasscodeRestoreActivity.this.editText = editText;
-
-                    editText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-                    editText.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText));
-                    editText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    editText.setBackgroundDrawable(null);
-                    editText.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_color_red));
-                    editText.setPadding(AndroidUtilities.dp(LocaleController.isRTL ? 24 : 12), AndroidUtilities.dp(6), AndroidUtilities.dp(LocaleController.isRTL ? 12 : 24), AndroidUtilities.dp(6));
-                    editText.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
-                    editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                    editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                    editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-
-                    editText.setMinHeight(AndroidUtilities.dp(36));
-                    editText.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    editText.setCursorSize(AndroidUtilities.dp(20));
-                    editText.setCursorWidth(1.5f);
-
-                    editText.setText("");
-                    editText.setMaxLines(7);
-                    editText.setHint(LocaleController.getString(R.string.FakePasscodeRestoreHint));
-                    editText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                case VIEW_TYPE_CHECK: {
+                    TextCheckCell textCell = (TextCheckCell) holder.itemView;
+                    if (position == enableRow) {
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.HideAccount), actions.isHideAccount(), false);
+                    } else if (position == strictHidingRow) {
+                        boolean checked = actions.getHideAccountAction() != null && actions.getHideAccountAction().strictHiding;
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.StrictHiding), checked, false);
+                        textCell.setEnabled(isEnabled(holder));
+                    }
                     break;
                 }
-                case 1: {
-                    TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
-                    cell.setText(LocaleController.getString("FakePasscodeRestoreInfo", R.string.FakePasscodeRestoreInfo));
-                    cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                case VIEW_TYPE_SHADOW: {
+                    View sectionCell = holder.itemView;
+                    sectionCell.setTag(position);
+                    sectionCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
+                    break;
+                }
+                case VIEW_TYPE_HEADER: {
+                    HeaderCell cell = (HeaderCell) holder.itemView;
+                    cell.setHeight(46);
+                    if (position == settingsHeaderRow) {
+                        cell.setText(LocaleController.getString(R.string.Settings));
+                    }
+                    break;
+                }
+                case VIEW_TYPE_INFO: {
+                    TextInfoPrivacyCell textCell = (TextInfoPrivacyCell) holder.itemView;
+                    if (position == strictHidingDetailsRow) {
+                        textCell.setText(LocaleController.getString(R.string.StrictHidingAccountDescription));
+                    }
                     break;
                 }
             }
@@ -213,12 +245,16 @@ public class FakePasscodeRestoreActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == textRow) {
-                return 0;
-            } else if (position == detailsRow) {
-                return 1;
+            if (position == enableRow || position == strictHidingRow) {
+                return VIEW_TYPE_CHECK;
+            } else if (position == settingsSectionDelimiterRow) {
+                return VIEW_TYPE_SHADOW;
+            } else if (position == settingsHeaderRow) {
+                return VIEW_TYPE_HEADER;
+            } else if (position == strictHidingDetailsRow) {
+                return VIEW_TYPE_INFO;
             }
-            return 0;
+            return VIEW_TYPE_CHECK;
         }
     }
 

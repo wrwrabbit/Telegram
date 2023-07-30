@@ -692,7 +692,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         }
         accountsShown = accounts;
         setArrowState(false);
-        CharSequence text = UserObject.getUserName(user);
+        CharSequence text = UserObject.getUserName(user, account);
         try {
             text = Emoji.replaceEmoji(text, nameTextView.getPaint().getFontMetricsInt(), AndroidUtilities.dp(22), false);
         } catch (Exception ignore) {}

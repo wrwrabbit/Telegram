@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Cambiar mensaje</string>
     <string name="AreYouSureDeleteFakePasscode">¿Está seguro de que desea eliminar este código de bloqueo falso?</string>
     <string name="PasscodeInUse">Este código de bloqueo ya está en uso</string>
-    <string name="ChangeFakePasscodeInfo">Puede cambiar el código de bloqueo falso sin eliminarlo.</string>
     <string name="AllowFakePasscodeLoginInfo">Puede denegar el inicio de sesión con este código de bloqueo falso. En este caso, el atacante no obtendrá bloqueo a las cuentas, pero se realizarán las acciones.</string>
     <string name="DeleteFakePasscodeInfo">Si elimina el código de bloqueo falso, se borrarán todas las acciones. Puede cambiar el código de bloqueo si don\'t desea eliminarlo.</string>
     <string name="FakePasscodeActionsHeader">Acciones</string>

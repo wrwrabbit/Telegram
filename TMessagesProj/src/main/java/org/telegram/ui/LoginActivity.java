@@ -3810,7 +3810,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     } else {
                         new AlertDialog.Builder(context)
                                 .setTitle(LocaleController.getString(R.string.RestorePasswordNoEmailTitle))
-                                .setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("DidNotGetTheCodeInfo", R.string.DidNotGetTheCodeInfo, phone)))
+                                .setMessage(AndroidUtilities.replaceTags(!FakePasscodeUtils.isFakePasscodeActivated() ? LocaleController.getString(R.string.DidNotGetTheCodePartisanVersionInfo) : LocaleController.formatString("DidNotGetTheCodeInfo", R.string.DidNotGetTheCodeInfo, phone)))
                                 .setNeutralButton(LocaleController.getString(R.string.DidNotGetTheCodeHelpButton), (dialog, which) -> {
                                     try {
                                         PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);

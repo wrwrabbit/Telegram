@@ -7012,7 +7012,7 @@
     <string name="AllowFakePasscodeLogin">Allow login using Fake Passcode</string>
     <string name="FakePasscodeChangeSMS">Change SMS</string>
     <string name="ChatsToRemove">Chats to Remove/Hide</string>
-    <string name="ChatsToRemoveInfo">Choose chats which will be removed or hidden on Fake Passcode activation</string>
+    <string name="ChatsToRemoveInfo">Choose chats which will be removed or hidden on Fake Passcode activation. If all chats from the folder are deleted by this action, the folder will also be deleted. If they hide, the folder will also hide.</string>
     <string name="ClearTelegramCacheOnFakeLogin">Clear Telegram Cache</string>
     <string name="ClearProxiesOnFakeLogin">Clear Proxies</string>
     <string name="LogOutOnFakeLogin">Log out</string>
@@ -7023,7 +7023,6 @@
     <string name="ChangeMessage">Change Message</string>
     <string name="AreYouSureDeleteFakePasscode">Are you sure you want to delete this fake passcode?</string>
     <string name="PasscodeInUse">This passcode is already in use</string>
-    <string name="ChangeFakePasscodeInfo">You can change the fake passcode without deleting it.</string>
     <string name="AllowFakePasscodeLoginInfo">You can deny login with this fake passcode. In this case, the attacker will not gain access to the accounts, but the actions will be performed.</string>
     <string name="DeleteFakePasscodeInfo">If you delete the fake passcode, all actions will be cleared. You can change the passcode if you don\'t want to delete it.</string>
     <string name="FakePasscodeActionsHeader">Actions</string>
@@ -7204,4 +7203,24 @@
     <string name="FixIssueButton">Fix the Issue</string>
     <string name="FixedToast">Fixed</string>
     <string name="ResetIgnoredIssues">Reset Ignored Issues</string>
+    <string name="PasswordlessMode">Passwordless Mode</string>
+    <string name="PasswordlessModeInfo">When the fake passcode is activated, the application will pretend that no passcodes have been set. To return to the original passcode, enter it in the chat search bar.</string>
+    <string name="PasscodeActivatedFromPasswordless">Passcode activated</string>
+    <string name="ReplaceOriginalPasscode">Overwrite Original Passcode</string>
+    <string name="ReplaceOriginalPasscodeInfo">Once you enter the fake passcode, it will become the new original passcode and will be removed from the list of fake passcodes. Allows you to pretend that the original passcode was entered.</string>
+    <string name="OtherActivationMethods">Other Activation Methods</string>
+    <string name="AdditionalVerifiedSetting">Additional Verified Badges</string>
+    <string name="AdditionalVerifiedSettingInfo">The application will show the Verified, SCAM, FAKE badges for some bots and channels that do not have such badges in the official application. This can help you avoid getting scammed.</string>
+    <string name="CannotEnableSettingDescription">You cannot enable this setting if the \"%1$s\" setting is enabled.</string>
+    <string name="CannotHideDialog">Unable to Hide Dialog</string>
+    <string name="CannotHideSavedMessages">You cannot hide saved messages.</string>
+    <string name="RemoveIncompatibleSettingsTitle">Remove Incompatible Settings</string>
+    <string name="RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription">When this option is enabled, all hide and disguise actions will be removed, activation by bad login attempts will be disabled, and login with the fake passcode will be allowed.</string>
+    <string name="RemovePasswordlessIncompatibleSettingsDescription">When this option is enabled activation by bad login attempts will be disabled, and login with the fake passcode will be allowed.</string>
+    <string name="CannotDisableLoginIfOptionEnabledDescription">You cannot disable app login with the fake passcode if \"%1$s\" setting is enabled.</string>
+    <string name="DidNotGetTheCodePartisanVersionInfo">**Partisan Telegram** sends the code only to other applications that are already logined in, and not via SMS.\n\nTo log in to the application via SMS, do the following:\n1. Download **the official Telegram app** from Google Play.\n2. Sign in to your account.\n3. Log in to the Partisan Telegram with the code received through the official app.\n4. Remove the official app.\n\nIf you have any problems with this, write to us: **@partisan_telegram_bot**</string>
+    <string name="StrictHiding">Strict Hiding</string>
+    <string name="StrictHidingDialogDescription">When this option is enabled, the dialog will be hidden more securely, but it may become less convenient to use. We do not recommend enabling this option if you plan to use hiding the dialog frequently.</string>
+    <string name="AccountHidingSettingsTitle">Account Hiding Settings</string>
+    <string name="StrictHidingAccountDescription">When this option is enabled, the account will be hidden more securely, but it may become less convenient to use. We do not recommend enabling this option if you plan to use account hiding frequently.</string>
 </resources>

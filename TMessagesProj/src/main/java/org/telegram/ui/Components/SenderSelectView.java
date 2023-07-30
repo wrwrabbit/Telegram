@@ -23,6 +23,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -132,7 +133,7 @@ public class SenderSelectView extends View {
             objName = ((TLRPC.ChatInvite) obj).title;
         }
         setContentDescription(LocaleController.formatString("AccDescrSendAsPeer", R.string.AccDescrSendAsPeer, objName));
-        avatarDrawable.setInfo(obj);
+        avatarDrawable.setInfo(obj, UserConfig.selectedAccount);
         avatarImage.setForUserOrChat(obj, avatarDrawable);
     }
 

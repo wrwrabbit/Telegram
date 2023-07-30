@@ -37,8 +37,8 @@ public class BuildVars {
 
     public static String HUAWEI_APP_ID = "101184875";
 
-    public static final String PARTISAN_VERSION_STRING = "3.2.0";
-    public static int PARTISAN_BUILD_VERSION = 1277;
+    public static final String PARTISAN_VERSION_STRING = "3.4.1";
+    public static int PARTISAN_BUILD_VERSION = 1309;
 
     // You can use this flag to disable Google Play Billing (If you're making fork and want it to be in Google Play)
     public static boolean IS_BILLING_UNAVAILABLE = false;
@@ -51,7 +51,7 @@ public class BuildVars {
     }
 
     public static boolean useInvoiceBilling() {
-        return true;//DEBUG_VERSION || isStandaloneApp() || isBetaApp() || isHuaweiStoreApp() || hasDirectCurrency();
+        return true;//BillingController.billingClientEmpty || DEBUG_VERSION || isStandaloneApp() || isBetaApp() || isHuaweiStoreApp() || hasDirectCurrency();
     }
 
     private static boolean hasDirectCurrency() {

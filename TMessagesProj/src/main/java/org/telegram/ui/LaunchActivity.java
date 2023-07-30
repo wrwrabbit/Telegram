@@ -786,12 +786,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
         LiteMode.addOnPowerSaverAppliedListener(this::onPowerSaver);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appDidLogoutByAction);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appHiddenByAction);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.accountHidingChanged);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldKillApp);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldHideApp);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.savedChannelsButtonStateChanged);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.cacheClearedByPtg);
+        switchToAvailableAccountIfCurrentAccountIsHidden();
         if (actionBarLayout.getFragmentStack().isEmpty() && (layersActionBarLayout == null || layersActionBarLayout.getFragmentStack().isEmpty())) {
             if (!UserConfig.getInstance(currentAccount).isClientActivated()) {
                 actionBarLayout.addFragmentToStack(getClientNotActivatedFragment());
@@ -811,9 +812,17 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         switch (fragmentName) {
                             case "chat":
                                 if (args != null) {
-                                    ChatActivity chat = new ChatActivity(args);
-                                    if (actionBarLayout.addFragmentToStack(chat)) {
-                                        chat.restoreSelfArgs(savedInstanceState);
+                                    long chatId = args.getLong("chat_id", 0);
+                                    long userId = args.getLong("user_id", 0);
+                                    boolean isSavedChannel = args.getBoolean("is_saved_channel", false);
+                                    boolean allowShowing = !FakePasscodeUtils.isHideChat(chatId, currentAccount)
+                                            && !FakePasscodeUtils.isHideChat(userId, currentAccount)
+                                            && !(FakePasscodeUtils.isFakePasscodeActivated() && isSavedChannel);
+                                    if (allowShowing) {
+                                        ChatActivity chat = new ChatActivity(args);
+                                        if (actionBarLayout.addFragmentToStack(chat)) {
+                                            chat.restoreSelfArgs(savedInstanceState);
+                                        }
                                     }
                                 }
                                 break;
@@ -5528,7 +5537,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appUpdateAvailable);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.requestPermissions);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appDidLogoutByAction);
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appHiddenByAction);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.accountHidingChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.shouldKillApp);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldHideApp);
@@ -6543,7 +6552,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             if (drawerLayoutAdapter != null) {
                 drawerLayoutAdapter.notifyDataSetChanged();
             }
-        } else if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.appHiddenByAction) {
+        } else if (id == NotificationCenter.appDidLogoutByAction || id == NotificationCenter.accountHidingChanged) {
             switchToAvailableAccountIfCurrentAccountIsHidden();
             if (drawerLayoutAdapter != null) {
                 drawerLayoutAdapter.notifyDataSetChanged();

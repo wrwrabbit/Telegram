@@ -1,32 +1,23 @@
 package org.telegram.messenger.fakepasscode;
 
-import android.text.TextUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.android.exoplayer2.util.Log;
-import com.google.android.gms.common.util.Strings;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
-import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationsController;
+import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
-import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.NotificationsSettingsActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -47,9 +38,12 @@ public class FakePasscode {
     public String activationMessage = "";
     public Integer badTriesToActivate;
     public Integer activateByTimerTime;
+    public boolean passwordlessMode;
+    public boolean passwordDisabled;
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
     public boolean deleteOtherPasscodesAfterActivation;
+    public boolean replaceOriginalPasscode;
 
     public ClearCacheAction clearCacheAction = new ClearCacheAction();
     public SmsAction smsAction = new SmsAction();
@@ -92,6 +86,10 @@ public class FakePasscode {
         return actions;
     }
 
+    public void removeAccountActions(int accountNum) {
+        accountActions.removeIf(a -> a != null && a.getAccountNum() != null && a.getAccountNum()== accountNum);
+    }
+
     public List<AccountActions> getAllAccountActions() {
         return Collections.unmodifiableList(accountActions);
     }
@@ -104,8 +102,13 @@ public class FakePasscode {
         if (SharedConfig.fakePasscodeActivatedIndex == SharedConfig.fakePasscodes.indexOf(this)) {
             return;
         }
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            FakePasscodeUtils.getActivatedFakePasscode().deactivate();
+        }
         activationDate = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         actionsResult = new ActionsResult();
+        SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
+        SharedConfig.saveConfig();
         AndroidUtilities.runOnUIThread(() -> {
             for (Action action : actions()) {
                 try {
@@ -117,11 +120,38 @@ public class FakePasscode {
                 }
             }
             if (deleteOtherPasscodesAfterActivation) {
-                SharedConfig.fakePasscodes = SharedConfig.fakePasscodes.stream()
-                        .filter(passcode -> passcode == this).collect(Collectors.toList());
+                List<FakePasscode> newFakePasscodes = new ArrayList<>(Collections.singletonList(this));
+                SharedConfig.fakePasscodeActivatedIndex = 0;
+                SharedConfig.fakePasscodes = newFakePasscodes;
             }
             if (clearAfterActivation) {
                 clear();
+            }
+            checkPasswordlessMode();
+        });
+    }
+
+    public void deactivate() {
+        if (SharedConfig.fakePasscodeActionsResult != null) {
+            SharedConfig.fakePasscodeActionsResult = null;
+             SharedConfig.saveConfig();
+        }
+        AndroidUtilities.runOnUIThread(() -> {
+            if (!actionsResult.hiddenAccountEntries.isEmpty()) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
+            }
+            for (int account : actionsResult.removeChatsResults.keySet()) {
+                RemoveChatsResult removeResult = actionsResult.removeChatsResults.get(account);
+                if (removeResult == null) {
+                    continue;
+                }
+                NotificationCenter notificationCenter = NotificationCenter.getInstance(account);
+                if (!removeResult.hiddenChatEntries.isEmpty()) {
+                    notificationCenter.postNotificationName(NotificationCenter.dialogsHidingChanged);
+                }
+                if (!removeResult.hiddenFolders.isEmpty()) {
+                    notificationCenter.postNotificationName(NotificationCenter.foldersHidingChanged);
+                }
             }
         });
     }
@@ -141,6 +171,9 @@ public class FakePasscode {
 
     public void migrate() {
         actions().stream().forEach(Action::migrate);
+        if (actionsResult != null) {
+            actionsResult.migrate();
+        }
         passcodeVersion = CURRENT_PASSCODE_VERSION;
     }
 
@@ -241,5 +274,55 @@ public class FakePasscode {
                 }
             }
         }
+    }
+
+    private void checkPasswordlessMode() {
+        passwordDisabled = passwordlessMode;
+        MediaDataController.getInstance(UserConfig.selectedAccount).buildShortcuts();
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
+    }
+
+    public boolean passcodeEnabled() {
+        return passcodeHash.length() != 0 && !passwordDisabled;
+    }
+
+    public boolean hasReplaceOriginalPasscodeIncompatibleSettings() {
+        if (!allowLogin || badTriesToActivate != null || passwordlessMode) {
+            return true;
+        }
+        for (AccountActions actions : accountActions) {
+            if (!actions.getFakePhone().isEmpty()
+                    || actions.isHideAccount()
+                    || !actions.getSessionsToHide().getSessions().isEmpty()
+                    || actions.getRemoveChatsAction().hasHidings()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void removeReplaceOriginalPasscodeIncompatibleSettings() {
+        allowLogin = true;
+        badTriesToActivate = null;
+        passwordlessMode = false;
+        for (AccountActions actions : accountActions) {
+            actions.removeFakePhone();
+            if (actions.isHideAccount()) {
+                actions.toggleHideAccountAction();
+            }
+            actions.setSessionsToHide(new ArrayList<>());
+            actions.getSessionsToHide().setMode(SelectionMode.SELECTED);
+            actions.getRemoveChatsAction().removeHidings();
+        }
+        SharedConfig.saveConfig();
+    }
+
+    public boolean hasPasswordlessIncompatibleSettings() {
+        return !allowLogin || badTriesToActivate != null;
+    }
+
+    public void removePasswordlessIncompatibleSettings() {
+        allowLogin = true;
+        badTriesToActivate = null;
     }
 }

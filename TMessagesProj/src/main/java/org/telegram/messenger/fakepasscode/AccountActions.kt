@@ -33,7 +33,7 @@ class AccountActions : Action {
         private set(value) { field = value; SharedConfig.saveConfig() }
     private var logOutAction: LogOutAction? = null
         private set(value) { field = value; SharedConfig.saveConfig() }
-    private var hideAccountAction: HideAccountAction? = null
+    var hideAccountAction: HideAccountAction? = null
         private set(value) { field = value; SharedConfig.saveConfig() }
     var fakePhone = ""
         set(value) { field = value; SharedConfig.saveConfig() }
@@ -164,7 +164,9 @@ class AccountActions : Action {
     fun isClearSavedChannels() = clearSavedChannelsAction != null
     fun isClearDraftsAction() = clearDraftsAction != null
     fun isLogOut() = logOutAction != null
-    fun isHideAccount() = hideAccountAction != null
+    fun isHideAccount() = isHideAccount(false)
+    fun isHideAccount(strictHiding: Boolean)
+        = hideAccountAction != null && (!strictHiding || hideAccountAction?.strictHiding ?: false)
     fun isLogOutOrHideAccount() = logOutAction != null || hideAccountAction != null
     fun isPreventStickersBulletin() = deleteStickersAction?.isPreventBulletin ?: false
 

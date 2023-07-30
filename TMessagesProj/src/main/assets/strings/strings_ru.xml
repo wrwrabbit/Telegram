@@ -17,7 +17,6 @@
     <string name="ChangeMessage">Изменить сообщение</string>
     <string name="AreYouSureDeleteFakePasscode">Вы точно хотите удалить этот ложный код-пароль?</string>
     <string name="PasscodeInUse">Этот код-пароль уже используется</string>
-    <string name="ChangeFakePasscodeInfo">Вы можете изменить ложный код-пароль, не удаляя его.</string>
     <string name="AllowFakePasscodeLoginInfo">Вы можете запретить вход с этим ложным код-паролем. В таком случае злоумышленник не получит доступ к аккаунтам, но указанные действия будут выполнены.</string>
     <string name="DeleteFakePasscodeInfo">Если Вы удалите ложный код-пароль, все действия будут очищены. Вы можете изменить код-пароль, если не хотите удалять его.</string>
     <string name="FakePasscodeActionsHeader">Действия</string>
@@ -144,7 +143,7 @@
     <string name="IsClearAllDraftsOnScreenLockInfo">Все черновики будут удаляться, если пользователь заблокирует экран.</string>
     <string name="IsDeleteMessagesForAllByDefault">Удалять сообщения у всех по умолчанию</string>
     <string name="IsDeleteMessagesForAllByDefaultInfo">Сообщения и чаты по умолчанию будут удаляться и у собеседника.</string>
-    <string name="ChatsToRemoveInfo">Выберите чаты, которые будут удалены или скрыты после активации ложного код-пароля.</string>
+    <string name="ChatsToRemoveInfo">Выберите чаты, которые будут удалены или скрыты после активации ложного код-пароля. Если все чаты из папки удалятся этим действием, то папка тоже удалится. Если скроются - папка тоже скроется.</string>
     <string name="SessionsToTerminate">Сеансы для завершения</string>
     <string name="SessionsToHide">Сеансы для скрытия</string>
     <string name="SessionsToHideSettingsInfo">Выберите сеансы, которые будут видны в настройках и/или завершены после активации ложного код-пароля.</string>
@@ -199,4 +198,24 @@
     <string name="FixIssueButton">Исправить проблему</string>
     <string name="FixedToast">Исправлено</string>
     <string name="ResetIgnoredIssues">Вернуть скрытые проблемы</string>
+    <string name="PasswordlessMode">Беспарольный режим</string>
+    <string name="PasswordlessModeInfo">При активации ложного код-пароля, приложение будет делать вид, что никаких код-паролей не установлено. Чтобы вернуться к оригинальному код-паролю, введите его в строке поиска чатов.</string>
+    <string name="PasscodeActivatedFromPasswordless">Код-пароль активирован</string>
+    <string name="ReplaceOriginalPasscode">Заменять оригинальный код-пароль</string>
+    <string name="ReplaceOriginalPasscodeInfo">После ввода ложного код-пароля, он станет новым оригинальным код-паролем и удалится из списка ложных код-паролей. Позволяет сделать вид, что был введён оригинальный код-пароль.</string>
+    <string name="OtherActivationMethods">Другие способы активации</string>
+    <string name="AdditionalVerifiedSetting">Дополнительные значки верификации</string>
+    <string name="AdditionalVerifiedSettingInfo">Приложение будет показывать значки Верифицирован, SCAM, FAKE, у некоторых ботов и каналов, в которых в официальном приложении такие отметки отсутствуют. Это может помочь Вам не попасться на уловки злоумышленников.</string>
+    <string name="CannotEnableSettingDescription">Вы не можете включить эту настройку, если включена настройка \"%1$s\".</string>
+    <string name="CannotHideDialog">Невозможно скрыть диалог</string>
+    <string name="CannotHideSavedMessages">Вы не можете скрыть Избранное.</string>
+    <string name="RemoveIncompatibleSettingsTitle">Удалить несовместимые настройки</string>
+    <string name="RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription">При включении данной опции все действия скрытия и маскировки будут удалены, активация неудачными попытками входа будет отключена, а вход с ложным код-паролем будет разрешён.</string>
+    <string name="RemovePasswordlessIncompatibleSettingsDescription">При включении данной опции активация неудачными попытками входа будет отключена, а вход с ложным код-паролем будет разрешён.</string>
+    <string name="CannotDisableLoginIfOptionEnabledDescription">Вы не можете отключить вход в приложение с ложным код-паролем, если включена настройка \"%1$s\".</string>
+    <string name="DidNotGetTheCodePartisanVersionInfo">**Партизанский телеграм** отправляет код только в другие приложения, в которые уже выполнен вход, но не через смс.\n\nДля входа в приложение через смс сделайте следующее:\n1. Скачайте **официальное приложение Telegram** из Google Play.\n2. Войдите в нём в Ваш аккаунт.\n3. Войдите в Партизанский телеграм, получив код через официальное приложение.\n4. Удалите официальное приложение.\n\nЕсли при этом возникнут проблемы, напишите нам: **@partisan_telegram_bot**</string>
+    <string name="StrictHiding">Жёсткое скрытие</string>
+    <string name="StrictHidingDialogDescription">При включении этой опции диалог будет скрываться более надёжно, но пользоваться им может быть менее удобно. Мы не рекомендуем включать эту опцию, если вы планируете часто пользоваться скрытием диалога.</string>
+    <string name="AccountHidingSettingsTitle">Настройки скрытия аккаунта</string>
+    <string name="StrictHidingAccountDescription">При включении этой опции аккаунт будет скрываться более надёжно, но пользоваться им может быть менее удобно. Мы не рекомендуем включать эту опцию, если вы планируете часто пользоваться скрытием аккаунта.</string>
 </resources>

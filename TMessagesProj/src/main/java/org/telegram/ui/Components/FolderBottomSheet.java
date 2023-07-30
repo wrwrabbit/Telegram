@@ -42,8 +42,10 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -183,6 +185,9 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
 
             for (int i = 0; i < selectedPeers.size(); ++i) {
                 long did = selectedPeers.get(i);
+                if (FakePasscodeUtils.isHideChat(did, getCurrentAccount())) {
+                    continue;
+                }
                 TLRPC.Peer peer = fragment.getMessagesController().getPeer(did);
                 if (peer instanceof TLRPC.TL_peerChat || peer instanceof TLRPC.TL_peerChannel) {
                     peers.add(peer);
@@ -191,7 +196,7 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
 
             for (int i = 0; i < filter.alwaysShow.size(); ++i) {
                 long did = filter.alwaysShow.get(i);
-                if (selectedPeers.contains(did)) {
+                if (selectedPeers.contains(did) || FakePasscodeUtils.isHideChat(did, getCurrentAccount())) {
                     continue;
                 }
                 TLRPC.Peer peer = fragment.getMessagesController().getPeer(did);
@@ -214,7 +219,7 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
         this.updates = updates;
 
         selectedPeers.clear();
-        peers = updates.missing_peers;
+        peers = (ArrayList<TLRPC.Peer>) FakePasscodeUtils.filterPeers(updates.missing_peers, getCurrentAccount());
         ArrayList<MessagesController.DialogFilter> myFilters = fragment.getMessagesController().dialogFilters;
         if (myFilters != null) {
             for (int i = 0; i < myFilters.size(); ++i) {
@@ -237,10 +242,10 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
         selectedPeers.clear();
         if (invite instanceof TLRPC.TL_chatlists_chatlistInvite) {
             title = ((TLRPC.TL_chatlists_chatlistInvite) invite).title;
-            peers = ((TLRPC.TL_chatlists_chatlistInvite) invite).peers;
+            peers = (ArrayList<TLRPC.Peer>) FakePasscodeUtils.filterPeers(((TLRPC.TL_chatlists_chatlistInvite) invite).peers, getCurrentAccount());
         } else if (invite instanceof TLRPC.TL_chatlists_chatlistInviteAlready) {
             TLRPC.TL_chatlists_chatlistInviteAlready inv = (TLRPC.TL_chatlists_chatlistInviteAlready) invite;
-            peers = inv.missing_peers;
+            peers = (ArrayList<TLRPC.Peer>) FakePasscodeUtils.filterPeers(inv.missing_peers, getCurrentAccount());
             alreadyPeers = inv.already_peers;
             this.filterId = inv.filter_id;
             ArrayList<MessagesController.DialogFilter> myFilters = fragment.getMessagesController().dialogFilters;
@@ -966,7 +971,7 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
                             did = peer.user_id;
                             TLRPC.User user = getBaseFragment().getMessagesController().getUser(peer.user_id);
                             object = user;
-                            name = UserObject.getUserName(user);
+                            name = UserObject.getUserName(user, getCurrentAccount());
                             if (user != null && user.bot) {
                                 status = LocaleController.getString("FilterInviteBot", R.string.FilterInviteBot);
                             } else {
@@ -982,7 +987,7 @@ public class FolderBottomSheet extends BottomSheetWithRecyclerListView {
                     }
                     if (object instanceof TLRPC.Chat) {
                         TLRPC.Chat chat = (TLRPC.Chat) object;
-                        name = chat.title;
+                        name = UserConfig.getChatTitleOverride(getCurrentAccount(), chat);
                         if (chat.participants_count != 0) {
                             if (ChatObject.isChannelAndNotMegaGroup(chat)) {
                                 status = LocaleController.formatPluralStringComma("Subscribers", chat.participants_count);

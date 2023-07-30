@@ -20,7 +20,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Outline;
@@ -65,8 +64,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -327,16 +324,13 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                                 .setPositiveButton(LocaleController.getString(R.string.DisablePasscodeTurnOff), (dialog, which) -> {
                                     if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                                        FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = "";
+                                        FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = true;
                                     } else {
-                                        SharedConfig.passcodeHash = "";
+                                        SharedConfig.setPasscode("");
                                         for (FakePasscode passcode: SharedConfig.fakePasscodes) {
                                             passcode.onDelete();
                                         }
                                         SharedConfig.fakePasscodes.clear();
-                                    }
-                                    if (FakePasscodeUtils.isFakePasscodeActivated()) {
-                                        SharedConfig.autoLockIn = 60;
                                     }
                                     SharedConfig.setAppLocked(false);
                                     SharedConfig.saveConfig();
@@ -1232,7 +1226,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }
         String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_CODE) {
-            if (!firstPassword.equals(password)) {
+            if (!firstPassword.equals(password) || isNewPasscodeIdenticalOtherPasscode(password)) {
                 AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, true);
                 for (CodeNumberField f : codeFieldContainer.codeField) {
                     f.setText("");
@@ -1264,9 +1258,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                 if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                     FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-                    SharedConfig.autoLockIn = 60;
+                    FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = false;
                 } else {
-                    SharedConfig.passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                    SharedConfig.setPasscode(Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)));
                     for (FakePasscode passcode: SharedConfig.fakePasscodes) {
                         passcode.onDelete();
                     }
@@ -1278,8 +1272,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
             if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                 SharedConfig.allowScreenCapture = true;
-            } else {
-                SharedConfig.autoLockIn = 60;
             }
 
             SharedConfig.passcodeType = currentPasswordType;
@@ -1355,6 +1347,15 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 presentFragment(passcodeActivity, true);
             });
         }
+    }
+
+    private boolean isNewPasscodeIdenticalOtherPasscode(String password) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
+            return result.isRealPasscodeSuccess
+                    || result.fakePasscode != null && result.fakePasscode != FakePasscodeUtils.getActivatedFakePasscode();
+        }
+        return false;
     }
 
     private void onPasscodeError() {
@@ -1523,6 +1524,26 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setText(LocaleController.getString(R.string.DisablePasscode), false);
                         textCell.setTag(Theme.key_text_RedBold);
                         textCell.setTextColor(Theme.getColor(Theme.key_text_RedBold));
+                    } else if (position == badPasscodeAttemptsRow) {
+                        textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.badPasscodeAttemptList.size()),true);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                    } else if (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
+                        textCell.setText(SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow).name, true);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                    } else if (position == addFakePasscodeRow) {
+                        textCell.setText(LocaleController.getString("AddFakePasscode", R.string.AddFakePasscode), true);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlueText4);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                    } else if (position == restoreFakePasscodeRow) {
+                        textCell.setText(LocaleController.getString("FakePasscodeRestore", R.string.FakePasscodeRestore), false);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlueText4);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                    } else if (position == partisanSettingsRow) {
+                        textCell.setText(LocaleController.getString("PartisanSettings", R.string.PartisanSettings), false);
+                        textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     }
                     break;
                 }

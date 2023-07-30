@@ -1811,7 +1811,7 @@ public class FilterCreateActivity extends BaseFragment {
             } else {
                 titleTextView.setText(invite.title, animated);
             }
-            subtitleTextView.setText(LocaleController.formatPluralString("FilterInviteChats", invite.peers.size()), animated);
+            subtitleTextView.setText(LocaleController.formatPluralString("FilterInviteChats", FakePasscodeUtils.filterPeers(invite.peers, currentAccount).size()), animated);
             if (needDivider != divider) {
                 needDivider = divider;
                 invalidate();

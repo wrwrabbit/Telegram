@@ -914,7 +914,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     }
 
     public void setUserAvatar(TLRPC.User user, boolean showSelf) {
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(user, currentAccount);
         if (UserObject.isReplyUser(user)) {
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_REPLIES);
             avatarDrawable.setScaleSize(.8f);

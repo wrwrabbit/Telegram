@@ -247,7 +247,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
+public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate, AllowShowingActivityInterface {
     private final static int PHONE_OPTION_CALL = 0,
         PHONE_OPTION_COPY = 1,
         PHONE_OPTION_TELEGRAM_CALL = 2,
@@ -1553,6 +1553,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             getNotificationCenter().addObserver(this, NotificationCenter.blockedUsersDidLoad);
             getNotificationCenter().addObserver(this, NotificationCenter.botInfoDidLoad);
             getNotificationCenter().addObserver(this, NotificationCenter.userInfoDidLoad);
+            getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
             getNotificationCenter().addObserver(this, NotificationCenter.privacyRulesUpdated);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.reloadInterface);
 
@@ -1712,6 +1713,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             getNotificationCenter().removeObserver(this, NotificationCenter.blockedUsersDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.botInfoDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.userInfoDidLoad);
+            getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
             getNotificationCenter().removeObserver(this, NotificationCenter.privacyRulesUpdated);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.reloadInterface);
             getMessagesController().cancelLoadFullUser(userId);
@@ -6432,6 +6434,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 updateAutoDeleteItem();
                 updateTtlIcon();
             }
+        }  else if (id == NotificationCenter.dialogsHidingChanged) {
+            if (!allowShowing()) {
+                finishFragment();
+            }
         } else if (id == NotificationCenter.privacyRulesUpdated) {
             if (qrItem != null) {
                 updateQrItemVisibility(true);
@@ -6554,6 +6560,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        if (!allowShowing()) {
+            finishFragment();
+            return;
+        }
+
         if (sharedMediaLayout != null) {
             sharedMediaLayout.onResume();
         }
@@ -7752,10 +7763,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 boolean rightIconIsPremium = false, rightIconIsStatus = false;
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 if (a == 0) {
-                    if (user.scam || user.fake) {
-                        rightIcon = getScamDrawable(user.scam ? 0 : 1);
+                    if (user.isScam() || user.isFake()) {
+                        rightIcon = getScamDrawable(user.isScam() ? 0 : 1);
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("ScamMessage", R.string.ScamMessage);
-                    } else if (user.verified) {
+                    } else if (user.isVerified()) {
                         rightIcon = getVerifiedCrossfadeDrawable();
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("AccDescrVerified", R.string.AccDescrVerified);
                     } else if (user.emoji_status instanceof TLRPC.TL_emojiStatus || user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
@@ -7776,9 +7787,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawableContentDescription = null;
                     }
                 } else if (a == 1) {
-                    if (user.scam || user.fake) {
-                        rightIcon = getScamDrawable(user.scam ? 0 : 1);
-                    } else if (user.verified) {
+                    if (user.isScam() || user.isFake()) {
+                        rightIcon = getScamDrawable(user.isScam() ? 0 : 1);
+                    } else if (user.isVerified()) {
                         rightIcon = getVerifiedCrossfadeDrawable();
                     } else if (user.emoji_status instanceof TLRPC.TL_emojiStatus || user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
                         rightIconIsStatus = true;
@@ -8000,10 +8011,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 nameTextView[a].setLeftDrawable(null);
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 if (a != 0) {
-                    if (chat.scam || chat.fake) {
-                        nameTextView[a].setRightDrawable(getScamDrawable(chat.scam ? 0 : 1));
+                    if (chat.isScam() || chat.isFake()) {
+                        nameTextView[a].setRightDrawable(getScamDrawable(chat.isScam() ? 0 : 1));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("ScamMessage", R.string.ScamMessage);
-                    } else if (chat.verified) {
+                    } else if (chat.isVerified()) {
                         nameTextView[a].setRightDrawable(getVerifiedCrossfadeDrawable());
                         nameTextViewRightDrawableContentDescription = LocaleController.getString("AccDescrVerified", R.string.AccDescrVerified);
                     } else {
@@ -8011,9 +8022,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawableContentDescription = null;
                     }
                 } else {
-                    if (chat.scam || chat.fake) {
-                        nameTextView[a].setRightDrawable(getScamDrawable(chat.scam ? 0 : 1));
-                    } else if (chat.verified) {
+                    if (chat.isScam() || chat.isFake()) {
+                        nameTextView[a].setRightDrawable(getScamDrawable(chat.isScam() ? 0 : 1));
+                    } else if (chat.isVerified()) {
                         nameTextView[a].setRightDrawable(getVerifiedCrossfadeDrawable());
                     } else if (getMessagesController().isDialogMuted(-chatId, topicId)) {
                         nameTextView[a].setRightDrawable(getThemedDrawable(Theme.key_drawable_muteIconDrawable));
@@ -11370,5 +11381,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
             info.append("\n");
         } catch (Exception ignore) {}
+    }
+
+    @Override
+    public boolean allowShowing() {
+        return !FakePasscodeUtils.isHideChat(dialogId, currentAccount)
+                && !FakePasscodeUtils.isHideChat(chatId, currentAccount)
+                && !FakePasscodeUtils.isHideChat(userId, currentAccount);
     }
 }
