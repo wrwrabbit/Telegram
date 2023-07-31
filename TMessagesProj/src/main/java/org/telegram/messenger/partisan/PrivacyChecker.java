@@ -1,6 +1,7 @@
 package org.telegram.messenger.partisan;
 
 import static org.telegram.ui.PrivacyControlActivity.PRIVACY_RULES_TYPE_ADDED_BY_PHONE;
+import static org.telegram.ui.PrivacyControlActivity.PRIVACY_RULES_TYPE_BIO;
 import static org.telegram.ui.PrivacyControlActivity.PRIVACY_RULES_TYPE_CALLS;
 import static org.telegram.ui.PrivacyControlActivity.PRIVACY_RULES_TYPE_FORWARDS;
 import static org.telegram.ui.PrivacyControlActivity.PRIVACY_RULES_TYPE_INVITE;
@@ -37,7 +38,9 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
                     setupPrivacySettings(account, PRIVACY_RULES_TYPE_P2P, onError, () -> {
                         setupPrivacySettings(account, PRIVACY_RULES_TYPE_CALLS, onError, () -> {
                             setupPrivacySettings(account, PRIVACY_RULES_TYPE_INVITE, onError, () -> {
-                                setupPrivacySettings(account, PRIVACY_RULES_TYPE_LASTSEEN, onError, onSuccess);
+                                setupPrivacySettings(account, PRIVACY_RULES_TYPE_LASTSEEN, onError, () -> {
+                                    setupPrivacySettings(account, PRIVACY_RULES_TYPE_BIO, onError, onSuccess);
+                                });
                             });
                         });
                     });
@@ -63,6 +66,8 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
             req.key = new TLRPC.TL_inputPrivacyKeyForwards();
         } else if (rulesType == PRIVACY_RULES_TYPE_PHOTO) {
             req.key = new TLRPC.TL_inputPrivacyKeyProfilePhoto();
+        } else if (rulesType == PRIVACY_RULES_TYPE_BIO) {
+            req.key = new TLRPC.TL_inputPrivacyKeyAbout();
         } else if (rulesType == PRIVACY_RULES_TYPE_P2P) {
             req.key = new TLRPC.TL_inputPrivacyKeyPhoneP2P();
         } else if (rulesType == PRIVACY_RULES_TYPE_CALLS) {

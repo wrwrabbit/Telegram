@@ -829,7 +829,7 @@ public class SavedChannelCell extends BaseCell {
                                 emoji = "\uD83D\uDCCE ";
                             }
                             if (adapter.getMessage(currentDialogId).hasHighlightedWords() && !TextUtils.isEmpty(adapter.getMessage(currentDialogId).messageOwner.message)) {
-                                String str = adapter.getMessage(currentDialogId).messageTrimmedToHighlight;
+                                CharSequence str = adapter.getMessage(currentDialogId).messageTrimmedToHighlight;
                                 if (adapter.getMessage(currentDialogId).messageTrimmedToHighlight != null) {
                                     str = adapter.getMessage(currentDialogId).messageTrimmedToHighlight;
                                 }
