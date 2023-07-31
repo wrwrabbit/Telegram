@@ -4741,7 +4741,7 @@ public class MessageObject {
         }
         if (linkDescription == null) {
             if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && getMedia(messageOwner).webpage instanceof TLRPC.TL_webPage && getMedia(messageOwner).webpage.description != null) {
-            linkDescription = Spannable.Factory.getInstance().newSpannable(Utils.fixMessage(getMedia(messageOwner).webpage.description));
+                linkDescription = Spannable.Factory.getInstance().newSpannable(Utils.fixMessage(getMedia(messageOwner).webpage.description));
                 String siteName = getMedia(messageOwner).webpage.site_name;
                 if (siteName != null) {
                     siteName = siteName.toLowerCase();

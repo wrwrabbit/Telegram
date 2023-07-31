@@ -992,12 +992,16 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             ArrayList<MessagesController.DialogFilter> filters = getMessagesController().dialogFilters;
             try {
                 int originalIdx1 = IntStream.range(0, originalItems.size())
+                        .filter(i -> originalItems.get(i).filter != null)
                         .filter(i -> originalItems.get(i).filter.id == from.filter.id).findFirst().getAsInt();
                 int originalIdx2 = IntStream.range(0, originalItems.size())
+                        .filter(i -> originalItems.get(i).filter != null)
                         .filter(i -> originalItems.get(i).filter.id == to.filter.id).findFirst().getAsInt();
                 filters.set(originalIdx1 - filtersStartPosition, to.filter);
                 filters.set(originalIdx2 - filtersStartPosition, from.filter);
-            } catch (Exception ignore) {}
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
             orderChanged = true;
             updateRows(true);
         }

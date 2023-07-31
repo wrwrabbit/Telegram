@@ -1947,7 +1947,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                 headerView.titleView.setText(LocaleController.getString("SelfStoryTitle", R.string.SelfStoryTitle));
                 headerView.titleView.setRightDrawable(null);
             } else {
-                if (user != null && user.verified) {
+                if (user != null && user.isVerified()) {
                     Drawable verifyDrawable = ContextCompat.getDrawable(getContext(), R.drawable.verified_profile).mutate();
                     verifyDrawable.setAlpha(255);
                     CombinedDrawable drawable = new CombinedDrawable(verifyDrawable, null);

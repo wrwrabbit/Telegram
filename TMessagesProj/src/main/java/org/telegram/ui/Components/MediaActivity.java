@@ -57,9 +57,9 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -797,7 +797,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         } else {
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
             if (chat != null) {
-                nameTextView[0].setText(chat.title);
+                nameTextView[0].setText(getUserConfig().getChatTitleOverride(chat));
                 avatarDrawable.setInfo(chat, currentAccount);
                 avatarObject = chat;
             }
@@ -813,7 +813,6 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             final ImageLocation thumbLocation = ImageLocation.getForUserOrChat(avatarObject, ImageLocation.TYPE_SMALL);
             avatarImageView.setImage(thumbLocation, "50_50", avatarDrawable, avatarObject);
         }
-
         if (TextUtils.isEmpty(nameTextView[0].getText())) {
             nameTextView[0].setText(LocaleController.getString("SharedContentTitle", R.string.SharedContentTitle));
         }

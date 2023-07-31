@@ -57,9 +57,9 @@ public class GroupCreateSpan extends View {
     private boolean deleting;
     private long lastUpdateTime;
     private int[] colors = new int[8];
+    private int currentAccount;
     private Theme.ResourcesProvider resourcesProvider;
     private boolean small;
-    private int currentAccount;
 
     public GroupCreateSpan(Context context, Object object, int currentAccount) {
         this(context, object, null, currentAccount);
@@ -73,11 +73,11 @@ public class GroupCreateSpan extends View {
         this(context, object, contact, null);
     }
 
-    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, Theme.ResourcesProvider resourcesProvider, int currentAccount) {
+    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, Theme.ResourcesProvider resourcesProvider) {
         this(context, object, contact, false, resourcesProvider);
     }
 
-    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, boolean small, Theme.ResourcesProvider resourcesProvider, int currentAccount) {
+    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, boolean small, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.resourcesProvider = resourcesProvider;
         this.small = small;
@@ -159,13 +159,13 @@ public class GroupCreateSpan extends View {
                 imageLocation = null;
                 imageParent = null;
             } else {
-                avatarDrawable.setInfo(user);
-                firstName = UserObject.getFirstName(user);
+                avatarDrawable.setInfo(user, currentAccount);
+                firstName = UserConfig.getChatTitleOverride(currentAccount, user.id, UserObject.getFirstName(user));
                 int index;
                 if ((index = firstName.indexOf(' ')) >= 0) {
                     firstName = firstName.substring(0, index);
                 }
-                imageLocation = ImageLocation.getForUserOrChat(user, ImageLocation.TYPE_SMALL);
+                imageLocation = ImageLocation.getForUserOrChat(user, ImageLocation.TYPE_SMALL, currentAccount);
                 imageParent = user;
             }
         } else if (object instanceof TLRPC.Chat) {

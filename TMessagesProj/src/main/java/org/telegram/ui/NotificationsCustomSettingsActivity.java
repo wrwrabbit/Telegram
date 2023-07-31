@@ -53,10 +53,8 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -94,10 +92,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.List;
-import java.util.Optional;
 
 public class NotificationsCustomSettingsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -142,15 +139,17 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
         currentType = type;
         autoExceptions = autoNotificationExceptions;
         exceptions = notificationExceptions;
-        if (exceptions != null) {
-            for (int a = 0, N = exceptions.size(); a < N; a++) {
-                NotificationsSettingsActivity.NotificationException exception = exceptions.get(a);
+        List<NotificationsSettingsActivity.NotificationException> filteredExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
+        if (filteredExceptions != null) {
+            for (int a = 0, N = filteredExceptions.size(); a < N; a++) {
+                NotificationsSettingsActivity.NotificationException exception = filteredExceptions.get(a);
                 exceptionsDict.put(exception.did, exception);
             }
         }
-        if (autoExceptions != null) {
-            for (int a = 0, N = autoExceptions.size(); a < N; a++) {
-                NotificationsSettingsActivity.NotificationException exception = autoExceptions.get(a);
+        List<NotificationsSettingsActivity.NotificationException> filteredAutoExceptions = FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
+        if (filteredAutoExceptions != null) {
+            for (int a = 0, N = filteredAutoExceptions.size(); a < N; a++) {
+                NotificationsSettingsActivity.NotificationException exception = filteredAutoExceptions.get(a);
                 exceptionsDict.put(exception.did, exception);
             }
         }
@@ -1000,7 +999,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
     }
 
     private void checkRowsEnabled() {
-        if (!exceptions.isEmpty() && currentType != TYPE_STORIES) {
+        if (!FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty() && currentType != TYPE_STORIES) {
             return;
         }
         int count = listView.getChildCount();
@@ -1515,7 +1514,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
         private void processSearch(final String query) {
             AndroidUtilities.runOnUIThread(() -> {
                 searchAdapterHelper.queryServerSearch(query, true, currentType != TYPE_PRIVATE && currentType != TYPE_STORIES, true, false, false, 0, false, 0, 0);
-                final ArrayList<NotificationsSettingsActivity.NotificationException> contactsCopy = new ArrayList<>(exceptions);
+                final ArrayList<NotificationsSettingsActivity.NotificationException> contactsCopy = (ArrayList<NotificationsSettingsActivity.NotificationException>)FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount);
                 Utilities.searchQueue.postRunnable(() -> {
                     String search1 = query.trim().toLowerCase();
                     if (search1.length() == 0) {
@@ -1944,7 +1943,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
 
         @Override
         public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
-            if (currentType != TYPE_STORIES && exceptions == null || !FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty()) {
+            if (currentType != TYPE_STORIES && (exceptions == null || !FakePasscodeUtils.filterNotificationExceptions(exceptions, currentAccount).isEmpty())) {
                 return;
             }
             final boolean globalEnabled;

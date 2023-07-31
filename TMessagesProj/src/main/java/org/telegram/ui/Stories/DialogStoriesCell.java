@@ -42,6 +42,7 @@ import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -354,7 +355,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
 
         ArrayList<TLRPC.TL_userStories> allStories = type == TYPE_ARCHIVE ? storiesController.getHiddenList() : storiesController.getDialogListStories();
         for (int i = 0; i < allStories.size(); i++) {
-            if (allStories.get(i).user_id != UserConfig.getInstance(currentAccount).getClientUserId()) {
+            if (allStories.get(i).user_id != UserConfig.getInstance(currentAccount).getClientUserId() && !FakePasscodeUtils.isHideChat(allStories.get(i).user_id, currentAccount)) {
                 items.add(new Item(allStories.get(i).user_id));
             }
         }
@@ -1121,7 +1122,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                 if (index > 0) {
                     name = name.substring(0, index);
                 }
-                if (user.verified) {
+                if (user.isVerified()) {
                     if (verifiedDrawable == null) {
                         verifiedDrawable = createVerifiedDrawable();
                     }

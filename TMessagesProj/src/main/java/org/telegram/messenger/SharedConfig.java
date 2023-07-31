@@ -492,7 +492,7 @@ public class SharedConfig {
         }
 
         public void activateFakePasscode() {
-            if (allowLogin() && FakePasscodeUtils.isFakePasscodeActivated()) {
+            if (allowLogin() && FakePasscodeUtils.isFakePasscodeActivated() && fakePasscodeActivatedIndex != fakePasscodes.indexOf(fakePasscode)) {
                 FakePasscodeUtils.getActivatedFakePasscode().deactivate();
             }
             if (fakePasscode != null) {

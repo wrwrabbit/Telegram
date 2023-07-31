@@ -344,6 +344,23 @@ public class MessagesController extends BaseController implements NotificationCe
         return dialogFilters;
     }
 
+    public int getActualFilterIndex(int filteredIndex) {
+        int currentFilteredIndex = 0;
+        int currentActualIndex = 0;
+        for (DialogFilter filter : getDialogFilters()) {
+            if (FakePasscodeUtils.isHideFolder(filter.id, currentAccount)) {
+                currentActualIndex++;
+                continue;
+            }
+            if (currentFilteredIndex == filteredIndex) {
+                return currentActualIndex;
+            }
+            currentActualIndex++;
+            currentFilteredIndex++;
+        }
+        return -1;
+    }
+
     private final CacheFetcher<Integer, TLRPC.TL_help_appConfig> appConfigFetcher = new CacheFetcher<Integer, TLRPC.TL_help_appConfig>() {
         @Override
         protected void getRemote(int currentAccount, Integer arguments, long hash, Utilities.Callback4<Boolean, TLRPC.TL_help_appConfig, Long, Boolean> onResult) {
@@ -17944,7 +17961,7 @@ public class MessagesController extends BaseController implements NotificationCe
     private int deleteAllMessagesGuid = -1;
 
     private Predicate<MessageObject> ocondition = null;
-    public void deleteAllMessagesFromDialogByUser(long userId, long dialogId, Predicate<MessageObject> condition) {
+    public void deleteAllMessagesFromDialogByUser(long userId, long dialogId, int topicId, Predicate<MessageObject> condition) {
         if (!DialogObject.isEncryptedDialog(dialogId)) {
             if (deleteAllMessagesGuid < 0) {
                 deleteAllMessagesGuid = ConnectionsManager.generateClassGuid();
@@ -17971,7 +17988,7 @@ public class MessagesController extends BaseController implements NotificationCe
             getMediaDataController().searchMessagesInChat("", dialogId, 0, deleteAllMessagesGuid, 0, 0, getUser(userId), getChat(dialogId));
         }
 
-        deleteAllMessagesFromDialog(dialogId, userId, ocondition);
+        deleteAllMessagesFromDialog(dialogId, topicId, userId, ocondition);
     }
 
     private ArrayList<Integer> getMessagesIds(Predicate<MessageObject> condition, ArrayList<MessageObject> messages, Long userId) {
@@ -18004,7 +18021,7 @@ public class MessagesController extends BaseController implements NotificationCe
      * @param ownerId
      * @param condition
      */
-    public void deleteAllMessagesFromDialog(long dialogId, long ownerId,
+    public void deleteAllMessagesFromDialog(long dialogId, int topicId, long ownerId,
                                             Predicate<MessageObject> condition) {
         final int[] loadIndex = new int[]{0};
 
@@ -18045,7 +18062,7 @@ public class MessagesController extends BaseController implements NotificationCe
         loadMessages(dialogId, 0, false,
                 100, 0, 0, true, 0 ,
                 deleteAllMessagesGuid, DialogObject.isEncryptedDialog(dialogId) ? 2 : 0, 0,
-                0, 0, 0, loadIndex[0]++, false);
+                0, topicId, 0, loadIndex[0]++, topicId != 0);
     }
 
     private int clearMessages(long dialogId, long ownerId, int classGuid, int loadIndex,

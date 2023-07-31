@@ -88,8 +88,8 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.BadPasscodeAttempt;
+import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -3323,7 +3323,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     if (tabView.getId() == filterTabsView.getDefaultTabId()) {
                         dialogFilter = null;
                     } else {
-                        dialogFilter = getMessagesController().getDialogFilters().get(tabView.getId());
+                        dialogFilter = getMessagesController().getDialogFilters().get(getMessagesController().getActualFilterIndex(tabView.getId()));
                     }
 
                     boolean defaultTab = dialogFilter == null;
@@ -3625,7 +3625,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     if (hasStories && !rightSlidingDialogContainer.hasFragment() && !fixScrollYAfterArchiveOpened) {
                         pTop -= AndroidUtilities.dp(DialogStoriesCell.HEIGHT_IN_DP);
                     }
-                    boolean hasHidenArchive = !fixScrollYAfterArchiveOpened && viewPage.dialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && folderId == 0 && getMessagesController().hasHiddenArchive() && viewPage.archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN;
+                    boolean hasHidenArchive = !fixScrollYAfterArchiveOpened && viewPage.dialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && folderId == 0 && getMessagesController().hasHiddenArchive() && viewPage.archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN && hasHiddenArchive();
                     if ((hasHidenArchive || (hasStories && !rightSlidingDialogContainer.hasFragment())) && dy < 0) {
                         viewPage.listView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
                         int currentPosition = viewPage.layoutManager.findFirstVisibleItemPosition();
@@ -5407,7 +5407,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 //    }
 
     public void showSelectStatusDialog() {
-        if (selectAnimatedEmojiDialog != null || SharedConfig.appLocked || !dialogStoriesCell.isExpanded()) {
+        if (selectAnimatedEmojiDialog != null || SharedConfig.isAppLocked() || !dialogStoriesCell.isExpanded()) {
             return;
         }
         final SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] popup = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[1];
@@ -6442,10 +6442,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
-        dialogStoriesCell.onResume();
+
         if (sideMenu != null) {
             ((DrawerLayoutAdapter)sideMenu.getAdapter()).checkAccountChanges();
         }
+
+        dialogStoriesCell.onResume();
         if (rightSlidingDialogContainer != null) {
             rightSlidingDialogContainer.onResume();
         }
@@ -10153,7 +10155,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             foldersHidingChanged();
         } else if (id == NotificationCenter.dialogsHidingChanged) {
             try {
-                scrollToTop();
+                scrollToTop(false, false);
             } catch (Exception ignored) {
             }
         } else if (id == NotificationCenter.fakePasscodeActivated) {
@@ -10767,7 +10769,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         filterTabsView.selectTabWithId(Integer.MAX_VALUE, 1);
         if (viewPages != null) {
             viewPages[0].selectedType = Integer.MAX_VALUE;
-            viewPages[0].dialogsAdapter.setDialogsType(0);
+            MessagesController.DialogFilter filter = FakePasscodeUtils.filterFolders(getMessagesController().getDialogFilters(), currentAccount).get(0);
+            int dialogsType;
+            if (filter.isDefault()) {
+                dialogsType = initialDialogsType;
+            } else {
+                dialogsType = viewPages[0].dialogsType;
+            }
+            viewPages[0].dialogsAdapter.setDialogsType(dialogsType);
         }
     }
 
