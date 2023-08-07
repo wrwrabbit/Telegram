@@ -107,6 +107,7 @@ import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.RightSlidingDialogContainer;
+import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.StoryViewer;
@@ -189,7 +190,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         }
     };
 
-    private Path thumbPath = new Path();
+    private Path thumbPath;
     private SpoilerEffect thumbSpoiler = new SpoilerEffect();
 
     public void setMoving(boolean moving) {
@@ -712,6 +713,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         AnimatedEmojiSpan.release(this, animatedEmojiStack3);
         AnimatedEmojiSpan.release(this, animatedEmojiStackName);
         storyParams.onDetachFromWindow();
+        canvasButton = null;
     }
 
     @Override
@@ -3782,7 +3784,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     );
                     thumbImage[i].draw(canvas);
                     if (drawSpoiler[i]) {
-                        thumbPath.rewind();
+                        if (thumbPath == null) {
+                            thumbPath = new Path();
+                        } else {
+                            thumbPath.rewind();
+                        }
                         thumbPath.addRoundRect(AndroidUtilities.rectTmp, thumbImage[i].getRoundRadius()[0], thumbImage[i].getRoundRadius()[1], Path.Direction.CW);
 
                         canvas.save();
@@ -4400,7 +4406,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             } else {
                 archivedChatsDrawable.outCy = storyParams.originalAvatarRect.centerY();
                 archivedChatsDrawable.outCx = storyParams.originalAvatarRect.centerX();
-                archivedChatsDrawable.outRadius = avatarImage.getImageWidth() / 2.0f;
+                archivedChatsDrawable.outRadius = storyParams.originalAvatarRect.width() / 2.0f;
+                if (MessagesController.getInstance(currentAccount).getStoriesController().hasHiddenStories()) {
+                    archivedChatsDrawable.outRadius -= AndroidUtilities.dpf2(3.5f);
+                }
                 archivedChatsDrawable.outImageSize = avatarImage.getBitmapWidth();
             }
             archivedChatsDrawable.startOutAnimation();

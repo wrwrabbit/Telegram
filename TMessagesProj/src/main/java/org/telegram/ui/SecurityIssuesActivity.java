@@ -276,7 +276,7 @@ public class SecurityIssuesActivity extends BaseFragment implements Notification
                                 TwoStepVerificationSetupActivity twoStepVerification = new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_INTRO, null);
                                 twoStepVerification.setFromRegistration(false);
                                 twoStepVerification.returnToSecurityIssuesActivity = true;
-                                presentFragment(twoStepVerification, true);
+                                presentFragment(twoStepVerification, false);
                             }
                         }
                     };
