@@ -6443,12 +6443,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
-
         if (sideMenu != null) {
             ((DrawerLayoutAdapter)sideMenu.getAdapter()).checkAccountChanges();
         }
 
-        dialogStoriesCell.onResume();
+        if (dialogStoriesCell != null) {
+            dialogStoriesCell.onResume();
+        }
         if (rightSlidingDialogContainer != null) {
             rightSlidingDialogContainer.onResume();
         }

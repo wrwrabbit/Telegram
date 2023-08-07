@@ -874,7 +874,11 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
                     }
                     listView.setViewsOffset(ty);
                 }
-                return super.scrollVerticallyBy(measuredDy, recycler, state);
+                try {
+                    return super.scrollVerticallyBy(measuredDy, recycler, state);
+                } catch (Exception ignore) {
+                    return 0;
+                }
             }
 
             @Override

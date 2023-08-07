@@ -28,6 +28,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -420,14 +421,14 @@ public class SearchDownloadsContainer extends FrameLayout implements Notificatio
     private void updateRows(ArrayList<MessageObject> currentLoadingFilesTmp, ArrayList<MessageObject> recentLoadingFilesTmp) {
         currentLoadingFiles.clear();
         for (MessageObject object : currentLoadingFilesTmp) {
-            if (!object.isRoundVideo() && !object.isVoice()) {
+            if (!object.isRoundVideo() && !object.isVoice() && !FakePasscodeUtils.isHideChat(object.getDialogId(), currentAccount)) {
                 currentLoadingFiles.add(object);
             }
         }
 
         recentLoadingFiles.clear();
         for (MessageObject object : recentLoadingFilesTmp) {
-            if (!object.isRoundVideo() && !object.isVoice()) {
+            if (!object.isRoundVideo() && !object.isVoice() && !FakePasscodeUtils.isHideChat(object.getDialogId(), currentAccount)) {
                 recentLoadingFiles.add(object);
             }
         }
