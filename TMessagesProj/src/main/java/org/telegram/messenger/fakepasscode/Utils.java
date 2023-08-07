@@ -33,6 +33,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.CacheControlActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public class Utils {
 
     public static void clearCache(Runnable callback) {
         Utilities.globalQueue.postRunnable(() -> {
-            for (int a = 0; a < 7; a++) {
+            for (int a = 0; a < 8; a++) {
                 int type = -1;
                 int documentsMusicType = 0;
                 if (a == 0) {
@@ -99,8 +100,10 @@ public class Utils {
                 } else if (a == 4) {
                     type = FileLoader.MEDIA_DIR_AUDIO;
                 } else if (a == 5) {
-                    type = 100;
+                    type = FileLoader.MEDIA_DIR_STORIES;
                 } else if (a == 6) {
+                    type = 100;
+                } else if (a == 7) {
                     type = FileLoader.MEDIA_DIR_CACHE;
                 }
                 if (type == -1) {
@@ -113,7 +116,7 @@ public class Utils {
                     file = FileLoader.checkDirectory(type);
                 }
                 if (file != null) {
-                    Utilities.clearDir(file.getAbsolutePath(), documentsMusicType, Long.MAX_VALUE, false);
+                    CacheControlActivity.cleanDirJava(file.getAbsolutePath(), documentsMusicType, null, x -> {});
                 }
 
                 if (type == FileLoader.MEDIA_DIR_IMAGE || type == FileLoader.MEDIA_DIR_VIDEO) {
@@ -126,29 +129,29 @@ public class Utils {
                     file = FileLoader.checkDirectory(publicDirectoryType);
 
                     if (file != null) {
-                        Utilities.clearDir(file.getAbsolutePath(), documentsMusicType, Long.MAX_VALUE, false);
+                        CacheControlActivity.cleanDirJava(file.getAbsolutePath(), documentsMusicType, null, x -> {});
                     }
                 }
                 if (type == FileLoader.MEDIA_DIR_DOCUMENT) {
                     file = FileLoader.checkDirectory(FileLoader.MEDIA_DIR_FILES);
                     if (file != null) {
-                        Utilities.clearDir(file.getAbsolutePath(), documentsMusicType, Long.MAX_VALUE, false);
+                        CacheControlActivity.cleanDirJava(file.getAbsolutePath(), documentsMusicType, null, x -> {});
                     }
                 }
 
                 file = new File(FileLoader.checkDirectory(FileLoader.MEDIA_DIR_CACHE), "sharing");
-                Utilities.clearDir(file.getAbsolutePath(), 0, Long.MAX_VALUE, true);
+                CacheControlActivity.cleanDirJava(file.getAbsolutePath(), 0, null, x -> {});
 
                 File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File logs = new File(downloads, "logs");
                 if (logs.exists()) {
-                    Utilities.clearDir(logs.getAbsolutePath(), 0, Long.MAX_VALUE, true);
+                    CacheControlActivity.cleanDirJava(logs.getAbsolutePath(), 0, null, x -> {});
                     logs.delete();
                 }
 
                 logs = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "logs");
                 if (logs.exists()) {
-                    Utilities.clearDir(logs.getAbsolutePath(), 0, Long.MAX_VALUE, true);
+                    CacheControlActivity.cleanDirJava(logs.getAbsolutePath(), 0, null, x -> {});
                     logs.delete();
                 }
             }

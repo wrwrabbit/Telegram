@@ -99,9 +99,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.function.Consumer;
@@ -983,6 +983,7 @@ public class NotificationsController extends BaseController {
                 ) {
                     continue;
                 }
+                messageObject.messageText = Utils.fixMessage(messageObject.messageText);
                 if (messageObject.isStoryPush) {
                     long date = messageObject.messageOwner == null ? System.currentTimeMillis() : messageObject.messageOwner.date * 1000L;
                     long dialogId = messageObject.getDialogId();
@@ -3723,7 +3724,7 @@ public class NotificationsController extends BaseController {
     }
 
     private void showOrUpdateNotification(boolean notifyAboutLast) {
-        if (!getUserConfig().isClientActivated() || pushMessages.isEmpty() && storyPushMessages.isEmpty() || !SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) {
+        if (!getUserConfig().isClientActivated() || filteredPushMessages().isEmpty() && storyPushMessages.isEmpty() || !SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) {
             dismissNotification();
             return;
         }
@@ -3798,7 +3799,7 @@ public class NotificationsController extends BaseController {
                 lastMessageObject = new MessageObject(currentAccount, msg, msg.message, name, name, false, false, false, false);
                 lastMessageObject.isStoryPush = true;
             } else {
-                lastMessageObject = pushMessages.get(0);
+                lastMessageObject = filteredPushMessages().get(0);
             }
             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
             int dismissDate = preferences.getInt("dismissDate", 0);
@@ -4854,8 +4855,8 @@ public class NotificationsController extends BaseController {
                         Person.Builder personBuilder = new Person.Builder().setName(personName);
                         if (preview[0] && !DialogObject.isEncryptedDialog(dialogId) && Build.VERSION.SDK_INT >= 28) {
                             File avatar = null;
-                        if ((DialogObject.isUserDialog(dialogId) || isChannel)) {
-                            if (getUserConfig().isAvatarEnabled(dialogId)) {
+                            if ((DialogObject.isUserDialog(dialogId) || isChannel)) {
+                                if (getUserConfig().isAvatarEnabled(dialogId)) {
                                 avatar = avatalFile;
                             }
                             } else {
@@ -4867,15 +4868,15 @@ public class NotificationsController extends BaseController {
                                         getMessagesController().putUser(sender, true);
                                     }
                                 }
-                            if (sender != null && getUserConfig().isAvatarEnabled(sender.id) && sender.photo != null && sender.photo.photo_small != null && sender.photo.photo_small.volume_id != 0 && sender.photo.photo_small.local_id != 0) {
-                                    avatar = getFileLoader().getPathToAttach(sender.photo.photo_small, true);
-                                }
+                                if (sender != null && getUserConfig().isAvatarEnabled(sender.id) && sender.photo != null && sender.photo.photo_small != null && sender.photo.photo_small.volume_id != 0 && sender.photo.photo_small.local_id != 0) {
+                                avatar = getFileLoader().getPathToAttach(sender.photo.photo_small, true);
                             }
-                            loadRoundAvatar(avatar, personBuilder);
                         }
-                        person = personBuilder.build();
-                        personCache.put(uid, person);
+                        loadRoundAvatar(avatar, personBuilder);
                     }
+                    person = personBuilder.build();
+                    personCache.put(uid, person);
+                }
 
 
                     if (!DialogObject.isEncryptedDialog(dialogId)) {

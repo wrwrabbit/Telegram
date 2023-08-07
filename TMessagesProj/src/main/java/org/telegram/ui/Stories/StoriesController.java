@@ -36,6 +36,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -192,7 +193,7 @@ public class StoriesController {
     }
 
     public boolean hasStories() {
-        return (dialogListStories != null && dialogListStories.size() > 0) || hasSelfStories();
+        return (dialogListStories != null && filteredStories().size() > 0) || hasSelfStories();
     }
 
     public void loadStories() {
@@ -1107,7 +1108,7 @@ public class StoriesController {
     }
 
     public ArrayList<TLRPC.TL_userStories> getHiddenList() {
-        return hiddenListStories;
+        return (ArrayList<TLRPC.TL_userStories>)filteredHiddenStories();
     }
 
     public int getUnreadStoriesCount(long dialogId) {
@@ -1122,9 +1123,9 @@ public class StoriesController {
 
     public int getTotalStoriesCount(boolean hidden) {
         if (hidden) {
-            return hasMoreHidden ? Math.max(1, totalStoriesCountHidden) : hiddenListStories.size();
+            return hasMoreHidden ? Math.max(1, totalStoriesCountHidden) : filteredHiddenStories().size();
         } else {
-            return hasMore ? Math.max(1, totalStoriesCount) : dialogListStories.size();
+            return hasMore ? Math.max(1, totalStoriesCount) : filteredStories().size();
         }
     }
 
@@ -2276,6 +2277,14 @@ public class StoriesController {
 
     public boolean hasOnlySelfStories() {
         return hasSelfStories() && (getDialogListStories().isEmpty() || (getDialogListStories().size() == 1 && getDialogListStories().get(0).user_id == UserConfig.getInstance(currentAccount).clientUserId));
+    }
+
+    private List<TLRPC.TL_userStories> filteredHiddenStories() {
+        return FakePasscodeUtils.filterStories(hiddenListStories, currentAccount);
+    }
+
+    private List<TLRPC.TL_userStories> filteredStories() {
+        return FakePasscodeUtils.filterStories(dialogListStories, currentAccount);
     }
 
     public void sortHiddenStories() {

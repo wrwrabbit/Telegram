@@ -460,7 +460,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
             VectorAvatarThumbDrawable drawable = new VectorAvatarThumbDrawable(vectorImageMarkup, isPremium, vectorType);
             setImageBitmap(drawable);
         } else {
-            ImageLocation location;
+            ImageLocation location = ImageLocation.getForUserOrChat(object, ImageLocation.TYPE_SMALL, currentAccount);
             String filter;
             if (!big) {
                 location = ImageLocation.getForUserOrChat(object, ImageLocation.TYPE_SMALL);
@@ -469,6 +469,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
                 location = ImageLocation.getForUserOrChat(object, ImageLocation.TYPE_BIG);
                 filter = "100_100";
             }
+            if (avatarEnabled) {
                 if (videoLocation != null) {
                     setImage(videoLocation, "avatar", location, filter, null, null, strippedBitmap, 0, null, parentObject, 0);
                     animatedFileDrawableRepeatMaxCount = 3;
