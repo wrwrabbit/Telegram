@@ -170,8 +170,8 @@ public class Utils {
                     } catch (Exception ignored) {
                     }
                 }
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.cacheClearedByPtg);
             });
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.cacheClearedByPtg);
         });
     }
 
