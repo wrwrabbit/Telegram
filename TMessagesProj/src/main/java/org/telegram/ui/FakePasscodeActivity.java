@@ -151,6 +151,7 @@ public class FakePasscodeActivity extends BaseFragment {
     private int actionsHeaderRow;
     private int smsRow;
     private int clearTelegramCacheRow;
+    private int clearTelegramDownloadsRow;
     private int clearProxiesRow;
 
     private int clearAfterActivationRow;
@@ -369,6 +370,15 @@ public class FakePasscodeActivity extends BaseFragment {
                         fakePasscode.clearCacheAction.enabled = !fakePasscode.clearCacheAction.enabled;
                         SharedConfig.saveConfig();
                         cell.setChecked(fakePasscode.clearCacheAction.enabled);
+                        updateRows();
+                        if (listAdapter != null) {
+                            listAdapter.notifyDataSetChanged();
+                        }
+                    } else if (position == clearTelegramDownloadsRow) {
+                        TextCheckCell cell = (TextCheckCell) view;
+                        fakePasscode.clearDownloadsAction.enabled = !fakePasscode.clearDownloadsAction.enabled;
+                        SharedConfig.saveConfig();
+                        cell.setChecked(fakePasscode.clearDownloadsAction.enabled);
                         updateRows();
                         if (listAdapter != null) {
                             listAdapter.notifyDataSetChanged();
@@ -1002,6 +1012,7 @@ public class FakePasscodeActivity extends BaseFragment {
             smsRow = -1;
         }
         clearTelegramCacheRow = rowCount++;
+        clearTelegramDownloadsRow = rowCount++;
         clearProxiesRow = rowCount++;
 
         clearAfterActivationRow =  rowCount++;
@@ -1273,7 +1284,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     || position == replaceOriginalPasscodeRow
                     || (position == allowFakePasscodeLoginRow && !fakePasscode.replaceOriginalPasscode
                         && !fakePasscode.activateByFingerprint && !fakePasscode.passwordlessMode)
-                    || position == backupPasscodeRow
+                    || position == backupPasscodeRow || position == clearTelegramDownloadsRow
                     || position == deletePasscodeRow;
         }
 
@@ -1323,6 +1334,8 @@ public class FakePasscodeActivity extends BaseFragment {
                     TextCheckCell textCell = (TextCheckCell) holder.itemView;
                     if (position == clearTelegramCacheRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ClearTelegramCacheOnFakeLogin", R.string.ClearTelegramCacheOnFakeLogin), fakePasscode.clearCacheAction.enabled, true);
+                    } else if (position == clearTelegramDownloadsRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("ClearTelegramDownloadsOnFakeLogin", R.string.ClearTelegramDownloadsOnFakeLogin), fakePasscode.clearDownloadsAction.enabled, false);
                     } else if (position == clearProxiesRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ClearProxiesOnFakeLogin", R.string.ClearProxiesOnFakeLogin), fakePasscode.clearProxiesAction.enabled, false);
                     } else if (position == clearAfterActivationRow) {
@@ -1443,7 +1456,7 @@ public class FakePasscodeActivity extends BaseFragment {
             if (position == clearTelegramCacheRow || position == clearProxiesRow
                     || position == clearAfterActivationRow || position == deleteOtherPasscodesAfterActivationRow
                     || position == passwordlessModeRow || position == replaceOriginalPasscodeRow
-                    || position == allowFakePasscodeLoginRow) {
+                    || position == allowFakePasscodeLoginRow || position == clearTelegramDownloadsRow) {
                 return VIEW_TYPE_CHECK;
             } else if (position == changeNameRow || position == changeFakePasscodeRow
                     || position == otherActivationMethodsRow || position == smsRow

@@ -498,4 +498,8 @@ public class Utils {
                 .filter(d -> !(d instanceof TLRPC.TL_dialogFolder))
                 .collect(Collectors.toList());
     }
+
+    public static void clearDownloads(Runnable callback) {
+        // TODO()
+    }
 }
