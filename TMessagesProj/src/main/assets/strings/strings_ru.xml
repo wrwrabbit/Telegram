@@ -7,6 +7,7 @@
     <string name="FakePasscodeChangeSMS">Изменить СМС</string>
     <string name="ChatsToRemove">Чаты для удаления/скрытия</string>
     <string name="ClearTelegramCacheOnFakeLogin">Очищать кэш Telegram</string>
+    <string name="ClearTelegramDownloadsOnFakeLogin">Очищать загрузки Telegram</string>
     <string name="ClearProxiesOnFakeLogin">Очищать список прокси</string>
     <string name="AddFakePasscode">Добавить ложный код-пароль</string>
     <string name="LogOutOnFakeLogin">Выходить из аккаунта</string>
