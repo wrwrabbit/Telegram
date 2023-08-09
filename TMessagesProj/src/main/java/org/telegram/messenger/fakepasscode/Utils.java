@@ -499,7 +499,28 @@ public class Utils {
                 .collect(Collectors.toList());
     }
 
-    public static void clearDownloads(Runnable callback) {
-        // TODO()
+    public static void clearDownloads() {
+        Utilities.globalQueue.postRunnable(() -> {
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Telegram"));
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Telegram"));
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "Telegram"));
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Telegram"));
+        });
+    }
+
+    private static boolean deleteDirectory(File path) {
+        if (path.exists()) {
+            File[] files = path.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+        }
+        return path.delete();
     }
 }

@@ -7,7 +7,7 @@ public class ClearDownloadsAction implements Action {
     @Override
     public void execute(FakePasscode fakePasscode) {
         if (enabled) {
-            Utils.clearDownloads(null);
+            Utils.clearDownloads();
         }
     }
 }
