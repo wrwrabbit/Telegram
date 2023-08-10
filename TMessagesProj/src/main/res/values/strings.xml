@@ -2481,6 +2481,7 @@
     <string name="ContactSupport">Contact Support</string>
     <string name="ContactSupportInfo">Tell us about any issues; logging out doesn\'t usually help.</string>
     <string name="LogOutTitle">Log Out</string>
+    <string name="MultiLogOutTitle">Log Out From Several Accounts</string>
     <string name="LogOutInfo">Logging out deactivates all Secret Chats.</string>
     <string name="SearchInSettings">Search Settings and FAQ</string>
     <string name="SettingsRecent">Recent searches</string>

@@ -44,6 +44,7 @@ import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.DialogBuilder.MultiLogOutDialogBuilder;
 
 import java.util.ArrayList;
 
@@ -61,6 +62,7 @@ public class LogoutActivity extends BaseFragment {
     private int supportRow;
     private int alternativeSectionRow;
     private int logoutRow;
+    private int multiLogoutRow;
     private int logoutSectionRow;
     private int rowCount;
 
@@ -85,6 +87,11 @@ public class LogoutActivity extends BaseFragment {
         supportRow = rowCount++;
         alternativeSectionRow = rowCount++;
         logoutRow = rowCount++;
+        if (UserConfig.getActivatedAccountsCount() > 1) {
+            multiLogoutRow = rowCount++;
+        } else {
+            multiLogoutRow = -1;
+        }
         logoutSectionRow = rowCount++;
 
         return true;
@@ -152,6 +159,11 @@ public class LogoutActivity extends BaseFragment {
                     return;
                 }
                 showDialog(makeLogOutDialog(getParentActivity(), currentAccount));
+            } else if (position == multiLogoutRow) {
+                if (getParentActivity() == null) {
+                    return;
+                }
+                showDialog(MultiLogOutDialogBuilder.makeMultiLogOutDialog(this));
             }
         });
 
@@ -227,7 +239,10 @@ public class LogoutActivity extends BaseFragment {
                     TextSettingsCell view = (TextSettingsCell) holder.itemView;
                     if (position == logoutRow) {
                         view.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
-                        view.setText(LocaleController.getString("LogOutTitle", R.string.LogOutTitle), false);
+                        view.setText(LocaleController.getString("LogOutTitle", R.string.LogOutTitle), true);
+                    } else if (position == multiLogoutRow) {
+                        view.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
+                        view.setText(LocaleController.getString("MultiLogOutTitle", R.string.MultiLogOutTitle), false);
                     }
                     break;
                 }
@@ -244,7 +259,7 @@ public class LogoutActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == addAccountRow || position == passcodeRow || position == cacheRow || position == phoneRow || position == supportRow || position == logoutRow;
+            return position == addAccountRow || position == passcodeRow || position == cacheRow || position == phoneRow || position == supportRow || position == logoutRow || position == multiLogoutRow;
         }
 
         @Override
@@ -291,7 +306,7 @@ public class LogoutActivity extends BaseFragment {
                 return 1;
             } else if (position == alternativeSectionRow) {
                 return 2;
-            } else if (position == logoutRow) {
+            } else if (position == logoutRow || position == multiLogoutRow) {
                 return 3;
             } else {
                 return 4;
