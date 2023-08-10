@@ -46,6 +46,7 @@ public class FakePasscode {
     public boolean replaceOriginalPasscode;
 
     public ClearCacheAction clearCacheAction = new ClearCacheAction();
+    public ClearDownloadsAction clearDownloadsAction = new ClearDownloadsAction();
     public SmsAction smsAction = new SmsAction();
     public ClearProxiesAction clearProxiesAction = new ClearProxiesAction();
 
@@ -57,7 +58,7 @@ public class FakePasscode {
 
     List<Action> actions()
     {
-        List<Action> result = new ArrayList<>(Arrays.asList(clearCacheAction, smsAction));
+        List<Action> result = new ArrayList<>(Arrays.asList(clearCacheAction, clearDownloadsAction, smsAction));
         result.addAll(accountActions);
         result.add(clearProxiesAction);
         return result;
@@ -163,6 +164,7 @@ public class FakePasscode {
         deleteOtherPasscodesAfterActivation = false;
 
         clearCacheAction = new ClearCacheAction();
+        clearDownloadsAction = new ClearDownloadsAction();
         smsAction = new SmsAction();
         clearProxiesAction = new ClearProxiesAction();
         accountActions.clear();
