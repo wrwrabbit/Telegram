@@ -3695,7 +3695,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     RemoveAfterReadingMessages.delays.putIfAbsent("" + currentAccount, 5 * 1000);
                     AlertsCreator.createScheduleDeleteTimePickerDialog(parentActivity, RemoveAfterReadingMessages.delays.get("" + currentAccount),
                             (notify, delay) -> {
-                                sendMessageInternal(notify, 0, delay);
+                                sendMessageInternal(notify, 0, false, delay);
                                 RemoveAfterReadingMessages.delays.put("" + currentAccount, delay);
                                 RemoveAfterReadingMessages.save();
                             });
