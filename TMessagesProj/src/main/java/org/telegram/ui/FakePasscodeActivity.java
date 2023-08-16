@@ -59,6 +59,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeSerializer;
+import org.telegram.messenger.fakepasscode.SelectionMode;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -404,7 +405,14 @@ public class FakePasscodeActivity extends BaseFragment {
                             fakePasscode.deletePasscodesAfterActivation.setActivated(!fakePasscode.deletePasscodesAfterActivation.isActivated());
                             SharedConfig.saveConfig();
                             boolean enabled = fakePasscode.deletePasscodesAfterActivation.isActivated();
-                            String value = enabled ? LocaleController.getString(R.string.PopupEnabled) : LocaleController.getString(R.string.PopupDisabled);
+                            String value;
+                            if (!enabled) {
+                                value = LocaleController.getString(R.string.PopupDisabled);
+                            } else if (fakePasscode.deletePasscodesAfterActivation.getMode() == SelectionMode.SELECTED) {
+                                value = LocaleController.getString("Selected", R.string.Selected);
+                            } else {
+                                value = LocaleController.getString("ExceptSelected", R.string.ExceptSelected);
+                            }
                             checkCell.setTextAndValueAndCheck(LocaleController.getString("DeleteOtherPasscodesAfterActivation", R.string.DeleteOtherPasscodesAfterActivation), value, enabled, false);
                         } else {
                             presentFragment(new FakePasscodeRemovePasscodesActivity(fakePasscode));
@@ -1446,7 +1454,14 @@ public class FakePasscodeActivity extends BaseFragment {
                     NotificationsCheckCell checkCell = (NotificationsCheckCell) holder.itemView;
                     if (position == deleteOtherPasscodesAfterActivationRow) {
                         boolean enabled = fakePasscode.deletePasscodesAfterActivation.isActivated();
-                        String value = enabled ? LocaleController.getString(R.string.PopupEnabled) : LocaleController.getString(R.string.PopupDisabled);
+                        String value;
+                        if (!enabled) {
+                            value = LocaleController.getString(R.string.PopupDisabled);
+                        } else if (fakePasscode.deletePasscodesAfterActivation.getMode() == SelectionMode.SELECTED) {
+                            value = LocaleController.getString("Selected", R.string.Selected);
+                        } else {
+                            value = LocaleController.getString("ExceptSelected", R.string.ExceptSelected);
+                        }
                         checkCell.setTextAndValueAndCheck(LocaleController.getString("DeleteOtherPasscodesAfterActivation", R.string.DeleteOtherPasscodesAfterActivation), value, enabled, false);
                     }
                     break;

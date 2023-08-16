@@ -5,8 +5,16 @@ import java.util.List;
 
 public class CheckedSetting<Type> {
     private boolean activated = false;
-    private int mode = SelectionMode.SELECTED;
+    private int mode;
     private List<Type> selected = new ArrayList<>();
+
+    public CheckedSetting() {
+        this(SelectionMode.SELECTED);
+    }
+
+    public CheckedSetting(int mode) {
+        this.mode = mode;
+    }
 
     public int getMode() {
         return mode;
