@@ -44,6 +44,8 @@ public class FakePasscode {
     public boolean passwordDisabled;
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
+    @Deprecated
+    public Boolean deleteOtherPasscodesAfterActivation;
     public CheckedSetting<UUID> deletePasscodesAfterActivation = new CheckedSetting<>();
     public boolean replaceOriginalPasscode;
 
@@ -193,6 +195,12 @@ public class FakePasscode {
         if (uuid == null) {
             uuid = UUID.randomUUID();
         }
+        if (deleteOtherPasscodesAfterActivation != null && deleteOtherPasscodesAfterActivation) {
+            deletePasscodesAfterActivation.setActivated(true);
+            deletePasscodesAfterActivation.setMode(SelectionMode.EXCEPT_SELECTED);
+            deletePasscodesAfterActivation.setSelected(Collections.emptyList());
+        }
+        deleteOtherPasscodesAfterActivation = null;
         actions().stream().forEach(Action::migrate);
         if (actionsResult != null) {
             actionsResult.migrate();
