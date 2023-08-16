@@ -27,6 +27,7 @@ import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements AlertsCreator.CheckabeSettingModeAlertDelegate {
@@ -47,12 +48,12 @@ public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements
         this.currentPasscode = currentPasscode;
         fakePasscodes = SharedConfig.fakePasscodes
                 .stream()
-                .filter(code -> !code.passcodeHash.equals(currentPasscode.passcodeHash))
+                .filter(code -> !code.uuid.equals(currentPasscode.uuid))
                 .collect(Collectors.toList());
-        List<String> selectedHashes = currentPasscode.deletePasscodesAfterActivation.getSelected();
-        selectedPasscodes = fakePasscodes
+        List<UUID> selectedPasscodes = currentPasscode.deletePasscodesAfterActivation.getSelected();
+        this.selectedPasscodes = fakePasscodes
                 .stream()
-                .filter(code -> selectedHashes.contains(code.passcodeHash))
+                .filter(code -> selectedPasscodes.contains(code.uuid))
                 .collect(Collectors.toList());
     }
     @Override
@@ -294,7 +295,7 @@ public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements
     }
 
     private void saveCheckedPasscodes(List<FakePasscode> passcodes) {
-        currentPasscode.deletePasscodesAfterActivation.setSelected(passcodes.stream().map(passcode -> passcode.passcodeHash).collect(Collectors.toList()));
+        currentPasscode.deletePasscodesAfterActivation.setSelected(passcodes.stream().map(passcode -> passcode.uuid).collect(Collectors.toList()));
         SharedConfig.saveConfig();
     }
 }

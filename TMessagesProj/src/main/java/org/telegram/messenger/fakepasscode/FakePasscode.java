@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -31,6 +32,7 @@ public class FakePasscode {
         return "ANDROID";
     }
 
+    public UUID uuid;
     public boolean allowLogin = true;
     public String name;
     @FakePasscodeSerializer.Ignore
@@ -42,7 +44,7 @@ public class FakePasscode {
     public boolean passwordDisabled;
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
-    public CheckedSetting<String> deletePasscodesAfterActivation = new CheckedSetting<>();
+    public CheckedSetting<UUID> deletePasscodesAfterActivation = new CheckedSetting<>();
     public boolean replaceOriginalPasscode;
 
     public ClearCacheAction clearCacheAction = new ClearCacheAction();
@@ -125,15 +127,15 @@ public class FakePasscode {
                 int current = -1;
                 for (int i = 0; i < SharedConfig.fakePasscodes.size(); i++) {
                     FakePasscode fakePasscode = SharedConfig.fakePasscodes.get(i);
-                    if (passcodeHash.equals(fakePasscode.passcodeHash)) {
+                    if (uuid.equals(fakePasscode.uuid)) {
                         newFakePasscodes.add(fakePasscode);
                         current = i;
                     } else if (deletePasscodesAfterActivation.getMode() == SelectionMode.SELECTED) {
-                        if (!deletePasscodesAfterActivation.getSelected().contains(fakePasscode.passcodeHash)) {
+                        if (!deletePasscodesAfterActivation.getSelected().contains(fakePasscode.uuid)) {
                             newFakePasscodes.add(fakePasscode);
                         }
                     } else {
-                        if (deletePasscodesAfterActivation.getSelected().contains(fakePasscode.passcodeHash)) {
+                        if (deletePasscodesAfterActivation.getSelected().contains(fakePasscode.uuid)) {
                             newFakePasscodes.add(fakePasscode);
                         }
                     }
@@ -188,6 +190,9 @@ public class FakePasscode {
     }
 
     public void migrate() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+        }
         actions().stream().forEach(Action::migrate);
         if (actionsResult != null) {
             actionsResult.migrate();
