@@ -6489,9 +6489,6 @@ public class AlertsCreator {
                 cell.setChecked(true, true);
                 cells[settings.onScreenLockAction].setChecked(false, true);
                 settings.onScreenLockAction = (Integer) v.getTag();
-                if (onSelectRunnable != null) {
-                    onSelectRunnable.run();
-                }
                 if (settings.onScreenLockAction == 0) {
                     checkbox.setEnabled(false);
                     checkbox.setChecked(false, true);
@@ -6508,6 +6505,9 @@ public class AlertsCreator {
             SharedConfig.setOnScreenLockAction(settings.onScreenLockAction);
             SharedConfig.onScreenLockActionClearCache = settings.onScreenLockActionClearCache;
             SharedConfig.saveConfig();
+            if (onSelectRunnable != null) {
+                onSelectRunnable.run();
+            }
         });
         AlertDialog dialog = builder.create();
         fragment.showDialog(dialog);
