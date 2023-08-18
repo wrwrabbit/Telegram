@@ -17,14 +17,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +37,7 @@ import android.text.Editable;
 import android.text.Html;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -55,10 +59,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RawRes;
 import androidx.annotation.RequiresApi;
 import androidx.core.util.Consumer;
@@ -109,6 +115,7 @@ import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.LanguageSelectActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LoginActivity;
+import org.telegram.ui.NotificationPermissionDialog;
 import org.telegram.ui.NotificationsCustomSettingsActivity;
 import org.telegram.ui.NotificationsSettingsActivity;
 import org.telegram.ui.ProfileNotificationsActivity;
@@ -6443,6 +6450,13 @@ public class AlertsCreator {
                 LocaleController.getString("OnScreenLockActionClose", R.string.OnScreenLockActionClose)
         };
 
+        class Settings {
+            boolean onScreenLockActionClearCache = SharedConfig.onScreenLockActionClearCache;
+            int onScreenLockAction = SharedConfig.onScreenLockAction;
+        }
+        Settings settings = new Settings();
+
+
         AlertDialog.Builder builder = new AlertDialog.Builder(context, resourcesProvider);
         builder.setTitle(LocaleController.getString("OnScreenLockActionTitle", R.string.OnScreenLockActionTitle));
         final LinearLayout linearLayout = new LinearLayout(context);
@@ -6452,12 +6466,11 @@ public class AlertsCreator {
         CheckBoxCell checkbox = new CheckBoxCell(context, 1, resourcesProvider);
         checkbox.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
         checkbox.setBackgroundDrawable(Theme.getSelectorDrawable(false));
-        checkbox.setText(LocaleController.getString("ClearCache", R.string.ClearCache), "", SharedConfig.onScreenLockActionClearCache, false);
-        checkbox.setEnabled(SharedConfig.onScreenLockAction != 0);
+        checkbox.setText(LocaleController.getString("ClearCache", R.string.ClearCache), "", settings.onScreenLockActionClearCache, false);
+        checkbox.setEnabled(settings.onScreenLockAction != 0);
         checkbox.setOnClickListener(v -> {
-            SharedConfig.onScreenLockActionClearCache = !SharedConfig.onScreenLockActionClearCache;
-            SharedConfig.saveConfig();
-            checkbox.setChecked(SharedConfig.onScreenLockActionClearCache, true);
+            settings.onScreenLockActionClearCache = !settings.onScreenLockActionClearCache;
+            checkbox.setChecked(settings.onScreenLockActionClearCache, true);
         });
 
         RadioColorCell[] cells = new RadioColorCell[variants.length];
@@ -6467,34 +6480,35 @@ public class AlertsCreator {
             cell.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
             cell.setTag(a);
             cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
-            cell.setTextAndValue(variants[a], SharedConfig.onScreenLockAction == a);
+            cell.setTextAndValue(variants[a], settings.onScreenLockAction == a);
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
-                if (SharedConfig.onScreenLockAction == (Integer) v.getTag()) {
+                if (settings.onScreenLockAction == (Integer) v.getTag()) {
                     return;
                 }
                 cell.setChecked(true, true);
-                cells[SharedConfig.onScreenLockAction].setChecked(false, true);
-                Integer which = (Integer) v.getTag();
-                SharedConfig.setOnScreenLockAction(which);
-                if (onSelectRunnable != null) {
-                    onSelectRunnable.run();
-                }
-                if (SharedConfig.onScreenLockAction == 0) {
+                cells[settings.onScreenLockAction].setChecked(false, true);
+                settings.onScreenLockAction = (Integer) v.getTag();
+                if (settings.onScreenLockAction == 0) {
                     checkbox.setEnabled(false);
                     checkbox.setChecked(false, true);
-                    SharedConfig.onScreenLockActionClearCache = false;
-                    SharedConfig.saveConfig();
+                    settings.onScreenLockActionClearCache = false;
                 } else if (!checkbox.isEnabled()) {
                     checkbox.setEnabled(true);
                     checkbox.setChecked(true, true);
-                    SharedConfig.onScreenLockActionClearCache = true;
-                    SharedConfig.saveConfig();
+                    settings.onScreenLockActionClearCache = true;
                 }
             });
         }
         linearLayout.addView(checkbox);
-        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (d, w) -> {
+            SharedConfig.setOnScreenLockAction(settings.onScreenLockAction);
+            SharedConfig.onScreenLockActionClearCache = settings.onScreenLockActionClearCache;
+            SharedConfig.saveConfig();
+            if (onSelectRunnable != null) {
+                onSelectRunnable.run();
+            }
+        });
         AlertDialog dialog = builder.create();
         fragment.showDialog(dialog);
         return dialog;
