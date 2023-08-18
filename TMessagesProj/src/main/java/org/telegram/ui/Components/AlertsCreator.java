@@ -6450,6 +6450,13 @@ public class AlertsCreator {
                 LocaleController.getString("OnScreenLockActionClose", R.string.OnScreenLockActionClose)
         };
 
+        class Settings {
+            boolean onScreenLockActionClearCache = SharedConfig.onScreenLockActionClearCache;
+            int onScreenLockAction = SharedConfig.onScreenLockAction;
+        }
+        Settings settings = new Settings();
+
+
         AlertDialog.Builder builder = new AlertDialog.Builder(context, resourcesProvider);
         builder.setTitle(LocaleController.getString("OnScreenLockActionTitle", R.string.OnScreenLockActionTitle));
         final LinearLayout linearLayout = new LinearLayout(context);
@@ -6459,12 +6466,11 @@ public class AlertsCreator {
         CheckBoxCell checkbox = new CheckBoxCell(context, 1, resourcesProvider);
         checkbox.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
         checkbox.setBackgroundDrawable(Theme.getSelectorDrawable(false));
-        checkbox.setText(LocaleController.getString("ClearCache", R.string.ClearCache), "", SharedConfig.onScreenLockActionClearCache, false);
-        checkbox.setEnabled(SharedConfig.onScreenLockAction != 0);
+        checkbox.setText(LocaleController.getString("ClearCache", R.string.ClearCache), "", settings.onScreenLockActionClearCache, false);
+        checkbox.setEnabled(settings.onScreenLockAction != 0);
         checkbox.setOnClickListener(v -> {
-            SharedConfig.onScreenLockActionClearCache = !SharedConfig.onScreenLockActionClearCache;
-            SharedConfig.saveConfig();
-            checkbox.setChecked(SharedConfig.onScreenLockActionClearCache, true);
+            settings.onScreenLockActionClearCache = !settings.onScreenLockActionClearCache;
+            checkbox.setChecked(settings.onScreenLockActionClearCache, true);
         });
 
         RadioColorCell[] cells = new RadioColorCell[variants.length];
@@ -6474,34 +6480,35 @@ public class AlertsCreator {
             cell.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
             cell.setTag(a);
             cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
-            cell.setTextAndValue(variants[a], SharedConfig.onScreenLockAction == a);
+            cell.setTextAndValue(variants[a], settings.onScreenLockAction == a);
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
-                if (SharedConfig.onScreenLockAction == (Integer) v.getTag()) {
+                if (settings.onScreenLockAction == (Integer) v.getTag()) {
                     return;
                 }
                 cell.setChecked(true, true);
-                cells[SharedConfig.onScreenLockAction].setChecked(false, true);
-                Integer which = (Integer) v.getTag();
-                SharedConfig.setOnScreenLockAction(which);
-                if (onSelectRunnable != null) {
-                    onSelectRunnable.run();
-                }
-                if (SharedConfig.onScreenLockAction == 0) {
+                cells[settings.onScreenLockAction].setChecked(false, true);
+                settings.onScreenLockAction = (Integer) v.getTag();
+                if (settings.onScreenLockAction == 0) {
                     checkbox.setEnabled(false);
                     checkbox.setChecked(false, true);
-                    SharedConfig.onScreenLockActionClearCache = false;
-                    SharedConfig.saveConfig();
+                    settings.onScreenLockActionClearCache = false;
                 } else if (!checkbox.isEnabled()) {
                     checkbox.setEnabled(true);
                     checkbox.setChecked(true, true);
-                    SharedConfig.onScreenLockActionClearCache = true;
-                    SharedConfig.saveConfig();
+                    settings.onScreenLockActionClearCache = true;
                 }
             });
         }
         linearLayout.addView(checkbox);
-        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (d, w) -> {
+            SharedConfig.setOnScreenLockAction(settings.onScreenLockAction);
+            SharedConfig.onScreenLockActionClearCache = settings.onScreenLockActionClearCache;
+            SharedConfig.saveConfig();
+            if (onSelectRunnable != null) {
+                onSelectRunnable.run();
+            }
+        });
         AlertDialog dialog = builder.create();
         fragment.showDialog(dialog);
         return dialog;
