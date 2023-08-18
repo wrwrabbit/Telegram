@@ -4134,7 +4134,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 TLRPC.ChatFull chatFull = fullChats.valueAt(i);
                 if (chatFull != null && chatFull.default_send_as != null &&
                         (chatFull.default_send_as.chat_id == -did || chatFull.default_send_as.channel_id == -did
-                        || chatFull.default_send_as.user_id == did)) {
+                                || chatFull.default_send_as.user_id == did)) {
                     chatFull.default_send_as = null;
                 }
             }
