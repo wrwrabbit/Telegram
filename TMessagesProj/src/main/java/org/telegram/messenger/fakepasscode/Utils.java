@@ -119,6 +119,11 @@ public class Utils {
                     CacheControlActivity.cleanDirJava(file.getAbsolutePath(), documentsMusicType, null, x -> {});
                 }
 
+                if (type == 100) {
+                    File drafts = new File(FileLoader.checkDirectory(FileLoader.MEDIA_DIR_CACHE), "drafts");
+                    CacheControlActivity.cleanDirJava(drafts.getAbsolutePath(), documentsMusicType, null, x -> {});
+                }
+
                 if (type == FileLoader.MEDIA_DIR_IMAGE || type == FileLoader.MEDIA_DIR_VIDEO) {
                     int publicDirectoryType;
                     if (type == FileLoader.MEDIA_DIR_IMAGE) {
