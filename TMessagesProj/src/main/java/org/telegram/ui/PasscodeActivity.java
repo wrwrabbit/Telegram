@@ -104,6 +104,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PasscodeActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -477,11 +478,13 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_FAKE_PASSCODE_SETTINGS, SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow), false));
                     } else if (position == addFakePasscodeRow) {
                         FakePasscode fakePasscode = new FakePasscode();
+                        fakePasscode.uuid = UUID.randomUUID();
                         fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
                         fakePasscode.autoAddAccountHidings();
                         presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_SETUP_FAKE_PASSCODE, fakePasscode, true));
                     } else if (position == restoreFakePasscodeRow) {
                         FakePasscode fakePasscode = new FakePasscode();
+                        fakePasscode.uuid = UUID.randomUUID();
                         fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
                         fakePasscode.autoAddAccountHidings();
                         presentFragment(new FakePasscodeRestoreActivity());

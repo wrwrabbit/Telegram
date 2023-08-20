@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -31,6 +32,7 @@ public class FakePasscode {
         return "ANDROID";
     }
 
+    public UUID uuid;
     public boolean allowLogin = true;
     public String name;
     @FakePasscodeSerializer.Ignore
@@ -42,7 +44,9 @@ public class FakePasscode {
     public boolean passwordDisabled;
     public boolean activateByFingerprint;
     public boolean clearAfterActivation;
-    public boolean deleteOtherPasscodesAfterActivation;
+    @Deprecated
+    public Boolean deleteOtherPasscodesAfterActivation;
+    public CheckedSetting<UUID> deletePasscodesAfterActivation = new CheckedSetting<>();
     public boolean replaceOriginalPasscode;
 
     public ClearCacheAction clearCacheAction = new ClearCacheAction();
@@ -120,9 +124,25 @@ public class FakePasscode {
                     }
                 }
             }
-            if (deleteOtherPasscodesAfterActivation) {
-                List<FakePasscode> newFakePasscodes = new ArrayList<>(Collections.singletonList(this));
-                SharedConfig.fakePasscodeActivatedIndex = 0;
+            if (deletePasscodesAfterActivation.isActivated()) {
+                List<FakePasscode> newFakePasscodes = new ArrayList<>();
+                int current = -1;
+                for (int i = 0; i < SharedConfig.fakePasscodes.size(); i++) {
+                    FakePasscode fakePasscode = SharedConfig.fakePasscodes.get(i);
+                    if (uuid.equals(fakePasscode.uuid)) {
+                        newFakePasscodes.add(fakePasscode);
+                        current = i;
+                    } else if (deletePasscodesAfterActivation.getMode() == SelectionMode.SELECTED) {
+                        if (!deletePasscodesAfterActivation.getSelected().contains(fakePasscode.uuid)) {
+                            newFakePasscodes.add(fakePasscode);
+                        }
+                    } else {
+                        if (deletePasscodesAfterActivation.getSelected().contains(fakePasscode.uuid)) {
+                            newFakePasscodes.add(fakePasscode);
+                        }
+                    }
+                }
+                SharedConfig.fakePasscodeActivatedIndex = current;
                 SharedConfig.fakePasscodes = newFakePasscodes;
             }
             if (clearAfterActivation) {
@@ -161,7 +181,7 @@ public class FakePasscode {
         activationMessage = "";
         badTriesToActivate = null;
         clearAfterActivation = false;
-        deleteOtherPasscodesAfterActivation = false;
+        deletePasscodesAfterActivation = new CheckedSetting<>();
 
         clearCacheAction = new ClearCacheAction();
         clearDownloadsAction = new ClearDownloadsAction();
@@ -172,6 +192,15 @@ public class FakePasscode {
     }
 
     public void migrate() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+        }
+        if (deleteOtherPasscodesAfterActivation != null && deleteOtherPasscodesAfterActivation) {
+            deletePasscodesAfterActivation.setActivated(true);
+            deletePasscodesAfterActivation.setMode(SelectionMode.EXCEPT_SELECTED);
+            deletePasscodesAfterActivation.setSelected(Collections.emptyList());
+        }
+        deleteOtherPasscodesAfterActivation = null;
         actions().stream().forEach(Action::migrate);
         if (actionsResult != null) {
             actionsResult.migrate();
