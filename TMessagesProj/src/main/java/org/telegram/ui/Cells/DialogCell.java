@@ -5019,7 +5019,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
             CharSequence currentTitle = DialogCell.this.nameLayout != null ? DialogCell.this.nameLayout.getText() : null;
             String currentTitleStr = currentTitle != null ? currentTitle.toString() : null;
-            if (!Objects.equals(UserConfig.getChatTitleOverride(currentAccount, currentDialogId), currentTitleStr)) {
+            if (!Objects.equals(UserConfig.getChatTitleOverride(currentAccount, currentDialogId, currentTitleStr), currentTitleStr)) {
                 return true;
             }
             int messageHash = message == null ? 0 : message.getId() + message.hashCode();
