@@ -221,7 +221,7 @@ public class Utils {
     }
 
     public static long getChatOrUserId(long id, Optional<Integer> account) {
-        if (DialogObject.isEncryptedDialog(id) || !account.isPresent()) {
+        if (!DialogObject.isEncryptedDialog(id) || !account.isPresent()) {
             return id;
         } else {
             MessagesController controller = MessagesController.getInstance(account.get());
