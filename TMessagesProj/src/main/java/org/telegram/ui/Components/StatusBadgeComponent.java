@@ -28,12 +28,12 @@ public class StatusBadgeComponent {
     }
 
     public Drawable updateDrawable(TLRPC.User user, TLRPC.Chat chat, int colorFilter, boolean animated) {
-        if (chat != null && chat.verified) {
+        if (chat != null && chat.isVerified()) {
             statusDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new CombinedDrawable(Theme.dialogs_verifiedDrawable, Theme.dialogs_verifiedCheckDrawable) : verifiedDrawable), animated);
             statusDrawable.setColor(null);
             return statusDrawable;
         }
-        if (user != null && user.verified) {
+        if (user != null && user.isVerified()) {
             statusDrawable.set(verifiedDrawable = (verifiedDrawable == null ? new CombinedDrawable(Theme.dialogs_verifiedDrawable, Theme.dialogs_verifiedCheckDrawable) : verifiedDrawable), animated);
             statusDrawable.setColor(null);
         } else if (user != null && user.emoji_status instanceof TLRPC.TL_emojiStatus) {

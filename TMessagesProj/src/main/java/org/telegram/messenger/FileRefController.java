@@ -910,6 +910,7 @@ public class FileRefController extends BaseController {
                     getMediaDataController().processLoadedMenuBots(bots, bots.hash, (int) (System.currentTimeMillis() / 1000), false);
                 }
             } else if (response instanceof TLRPC.TL_help_appUpdate) {
+                /*
                 TLRPC.TL_help_appUpdate appUpdate = (TLRPC.TL_help_appUpdate) response;
                 try {
                     SharedConfig.pendingAppUpdate = appUpdate;
@@ -943,6 +944,7 @@ public class FileRefController extends BaseController {
                 if (result == null) {
                     result = getFileReference(appUpdate.sticker, requester.location, needReplacement, locationReplacement);
                 }
+                */
             } else if (response instanceof TLRPC.WebPage) {
                 result = getFileReference((TLRPC.WebPage) response, requester.location, needReplacement, locationReplacement);
             } else if (response instanceof TLRPC.TL_account_wallPapers) {
