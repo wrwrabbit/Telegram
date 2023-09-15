@@ -221,11 +221,12 @@ public class Utils {
     }
 
     public static long getChatOrUserId(long id, Optional<Integer> account) {
-        if (id >= Integer.MIN_VALUE || !account.isPresent()) {
+        if (DialogObject.isEncryptedDialog(id) || !account.isPresent()) {
             return id;
         } else {
             MessagesController controller = MessagesController.getInstance(account.get());
-            return controller.getEncryptedChat((int) (id >> 32)).user_id;
+            TLRPC.EncryptedChat encryptedChat = controller.getEncryptedChat((int) (id >> 32));
+            return encryptedChat.user_id;
         }
     }
 
