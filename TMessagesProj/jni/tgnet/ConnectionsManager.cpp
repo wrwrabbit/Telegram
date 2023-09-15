@@ -1045,7 +1045,7 @@ void ConnectionsManager::onConnectionDataReceived(Connection *connection, Native
                 }
             } else {
                 if (delegate != nullptr) {
-                    delegate->onUnparsedMessageReceived(0, data, connection->getConnectionType(), instanceNum);
+                    delegate->onUnparsedMessageReceived(messageId, data, connection->getConnectionType(), instanceNum);
                 }
             }
         } else {
@@ -1203,7 +1203,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
             if (innerMessage->unparsedBody != nullptr) {
                 if (LOGS_ENABLED) DEBUG_D("inner message %d id 0x%" PRIx64 " is unparsed", a, innerMessageId);
                 if (delegate != nullptr) {
-                    delegate->onUnparsedMessageReceived(0, innerMessage->unparsedBody.get(), connection->getConnectionType(), instanceNum);
+                    delegate->onUnparsedMessageReceived(innerMessageId, innerMessage->unparsedBody.get(), connection->getConnectionType(), instanceNum);
                 }
             } else {
                 if (LOGS_ENABLED) DEBUG_D("inner message %d id 0x%" PRIx64 " process", a, innerMessageId);
@@ -1384,11 +1384,11 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                                 request->startTime = 0;
                                 request->startTimeMillis = 0;
                                 request->minStartTime = (int32_t) (getCurrentTimeMonotonicMillis() / 1000 + 2);
-                            } else if (error->error_code == 420) {
+                            } else if (error->error_code == 420 && (request->requestFlags & RequestFlagIgnoreFloodWait) == 0 && error->error_message.find("STORY_SEND_FLOOD") == std::string::npos) {
                                 int32_t waitTime = 2;
                                 static std::string floodWait = "FLOOD_WAIT_";
                                 static std::string slowmodeWait = "SLOWMODE_WAIT_";
-                                discardResponse = (request->requestFlags & RequestFlagIgnoreFloodWait) == 0;
+                                discardResponse = true;
                                 if (error->error_message.find(floodWait) != std::string::npos) {
                                     std::string num = error->error_message.substr(floodWait.size(), error->error_message.size() - floodWait.size());
                                     waitTime = atoi(num.c_str());
@@ -1718,7 +1718,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                 NativeByteBuffer *data = BuffersStorage::getInstance().getFreeBuffer(message->getObjectSize());
                 message->serializeToStream(data);
                 data->position(0);
-                delegate->onUnparsedMessageReceived(0, data, connection->getConnectionType(), instanceNum);
+                delegate->onUnparsedMessageReceived(messageId, data, connection->getConnectionType(), instanceNum);
                 data->reuse();
             }
         }
@@ -3135,7 +3135,9 @@ void ConnectionsManager::updateDcSettings(uint32_t dcNum, bool workaround, bool 
         if (!workaround && updatingDcSettingsAgain && updatingDcSettingsAgainDcNum == dcNum) {
             updatingDcSettingsAgain = false;
             for (auto & datacenter : datacenters) {
-                datacenter.second->resetInitVersion();
+                if (datacenter.first == dcNum) {
+                    datacenter.second->resetInitVersion();
+                }
             }
             updateDcSettings(updatingDcSettingsAgainDcNum, false, false);
             return;
