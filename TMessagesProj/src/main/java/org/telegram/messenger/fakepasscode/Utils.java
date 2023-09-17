@@ -226,7 +226,11 @@ public class Utils {
         } else {
             MessagesController controller = MessagesController.getInstance(account.get());
             TLRPC.EncryptedChat encryptedChat = controller.getEncryptedChat((int) (id >> 32));
-            return encryptedChat.user_id;
+            if (encryptedChat != null) {
+                return encryptedChat.user_id;
+            } else {
+                return id;
+            }
         }
     }
 
