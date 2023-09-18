@@ -192,6 +192,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     private Path thumbPath;
     private SpoilerEffect thumbSpoiler = new SpoilerEffect();
+    private boolean drawForwardIcon;
 
     public void setMoving(boolean moving) {
         this.moving = moving;
@@ -956,6 +957,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         drawNameLock = false;
         drawVerified = false;
         drawPremium = false;
+        drawForwardIcon = false;
         drawScam = 0;
         drawPinBackground = false;
         thumbsCount = 0;
@@ -1447,7 +1449,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     }
                                 } else if (message.messageOwner.media instanceof TLRPC.TL_messageMediaPhoto && message.messageOwner.media.photo instanceof TLRPC.TL_photoEmpty && message.messageOwner.media.ttl_seconds != 0) {
                                     messageString = LocaleController.getString("AttachPhotoExpired", R.string.AttachPhotoExpired);
-                                } else if (message.messageOwner.media instanceof TLRPC.TL_messageMediaDocument && message.messageOwner.media.document instanceof TLRPC.TL_documentEmpty && message.messageOwner.media.ttl_seconds != 0) {
+                                } else if (message.messageOwner.media instanceof TLRPC.TL_messageMediaDocument && (message.messageOwner.media.document instanceof TLRPC.TL_documentEmpty || message.messageOwner.media.document == null) && message.messageOwner.media.ttl_seconds != 0) {
                                     messageString = LocaleController.getString("AttachVideoExpired", R.string.AttachVideoExpired);
                                 } else if (getCaptionMessage() != null) {
                                     MessageObject message = getCaptionMessage();
@@ -1548,7 +1550,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     }
                                 }
                                 if (message.isReplyToStory()) {
-                                    SpannableStringBuilder builder = SpannableStringBuilder.valueOf(messageString);
+                                    SpannableStringBuilder builder = new SpannableStringBuilder(messageString);
                                     builder.insert(0, "d ");
                                     builder.setSpan(new ColoredImageSpan(ContextCompat.getDrawable(getContext(), R.drawable.msg_mini_replystory).mutate()), 0, 1, 0);
                                     messageString = builder;
@@ -1581,6 +1583,15 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                             messageString = s;
                                         }
                                     }
+                                }
+                                if (message.isForwarded()) {
+                                    drawForwardIcon = true;
+                                    SpannableStringBuilder builder = new SpannableStringBuilder(messageString);
+                                    builder.insert(0, "d ");
+                                    ColoredImageSpan coloredImageSpan = new ColoredImageSpan(ContextCompat.getDrawable(getContext(), R.drawable.mini_forwarded).mutate());
+                                    coloredImageSpan.setAlpha(0.9f);
+                                    builder.setSpan(coloredImageSpan, 0, 1, 0);
+                                    messageString = builder;
                                 }
                             }
                         }
@@ -2360,7 +2371,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         float x1 = layout.getPrimaryHorizontal(spanOffset);
                         float x2 = layout.getPrimaryHorizontal(spanOffset + 1);
                         int offset = (int) Math.ceil(Math.min(x1, x2));
-                        if (offset != 0) {
+                        if (offset != 0 && !drawForwardIcon) {
                             offset += AndroidUtilities.dp(3);
                         }
                         for (int i = 0; i < thumbsCount; ++i) {
@@ -3836,7 +3847,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         }
 
         if (avatarImage.getVisible()) {
-            needInvalidate = drawAvatarOverlays(canvas);
+            if (drawAvatarOverlays(canvas)) {
+                needInvalidate = true;
+            }
         }
 
         if (rightFragmentOpenedProgress > 0 && currentDialogFolderId == 0) {
@@ -3846,9 +3859,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             } else {
                 drawCounterMuted = chat != null && chat.forum && forumTopic == null ? !hasUnmutedTopics : dialogMuted;
             }
-            int countLeftLocal = (int) (storyParams.originalAvatarRect.left + avatarImage.getImageWidth() - countWidth - AndroidUtilities.dp(5f));
-            int countLeftOld =  (int) (storyParams.originalAvatarRect.left + avatarImage.getImageWidth() - countWidthOld - AndroidUtilities.dp(5f));
-            int countTop = (int) (avatarImage.getImageY() + avatarImage.getImageHeight() - AndroidUtilities.dp(22));
+            int countLeftLocal = (int) (storyParams.originalAvatarRect.left + storyParams.originalAvatarRect.width() - countWidth - AndroidUtilities.dp(5f));
+            int countLeftOld =  (int) (storyParams.originalAvatarRect.left + storyParams.originalAvatarRect.width() - countWidthOld - AndroidUtilities.dp(5f));
+            int countTop = (int) (avatarImage.getImageY() + storyParams.originalAvatarRect.height() - AndroidUtilities.dp(22));
             drawCounter(canvas, drawCounterMuted, countTop, countLeftLocal, countLeftOld, rightFragmentOpenedProgress, true);
         }
 
@@ -4016,6 +4029,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 if (avatarImage.updateThumbShaderMatrix()) {
                     if (avatarImage.thumbShader != null) {
                         timerPaint.setShader(avatarImage.thumbShader);
+                    } else if (avatarImage.staticThumbShader != null) {
+                        timerPaint.setShader(avatarImage.staticThumbShader);
                     }
                 } else {
                     timerPaint.setShader(null);
@@ -4901,7 +4916,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (rightFragmentOpenedProgress == 0 && storyParams.checkOnTouchEvent(ev, this)) {
+        if (rightFragmentOpenedProgress == 0 && !isTopic && storyParams.checkOnTouchEvent(ev, this)) {
             return true;
         }
         return super.onInterceptTouchEvent(ev);
@@ -4909,7 +4924,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
+        if (!isTopic && ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
             storyParams.checkOnTouchEvent(ev, this);
         }
         return super.dispatchTouchEvent(ev);
@@ -4917,7 +4932,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (rightFragmentOpenedProgress == 0 && storyParams.checkOnTouchEvent(event, this)) {
+        if (rightFragmentOpenedProgress == 0 && !isTopic && storyParams.checkOnTouchEvent(event, this)) {
             return true;
         }
         if (delegate == null || delegate.canClickButtonInside()) {

@@ -49,8 +49,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.BuildVars;
@@ -1145,7 +1143,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
                 cacheRemovedTooltip.setInfoText(LocaleController.formatString("CacheWasCleared", R.string.CacheWasCleared, AndroidUtilities.formatFileSize(finalClearedSize)));
                 cacheRemovedTooltip.showWithAction(0, UndoView.ACTION_CACHE_WAS_CLEARED, null, null);
             }, 150);
-            MediaDataController.getInstance(currentAccount).chekAllMedia(true);
+            MediaDataController.getInstance(currentAccount).checkAllMedia(true);
 
             loadDialogEntities();
 
@@ -2621,7 +2619,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
                     } else {
                         selected = CacheControlActivity.this.selected[item.index];
                     }
-                    cell.setText(getCheckBoxTitle(item.headerName, percents[item.index < 0 ? 8 : item.index], item.index < 0), AndroidUtilities.formatFileSize(item.size), selected, item.index < 0 ? !collapsed : !item.last);
+                    cell.setText(getCheckBoxTitle(item.headerName, percents[item.index < 0 ? 9 : item.index], item.index < 0), AndroidUtilities.formatFileSize(item.size), selected, item.index < 0 ? !collapsed : !item.last);
                     cell.setCheckBoxColor(item.colorKey, Theme.key_windowBackgroundWhiteGrayIcon, Theme.key_checkboxCheck);
                     cell.setCollapsed(item.index < 0 ? collapsed : null);
                     if (item.index == -1) {

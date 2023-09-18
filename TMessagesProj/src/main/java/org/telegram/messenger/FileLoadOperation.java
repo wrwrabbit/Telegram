@@ -74,9 +74,18 @@ public class FileLoadOperation {
     public boolean checkPrefixPreloadFinished() {
         if (preloadPrefixSize > 0 && downloadedBytes > preloadPrefixSize) {
             long minStart = Long.MAX_VALUE;
-            for (int b = 0; b < notLoadedBytesRanges.size(); b++) {
-                Range range = notLoadedBytesRanges.get(b);
-                minStart = Math.min(minStart, range.start);
+            ArrayList<Range> array = notLoadedBytesRanges;
+            if (array == null) {
+                return true;
+            }
+            try {
+                for (int b = 0; b < array.size(); b++) {
+                    Range range = array.get(b);
+                    minStart = Math.min(minStart, range.start);
+                }
+            } catch (Throwable e) {
+                FileLog.e(e);
+                return true;
             }
             if (minStart > preloadPrefixSize) {
                 return true;
@@ -260,6 +269,7 @@ public class FileLoadOperation {
         void didChangedLoadProgress(FileLoadOperation operation, long uploadedSize, long totalSize);
         void saveFilePath(FilePathDatabase.PathData pathSaveData, File cacheFileFinal);
         boolean hasAnotherRefOnFile(String path);
+        boolean isLocallyCreatedFile(String path);
     }
 
     private void updateParams() {
@@ -939,7 +949,7 @@ public class FileLoadOperation {
             }
         }
         boolean finalFileExist = cacheFileFinal.exists();
-        if (finalFileExist && (parentObject instanceof TLRPC.TL_theme || (totalBytesCount != 0 && !ungzip && totalBytesCount != cacheFileFinal.length()))) {
+        if (finalFileExist && (parentObject instanceof TLRPC.TL_theme || (totalBytesCount != 0 && !ungzip && totalBytesCount != cacheFileFinal.length())) && !delegate.isLocallyCreatedFile(cacheFileFinal.toString())) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("debug_loading: delete existing file cause file size mismatch " + cacheFileFinal.getName() + " totalSize=" + totalBytesCount + " existingFileSize=" + cacheFileFinal.length());
             }

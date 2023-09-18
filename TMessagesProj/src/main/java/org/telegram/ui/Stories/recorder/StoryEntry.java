@@ -28,11 +28,13 @@ import org.telegram.messenger.FileRefController;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
+import org.telegram.messenger.video.MediaCodecVideoConvertor;
 import org.telegram.tgnet.AbstractSerializedData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
@@ -57,10 +59,27 @@ public class StoryEntry extends IStoryPart {
     public boolean isDraft;
     public long draftDate;
 
+    public long editStoryPeerId;
     public int editStoryId;
     public boolean isEdit;
+    public boolean isEditSaved;
     public double fileDuration = -1;
     public boolean editedMedia, editedCaption, editedPrivacy;
+    public ArrayList<TLRPC.MediaArea> editedMediaAreas;
+
+    public boolean isError;
+    public TLRPC.TL_error error;
+
+    public String audioPath;
+    public String audioAuthor, audioTitle;
+    public long audioDuration;
+    public long audioOffset;
+    public float audioLeft, audioRight = 1;
+    public float audioVolume = 1;
+
+    public long editDocumentId;
+    public long editPhotoId;
+    public long editExpireDate;
 
     public boolean isVideo;
     public File file;
@@ -81,6 +100,9 @@ public class StoryEntry extends IStoryPart {
 
     public int partsMaxId = 1;
     public final ArrayList<Part> parts = new ArrayList<>();
+
+    public TLRPC.InputPeer peer;
+
     public static class Part extends IStoryPart {
         public File file;
         public boolean fileDeletable;
@@ -120,10 +142,11 @@ public class StoryEntry extends IStoryPart {
     public int gradientTopColor, gradientBottomColor;
 
     public CharSequence caption;
+    public boolean captionEntitiesAllowed = true;
     public StoryPrivacyBottomSheet.StoryPrivacy privacy;
     public final ArrayList<TLRPC.InputPrivacyRule> privacyRules = new ArrayList<>();
 
-    public boolean pinned;
+    public boolean pinned = true;
     public boolean allowScreenshots;
 
     public int period = 86400;
@@ -139,6 +162,8 @@ public class StoryEntry extends IStoryPart {
 
     // paint
     public File paintFile;
+    public File paintBlurFile;
+    public File paintEntitiesFile;
     public long averageDuration = 5000;
     public ArrayList<VideoEditedInfo.MediaEntity> mediaEntities;
     public List<TLRPC.InputDocument> stickers;
@@ -155,6 +180,9 @@ public class StoryEntry extends IStoryPart {
         if (isVideo) {
             return true;
         }
+        if (audioPath != null) {
+            return true;
+        }
         if (mediaEntities != null && !mediaEntities.isEmpty()) {
             for (int i = 0; i < mediaEntities.size(); ++i) {
                 VideoEditedInfo.MediaEntity entity = mediaEntities.get(i);
@@ -162,7 +190,7 @@ public class StoryEntry extends IStoryPart {
                     if (isAnimated(entity.document, entity.text)) {
                         return true;
                     }
-                } else if (entity.type == VideoEditedInfo.MediaEntity.TYPE_TEXT && entity.entities != null && !entity.entities.isEmpty()) {
+                } else if ((entity.type == VideoEditedInfo.MediaEntity.TYPE_TEXT/* || entity.type == VideoEditedInfo.MediaEntity.TYPE_LOCATION*/) && entity.entities != null && !entity.entities.isEmpty()) {
                     for (int j = 0; j < entity.entities.size(); ++j) {
                         VideoEditedInfo.EmojiEntity e = entity.entities.get(j);
                         if (isAnimated(e.document, e.documentAbsolutePath)) {
@@ -177,18 +205,17 @@ public class StoryEntry extends IStoryPart {
 
     private boolean isAnimated(TLRPC.Document document, String path) {
         return document != null && (
-            MessageObject.isAnimatedStickerDocument(document) ||
+            "video/webm".equals(document.mime_type) || "video/mp4".equals(document.mime_type) ||
             MessageObject.isAnimatedStickerDocument(document, true) && RLottieDrawable.getFramesCount(path, null) > 1
         );
     }
 
-
-    public void buildPhoto(File dest) {
-
+    public Bitmap buildBitmap(float scale, Bitmap mainFileBitmap) {
         Matrix tempMatrix = new Matrix();
 
         Paint bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
-        Bitmap finalBitmap = Bitmap.createBitmap(resultWidth, resultHeight, Bitmap.Config.ARGB_8888);
+        final int w = (int) (resultWidth * scale), h = (int) (resultHeight * scale);
+        Bitmap finalBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(finalBitmap);
 
         Paint gradientPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -196,49 +223,82 @@ public class StoryEntry extends IStoryPart {
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), gradientPaint);
 
         tempMatrix.set(matrix);
-        File file = filterFile != null ? filterFile : this.file;
-        if (file != null) {
-            try {
-                Bitmap fileBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(file.getPath(), opts), resultWidth, resultHeight, true);
-                final float scale = (float) width / fileBitmap.getWidth();
-                tempMatrix.preScale(scale, scale);
-                canvas.drawBitmap(fileBitmap, tempMatrix, bitmapPaint);
-                fileBitmap.recycle();
-            } catch (Exception e) {
-                FileLog.e(e);
+        if (mainFileBitmap != null) {
+            final float s = (float) width / mainFileBitmap.getWidth();
+            tempMatrix.preScale(s, s);
+            tempMatrix.postScale(scale, scale);
+            canvas.drawBitmap(mainFileBitmap, tempMatrix, bitmapPaint);
+        } else {
+            File file = filterFile != null ? filterFile : this.file;
+            if (file != null) {
+                try {
+                    Bitmap fileBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(file.getPath(), opts), w, h, true);
+                    final float s = (float) width / fileBitmap.getWidth();
+                    tempMatrix.preScale(s, s);
+                    tempMatrix.postScale(scale, scale);
+                    canvas.drawBitmap(fileBitmap, tempMatrix, bitmapPaint);
+                    fileBitmap.recycle();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+
+            for (int i = 0; i < parts.size(); ++i) {
+                try {
+                    final Part part = parts.get(i);
+                    Bitmap fileBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(part.file.getPath(), opts), w, h, false);
+                    final float s = (float) part.width / fileBitmap.getWidth();
+                    tempMatrix.set(part.matrix);
+                    tempMatrix.preScale(s, s);
+                    tempMatrix.postScale(scale, scale);
+                    canvas.drawBitmap(fileBitmap, tempMatrix, bitmapPaint);
+                    fileBitmap.recycle();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+
+            if (paintFile != null) {
+                try {
+                    Bitmap paintBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(paintFile.getPath(), opts), w, h, false);
+                    canvas.save();
+                    float s = resultWidth / (float) paintBitmap.getWidth();
+                    canvas.scale(s, s);
+                    tempMatrix.postScale(scale, scale);
+                    canvas.drawBitmap(paintBitmap, 0, 0, bitmapPaint);
+                    canvas.restore();
+                    paintBitmap.recycle();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+
+            if (paintEntitiesFile != null) {
+                try {
+                    Bitmap paintBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(paintEntitiesFile.getPath(), opts), w, h, false);
+                    canvas.save();
+                    float s = resultWidth / (float) paintBitmap.getWidth();
+                    canvas.scale(s, s);
+                    tempMatrix.postScale(scale, scale);
+                    canvas.drawBitmap(paintBitmap, 0, 0, bitmapPaint);
+                    canvas.restore();
+                    paintBitmap.recycle();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
             }
         }
 
-        for (int i = 0; i < parts.size(); ++i) {
-            try {
-                final Part part = parts.get(i);
-                Bitmap fileBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(part.file.getPath(), opts), resultWidth, resultHeight, false);
-                final float scale = (float) part.width / fileBitmap.getWidth();
-                tempMatrix.set(part.matrix);
-                tempMatrix.preScale(scale, scale);
-                canvas.drawBitmap(fileBitmap, tempMatrix, bitmapPaint);
-                fileBitmap.recycle();
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
+        return finalBitmap;
+    }
 
-        if (paintFile != null) {
-            try {
-                Bitmap paintBitmap = getScaledBitmap(opts -> BitmapFactory.decodeFile(paintFile.getPath(), opts), resultWidth, resultHeight, false);
-                canvas.save();
-                float scale = resultWidth / (float) paintBitmap.getWidth();
-                canvas.scale(scale, scale);
-                canvas.drawBitmap(paintBitmap, 0, 0, bitmapPaint);
-                canvas.restore();
-                paintBitmap.recycle();
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
+    public void buildPhoto(File dest) {
+        final Bitmap finalBitmap = buildBitmap(1f, null);
+        if (thumbBitmap != null) {
+            thumbBitmap.recycle();
+            thumbBitmap = null;
         }
-
         thumbBitmap = Bitmap.createScaledBitmap(finalBitmap, 40, 22, true);
-
         try {
             FileOutputStream stream = new FileOutputStream(dest);
             finalBitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream);
@@ -246,7 +306,6 @@ public class StoryEntry extends IStoryPart {
         } catch (Exception e) {
             FileLog.e(e);
         }
-
         finalBitmap.recycle();
     }
 
@@ -295,9 +354,9 @@ public class StoryEntry extends IStoryPart {
             shader.setLocalMatrix(matrix);
             canvas.drawRect(0, 0, w, h, paint);
 
-            if (allowBlur && blurRadius > 0) {
-                Utilities.stackBlurBitmap(scaledBitmap, blurRadius);
-            }
+//            if (allowBlur && blurRadius > 0) {
+//                Utilities.stackBlurBitmap(scaledBitmap, blurRadius);
+//            }
 
             return scaledBitmap;
         } else {
@@ -409,6 +468,10 @@ public class StoryEntry extends IStoryPart {
             paintFile.delete();
             paintFile = null;
         }
+        if (paintEntitiesFile != null) {
+            paintEntitiesFile.delete();
+            paintEntitiesFile = null;
+        }
     }
 
     public void destroy(boolean draft) {
@@ -501,6 +564,8 @@ public class StoryEntry extends IStoryPart {
         } catch (Exception ignore) {}
         entry.setupMatrix();
         entry.checkStickers(storyItem);
+        entry.editedMediaAreas = storyItem.media_areas;
+        entry.peer = MessagesController.getInstance(entry.currentAccount).getInputPeer(storyItem.dialogId);
         return entry;
     }
 
@@ -726,6 +791,7 @@ public class StoryEntry extends IStoryPart {
                     info.estimatedSize = (long) (params[AnimatedFileDrawable.PARAM_NUM_AUDIO_FRAME_SIZE] + params[AnimatedFileDrawable.PARAM_NUM_DURATION] / 1000.0f * encoderBitrate / 8);
                     info.estimatedSize = Math.max(file.length(), info.estimatedSize);
                     info.filterState = filterState;
+                    info.blurPath = paintBlurFile == null ? null : paintBlurFile.getPath();
                 } else {
                     if (filterFile != null) {
                         info.originalPath = filterFile.getAbsolutePath();
@@ -733,8 +799,11 @@ public class StoryEntry extends IStoryPart {
                         info.originalPath = videoPath;
                     }
                     info.isPhoto = true;
-                    info.originalDuration = duration = averageDuration;
-                    info.estimatedDuration = info.originalDuration;
+                    if (audioPath != null) {
+                        info.estimatedDuration = info.originalDuration = duration = (long) ((audioRight - audioLeft) * audioDuration);
+                    } else {
+                        info.estimatedDuration = info.originalDuration = duration = averageDuration;
+                    }
                     info.startTime = -1;
                     info.endTime = -1;
                     info.muted = true;
@@ -758,6 +827,20 @@ public class StoryEntry extends IStoryPart {
 
                 info.hdrInfo = hdrInfo;
                 info.parts = parts;
+
+                info.mixedSoundInfos.clear();
+                if (audioPath != null) {
+                    final MediaCodecVideoConvertor.MixedSoundInfo soundInfo = new MediaCodecVideoConvertor.MixedSoundInfo(audioPath);
+                    soundInfo.volume = audioVolume;
+                    soundInfo.audioOffset = (long) (audioLeft * audioDuration) * 1000L;
+                    if (isVideo) {
+                        soundInfo.startTime = (long) (audioOffset - left * duration) * 1000L;
+                    } else {
+                        soundInfo.startTime = 0;
+                    }
+                    soundInfo.duration = (long) ((audioRight - audioLeft) * audioDuration) * 1000L;
+                    info.mixedSoundInfos.add(soundInfo);
+                }
 
                 whenDone.run(info);
             });
@@ -799,9 +882,10 @@ public class StoryEntry extends IStoryPart {
         public float minlum;
 
         public int getHDRType() {
-            if (maxlum <= 0 && minlum <= 0) {
-                return 0;
-            } else if (colorStandard == MediaFormat.COLOR_STANDARD_BT2020) {
+//            if (maxlum <= 0 && minlum <= 0) {
+//                return 0;
+//            } else
+            if (colorStandard == MediaFormat.COLOR_STANDARD_BT2020) {
                 if (colorTransfer == MediaFormat.COLOR_TRANSFER_HLG) {
                     return 1;
                 } else if (colorTransfer == MediaFormat.COLOR_TRANSFER_ST2084) {

@@ -1326,6 +1326,50 @@ public class DatabaseMigrationHelper {
             version = 127;
         }
 
+        if (version == 127) {
+            database.executeFast("ALTER TABLE stories ADD COLUMN custom_params BLOB default NULL").stepThis().dispose();
+
+            database.executeFast("PRAGMA user_version = 128").stepThis().dispose();
+            version = 128;
+        }
+
+        if (version == 128) {
+            database.executeFast("ALTER TABLE story_drafts ADD COLUMN type INTEGER default 0").stepThis().dispose();
+
+            database.executeFast("PRAGMA user_version = 129").stepThis().dispose();
+            version = 129;
+        }
+
+        if (version == 129) {
+            database.executeFast("CREATE INDEX IF NOT EXISTS stickers_featured_emoji_index ON stickers_featured(emoji);").stepThis().dispose();
+
+            database.executeFast("PRAGMA user_version = 130").stepThis().dispose();
+            version = 130;
+        }
+
+        if (version == 130) {
+            database.executeFast("DROP TABLE archived_stories").stepThis().dispose();
+            database.executeFast("ALTER TABLE profile_stories ADD COLUMN type INTEGER default 0").stepThis().dispose();
+
+            database.executeFast("PRAGMA user_version = 131").stepThis().dispose();
+            version = 131;
+        }
+
+        if (version == 131) {
+            database.executeFast("ALTER TABLE stories DROP COLUMN local_path").stepThis().dispose();
+            database.executeFast("ALTER TABLE stories DROP COLUMN local_thumb_path").stepThis().dispose();
+
+            database.executeFast("PRAGMA user_version = 132").stepThis().dispose();
+            version = 132;
+        }
+
+        if (version == 132) {
+            database.executeFast("CREATE TABLE unconfirmed_auth (data BLOB);").stepThis().dispose();
+
+            database.executeFast("PRAGMA user_version = 133").stepThis().dispose();
+            version = 133;
+        }
+
         return version;
     }
 

@@ -31,6 +31,8 @@ import android.view.View;
 
 import androidx.annotation.Keep;
 
+import com.google.android.exoplayer2.util.Log;
+
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.AnimatedFileDrawable;
@@ -51,6 +53,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
 
     List<ImageReceiver> preloadReceivers;
     private boolean allowCrossfadeWithImage = true;
+    private boolean allowDrawWhileCacheGenerating;
 
     public boolean updateThumbShaderMatrix() {
         if (currentThumbDrawable != null && thumbShader != null) {
@@ -74,6 +77,16 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
 
     public Drawable getMediaDrawable() {
         return currentMediaDrawable;
+    }
+
+    public void updateStaticDrawableThump(Bitmap bitmap) {
+        staticThumbShader = null;
+        roundPaint.setShader(null);
+        setStaticDrawable(new BitmapDrawable(bitmap));
+    }
+
+    public void setAllowDrawWhileCacheGenerating(boolean allow) {
+        allowDrawWhileCacheGenerating = allow;
     }
 
     public interface ImageReceiverDelegate {
@@ -112,6 +125,10 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
         public BitmapHolder(Bitmap b) {
             bitmap = b;
             recycleOnRelease = true;
+        }
+
+        public String getKey() {
+            return key;
         }
 
         public int getWidth() {
@@ -2250,6 +2267,10 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
         return currentImageDrawable != null || currentMediaDrawable != null || staticThumbDrawable instanceof VectorAvatarThumbDrawable;
     }
 
+    public boolean hasNotThumbOrOnlyStaticThumb() {
+        return currentImageDrawable != null || currentMediaDrawable != null || staticThumbDrawable instanceof VectorAvatarThumbDrawable || (staticThumbDrawable != null && !(staticThumbDrawable instanceof AvatarDrawable) && currentImageKey == null && currentMediaKey == null);
+    }
+
     public boolean hasStaticThumb() {
         return staticThumbDrawable != null;
     }
@@ -2822,6 +2843,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
             fileDrawable.setAutoRepeat(autoRepeat);
             fileDrawable.setAutoRepeatCount(autoRepeatCount);
             fileDrawable.setAutoRepeatTimeout(autoRepeatTimeout);
+            fileDrawable.setAllowDrawFramesWhileCacheGenerating(allowDrawWhileCacheGenerating);
             animationReadySent = false;
         }
         invalidate();
@@ -3078,7 +3100,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
     public void setFileLoadingPriority(int fileLoadingPriority) {
         if (this.fileLoadingPriority != fileLoadingPriority) {
             this.fileLoadingPriority = fileLoadingPriority;
-            if (attachedToWindow) {
+            if (attachedToWindow && hasImageSet()) {
                 ImageLoader.getInstance().changeFileLoadingPriorityForImageReceiver(this);
             }
         }
