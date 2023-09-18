@@ -417,12 +417,7 @@ public class ActionBar extends FrameLayout {
         if (titleTextView[i] != null) {
             return;
         }
-        titleTextView[i] = new SimpleTextView(getContext()) {
-            @Override
-            public void setAlpha(float alpha) {
-                super.setAlpha(alpha);
-            }
-        };
+        titleTextView[i] = new SimpleTextView(getContext());
         titleTextView[i].setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
         if (titleColorToSet != 0) {
             titleTextView[i].setTextColor(titleColorToSet);
@@ -1226,8 +1221,8 @@ public class ActionBar extends FrameLayout {
             if (searchFieldIsVisible && !this.isSearchFieldVisible) {
                 menuWidth = MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST);
                 menu.measure(menuWidth, actionBarHeightSpec);
-                int itemsWidth = menu.getItemsMeasuredWidth();
-                menuWidth = MeasureSpec.makeMeasureSpec(width - AndroidUtilities.dp(AndroidUtilities.isTablet() ? 74 : 66) + menu.getItemsMeasuredWidth(), MeasureSpec.EXACTLY);
+                int itemsWidth = menu.getItemsMeasuredWidth(true);
+                menuWidth = MeasureSpec.makeMeasureSpec(width - AndroidUtilities.dp(AndroidUtilities.isTablet() ? 74 : 66) + menu.getItemsMeasuredWidth(true), MeasureSpec.EXACTLY);
                 if (!isMenuOffsetSuppressed) {
                     menu.translateXItems(-itemsWidth);
                 }

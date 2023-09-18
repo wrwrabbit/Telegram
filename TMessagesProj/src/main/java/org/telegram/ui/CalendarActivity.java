@@ -163,7 +163,7 @@ public class CalendarActivity extends BaseFragment implements NotificationCenter
         if (calendarType == TYPE_PROFILE_STORIES) {
             storiesList = MessagesController.getInstance(currentAccount).getStoriesController().getStoriesList(dialogId, StoriesController.StoriesList.TYPE_PINNED);
         } else if (calendarType == TYPE_ARCHIVED_STORIES) {
-            storiesList = MessagesController.getInstance(currentAccount).getStoriesController().getStoriesList(getUserConfig().clientUserId, StoriesController.StoriesList.TYPE_ARCHIVE);
+            storiesList = MessagesController.getInstance(currentAccount).getStoriesController().getStoriesList(dialogId, StoriesController.StoriesList.TYPE_ARCHIVE);
         }
         if (storiesList != null) {
             storiesPlaceProvider = new StoryViewer.PlaceProvider() {
@@ -194,7 +194,7 @@ public class CalendarActivity extends BaseFragment implements NotificationCenter
 
                                 holder.storyImage = imageReceiver;
                                 if (storiesPlaceDrawAbove == null) {
-                                    storiesPlaceDrawAbove = (canvas, bounds, alpha) -> {
+                                    storiesPlaceDrawAbove = (canvas, bounds, alpha, opening) -> {
                                         blackoutPaint.setAlpha((int) (80 * alpha));
                                         float r = AndroidUtilities.lerp(0, Math.min(bounds.width(), bounds.height()) / 2f, alpha);
                                         canvas.drawRoundRect(bounds, r, r, blackoutPaint);

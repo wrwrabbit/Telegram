@@ -20,8 +20,6 @@ import android.text.TextPaint;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Components.EditTextBoldCursor;
 
-import java.util.Arrays;
-
 public class EditTextOutline extends EditTextBoldCursor {
 
     private Canvas mCanvas = new Canvas();
@@ -34,9 +32,8 @@ public class EditTextOutline extends EditTextBoldCursor {
     private int mFrameColor;
     private Path path = new Path();
 
-    public boolean betterFraming;
-
     private RectF[] lines;
+    public RectF framePadding;
     private boolean isFrameDirty;
 
     public EditTextOutline(Context context) {
@@ -161,9 +158,7 @@ public class EditTextOutline extends EditTextBoldCursor {
         }
         if (mFrameColor != 0) {
             canvas.save();
-            if (betterFraming) {
-                canvas.translate(getPaddingLeft(), getPaddingTop());
-            }
+            canvas.translate(getPaddingLeft(), getPaddingTop());
             paint.setColor(mFrameColor);
             Layout layout = getLayout();
             if (layout == null) {
@@ -183,16 +178,11 @@ public class EditTextOutline extends EditTextBoldCursor {
                     lines[i].set(layout.getLineLeft(i), layout.getLineTop(i), layout.getLineRight(i), layout.getLineBottom(i));
 
                     if (lines[i].width() > dp(1)) {
-                        if (betterFraming) {
-                            lines[i].inset(-getTextSize() / 3f, 0);
-                            lines[i].top += AndroidUtilities.dpf2(1.2f);
-                            lines[i].bottom += AndroidUtilities.dpf2(1);
-                            lines[i].left = Math.max(-getPaddingLeft(), lines[i].left);
-                            lines[i].right = Math.min(getWidth() - getPaddingLeft(), lines[i].right);
-                        } else {
-                            lines[i].right += dp(32);
-                            lines[i].bottom += dp(6);
-                        }
+                        lines[i].inset(-getTextSize() / 3f, 0);
+                        lines[i].top += AndroidUtilities.dpf2(1.2f);
+                        lines[i].bottom += AndroidUtilities.dpf2(1);
+                        lines[i].left = Math.max(-getPaddingLeft(), lines[i].left);
+                        lines[i].right = Math.min(getWidth() - getPaddingLeft(), lines[i].right);
                     } else {
                         lines[i].left = lines[i].right;
                     }
@@ -201,16 +191,24 @@ public class EditTextOutline extends EditTextBoldCursor {
                         lines[i - 1].bottom = lines[i].top;
                     }
                 }
+                if (framePadding == null) {
+                    framePadding = new RectF();
+                }
+                framePadding.left = getMeasuredWidth();
+                framePadding.top = getMeasuredHeight();
+                framePadding.bottom = 0;
+                framePadding.right = 0;
+                for (int i = 0; i < lines.length; ++i) {
+                    framePadding.left = Math.min(framePadding.left, getPaddingLeft() + lines[i].left);
+                    framePadding.top = Math.min(framePadding.top, getPaddingTop() + lines[i].top);
+                    framePadding.right = Math.max(framePadding.right, getPaddingLeft() + lines[i].right);
+                    framePadding.bottom = Math.max(framePadding.bottom, getPaddingTop() + lines[i].bottom);
+                }
+                framePadding.right = getMeasuredWidth() - framePadding.right;
+                framePadding.bottom = getMeasuredHeight() - framePadding.bottom;
             }
             path.rewind();
-            float h = getHeight();
-            for (int i = 0; i < lines.length; ++i) {
-                if (lines[i].width() == 0) {
-                    continue;
-                }
-                h = lines[i].bottom - lines[i].top;
-            }
-            float r = Math.min(h / 3f, dp(16)), mr = r * 1.5f;
+            float r = getTextSize() / 3f, mr = r * 1.5f;
             for (int i = 1; i < lines.length; ++i) {
                 RectF above = lines[i - 1];
                 RectF line = lines[i];
@@ -251,6 +249,8 @@ public class EditTextOutline extends EditTextBoldCursor {
             setFrameRoundRadius(r);
             canvas.drawPath(path, paint);
             canvas.restore();
+        } else {
+            framePadding = null;
         }
         super.onDraw(canvas);
     }

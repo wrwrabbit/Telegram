@@ -56,6 +56,7 @@ import androidx.core.graphics.ColorUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -194,7 +195,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         this.blurredBackground = blurBackground;
     }
 
-    private boolean supportsNativeBlur() {
+    protected boolean supportsNativeBlur() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && LaunchActivity.systemBlurEnabled;
     }
 
@@ -271,10 +272,10 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         super(context, R.style.TransparentDialog);
         this.resourcesProvider = resourcesProvider;
 
-        blurredNativeBackground = supportsNativeBlur() && progressViewStyle == ALERT_TYPE_MESSAGE;
         backgroundColor = getThemedColor(Theme.key_dialogBackground);
         final boolean isDark = AndroidUtilities.computePerceivedBrightness(backgroundColor) < 0.721f;
-        blurredBackground = blurredNativeBackground || !supportsNativeBlur() && SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH && isDark;
+        blurredNativeBackground = supportsNativeBlur() && progressViewStyle == ALERT_TYPE_MESSAGE;
+        blurredBackground = (blurredNativeBackground || !supportsNativeBlur() && SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) && isDark;
 
         backgroundPaddings = new Rect();
         if (progressStyle != ALERT_TYPE_SPINNER || blurredBackground) {
@@ -304,10 +305,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         shownAt = System.currentTimeMillis();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    protected View inflateContent(boolean setContent) {
         LinearLayout containerView = new LinearLayout(getContext()) {
 
             private boolean inLayout;
@@ -593,7 +591,9 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             }
         }
         containerView.setFitsSystemWindows(Build.VERSION.SDK_INT >= 21);
-        setContentView(containerView);
+        if (setContent) {
+            setContentView(containerView);
+        }
 
         final boolean hasButtons = positiveButtonText != null || negativeButtonText != null || neutralButtonText != null;
 
@@ -1110,6 +1110,13 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
 
         window.setAttributes(params);
 
+        return containerView;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        inflateContent(true);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
     }
 
@@ -1463,7 +1470,11 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         }
 
         public Builder(Context context, int progressViewStyle, Theme.ResourcesProvider resourcesProvider) {
-            alertDialog = new AlertDialog(context, progressViewStyle, resourcesProvider);
+            alertDialog = createAlertDialog(context, progressViewStyle, resourcesProvider);
+        }
+
+        protected AlertDialog createAlertDialog(Context context, int progressViewStyle, Theme.ResourcesProvider resourcesProvider) {
+            return new AlertDialog(context, progressViewStyle, resourcesProvider);
         }
 
         public Context getContext() {

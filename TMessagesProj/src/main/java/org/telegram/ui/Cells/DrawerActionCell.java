@@ -8,11 +8,15 @@
 
 package org.telegram.ui.Cells;
 
+import static org.telegram.ui.PremiumPreviewFragment.applyNewSpan;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.text.SpannableStringBuilder;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -22,22 +26,28 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedTextView;
+import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieImageView;
+import org.telegram.ui.FilterCreateActivity;
 
 import java.util.Set;
 
 public class DrawerActionCell extends FrameLayout {
 
-    private ImageView imageView;
+    private BackupImageView imageView;
     private TextView textView;
     private int currentId;
     private RectF rect = new RectF();
@@ -45,28 +55,18 @@ public class DrawerActionCell extends FrameLayout {
     public DrawerActionCell(Context context) {
         super(context);
 
-        imageView = new ImageView(context);
+        imageView = new BackupImageView(context);
         imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chats_menuItemIcon), PorterDuff.Mode.SRC_IN));
 
         textView = new TextView(context);
         textView.setTextColor(Theme.getColor(Theme.key_chats_menuItemText));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         textView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
-        textView.setGravity(Gravity.CENTER_VERTICAL);
-        toggleRTL(true);
+        textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+        addView(imageView, LayoutHelper.createFrame(24, 24, Gravity.LEFT | Gravity.TOP, 19, 12, 0, 0));
+        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP, 72, 0, 16, 0));
 
         setWillNotDraw(false);
-    }
-
-    private boolean wasRTL;
-
-    public void toggleRTL(boolean force) {
-        if (wasRTL != LocaleController.isRTL || force) {
-            wasRTL = LocaleController.isRTL;
-            removeAllViews();
-            addView(imageView, LayoutHelper.createFrame(24, 24, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 0 : 19, 12, LocaleController.isRTL ? 19 : 0, 0));
-            addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 16 : 72, 0, LocaleController.isRTL ? 72 : 16, 0));
-        }
     }
 
     @Override
@@ -79,7 +79,7 @@ public class DrawerActionCell extends FrameLayout {
                     || !FakePasscodeUtils.isFakePasscodeActivated() && UserConfig.getInstance(UserConfig.selectedAccount).showSecuritySuggestions) {
                 int countTop = AndroidUtilities.dp(12.5f);
                 int countWidth = AndroidUtilities.dp(9);
-                int countLeft = LocaleController.isRTL ? countWidth + AndroidUtilities.dp(25) : getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
+                int countLeft = getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
 
                 int x = countLeft - AndroidUtilities.dp(5.5f);
                 rect.set(x, countTop, x + countWidth + AndroidUtilities.dp(14), countTop + AndroidUtilities.dp(23));
@@ -106,7 +106,6 @@ public class DrawerActionCell extends FrameLayout {
     }
 
     public void setTextAndIcon(int id, String text, int resId) {
-        toggleRTL(false);
         currentId = id;
         try {
             textView.setText(text);
@@ -125,7 +124,7 @@ public class DrawerActionCell extends FrameLayout {
         }
     }
 
-    public ImageView getImageView() {
+    public BackupImageView getImageView() {
         return imageView;
     }
 
@@ -137,5 +136,33 @@ public class DrawerActionCell extends FrameLayout {
         info.addAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
         info.setText(textView.getText());
         info.setClassName(TextView.class.getName());
+    }
+
+    public void setBot(TLRPC.TL_attachMenuBot bot) {
+        currentId = (int) bot.bot_id;
+        try {
+            if (bot.side_menu_disclaimer_needed) {
+                textView.setText(applyNewSpan(bot.short_name));
+            } else {
+                textView.setText(bot.short_name);
+            }
+            TLRPC.TL_attachMenuBotIcon botIcon = MediaDataController.getSideMenuBotIcon(bot);
+            if (botIcon != null) {
+                imageView.setImage(ImageLocation.getForDocument(botIcon.icon), "24_24", (Drawable) null, bot);
+            } else {
+                imageView.setImageResource(R.drawable.msg_bot);
+            }
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
+    }
+
+    public static CharSequence applyNewSpan(String str) {
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(str);
+        spannableStringBuilder.append("  d");
+        FilterCreateActivity.NewSpan span = new FilterCreateActivity.NewSpan(10);
+        span.setColor(Theme.getColor(Theme.key_premiumGradient1));
+        spannableStringBuilder.setSpan(span, spannableStringBuilder.length() - 1, spannableStringBuilder.length(), 0);
+        return spannableStringBuilder;
     }
 }
