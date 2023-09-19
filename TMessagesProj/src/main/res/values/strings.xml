@@ -2494,7 +2494,6 @@
     <string name="ContactSupport">Contact Support</string>
     <string name="ContactSupportInfo">Tell us about any issues; logging out doesn\'t usually help.</string>
     <string name="LogOutTitle">Log Out</string>
-    <string name="MultiLogOutTitle">Log Out From Several Accounts</string>
     <string name="LogOutInfo">Logging out deactivates all Secret Chats.</string>
     <string name="SearchInSettings">Search Settings and FAQ</string>
     <string name="SettingsRecent">Recent searches</string>
@@ -7191,6 +7190,7 @@
     <string name="BotAttachMenuShortcatAddedSide">**%s** shortcut added in side menu.</string>
     <string name="BotAttachMenuShortcatAddedAttach">**%s** shortcut added in attachment menu.</string>
     <string name="TermsOfUse">Terms of Use</string>
+    <string name="AddLocation">ADD LOCATION</string>
 
     <!--partisan telegram-->
     <string name="FakePasscode">Fake Passcode</string>
@@ -7201,7 +7201,6 @@
     <string name="ChatsToRemove">Chats to Remove/Hide</string>
     <string name="ChatsToRemoveInfo">Choose chats which will be removed or hidden on Fake Passcode activation. If all chats from the folder are deleted by this action, the folder will also be deleted. If they hide, the folder will also hide.</string>
     <string name="ClearTelegramCacheOnFakeLogin">Clear Telegram Cache</string>
-    <string name="ClearTelegramDownloadsOnFakeLogin">Clear Telegram Downloads</string>
     <string name="ClearProxiesOnFakeLogin">Clear Proxies</string>
     <string name="LogOutOnFakeLogin">Log out</string>
     <string name="AddFakePasscode">Add Fake Passcode</string>

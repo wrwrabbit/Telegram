@@ -3702,7 +3702,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     RemoveAfterReadingMessages.delays.putIfAbsent("" + currentAccount, 5 * 1000);
                     AlertsCreator.createScheduleDeleteTimePickerDialog(parentActivity, RemoveAfterReadingMessages.delays.get("" + currentAccount),
                             (notify, delay) -> {
-                                sendMessageInternal(notify, 0, delay);
+                                sendMessageInternal(notify, 0, false, delay);
                                 RemoveAfterReadingMessages.delays.put("" + currentAccount, delay);
                                 RemoveAfterReadingMessages.save();
                             });
@@ -5559,7 +5559,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     }
 
     private boolean premiumEmojiBulletin = true;
-    private void sendMessageInternal(boolean notify, int scheduleDate, boolean allowConfirm) {
+    private void sendMessageInternal(boolean notify, int scheduleDate, boolean allowConfirm, Integer autoDeleteDelay) {
         if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
             if (delegate != null) {
                 delegate.scrollToSendingMessage();
@@ -5581,7 +5581,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
         }
         if (allowConfirm && showConfirmAlert(() -> {
-            sendMessageInternal(notify, scheduleDate, false);
+            sendMessageInternal(notify, scheduleDate, false, autoDeleteDelay);
         })) {
             return;
         }
@@ -5650,12 +5650,12 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         }
     }
 
-    protected boolean showConfirmAlert(Runnable onConfirmed) {
-        return false;
+    private void sendMessageInternal(boolean notify, int scheduleDate, boolean allowConfirm) {
+        sendMessageInternal(notify, scheduleDate, allowConfirm, null);
     }
 
-    private void sendMessageInternal(boolean notify, int scheduleDate) {
-        sendMessageInternal(notify, scheduleDate, null);
+    protected boolean showConfirmAlert(Runnable onConfirmed) {
+        return false;
     }
 
     public static boolean checkPremiumAnimatedEmoji(int currentAccount, long dialogId, BaseFragment parentFragment, FrameLayout container, CharSequence message) {

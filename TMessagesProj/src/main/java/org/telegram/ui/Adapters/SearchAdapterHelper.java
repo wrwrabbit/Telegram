@@ -225,13 +225,13 @@ public class SearchAdapterHelper {
                                         chat = chatsMap.get(peer.channel_id);
                                     }
                                     if (chat != null) {
-                                        if (!allowChats || canAddGroupsOnly && !ChatObject.canAddBotsToChat(chat) || !allowGlobalResults && ChatObject.isNotInChat(chat) || !filter(chat) || FakePasscodeUtils.isHideChat(-chat.id, currentAccount)) {
+                                        if (!allowChats || canAddGroupsOnly && !ChatObject.canAddBotsToChat(chat) || !allowGlobalResults && ChatObject.isNotInChat(chat) || !filter(chat)  || FakePasscodeUtils.isHideChat(-chat.id, currentAccount)) {
                                             continue;
                                         }
                                         globalSearch.add(chat);
                                         globalSearchMap.put(-chat.id, chat);
                                     } else if (user != null) {
-                                        if (canAddGroupsOnly || !allowBots && user.bot || !allowSelf && user.self || !allowGlobalResults && b == 1 && !user.contact || !filter(user) || FakePasscodeUtils.isHideChat(-chat.id, currentAccount)) {
+                                        if (canAddGroupsOnly || !allowBots && user.bot || !allowSelf && user.self || !allowGlobalResults && b == 1 && !user.contact || !filter(user)  || FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                                             continue;
                                         }
                                         globalSearch.add(user);
@@ -258,7 +258,7 @@ public class SearchAdapterHelper {
                                         localServerSearch.add(chat);
                                         globalSearchMap.put(-chat.id, chat);
                                     } else if (user != null) {
-                                        if (canAddGroupsOnly || !allowBots && user.bot || !allowSelf && user.self || user.id == exceptDialogId || !filter(user) FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
+                                        if (canAddGroupsOnly || !allowBots && user.bot || !allowSelf && user.self || user.id == exceptDialogId || !filter(user) || FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                                             continue;
                                         }
                                         localServerSearch.add(user);

@@ -1044,7 +1044,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                         }
                     }
                 }
-                items.add(item = ItemInner.asType(TYPE_CONTACTS, selectedType == TYPE_CONTACTS, excludedContacts.size()));
+                items.add(item = ItemInner.asType(TYPE_CONTACTS, selectedType == TYPE_CONTACTS, FakePasscodeUtils.filterDialogIds(excludedContacts, currentAccount).size()));
                 if (excludedContacts.size() == 1) {
                     item.user = MessagesController.getInstance(currentAccount).getUser(excludedContacts.get(0));
                 }
