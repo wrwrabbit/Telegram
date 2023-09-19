@@ -175,8 +175,8 @@ public class Utils {
                     } catch (Exception ignored) {
                     }
                 }
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.cacheClearedByPtg);
             });
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.cacheClearedByPtg);
         });
     }
 
@@ -507,5 +507,30 @@ public class Utils {
         return Stream.concat(controller.getDialogs(0).stream(), controller.getDialogs(1).stream())
                 .filter(d -> !(d instanceof TLRPC.TL_dialogFolder))
                 .collect(Collectors.toList());
+    }
+
+    public static void clearDownloads() {
+        Utilities.globalQueue.postRunnable(() -> {
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Telegram"));
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Telegram"));
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "Telegram"));
+            deleteDirectory(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Telegram"));
+        });
+    }
+
+    private static boolean deleteDirectory(File path) {
+        if (path.exists()) {
+            File[] files = path.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+        }
+        return path.delete();
     }
 }
