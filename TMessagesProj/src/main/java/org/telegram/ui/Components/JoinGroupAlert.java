@@ -119,9 +119,9 @@ public class JoinGroupAlert extends BottomSheet {
             about = chatFull != null ? chatFull.about : null;
             participants_count = Math.max(currentChat.participants_count, chatFull != null ? chatFull.participants_count : 0);
             avatarImageView.setForUserOrChat(currentChat, avatarDrawable, currentChat);
-            verified = currentChat.verified;
-            fake = currentChat.fake;
-            scam = currentChat.scam;
+            verified = currentChat.isVerified();
+            fake = currentChat.isFake();
+            scam = currentChat.isScam();
         }
 
         SimpleTextView simpleTextView = new SimpleTextView(context);

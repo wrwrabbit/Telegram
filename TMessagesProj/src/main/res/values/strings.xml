@@ -7190,6 +7190,8 @@
     <string name="BotAttachMenuShortcatAddedSide">**%s** shortcut added in side menu.</string>
     <string name="BotAttachMenuShortcatAddedAttach">**%s** shortcut added in attachment menu.</string>
     <string name="TermsOfUse">Terms of Use</string>
+    <string name="AddLocation">ADD LOCATION</string>
+
     <!--partisan telegram-->
     <string name="FakePasscode">Fake Passcode</string>
     <string name="ChangeFakePasscode">Change Fake Passcode</string>

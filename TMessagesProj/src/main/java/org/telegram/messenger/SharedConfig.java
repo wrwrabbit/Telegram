@@ -1063,23 +1063,8 @@ public class SharedConfig {
                 : pendingPtgAppUpdate.version.greater(AppVersion.getCurrentVersion());
     }
 
-    public static boolean setNewAppVersionAvailable(TLRPC.TL_help_appUpdate update) {
-        String updateVersionString = null;
-        int versionCode = 0;
-        try {
-            PackageInfo packageInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            versionCode = packageInfo.versionCode;
-            updateVersionString = packageInfo.versionName;
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        if (versionCode == 0) {
-            versionCode = BuildVars.BUILD_VERSION;
-        }
-        if (updateVersionString == null) {
-            updateVersionString = BuildVars.BUILD_VERSION_STRING;
-        }
-        if (update.version == null || versionBiggerOrEqual(updateVersionString, update.version)) {
+    public static boolean setNewAppVersionAvailable(UpdateData data) {
+        if (data == null || AppVersion.getCurrentVersion().greaterOrEquals(data.version)) {
             return false;
         }
         pendingPtgAppUpdate = data;
