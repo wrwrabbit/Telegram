@@ -53,6 +53,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -442,6 +443,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
     public float getPhotoVideoOptionsAlpha(float progress) {
+        if (isArchivedOnlyStoriesView()) {
+            return 0;
+        }
         float alpha = 0;
         if (mediaPages[1] != null && (mediaPages[1].selectedType == TAB_PHOTOVIDEO || mediaPages[1].selectedType == TAB_STORIES || mediaPages[1].selectedType == TAB_ARCHIVED_STORIES))
             alpha += progress;
@@ -1014,7 +1018,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     mediaPages[0].listView.getLocationInWindow(coords);
                     object.animatingImageViewYOffset = -coords[1];
                     object.imageReceiver = imageReceiver;
-                    object.allowTakeAnimation = false;
+                    object.allowTakeAnimation = true;
                     object.radius = object.imageReceiver.getRoundRadius();
                     object.thumb = object.imageReceiver.getBitmapSafe();
                     object.parentView.getLocationInWindow(coords);
@@ -1433,7 +1437,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         calendarDrawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
         photoVideoOptionsItem.setImageDrawable(calendarDrawable);
         photoVideoOptionsItem.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        actionBar.addView(photoVideoOptionsItem, LayoutHelper.createFrame(48, 56, Gravity.RIGHT | Gravity.BOTTOM));
+        if (!isArchivedOnlyStoriesView()) {
+            actionBar.addView(photoVideoOptionsItem, LayoutHelper.createFrame(48, 56, Gravity.RIGHT | Gravity.BOTTOM));
+        }
         photoVideoOptionsItem.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1508,8 +1514,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
                         if (isStories) {
                             StoriesAdapter adapter = tab == TAB_STORIES ? storiesAdapter : archivedStoriesAdapter;
-                            showPhotosItem.setChecked(adapter.storiesList.showPhotos());
-                            showVideosItem.setChecked(adapter.storiesList.showVideos());
+                            if (adapter.storiesList != null) {
+                                showPhotosItem.setChecked(adapter.storiesList.showPhotos());
+                                showVideosItem.setChecked(adapter.storiesList.showVideos());
+                            }
                             showPhotosItem.setOnClickListener(v -> {
                                 if (changeTypeAnimation) {
                                     return;
@@ -1519,6 +1527,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                                     return;
                                 }
                                 showPhotosItem.getCheckView().setChecked(!showPhotosItem.getCheckView().isChecked(), true);
+                                if (adapter.storiesList == null) {
+                                    return;
+                                }
                                 adapter.storiesList.updateFilters(showPhotosItem.getCheckView().isChecked(), showVideosItem.getCheckView().isChecked());
                             });
                             showVideosItem.setOnClickListener(v -> {
@@ -1530,6 +1541,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                                     return;
                                 }
                                 showVideosItem.getCheckView().setChecked(!showVideosItem.getCheckView().isChecked(), true);
+                                if (adapter.storiesList == null) {
+                                    return;
+                                }
                                 adapter.storiesList.updateFilters(showPhotosItem.getCheckView().isChecked(), showVideosItem.getCheckView().isChecked());
                             });
                         } else {
@@ -1734,7 +1748,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
                                 float photoVideoOptionsAlpha = getPhotoVideoOptionsAlpha(scrollProgress);
                                 photoVideoOptionsItem.setAlpha(photoVideoOptionsAlpha);
-                                photoVideoOptionsItem.setVisibility((photoVideoOptionsAlpha == 0 || !canShowSearchItem()) ? INVISIBLE : View.VISIBLE);
+                                photoVideoOptionsItem.setVisibility((photoVideoOptionsAlpha == 0 || !canShowSearchItem() || isArchivedOnlyStoriesView()) ? INVISIBLE : View.VISIBLE);
                             } else {
                                 searchItem.setAlpha(0.0f);
                             }
@@ -1885,7 +1899,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                             }
                             int width = getMeasuredWidth() - AndroidUtilities.dp(60);
                             if (archivedHintLayout == null || archivedHintLayout.getWidth() != width) {
-                                archivedHintLayout = new StaticLayout(LocaleController.getString("ProfileStoriesArchiveHint", R.string.ProfileStoriesArchiveHint), archivedHintPaint, width, Layout.Alignment.ALIGN_CENTER, 1f, 0f, false);
+                                archivedHintLayout = new StaticLayout(LocaleController.getString(isArchivedOnlyStoriesView() ? R.string.ProfileStoriesArchiveChannelHint : R.string.ProfileStoriesArchiveHint), archivedHintPaint, width, Layout.Alignment.ALIGN_CENTER, 1f, 0f, false);
                                 archivedHintLayoutWidth = 0;
                                 archivedHintLayoutLeft = width;
                                 for (int i = 0; i < archivedHintLayout.getLineCount(); ++i) {
@@ -2550,6 +2564,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         return false;
     }
 
+    protected boolean isArchivedOnlyStoriesView() {
+        return false;
+    }
+
     protected boolean includeStories() {
         return true;
     }
@@ -2559,10 +2577,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
     public void setStoriesFilter(boolean photos, boolean videos) {
-        if (storiesAdapter != null) {
+        if (storiesAdapter != null && storiesAdapter.storiesList != null) {
             storiesAdapter.storiesList.updateFilters(photos, videos);
         }
-        if (archivedStoriesAdapter != null) {
+        if (archivedStoriesAdapter != null && archivedStoriesAdapter.storiesList != null) {
             archivedStoriesAdapter.storiesList.updateFilters(photos, videos);
         }
     }
@@ -3122,7 +3140,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
                 float photoVideoOptionsAlpha = getPhotoVideoOptionsAlpha(progress);
                 photoVideoOptionsItem.setAlpha(photoVideoOptionsAlpha);
-                photoVideoOptionsItem.setVisibility((photoVideoOptionsAlpha == 0 || !canShowSearchItem()) ? INVISIBLE : View.VISIBLE);
+                photoVideoOptionsItem.setVisibility((photoVideoOptionsAlpha == 0 || !canShowSearchItem() || isArchivedOnlyStoriesView()) ? INVISIBLE : View.VISIBLE);
                 if (canShowSearchItem()) {
                     if (searchItemState == 1) {
                         searchItem.setAlpha(progress);
@@ -3935,7 +3953,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
                         float photoVideoOptionsAlpha = getPhotoVideoOptionsAlpha(scrollProgress);
                         photoVideoOptionsItem.setAlpha(photoVideoOptionsAlpha);
-                        photoVideoOptionsItem.setVisibility((photoVideoOptionsAlpha == 0  || !canShowSearchItem()) ? INVISIBLE : View.VISIBLE);
+                        photoVideoOptionsItem.setVisibility((photoVideoOptionsAlpha == 0  || !canShowSearchItem() || isArchivedOnlyStoriesView()) ? INVISIBLE : View.VISIBLE);
                     } else {
                         searchItem.setAlpha(0.0f);
                     }
@@ -5392,6 +5410,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 }
             } else if (selectedMode == TAB_STORIES || selectedMode == TAB_ARCHIVED_STORIES) {
                 StoriesController.StoriesList storiesList = (selectedMode == TAB_STORIES ? storiesAdapter : archivedStoriesAdapter).storiesList;
+                if (storiesList == null) {
+                    return;
+                }
                 profileActivity.getOrCreateStoryViewer().open(getContext(), message.getId(), storiesList, StoriesListPlaceProvider.of(mediaPages[a].listView).with(forward -> {
                     if (forward) {
                         storiesList.load(false, 30);
@@ -6765,10 +6786,16 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
     public int getStoriesCount(int tab) {
+        StoriesController.StoriesList list;
         if (tab == TAB_STORIES) {
-            return storiesAdapter.storiesList.getCount();
+            list = storiesAdapter.storiesList;
         } else if (tab == TAB_ARCHIVED_STORIES) {
-            return archivedStoriesAdapter.storiesList.getCount();
+            list = archivedStoriesAdapter.storiesList;
+        } else {
+            return 0;
+        }
+        if (list != null) {
+            return list.getCount();
         }
         return 0;
     }
@@ -6776,15 +6803,22 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     private class StoriesAdapter extends SharedPhotoVideoAdapter {
 
         private final boolean isArchive;
-        public StoriesController.StoriesList storiesList;
+        @Nullable
+        public final StoriesController.StoriesList storiesList;
         private StoriesAdapter supportingAdapter;
         private int id;
 
         public StoriesAdapter(Context context, boolean isArchive) {
             super(context);
             this.isArchive = isArchive;
-            storiesList = profileActivity.getMessagesController().getStoriesController().getStoriesList(dialog_id, isArchive ? StoriesController.StoriesList.TYPE_ARCHIVE : StoriesController.StoriesList.TYPE_PINNED);
-            id = storiesList.link();
+            if (isArchive && !isStoriesView() || !isArchive && isArchivedOnlyStoriesView()) {
+                storiesList = null;
+            } else {
+                storiesList = profileActivity.getMessagesController().getStoriesController().getStoriesList(dialog_id, isArchive ? StoriesController.StoriesList.TYPE_ARCHIVE : StoriesController.StoriesList.TYPE_PINNED);
+            }
+            if (storiesList != null) {
+                id = storiesList.link();
+            }
             checkColumns();
         }
 
@@ -6807,6 +6841,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
 
         private void checkColumns() {
+            if (storiesList == null) {
+                return;
+            }
             if (!isArchive && (!storiesColumnsCountSet || allowStoriesSingleColumn && storiesList.getCount() > 1) && storiesList.getCount() > 0 && !isStoriesView()) {
                 if (storiesList.getCount() < 5) {
                     mediaColumnsCount[1] = storiesList.getCount();
@@ -6851,6 +6888,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
         @Override
         public int getItemCount() {
+            if (storiesList == null) {
+                return 0;
+            }
             return storiesList.isOnlyCache() && hasInternet() ? 0 : storiesList.getCount();
         }
 
@@ -6883,6 +6923,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            if (storiesList == null) {
+                return;
+            }
             int viewType = holder.getItemViewType();
             if (viewType == 0) {
                 SharedPhotoVideoCell2 cell = (SharedPhotoVideoCell2) holder.itemView;
@@ -6890,6 +6933,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 position -= getTopOffset();
                 if (position < 0 || position >= storiesList.messageObjects.size()) {
                     cell.setMessageObject(null, columnsCount());
+                    cell.isStory = true;
                     return;
                 }
                 MessageObject messageObject = storiesList.messageObjects.get(position);
@@ -6903,6 +6947,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
 
         public void load(boolean force) {
+            if (storiesList == null) {
+                return;
+            }
+
             final int columnCount = columnsCount();
             final int count = Math.min(100, Math.max(1, columnCount / 2) * columnCount * columnCount);
             storiesList.load(force, count);
@@ -6915,6 +6963,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
         @Override
         public String getLetter(int position) {
+            if (storiesList == null) {
+                return null;
+            }
             position -= getTopOffset();
             if (position < 0 || position >= storiesList.messageObjects.size()) {
                 return null;

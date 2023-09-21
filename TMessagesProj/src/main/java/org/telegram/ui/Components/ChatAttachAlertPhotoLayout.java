@@ -54,7 +54,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Keep;
-import androidx.exifinterface.media.ExifInterface;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSmoothScroller;
@@ -105,7 +104,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -451,7 +449,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                     MediaController.SearchImage photoEntry1 = (MediaController.SearchImage) o;
                     firstPhotoCaption = photoEntry1.caption;
                 }
-                parentAlert.commentTextView.setText(firstPhotoCaption);
+                parentAlert.commentTextView.setText(AnimatedEmojiSpan.cloneSpans(firstPhotoCaption, AnimatedEmojiDrawable.CACHE_TYPE_ALERT_PREVIEW));
             }
         }
 
@@ -1757,16 +1755,6 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             parentAlert.getAvatarFor().isVideo = entry.isVideo;
         }
         PhotoViewer.getInstance().openPhotoForSelect(arrayList, index, type, false, new BasePhotoProvider() {
-
-            @Override
-            public void onOpen() {
-                pauseCameraPreview();
-            }
-
-            @Override
-            public void onClose() {
-                resumeCameraPreview();
-            }
 
             @Override
             public ImageReceiver.BitmapHolder getThumbForPhoto(MessageObject messageObject, TLRPC.FileLocation fileLocation, int index) {
@@ -3088,16 +3076,22 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             if (count == 0) {
                 parentAlert.selectedMenuItem.showSubItem(open_in);
                 parentAlert.selectedMenuItem.hideSubItem(compress);
-            } else {
+            } else if (documentsEnabled) {
                 parentAlert.selectedMenuItem.showSubItem(compress);
+            } else {
+                parentAlert.selectedMenuItem.hideSubItem(compress);
             }
         } else {
             parentAlert.selectedMenuItem.showSubItem(group);
+            if (documentsEnabled) {
+                parentAlert.selectedMenuItem.showSubItem(compress);
+            } else {
+                parentAlert.selectedMenuItem.hideSubItem(compress);
+            }
         }
         if (count != 0) {
             parentAlert.selectedMenuItem.hideSubItem(open_in);
         }
-        compressItem.setVisibility(documentsEnabled ? View.VISIBLE : View.GONE);
         if (count > 1) {
             parentAlert.selectedMenuItem.showSubItem(preview_gap);
             parentAlert.selectedMenuItem.showSubItem(preview);

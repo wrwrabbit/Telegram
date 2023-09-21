@@ -910,11 +910,41 @@ public class FileRefController extends BaseController {
                     getMediaDataController().processLoadedMenuBots(bots, bots.hash, (int) (System.currentTimeMillis() / 1000), false);
                 }
             } else if (response instanceof TLRPC.TL_help_appUpdate) {
+                /*
                 TLRPC.TL_help_appUpdate appUpdate = (TLRPC.TL_help_appUpdate) response;
-                result = getFileReference(appUpdate.document, requester.location, needReplacement, locationReplacement);
+                try {
+                    SharedConfig.pendingAppUpdate = appUpdate;
+                    SharedConfig.saveConfig();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                try {
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                try {
+                    if (appUpdate.document != null) {
+                        result = appUpdate.document.file_reference;
+                        TLRPC.TL_inputDocumentFileLocation location = new TLRPC.TL_inputDocumentFileLocation();
+                        location.id = appUpdate.document.id;
+                        location.access_hash = appUpdate.document.access_hash;
+                        location.file_reference = appUpdate.document.file_reference;
+                        location.thumb_size = "";
+                        locationReplacement = new TLRPC.InputFileLocation[1];
+                        locationReplacement[0] = location;
+                    }
+                } catch (Exception e) {
+                    result = null;
+                    FileLog.e(e);
+                }
+                if (result == null) {
+                    result = getFileReference(appUpdate.document, requester.location, needReplacement, locationReplacement);
+                }
                 if (result == null) {
                     result = getFileReference(appUpdate.sticker, requester.location, needReplacement, locationReplacement);
                 }
+                */
             } else if (response instanceof TLRPC.WebPage) {
                 result = getFileReference((TLRPC.WebPage) response, requester.location, needReplacement, locationReplacement);
             } else if (response instanceof TLRPC.TL_account_wallPapers) {
