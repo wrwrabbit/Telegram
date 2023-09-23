@@ -1105,11 +1105,12 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         if (storiesController.getHiddenList().isEmpty()) {
             return;
         }
-        boolean unreadOnly = storiesController.getUnreadState(storiesController.getHiddenList().get(0).user_id) != StoriesController.STATE_READ;
+        boolean unreadOnly = storiesController.getUnreadState(DialogObject.getPeerDialogId(storiesController.getHiddenList().get(0).peer)) != StoriesController.STATE_READ;
         ArrayList<Long> peerIds = new ArrayList<>();
         for (int i = 0; i < storiesController.getHiddenList().size(); i++) {
-            if (!unreadOnly || storiesController.getUnreadState(storiesController.getHiddenList().get(i).user_id) != StoriesController.STATE_READ) {
-                peerIds.add(storiesController.getHiddenList().get(i).user_id);
+            long dialogId = DialogObject.getPeerDialogId(storiesController.getHiddenList().get(i).peer);
+            if (!unreadOnly || storiesController.getUnreadState(dialogId) != StoriesController.STATE_READ) {
+                peerIds.add(dialogId);
             }
         }
 
@@ -1340,6 +1341,10 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                         height -= AndroidUtilities.statusBarHeight;
                         if (parentFragment.hasStories && !collapsedView && !isTransitionSupport) {
                             height -= ActionBar.getCurrentActionBarHeight();
+                            if (getParent() instanceof DialogsActivity.DialogsRecyclerView) {
+                                DialogsActivity.DialogsRecyclerView dialogsRecyclerView = (DialogsActivity.DialogsRecyclerView) getParent();
+                                height -= dialogsRecyclerView.additionalPadding;
+                            }
                         } else if (collapsedView) {
                             height -= paddingTop;
                         }
@@ -1350,6 +1355,10 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                         height -= AndroidUtilities.statusBarHeight;
                         if (parentFragment.hasStories && !collapsedView && !isTransitionSupport) {
                             height -= ActionBar.getCurrentActionBarHeight();
+                            if (getParent() instanceof DialogsActivity.DialogsRecyclerView) {
+                                DialogsActivity.DialogsRecyclerView dialogsRecyclerView = (DialogsActivity.DialogsRecyclerView) getParent();
+                                height -= dialogsRecyclerView.additionalPadding;
+                            }
                         } else if (collapsedView) {
                             height -= paddingTop;
                         }

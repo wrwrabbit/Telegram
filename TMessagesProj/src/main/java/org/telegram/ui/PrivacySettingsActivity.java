@@ -103,6 +103,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
     private int paymentsClearRow;
     private int webSessionsRow;
     private int botsDetailRow;
+    private int botsAndWebsitesShadowRow;
     private int contactsSectionRow;
     private int contactsDeleteRow;
     private int contactsSuggestRow;
@@ -123,7 +124,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
     private boolean archiveChats;
 
     private boolean[] clear = new boolean[2];
-    SessionsActivity sessionsActivityPreload;
+    private SessionsActivity devicesActivityPreload;
+    private SessionsActivity webSessionsActivityPreload;
 
     @Override
     public boolean onFragmentCreate() {
@@ -148,13 +150,24 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
 
         getUserConfig().loadGlobalTTl();
 
-        sessionsActivityPreload = new SessionsActivity(0);
-        sessionsActivityPreload.setDelegate(() -> {
+        devicesActivityPreload = new SessionsActivity(SessionsActivity.TYPE_DEVICES);
+        devicesActivityPreload.setDelegate(() -> {
             if (listAdapter != null && sessionsRow >= 0) {
                 listAdapter.notifyItemChanged(sessionsRow);
             }
         });
-        sessionsActivityPreload.loadSessions(false);
+        devicesActivityPreload.loadSessions(false);
+
+        webSessionsActivityPreload = new SessionsActivity(SessionsActivity.TYPE_WEB_SESSIONS);
+        webSessionsActivityPreload.setDelegate(() -> {
+            if (listAdapter != null) {
+                int webSessionsCount = webSessionsActivityPreload.getSessionsCount();
+                if (webSessionsRow < 0 && webSessionsCount > 0) {
+                    updateRows();
+                }
+            }
+        });
+        webSessionsActivityPreload.loadSessions(false);
 
         return true;
     }
@@ -251,10 +264,11 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
             } else if (position == securityIssuesRow) {
                 presentFragment(new SecurityIssuesActivity());
             } else if (position == sessionsRow) {
-                sessionsActivityPreload.resetFragment();
-                presentFragment(sessionsActivityPreload);
+                devicesActivityPreload.resetFragment();
+                presentFragment(devicesActivityPreload);
             } else if (position == webSessionsRow) {
-                presentFragment(new SessionsActivity(1));
+                webSessionsActivityPreload.resetFragment();
+                presentFragment(webSessionsActivityPreload);
             } else if (position == deleteAccountRow) {
                 if (getParentActivity() == null) {
                     return;
@@ -670,8 +684,15 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
             passportRow = -1;
         }
         paymentsClearRow = rowCount++;
-        webSessionsRow = rowCount++;
-        botsDetailRow = rowCount++;
+        if (webSessionsActivityPreload != null && webSessionsActivityPreload.getSessionsCount() > 0) {
+            webSessionsRow = rowCount++;
+            botsDetailRow = rowCount++;
+            botsAndWebsitesShadowRow = -1;
+        } else {
+            webSessionsRow = -1;
+            botsDetailRow = -1;
+            botsAndWebsitesShadowRow = rowCount++;
+        }
         contactsSectionRow = rowCount++;
         contactsDeleteRow = rowCount++;
         contactsSyncRow = rowCount++;
@@ -1120,16 +1141,16 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         textCell2.setTextAndValueAndIcon(LocaleController.getString("AutoDeleteMessages", R.string.AutoDeleteMessages), value, true, R.drawable.msg2_autodelete, true);
                     } else if (position == sessionsRow) {
                         String count = "";
-                        if (sessionsActivityPreload.getSessionsCount() == 0) {
+                        if (devicesActivityPreload.getSessionsCount() == 0) {
                             if (getMessagesController().lastKnownSessionsCount == 0) {
                                 showLoading = true;
                             } else {
                                 count = String.format(LocaleController.getInstance().getCurrentLocale(), "%d", getMessagesController().lastKnownSessionsCount);
                             }
                         } else {
-                            count = String.format(LocaleController.getInstance().getCurrentLocale(), "%d", sessionsActivityPreload.getSessionsCount());
+                            count = String.format(LocaleController.getInstance().getCurrentLocale(), "%d", devicesActivityPreload.getSessionsCount());
                         }
-                        getMessagesController().lastKnownSessionsCount = sessionsActivityPreload.getSessionsCount();
+                        getMessagesController().lastKnownSessionsCount = devicesActivityPreload.getSessionsCount();
                         textCell2.setTextAndValueAndIcon(LocaleController.getString("SessionsTitle", R.string.SessionsTitle), count, true, R.drawable.msg2_devices, false);
                     } else if (position == emailLoginRow) {
                         CharSequence val = "";
@@ -1202,7 +1223,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 return 2;
             } else if (position == secretWebpageRow || position == contactsSyncRow || position == contactsSuggestRow || position == newChatsRow) {
                 return 3;
-            } else if (position == privacyShadowRow) {
+            } else if (position == privacyShadowRow || position == botsAndWebsitesShadowRow) {
                 return 4;
             } else if (position == autoDeleteMesages || position == sessionsRow || position == emailLoginRow || position == passwordRow || position == passcodeRow || position == blockedRow || position == securityIssuesRow) {
                 return 5;
