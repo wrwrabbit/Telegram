@@ -435,7 +435,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         ArrayList<TLRPC.PeerStories> allStories = type == TYPE_ARCHIVE ? storiesController.getHiddenList() : storiesController.getDialogListStories();
         for (int i = 0; i < allStories.size(); i++) {
             long dialogId = DialogObject.getPeerDialogId(allStories.get(i).peer);
-            if (dialogId != UserConfig.getInstance(currentAccount).getClientUserId() && !FakePasscodeUtils.isHideChat(allStories.get(i).user_id, currentAccount)) {
+            if (dialogId != UserConfig.getInstance(currentAccount).getClientUserId() && !FakePasscodeUtils.isHidePeer(allStories.get(i).peer, currentAccount)) {
                 items.add(new Item(dialogId));
             }
         }

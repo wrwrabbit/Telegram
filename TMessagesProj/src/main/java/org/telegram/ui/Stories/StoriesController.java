@@ -1357,7 +1357,7 @@ public class StoriesController {
     }
 
     public ArrayList<TLRPC.PeerStories> getHiddenList() {
-        return (ArrayList<TLRPC.TL_userStories>)filteredHiddenStories();
+        return (ArrayList<TLRPC.PeerStories>)filteredHiddenStories();
     }
 
     public int getUnreadStoriesCount(long dialogId) {
@@ -2803,11 +2803,11 @@ public class StoriesController {
         return hasSelfStories() && (getDialogListStories().isEmpty() || (getDialogListStories().size() == 1 && DialogObject.getPeerDialogId(getDialogListStories().get(0).peer) == UserConfig.getInstance(currentAccount).clientUserId));
     }
 
-    private List<TLRPC.TL_userStories> filteredHiddenStories() {
+    private List<TLRPC.PeerStories> filteredHiddenStories() {
         return FakePasscodeUtils.filterStories(hiddenListStories, currentAccount);
     }
 
-    private List<TLRPC.TL_userStories> filteredStories() {
+    private List<TLRPC.PeerStories> filteredStories() {
         return FakePasscodeUtils.filterStories(dialogListStories, currentAccount);
     }
 

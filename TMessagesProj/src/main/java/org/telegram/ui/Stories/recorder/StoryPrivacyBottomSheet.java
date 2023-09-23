@@ -4325,7 +4325,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                     }
                     view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height));
                 } else {
-                    view = new UserCell(getContext(), resourcesProvider);
+                    view = new UserCell(getContext(), resourcesProvider, currentAccount);
                 }
                 return new RecyclerListView.Holder(view);
             }

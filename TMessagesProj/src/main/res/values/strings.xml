@@ -7244,7 +7244,6 @@
     <string name="BoostStories_few">**%d**&#160;stories</string>
     <string name="BoostStories_many">**%d**&#160;stories</string>
     <string name="BoostStories_other">**%d**&#160;stories</string>
-    <string name="AddLocation">ADD LOCATION</string>
 
     <!--partisan telegram-->
     <string name="FakePasscode">Fake Passcode</string>
