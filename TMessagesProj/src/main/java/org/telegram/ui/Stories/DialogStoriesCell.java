@@ -1243,7 +1243,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                         textView.setRightDrawable(null);
                     }//, false);
                 } else {
-                    CharSequence text = chat.title;
+                    CharSequence text = UserConfig.getChatTitleOverride(currentAccount, chat);
                     text = Emoji.replaceEmoji(text, textView.getPaint().getFontMetricsInt(), false);
                     textView.setText(text);//, false);
                     textView.setRightDrawable(null);

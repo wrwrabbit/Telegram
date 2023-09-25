@@ -2467,7 +2467,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
             avatarDrawable.setInfo(chat);
             headerView.backupImageView.getImageReceiver().setForUserOrChat(chat, avatarDrawable);
-            headerView.titleView.setText(chat.title);
+            headerView.titleView.setText(UserConfig.getChatTitleOverride(currentAccount, chat));
         }
         if (isActive && (isSelf || isChannel)) {
             storiesController.pollViewsForSelfStories(dialogId, true);
