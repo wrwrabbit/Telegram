@@ -1025,7 +1025,7 @@ public class LimitReachedBottomSheet extends BottomSheetWithRecyclerListView {
         } else if (isCurrentChat) {
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
             if (canApplyBoost.alreadyActive) {
-                return LocaleController.formatString("YouBoostedChannel2", R.string.YouBoostedChannel2, chat.title);
+                return LocaleController.formatString("YouBoostedChannel2", R.string.YouBoostedChannel2, UserConfig.getChatTitleOverride(currentAccount, chat));
             } else {
                 return LocaleController.formatString("BoostingEnableStoriesForChannel2", R.string.BoostingEnableStoriesForChannel2, chat.title);
             }
