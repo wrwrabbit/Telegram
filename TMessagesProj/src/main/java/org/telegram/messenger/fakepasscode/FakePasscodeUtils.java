@@ -201,7 +201,7 @@ public class FakePasscodeUtils {
         if (stories == null) {
             return null;
         }
-        return filterItems(stories, Optional.of(account), (s, filter) -> isHidePeer(s.peer, filter));
+        return filterItems(stories, Optional.of(account), (s, filter) -> !isHidePeer(s.peer, filter));
     }
 
     public static boolean isHideChat(long chatId, int account) {
