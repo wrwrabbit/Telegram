@@ -159,6 +159,7 @@ public class FakePasscode {
     private void clear() {
         activationMessage = "";
         badTriesToActivate = null;
+        activateByTimerTime = null;
         clearAfterActivation = false;
         deleteOtherPasscodesAfterActivation = false;
 
