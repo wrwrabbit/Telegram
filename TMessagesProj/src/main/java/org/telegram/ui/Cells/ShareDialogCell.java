@@ -140,9 +140,9 @@ public class ShareDialogCell extends FrameLayout {
                 imageView.setImage(null, null, avatarDrawable, user);
             } else {
                 if (name != null) {
-                    nameTextView.setText(name);
+                    nameTextView.setText(UserConfig.getChatTitleOverride(currentAccount, user.id, name.toString()));
                 } else if (user != null) {
-                    nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
+                    nameTextView.setText(UserConfig.getChatTitleOverride(currentAccount, user.id, ContactsController.formatName(user.first_name, user.last_name)));
                 } else {
                     nameTextView.setText("");
                 }
