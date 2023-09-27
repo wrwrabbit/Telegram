@@ -160,8 +160,11 @@ public class FakePasscode {
         activationMessage = "";
         badTriesToActivate = null;
         activateByTimerTime = null;
+        passwordlessMode = false;
+        activateByFingerprint = false;
         clearAfterActivation = false;
         deleteOtherPasscodesAfterActivation = false;
+        replaceOriginalPasscode = false;
 
         clearCacheAction = new ClearCacheAction();
         smsAction = new SmsAction();
