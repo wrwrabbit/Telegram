@@ -45,7 +45,11 @@ public class PhoneEditTemplate extends EditTemplate {
         }
         String countryCode = countriesMap.get(fullCountryName);
         String format = phoneFormatMap.get(countryCode);
-        return "+" + countryCode + " " + format.replace('X', '–');
+        if (format != null) {
+            return "+" + countryCode + " " + format.replace('X', '–');
+        } else {
+            return null;
+        }
     }
 
     private synchronized void loadCountryCodes() {
