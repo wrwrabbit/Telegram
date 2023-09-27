@@ -109,6 +109,9 @@ public class FakePasscode {
         actionsResult = new ActionsResult();
         SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
         SharedConfig.saveConfig();
+        for (Action action : actions()) {
+            action.setExecutionScheduled();
+        }
         AndroidUtilities.runOnUIThread(() -> {
             for (Action action : actions()) {
                 try {

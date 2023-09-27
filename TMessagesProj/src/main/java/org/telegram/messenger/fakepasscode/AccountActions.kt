@@ -54,6 +54,18 @@ class AccountActions : Action {
         }
     }
 
+    override fun setExecutionScheduled() {
+        super.setExecutionScheduled()
+        listOfNotNull(
+            removeChatsAction, telegramMessageAction, deleteContactsAction,
+            deleteStickersAction, clearSearchHistoryAction, clearBlackListAction,
+            clearSavedChannelsAction, clearDraftsAction, terminateOtherSessionsAction,
+            hideAccountAction, logOutAction
+        ).forEach { action ->
+            action.setExecutionScheduled()
+        }
+    }
+
     override fun execute(fakePasscode: FakePasscode) {
         accountNum?.let { acc ->
             fakePasscode.actionsResult.putFakePhoneNumber(acc, fakePhone)
