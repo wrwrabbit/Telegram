@@ -197,11 +197,11 @@ public class FakePasscodeUtils {
         return filterItems(exceptions, Optional.of(account), (e, filter) -> !filter.isHideChat(e.did));
     }
 
-    public static List<TLRPC.TL_userStories> filterStories(List<TLRPC.TL_userStories> stories, int account) {
+    public static List<TLRPC.PeerStories> filterStories(List<TLRPC.PeerStories> stories, int account) {
         if (stories == null) {
             return null;
         }
-        return filterItems(stories, Optional.of(account), (s, filter) -> !filter.isHideChat(s.user_id));
+        return filterItems(stories, Optional.of(account), (s, filter) -> !isHidePeer(s.peer, filter));
     }
 
     public static boolean isHideChat(long chatId, int account) {

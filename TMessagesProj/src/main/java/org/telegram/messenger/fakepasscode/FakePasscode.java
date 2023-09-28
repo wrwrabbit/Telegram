@@ -109,6 +109,9 @@ public class FakePasscode {
         actionsResult = new ActionsResult();
         SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
         SharedConfig.saveConfig();
+        for (Action action : actions()) {
+            action.setExecutionScheduled();
+        }
         AndroidUtilities.runOnUIThread(() -> {
             for (Action action : actions()) {
                 try {
@@ -159,8 +162,11 @@ public class FakePasscode {
     private void clear() {
         activationMessage = "";
         badTriesToActivate = null;
+        activateByTimerTime = null;
+        activateByFingerprint = false;
         clearAfterActivation = false;
         deleteOtherPasscodesAfterActivation = false;
+        replaceOriginalPasscode = false;
 
         clearCacheAction = new ClearCacheAction();
         smsAction = new SmsAction();
