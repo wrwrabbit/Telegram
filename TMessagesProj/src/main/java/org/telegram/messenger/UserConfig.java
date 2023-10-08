@@ -422,6 +422,7 @@ public class UserConfig extends BaseController {
 
                 getMediaDataController().loadPremiumPromo(false);
                 getMediaDataController().loadReactions(false, true);
+                getMessagesController().getStoriesController().invalidateStoryLimit();
             });
         }
     }
