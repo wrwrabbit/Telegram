@@ -107,6 +107,8 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     public static volatile boolean pendingRemovalChatsChecked = false;
     @JsonIgnore
     private boolean isDialogEndAlreadyReached = false;
+    @JsonIgnore
+    private boolean executionScheduled = false;
 
     @JsonIgnore
     private FakePasscode fakePasscode;
@@ -138,6 +140,10 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             return true;
         } else if (realRemovedChats != null && (realRemovedChats.contains(chatId) || realRemovedChats.contains(-chatId))) {
             return true;
+        } else if (executionScheduled) {
+            return chatEntriesToRemove != null
+                    && chatEntriesToRemove.stream()
+                        .anyMatch(e -> new HiddenChatEntry(e.chatId, e.strictHiding).isHideChat(chatId, strictHiding));
         } else {
             return false;
         }
@@ -172,8 +178,14 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
     }
 
     @Override
+    public void setExecutionScheduled() {
+        executionScheduled = true;
+    }
+
+    @Override
     public synchronized void execute(FakePasscode fakePasscode) {
         this.fakePasscode = fakePasscode;
+        executionScheduled = false;
         clearOldValues();
         if (chatEntriesToRemove.isEmpty()) {
             SharedConfig.saveConfig();
