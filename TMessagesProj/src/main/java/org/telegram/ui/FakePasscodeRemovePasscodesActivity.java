@@ -93,7 +93,7 @@ public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements
             if (getParentActivity() == null) {
                 return;
             }
-            if (position >= fakePasscodesStartRow) {
+            if (fakePasscodesStartRow != -1 && position >= fakePasscodesStartRow) {
                 TextCheckCell checkableSessionCell = ((TextCheckCell) view);
                 boolean isChecked = !checkableSessionCell.isChecked();
                 if (isChecked) {

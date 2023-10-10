@@ -473,7 +473,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         } else {
                             toggleSetting.run();
                         }
-                    } else if (firstAccountRow <= position && position <= lastAccountRow) {
+                    } else if (firstAccountRow != -1 && firstAccountRow <= position && position <= lastAccountRow) {
                         AccountActionsCellInfo info = accounts.get(position - firstAccountRow);
                         if (info.accountNum != null) {
                             AccountActions actions = fakePasscode.getOrCreateAccountActions(info.accountNum);
