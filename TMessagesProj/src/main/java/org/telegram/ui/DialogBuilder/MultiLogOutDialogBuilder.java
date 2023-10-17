@@ -16,8 +16,12 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.CheckBoxUserCell;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.FakePasscodeActivity;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MultiLogOutDialogBuilder {
@@ -49,7 +53,23 @@ public class MultiLogOutDialogBuilder {
         final Set<Integer> selectedAccounts = new HashSet();
         final LinearLayout linearLayout = new LinearLayout(fragment.getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
+        List<Integer> accounts = new ArrayList<>();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (UserConfig.getInstance(a).isClientActivated()) {
+                accounts.add(a);
+            }
+        }
+        Collections.sort(accounts, (o1, o2) -> {
+            long l1 = UserConfig.getInstance(o1).loginTime;
+            long l2 = UserConfig.getInstance(o2).loginTime;
+            if (l1 > l2) {
+                return 1;
+            } else if (l1 < l2) {
+                return -1;
+            }
+            return 0;
+        });
+        for (Integer a : accounts) {
             TLRPC.User u = UserConfig.getInstance(a).getCurrentUser();
             if (u != null) {
                 int currentAccount = a;
