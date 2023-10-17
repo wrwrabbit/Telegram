@@ -93,14 +93,14 @@ public class MultiLogOutDialogBuilder {
         builder.setView(linearLayout);
         builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
         builder.setPositiveButton(LocaleController.getString("LogOut", R.string.LogOut), (dialogInterface, i) -> {
+            if (selectedAccounts.isEmpty()) {
+                return;
+            }
             int[] accountsToLogout = new int[selectedAccounts.size()];
             int added = 0;
             for (int account : selectedAccounts) {
-                if (account != UserConfig.selectedAccount) {
-                    accountsToLogout[added++] = account;
-                }
+                accountsToLogout[added++] = account;
             }
-            accountsToLogout[added] = UserConfig.selectedAccount;
             fragment.showDialog(makeLogOutDialog(fragment.getContext(), accountsToLogout));
         });
         return alertDialog[0] = builder.create();
