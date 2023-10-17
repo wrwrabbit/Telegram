@@ -30,6 +30,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -87,7 +88,7 @@ public class LogoutActivity extends BaseFragment {
         supportRow = rowCount++;
         alternativeSectionRow = rowCount++;
         logoutRow = rowCount++;
-        if (UserConfig.getActivatedAccountsCount() > 1) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated() && UserConfig.getActivatedAccountsCount() > 1) {
             multiLogoutRow = rowCount++;
         } else {
             multiLogoutRow = -1;
