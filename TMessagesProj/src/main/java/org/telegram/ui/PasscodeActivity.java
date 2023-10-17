@@ -477,16 +477,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     } else if (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
                         presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_FAKE_PASSCODE_SETTINGS, SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow), false));
                     } else if (position == addFakePasscodeRow) {
-                        FakePasscode fakePasscode = new FakePasscode();
-                        fakePasscode.uuid = UUID.randomUUID();
-                        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
-                        fakePasscode.autoAddAccountHidings();
+                        FakePasscode fakePasscode = FakePasscode.create();
                         presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_SETUP_FAKE_PASSCODE, fakePasscode, true));
                     } else if (position == restoreFakePasscodeRow) {
-                        FakePasscode fakePasscode = new FakePasscode();
-                        fakePasscode.uuid = UUID.randomUUID();
-                        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
-                        fakePasscode.autoAddAccountHidings();
                         presentFragment(new FakePasscodeRestoreActivity());
                     } else if (position == partisanSettingsRow) {
                         presentFragment(new PartisanSettingsActivity());

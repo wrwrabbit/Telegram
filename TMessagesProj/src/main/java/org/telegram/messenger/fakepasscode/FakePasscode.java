@@ -8,8 +8,10 @@ import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
@@ -59,6 +61,18 @@ public class FakePasscode {
     Integer activationDate = null;
 
     public List<AccountActions> accountActions = Collections.synchronizedList(new ArrayList<>());
+
+    public static FakePasscode create() {
+        if (SharedConfig.fakePasscodes.isEmpty() && SharedConfig.fakePasscodeIndex != 1) {
+            SharedConfig.fakePasscodeIndex = 1;
+            AndroidUtilities.runOnUIThread(SharedConfig::saveConfig);
+        }
+        FakePasscode fakePasscode = new FakePasscode();
+        fakePasscode.uuid = UUID.randomUUID();
+        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
+        fakePasscode.autoAddAccountHidings();
+        return fakePasscode;
+    }
 
     List<Action> actions()
     {

@@ -520,6 +520,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             fakePasscode.onDelete();
                             SharedConfig.fakePasscodes = SharedConfig.fakePasscodes.stream()
                                     .filter(a -> a != fakePasscode).collect(Collectors.toCollection(ArrayList::new));
+                            if (SharedConfig.fakePasscodes.isEmpty()) {
+                                SharedConfig.fakePasscodeIndex = 1;
+                            }
                             SharedConfig.saveConfig();
                             finishFragment();
                         });
