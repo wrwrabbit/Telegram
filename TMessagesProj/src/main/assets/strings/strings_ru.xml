@@ -220,4 +220,5 @@
     <string name="AccountHidingSettingsTitle">Настройки скрытия аккаунта</string>
     <string name="StrictHidingAccountDescription">При включении этой опции аккаунт будет скрываться более надёжно, но пользоваться им может быть менее удобно. Мы не рекомендуем включать эту опцию, если вы планируете часто пользоваться скрытием аккаунта.</string>
     <string name="MultiLogOutTitle">Выйти из нескольких аккаунтов</string>
+    <string name="HttpProtocolIsUnsafe">Эта ссылка использует небезопасный протокол. Ваш провайдер может увидеть, что Вы перешли по этой ссылку.</string>
 </resources>

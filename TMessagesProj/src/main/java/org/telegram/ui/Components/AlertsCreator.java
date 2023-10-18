@@ -106,6 +106,7 @@ import org.telegram.ui.Cells.TextColorCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.voip.VoIPHelper;
+import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 import org.telegram.ui.LanguageSelectActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LoginActivity;
@@ -1204,11 +1205,21 @@ public class AlertsCreator {
             if (index >= 0) {
                 stringBuilder.replace(index, index + 4, link);
             }
+            if (url.startsWith("http:")) {
+                stringBuilder.append("\n\n");
+                stringBuilder.append(LocaleController.getString(R.string.HttpProtocolIsUnsafe));
+            }
             builder.setMessage(stringBuilder);
             builder.setMessageTextViewClickable(false);
-            builder.setPositiveButton(LocaleController.getString("Open", R.string.Open), (dialogInterface, i) -> open.run());
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-            fragment.showDialog(dialog[0] = builder.create());
+            if (!url.startsWith("http:")) {
+                builder.setPositiveButton(LocaleController.getString("Open", R.string.Open), (dialogInterface, i) -> open.run());
+            }
+            dialog[0] = builder.create();
+            if (url.startsWith("http:")) {
+                DialogButtonWithTimer.setButton(dialog[0], AlertDialog.BUTTON_POSITIVE, LocaleController.getString("Open", R.string.Open), 5, (dialogInterface, i) -> open.run());
+            }
+            fragment.showDialog(dialog[0]);
         }
     }
 
