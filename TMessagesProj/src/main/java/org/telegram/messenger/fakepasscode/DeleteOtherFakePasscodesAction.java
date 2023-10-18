@@ -55,7 +55,7 @@ public class DeleteOtherFakePasscodesAction implements Action {
             FakePasscode fakePasscodeToDelete = SharedConfig.fakePasscodes.get(i);
             if (fakePasscode.uuid.equals(fakePasscodeToDelete.uuid)) {
                 newFakePasscodes.add(fakePasscodeToDelete);
-                current = i;
+                current = newFakePasscodes.size() - 1;
             } else if (mode == SelectionMode.SELECTED) {
                 if (!selected.contains(fakePasscodeToDelete.uuid)) {
                     newFakePasscodes.add(fakePasscodeToDelete);
