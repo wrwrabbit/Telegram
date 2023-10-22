@@ -25,6 +25,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.verification.VerificationDatabase;
 import org.telegram.ui.Stories.MessageMediaStoryFull;
 import org.telegram.ui.Stories.MessageMediaStoryFull_old;
 import org.telegram.ui.Stories.recorder.StoryPrivacyBottomSheet;
@@ -23862,42 +23863,6 @@ public class TLRPC {
         }
     }
 
-    private static Set<Long> verifiedIds = new HashSet<>(Arrays.asList(989056630L,5106491425L,
-            5217087258L,5259637648L,2066143564L,5817399651L,1477761243L,1680003670L,5197056745L,
-            5269881457L,5248690359L,1764081723L,1826798139L,1203525499L,1201956582L,781931059L,
-            6153646860L,783723940L,733628894L,5233981354L,1408155238L,5088044675L,1254883880L,
-            1807622699L,1235073753L,1610868721L,1270329713L,1325073348L,1326631129L,1578684412L,
-            1306844446L,1448750362L,1314492187L,1207923033L,5611596810L,1445915448L,1632896478L,
-            1835507118L,1512107110L,1263764071L,1428483199L,1464870731L,1271955412L,688209485L,
-            1635921527L,1715255901L,5394894107L,5054426164L,5010895223L,1383135185L,1265159441L,
-            1855819538L,5955987812L,1468118581L,1313749067L,5263169835L,2009270454L,5048219469L,
-            6007283902L,5737683598L,5737683598L,6508533990L,6271362579L,5937370959L,5494132715L,
-            863584518L, 5507948945L,5884078727L,5829538792L,1647034311L));
-    private static Set<Long> scamIds = new HashSet<>(Arrays.asList(2059952039L,2007785891L,
-            1153790653L,1754069446L));
-    private static Set<Long> fakeIds = new HashSet<>(Arrays.asList(5735310739L,1854185893L,
-            1786043956L,5276622916L,5617305774L,5681177489L,1523106534L,5410932720L,1839964132L,
-            5716598480L,1284911026L,5626034674L,6058124728L,5747297986L,6035117215L,5740485675L,
-            5028668462L,5127654526L,1854185893L,6050276725L,6074163432L,1786043956L,5645487088L,
-            6293881487L,5606443190L,5794806573L,5543028382L,5652124632L,5731843616L,1356576596L,
-            5599734900L,1793463571L,5017880312L,1599192547L,5661955867L,5948492749L,1407287511L,
-            5840583779L,5995726427L,6239869956L,1375049419L,403342504L,1810832442L,1709650512L,
-            1709527783L,1532380090L,6031551222L,6293972219L,1707221120L,1970634134L,5606345142L,
-            6292242979L,5474204114L,5914511754L,5630096528L,5614673918L,5757560610L,5821054654L,
-            5810084409L,5695418211L,1254143359L,1451093794L,2110427751L,5700151833L,5698230921L,
-            1631724675L,1432039243L,5047547433L,5053420704L,5660796162L,5779625449L,5135746255L,
-            5130159080L,1929789849L,6260569674L,6143884311L,6123656477L,5634483218L,5728606679L,
-            1159302697L,1766534445L,1730025636L,5215261203L,5423658642L,1400869810L,1261378820L,
-            6125366284L,2115172504L,1864083131L,1248808496L,1847224666L,1459405938L,1404319831L,
-            1260250495L,1562636546L,1877831257L,1956827792L,5763025616L,1972480858L,1699191195L,
-            1780437970L,1810978803L,1824347817L,1175048525L,6247851779L,6233710456L,6273841737L,
-            1524487787L,5731381213L,6057323348L,1812284976L,5830427793L,5857031037L,5826729656L,
-            1842626385L,1471803186L,1976625090L,1805544387L,5721687279L,6069541884L,5785216795L,
-            5956713165L,5440442548L,5324394535L,1719705579L,1844665241L,5643974597L,5698701277L,
-            5727271350L,5673236403L,1566061839L,1705987207L,1829232052L,6091365211L,6110012702L,
-            1927064019L,6221245011L,6267293532L,5734160761L,5760847362L,6035643336L,5399094229L,
-            6018488147L,5887363286L,5857742074L,6083107910L));
-
     public static abstract class User extends TLObject {
         public long id;
         public String first_name;
@@ -24019,8 +23984,10 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
+            VerificationDatabase verificationDatabase = VerificationDatabase.getInstance();
             return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                        && SharedConfig.additionalVerifiedBadges && verifiedIds.contains(id);
+                        && SharedConfig.additionalVerifiedBadges
+                    && verificationDatabase.getChatType(id) == VerificationDatabase.TYPE_VERIFIED;
         }
 
         public void setVerified(boolean verified) {
@@ -24028,13 +23995,17 @@ public class TLRPC {
         }
 
         public boolean isScam() {
+            VerificationDatabase verificationDatabase = VerificationDatabase.getInstance();
             return scam || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges && scamIds.contains(id);
+                    && SharedConfig.additionalVerifiedBadges
+                    && verificationDatabase.getChatType(id) == VerificationDatabase.TYPE_SCAM;
         }
 
         public boolean isFake() {
+            VerificationDatabase verificationDatabase = VerificationDatabase.getInstance();
             return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges && fakeIds.contains(id);
+                    && SharedConfig.additionalVerifiedBadges
+                    && verificationDatabase.getChatType(id) == VerificationDatabase.TYPE_FAKE;
         }
     }
 
@@ -45297,8 +45268,10 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
+            VerificationDatabase verificationDatabase = VerificationDatabase.getInstance();
             return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges && verifiedIds.contains(id);
+                    && SharedConfig.additionalVerifiedBadges
+                    && verificationDatabase.getChatType(id) == VerificationDatabase.TYPE_VERIFIED;
         }
 
         public void setVerified(boolean verified) {
@@ -45306,13 +45279,17 @@ public class TLRPC {
         }
 
         public boolean isScam() {
+            VerificationDatabase verificationDatabase = VerificationDatabase.getInstance();
             return scam || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges && scamIds.contains(id);
+                    && SharedConfig.additionalVerifiedBadges
+                    && verificationDatabase.getChatType(id) == VerificationDatabase.TYPE_SCAM;
         }
 
         public boolean isFake() {
+            VerificationDatabase verificationDatabase = VerificationDatabase.getInstance();
             return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges && fakeIds.contains(id);
+                    && SharedConfig.additionalVerifiedBadges
+                    && verificationDatabase.getChatType(id) == VerificationDatabase.TYPE_FAKE;
         }
     }
 
