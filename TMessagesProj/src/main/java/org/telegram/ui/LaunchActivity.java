@@ -138,6 +138,7 @@ import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.UpdateChecker;
 import org.telegram.messenger.partisan.UpdateData;
+import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.messenger.voip.VoIPPendingCall;
 import org.telegram.messenger.voip.VoIPService;
@@ -6060,6 +6061,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             showUpdateActivity(UserConfig.selectedAccount, SharedConfig.pendingPtgAppUpdate, true);
         }
         checkAppUpdate(false);
+        VerificationUpdatesChecker.checkUpdate(currentAccount);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ApplicationLoader.canDrawOverlays = Settings.canDrawOverlays(this);

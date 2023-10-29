@@ -1,0 +1,164 @@
+package org.telegram.messenger.partisan.verification;
+
+import android.text.TextUtils;
+
+import org.telegram.messenger.AccountInstance;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.AppVersion;
+import org.telegram.messenger.partisan.UpdateData;
+import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLRPC;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class VerificationUpdatesChecker implements NotificationCenter.NotificationCenterDelegate {
+    private Set<VerificationDatabase.Storage> storageLastMessageLoaded = new HashSet<>();
+    private Set<VerificationDatabase.Storage> verificationUpdatesChecked = new HashSet<>();
+    private boolean partisanTgChannelUsernameResolved = false;
+    private int currentAccount;
+    List<VerificationDatabase.Storage> storages = null;
+    private final int classGuid;
+
+    public VerificationUpdatesChecker(int currentAccount) {
+        this.currentAccount = currentAccount;
+        classGuid = ConnectionsManager.generateClassGuid();
+    }
+
+    public static void checkUpdate(int currentAccount) {
+        if (UserConfig.getInstance(currentAccount).isClientActivated()) {
+            VerificationUpdatesChecker checker = new VerificationUpdatesChecker(currentAccount);
+            checker.checkUpdate();
+        }
+    }
+
+    public void checkUpdate() {
+        Utilities.globalQueue.postRunnable(() -> {
+            getNotificationCenter().addObserver(this, NotificationCenter.messagesDidLoad);
+            getNotificationCenter().addObserver(this, NotificationCenter.loadingMessagesFailed);
+            storages = VerificationDatabase.getInstance().getStorages();
+            for (VerificationDatabase.Storage storage : storages) {
+                getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
+            }
+        });
+    }
+
+    public void removeObservers() {
+        if (!isAllStoragesChecked()) {
+            getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
+            getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
+        }
+    }
+
+    private boolean isAllStoragesChecked() {
+        return verificationUpdatesChecked.containsAll(storages);
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.messagesDidLoad) {
+            VerificationDatabase.Storage storage = storages.stream()
+                    .filter(s -> s.chatId == (Long)args[0])
+                    .findAny()
+                    .orElse(null);
+            if (storage != null) {
+                if (!storageLastMessageLoaded.contains(storage)) {
+                    storageLastMessageLoaded.add(storage);
+                    getMessagesController().loadMessages(storage.chatId, 0, false, 50, (int)args[5], 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
+                } else {
+                    ArrayList<MessageObject> messages = (ArrayList<MessageObject>)args[2];
+                    processChannelMessages(storage.storageId, messages);
+
+                    boolean isEnd = messages.size() < 50;
+                    if (isEnd) {
+                        verificationUpdatesChecked.add(storage);
+                        removeObservers();
+                    } else {
+                        getMessagesController().loadMessages(storage.chatId, 0, false, 50, (int)args[5], 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
+                    }
+                }
+            }
+        } else if (id == NotificationCenter.loadingMessagesFailed) {
+            if (args.length > 1 && args[1] instanceof TLRPC.TL_messages_getPeerDialogs) {
+                TLRPC.TL_messages_getPeerDialogs oldReq = (TLRPC.TL_messages_getPeerDialogs)args[1];
+                TLRPC.InputPeer peer = null;
+                if (!oldReq.peers.isEmpty() && oldReq.peers.get(0) instanceof TLRPC.TL_inputDialogPeer) {
+                    peer = ((TLRPC.TL_inputDialogPeer)oldReq.peers.get(0)).peer;
+                }
+                final TLRPC.InputPeer finalPeer = peer;
+                if (!partisanTgChannelUsernameResolved && SharedConfig.fakePasscodeActivatedIndex == -1
+                        && (int)args[0] == classGuid && peer != null) {
+                    VerificationDatabase.Storage storage = storages.stream()
+                            .filter(s -> s.chatId == finalPeer.channel_id
+                                || s.chatId == -finalPeer.channel_id
+                                || s.chatId == finalPeer.chat_id
+                                || s.chatId == -finalPeer.chat_id)
+                            .findAny()
+                            .orElse(null);
+                    if (storage != null) {
+                        TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
+                        req.username = storage.chatUsername;
+                        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {
+                            partisanTgChannelUsernameResolved = true;
+                            AndroidUtilities.runOnUIThread(() -> {
+                                getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
+                                if (response != null) {
+                                    TLRPC.TL_contacts_resolvedPeer res = (TLRPC.TL_contacts_resolvedPeer) response;
+                                    MessagesController.getInstance(currentAccount).putUsers(res.users, false);
+                                    MessagesController.getInstance(currentAccount).putChats(res.chats, false);
+                                    MessagesStorage.getInstance(currentAccount).putUsersAndChats(res.users, res.chats, true, true);
+                                    getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
+                                } else {
+                                    getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    private void processChannelMessages(int storageId, ArrayList<MessageObject> messages) {
+        List<VerificationDatabase.ChatInfo> chatsToAdd = new ArrayList<>();
+        List<Long> chatsToRemove = new ArrayList<>();
+        VerificationMessageParser parser = new VerificationMessageParser(currentAccount);
+        List<MessageObject> sortedMessages = messages.stream()
+                .sorted(Comparator.comparingInt(MessageObject::getId))
+                .collect(Collectors.toList());
+        for (MessageObject message : sortedMessages) {
+            VerificationMessageParser.ParsingResult result = parser.parseMessage(message);
+            if (result != null) {
+                chatsToAdd.removeIf(c -> result.chatsToRemove.contains(c.chatId));
+                chatsToRemove.removeIf(id -> result.chatsToAdd.stream().anyMatch(c -> c.chatId == id));
+                chatsToAdd.addAll(result.chatsToAdd);
+                chatsToRemove.addAll(result.chatsToRemove);
+            }
+        }
+        VerificationDatabase.getInstance().putChats(storageId, chatsToAdd);
+        VerificationDatabase.getInstance().deleteChats(storageId, chatsToRemove);
+    }
+
+    private AccountInstance getAccountInstance() {
+        return AccountInstance.getInstance(currentAccount);
+    }
+
+    private NotificationCenter getNotificationCenter() {
+        return getAccountInstance().getNotificationCenter();
+    }
+
+    private MessagesController getMessagesController() {
+        return getAccountInstance().getMessagesController();
+    }
+}
