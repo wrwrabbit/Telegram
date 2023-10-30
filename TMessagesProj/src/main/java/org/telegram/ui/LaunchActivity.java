@@ -6061,7 +6061,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             showUpdateActivity(UserConfig.selectedAccount, SharedConfig.pendingPtgAppUpdate, true);
         }
         checkAppUpdate(false);
-        VerificationUpdatesChecker.checkUpdate(currentAccount);
+        VerificationUpdatesChecker.checkUpdate(currentAccount, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ApplicationLoader.canDrawOverlays = Settings.canDrawOverlays(this);

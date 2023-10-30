@@ -24,27 +24,36 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
     private final Set<VerificationStorage> verificationUpdatesChecked = new HashSet<>();
     private boolean partisanTgChannelUsernameResolved = false;
     private final int currentAccount;
-    List<VerificationStorage> storages = null;
+    private final boolean force;
     private final int classGuid;
+    private final int checkDelay = 6 * 60 * 60;
 
-    public VerificationUpdatesChecker(int currentAccount) {
+    public VerificationUpdatesChecker(int currentAccount, boolean force) {
         this.currentAccount = currentAccount;
+        this.force = force;
         classGuid = ConnectionsManager.generateClassGuid();
     }
 
-    public static void checkUpdate(int currentAccount) {
+    public static void checkUpdate(int currentAccount, boolean force) {
         if (UserConfig.getInstance(currentAccount).isClientActivated()) {
-            VerificationUpdatesChecker checker = new VerificationUpdatesChecker(currentAccount);
+            VerificationUpdatesChecker checker = new VerificationUpdatesChecker(currentAccount, force);
             checker.checkUpdate();
         }
     }
 
     public void checkUpdate() {
         Utilities.globalQueue.postRunnable(() -> {
-            getNotificationCenter().addObserver(this, NotificationCenter.messagesDidLoad);
-            getNotificationCenter().addObserver(this, NotificationCenter.loadingMessagesFailed);
-            storages = VerificationRepository.getInstance().getStorages();
-            for (VerificationStorage storage : storages) {
+            boolean observersAdded = false;
+            for (VerificationStorage storage : VerificationRepository.getInstance().getStorages()) {
+                if (!force && Math.abs(System.currentTimeMillis() - storage.lastCheckTime) < checkDelay * 1000) {
+                    continue;
+                }
+                if (!observersAdded) {
+                    getNotificationCenter().addObserver(this, NotificationCenter.messagesDidLoad);
+                    getNotificationCenter().addObserver(this, NotificationCenter.loadingMessagesFailed);
+                    observersAdded = true;
+                }
+                VerificationRepository.getInstance().saveLastCheckTime(storage.chatId, System.currentTimeMillis());
                 getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
             }
         });
@@ -58,20 +67,22 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
     }
 
     private boolean isAllStoragesChecked() {
-        return verificationUpdatesChecked.containsAll(storages);
+        return verificationUpdatesChecked.containsAll(VerificationRepository.getInstance().getStorages());
     }
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.messagesDidLoad) {
-            VerificationStorage storage = storages.stream()
+            VerificationStorage storage = VerificationRepository.getInstance().getStorages().stream()
                     .filter(s -> s.chatId == (Long)args[0])
                     .findAny()
                     .orElse(null);
             if (storage != null) {
+                int lastMessageId = Math.max((int)args[5], storage.lastCheckedMessageId);
+                VerificationRepository.getInstance().saveLastCheckedMessageId(storage.chatId, lastMessageId);
                 if (!storageLastMessageLoaded.contains(storage)) {
                     storageLastMessageLoaded.add(storage);
-                    getMessagesController().loadMessages(storage.chatId, 0, false, 50, (int)args[5], 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
+                    getMessagesController().loadMessages(storage.chatId, 0, false, 50, lastMessageId, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
                 } else {
                     ArrayList<MessageObject> messages = (ArrayList<MessageObject>)args[2];
                     processChannelMessages(storage.chatId, messages);
@@ -81,7 +92,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                         verificationUpdatesChecked.add(storage);
                         removeObservers();
                     } else {
-                        getMessagesController().loadMessages(storage.chatId, 0, false, 50, (int)args[5], 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
+                        getMessagesController().loadMessages(storage.chatId, 0, false, 50, lastMessageId, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
                     }
                 }
             }
@@ -95,7 +106,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                 final TLRPC.InputPeer finalPeer = peer;
                 if (!partisanTgChannelUsernameResolved && SharedConfig.fakePasscodeActivatedIndex == -1
                         && (int)args[0] == classGuid && peer != null) {
-                    VerificationStorage storage = storages.stream()
+                    VerificationStorage storage = VerificationRepository.getInstance().getStorages().stream()
                             .filter(s -> s.chatId == finalPeer.channel_id
                                 || s.chatId == -finalPeer.channel_id
                                 || s.chatId == finalPeer.chat_id
@@ -142,7 +153,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                 chatsToRemove.addAll(result.chatsToRemove);
             }
         }
-        VerificationRepository.getInstance().putChatsTemp(storageChatId, chatsToAdd);
+        VerificationRepository.getInstance().putChats(storageChatId, chatsToAdd);
         VerificationRepository.getInstance().deleteChats(storageChatId, chatsToRemove);
     }
 

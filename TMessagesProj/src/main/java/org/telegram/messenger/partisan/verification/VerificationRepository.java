@@ -319,13 +319,29 @@ public class VerificationRepository {
         return storages;
     }
 
-    public void addStorage(String name, String username, int chat_id) {
+    public void addStorage(String name, String username, long chatId) {
         ensureRepositoryLoaded();
-        storages.add(new VerificationStorage(name, username, chat_id));
+        storages.add(new VerificationStorage(name, username, chatId));
         saveRepository();
     }
 
-    public void putChatsTemp(long storageChatId, List<VerificationChatInfo> chats) {
+    public void saveLastCheckTime(long storageChatId, long lastCheckTime) {
+        ensureRepositoryLoaded();
+        storages.stream()
+                .filter(s -> s.chatId == storageChatId)
+                .forEach(s -> s.lastCheckTime = lastCheckTime);
+        saveRepository();
+    }
+
+    public void saveLastCheckedMessageId(long storageChatId, int lastCheckedMessageId) {
+        ensureRepositoryLoaded();
+        storages.stream()
+                .filter(s -> s.chatId == storageChatId)
+                .forEach(s -> s.lastCheckedMessageId = lastCheckedMessageId);
+        saveRepository();
+    }
+
+    public void putChats(long storageChatId, List<VerificationChatInfo> chats) {
         ensureRepositoryLoaded();
         storages.stream()
                 .filter(s -> s.chatId == storageChatId)

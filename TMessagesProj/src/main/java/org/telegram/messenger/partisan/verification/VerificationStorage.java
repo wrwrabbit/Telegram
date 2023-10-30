@@ -8,7 +8,7 @@ public class VerificationStorage {
     public String chatUsername;
     public long chatId;
     public long lastCheckTime;
-    public int lastPostId;
+    public int lastCheckedMessageId;
     List<VerificationChatInfo> chats = new ArrayList<>();
 
     public VerificationStorage() {}
