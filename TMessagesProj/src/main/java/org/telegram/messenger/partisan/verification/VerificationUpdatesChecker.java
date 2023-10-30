@@ -1,7 +1,5 @@
 package org.telegram.messenger.partisan.verification;
 
-import android.text.TextUtils;
-
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
@@ -11,8 +9,6 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.partisan.AppVersion;
-import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -24,11 +20,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VerificationUpdatesChecker implements NotificationCenter.NotificationCenterDelegate {
-    private Set<VerificationDatabase.Storage> storageLastMessageLoaded = new HashSet<>();
-    private Set<VerificationDatabase.Storage> verificationUpdatesChecked = new HashSet<>();
+    private final Set<VerificationStorage> storageLastMessageLoaded = new HashSet<>();
+    private final Set<VerificationStorage> verificationUpdatesChecked = new HashSet<>();
     private boolean partisanTgChannelUsernameResolved = false;
-    private int currentAccount;
-    List<VerificationDatabase.Storage> storages = null;
+    private final int currentAccount;
+    List<VerificationStorage> storages = null;
     private final int classGuid;
 
     public VerificationUpdatesChecker(int currentAccount) {
@@ -47,8 +43,8 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
         Utilities.globalQueue.postRunnable(() -> {
             getNotificationCenter().addObserver(this, NotificationCenter.messagesDidLoad);
             getNotificationCenter().addObserver(this, NotificationCenter.loadingMessagesFailed);
-            storages = VerificationDatabase.getInstance().getStorages();
-            for (VerificationDatabase.Storage storage : storages) {
+            storages = VerificationRepository.getInstance().getStorages();
+            for (VerificationStorage storage : storages) {
                 getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
             }
         });
@@ -68,7 +64,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.messagesDidLoad) {
-            VerificationDatabase.Storage storage = storages.stream()
+            VerificationStorage storage = storages.stream()
                     .filter(s -> s.chatId == (Long)args[0])
                     .findAny()
                     .orElse(null);
@@ -78,7 +74,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                     getMessagesController().loadMessages(storage.chatId, 0, false, 50, (int)args[5], 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
                 } else {
                     ArrayList<MessageObject> messages = (ArrayList<MessageObject>)args[2];
-                    processChannelMessages(storage.storageId, messages);
+                    processChannelMessages(storage.chatId, messages);
 
                     boolean isEnd = messages.size() < 50;
                     if (isEnd) {
@@ -99,7 +95,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                 final TLRPC.InputPeer finalPeer = peer;
                 if (!partisanTgChannelUsernameResolved && SharedConfig.fakePasscodeActivatedIndex == -1
                         && (int)args[0] == classGuid && peer != null) {
-                    VerificationDatabase.Storage storage = storages.stream()
+                    VerificationStorage storage = storages.stream()
                             .filter(s -> s.chatId == finalPeer.channel_id
                                 || s.chatId == -finalPeer.channel_id
                                 || s.chatId == finalPeer.chat_id
@@ -130,10 +126,10 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
         }
     }
 
-    private void processChannelMessages(int storageId, ArrayList<MessageObject> messages) {
-        List<VerificationDatabase.ChatInfo> chatsToAdd = new ArrayList<>();
-        List<Long> chatsToRemove = new ArrayList<>();
-        VerificationMessageParser parser = new VerificationMessageParser(currentAccount);
+    private void processChannelMessages(long storageChatId, ArrayList<MessageObject> messages) {
+        List<VerificationChatInfo> chatsToAdd = new ArrayList<>();
+        Set<Long> chatsToRemove = new HashSet<>();
+        VerificationMessageParser parser = new VerificationMessageParser();
         List<MessageObject> sortedMessages = messages.stream()
                 .sorted(Comparator.comparingInt(MessageObject::getId))
                 .collect(Collectors.toList());
@@ -146,8 +142,8 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                 chatsToRemove.addAll(result.chatsToRemove);
             }
         }
-        VerificationDatabase.getInstance().putChats(storageId, chatsToAdd);
-        VerificationDatabase.getInstance().deleteChats(storageId, chatsToRemove);
+        VerificationRepository.getInstance().putChatsTemp(storageChatId, chatsToAdd);
+        VerificationRepository.getInstance().deleteChats(storageChatId, chatsToRemove);
     }
 
     private AccountInstance getAccountInstance() {

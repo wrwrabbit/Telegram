@@ -29,6 +29,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -555,11 +556,11 @@ public class SharedConfig {
         return jsonMapper;
     }
 
-    static public String toJson(Object o) throws Exception {
+    public static String toJson(Object o) throws JsonProcessingException {
         return getJsonMapper().writeValueAsString(o);
     }
 
-    static public <T> T fromJson(String content, Class<T> valueType) throws Exception {
+    public static <T> T fromJson(String content, Class<T> valueType) throws JsonProcessingException {
         return getJsonMapper().readValue(content, valueType);
     }
 
