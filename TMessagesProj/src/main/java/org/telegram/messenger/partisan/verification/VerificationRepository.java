@@ -319,6 +319,12 @@ public class VerificationRepository {
         return storages;
     }
 
+    public void deleteStorage(long chatId) {
+        ensureRepositoryLoaded();
+        storages.removeIf(s -> s.chatId == chatId);
+        saveRepository();
+    }
+
     public void addStorage(String name, String username, long chatId) {
         ensureRepositoryLoaded();
         storages.add(new VerificationStorage(name, username, chatId));
@@ -338,6 +344,28 @@ public class VerificationRepository {
         storages.stream()
                 .filter(s -> s.chatId == storageChatId)
                 .forEach(s -> s.lastCheckedMessageId = lastCheckedMessageId);
+        saveRepository();
+    }
+
+    public void saveRepositoryChatUsername(long storageChatId, String username) {
+        ensureRepositoryLoaded();
+        storages.stream()
+                .filter(s -> s.chatId == storageChatId)
+                .forEach(s -> {
+                    if (!s.chatUsername.equals(username)) {
+                        s.chatUsername = username;
+                        s.chatId = 0;
+                        s.lastCheckedMessageId = 0;
+                    }
+                });
+        saveRepository();
+    }
+
+    public void saveRepositoryChatId(String storageChatUsername, long chatId) {
+        ensureRepositoryLoaded();
+        storages.stream()
+                .filter(s -> s.chatUsername.equals(storageChatUsername))
+                .forEach(s -> s.chatId = chatId);
         saveRepository();
     }
 

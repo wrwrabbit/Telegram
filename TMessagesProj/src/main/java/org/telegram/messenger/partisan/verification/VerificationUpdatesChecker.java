@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class VerificationUpdatesChecker implements NotificationCenter.NotificationCenterDelegate {
     private final Set<VerificationStorage> storageLastMessageLoaded = new HashSet<>();
     private final Set<VerificationStorage> verificationUpdatesChecked = new HashSet<>();
-    private boolean partisanTgChannelUsernameResolved = false;
+    private final Set<String> resolvedUsernames = new HashSet<>();
     private final int currentAccount;
     private final boolean force;
     private final int classGuid;
@@ -78,6 +78,9 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                     .findAny()
                     .orElse(null);
             if (storage != null) {
+                synchronized (resolvedUsernames) {
+                    resolvedUsernames.add(storage.chatUsername);
+                }
                 int lastMessageId = Math.max((int)args[5], storage.lastCheckedMessageId);
                 VerificationRepository.getInstance().saveLastCheckedMessageId(storage.chatId, lastMessageId);
                 if (!storageLastMessageLoaded.contains(storage)) {
@@ -104,7 +107,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                     peer = ((TLRPC.TL_inputDialogPeer)oldReq.peers.get(0)).peer;
                 }
                 final TLRPC.InputPeer finalPeer = peer;
-                if (!partisanTgChannelUsernameResolved && SharedConfig.fakePasscodeActivatedIndex == -1
+                if (SharedConfig.fakePasscodeActivatedIndex == -1
                         && (int)args[0] == classGuid && peer != null) {
                     VerificationStorage storage = VerificationRepository.getInstance().getStorages().stream()
                             .filter(s -> s.chatId == finalPeer.channel_id
@@ -114,23 +117,38 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                             .findAny()
                             .orElse(null);
                     if (storage != null) {
-                        TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
-                        req.username = storage.chatUsername;
-                        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {
-                            partisanTgChannelUsernameResolved = true;
-                            AndroidUtilities.runOnUIThread(() -> {
-                                getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
-                                if (response != null) {
-                                    TLRPC.TL_contacts_resolvedPeer res = (TLRPC.TL_contacts_resolvedPeer) response;
-                                    MessagesController.getInstance(currentAccount).putUsers(res.users, false);
-                                    MessagesController.getInstance(currentAccount).putChats(res.chats, false);
-                                    MessagesStorage.getInstance(currentAccount).putUsersAndChats(res.users, res.chats, true, true);
-                                    getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
-                                } else {
-                                    getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
+                        boolean usernameResolved;
+                        synchronized (resolvedUsernames) {
+                            usernameResolved = resolvedUsernames.contains(storage);
+                        }
+                        if (!usernameResolved) {
+                            TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
+                            req.username = storage.chatUsername;
+                            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {
+                                synchronized (resolvedUsernames) {
+                                    resolvedUsernames.add(storage.chatUsername);
                                 }
+                                AndroidUtilities.runOnUIThread(() -> {
+                                    getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
+                                    if (response != null) {
+                                        TLRPC.TL_contacts_resolvedPeer res = (TLRPC.TL_contacts_resolvedPeer) response;
+                                        MessagesController.getInstance(currentAccount).putUsers(res.users, false);
+                                        MessagesController.getInstance(currentAccount).putChats(res.chats, false);
+                                        MessagesStorage.getInstance(currentAccount).putUsersAndChats(res.users, res.chats, true, true);
+                                        long chatId;
+                                        if (res.peer.channel_id != 0) {
+                                            chatId = res.peer.channel_id;
+                                        } else {
+                                            chatId = res.peer.chat_id;
+                                        }
+                                        VerificationRepository.getInstance().saveRepositoryChatId(storage.chatUsername, -chatId);
+                                        getMessagesController().loadMessages(-chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
+                                    } else {
+                                        getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
+                                    }
+                                });
                             });
-                        });
+                        }
                     }
                 }
             }

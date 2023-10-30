@@ -7467,4 +7467,5 @@
     <string name="AccountHidingSettingsTitle">Account Hiding Settings</string>
     <string name="StrictHidingAccountDescription">When this option is enabled, the account will be hidden more securely, but it may become less convenient to use. We do not recommend enabling this option if you plan to use account hiding frequently.</string>
     <string name="HttpProtocolIsUnsafe">This URL uses an unsafe protocol. Your provider can see you visited this URL.</string>
+    <string name="VerificationChannelUsername">Channel for checking verification badges</string>
 </resources>

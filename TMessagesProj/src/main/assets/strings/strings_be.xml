@@ -221,4 +221,5 @@
     <string name="StrictHidingAccountDescription">Пры ўключэнні гэтай опцыі рахунак будзе хавацца больш надзейна, але карыстацца ім можа быць менш зручна. Мы не рэкамендуемы ўключаць гэтую опцыю, калі вы плануеце часта карыстацца ўтойваннем акаўнта.</string>
     <string name="MultiLogOutTitle">Выйсці з некалькі акаўнтаў</string>
     <string name="HttpProtocolIsUnsafe">Гэтая спасылка выкарыстоўвае небяспечны пратакол. Ваш правайдэр можа ўбачыць, што Вы перайшлі па гэтай спасылцы.</string>
+    <string name="VerificationChannelUsername">Канал для праверкі значкоў верыфікацыі</string>
 </resources>
