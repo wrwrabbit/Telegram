@@ -44,10 +44,10 @@ public class VerificationMessageParser {
         if (chatInfoStr.contains("=")) {
             String[] parts = chatInfoStr.split("=");
             info.username = parts[0];
-            info.chatId = Integer.parseInt(parts[1]);
+            info.chatId = Math.abs(Integer.parseInt(parts[1]));
         } else {
             info.username = null;
-            info.chatId = Integer.parseInt(chatInfoStr);
+            info.chatId = Math.abs(Integer.parseInt(chatInfoStr));
         }
         return info;
     }
