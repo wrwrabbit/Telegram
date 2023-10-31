@@ -454,7 +454,7 @@ public class TopicsController extends BaseController {
         if (topicId != 0) {
             TLRPC.TL_forumTopic topic = findTopic(chat.id, topicId);
             if (topic != null) {
-                return ForumUtilities.getTopicSpannedName(topic, paint, drawableToSet);
+                return ForumUtilities.getTopicSpannedName(topic, paint, drawableToSet, false);
             }
         }
         return null;

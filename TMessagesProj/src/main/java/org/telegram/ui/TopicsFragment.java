@@ -235,6 +235,8 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
     public boolean searching;
     private boolean opnendForSelect;
     private boolean openedForForward;
+    private boolean openedForQuote;
+    private boolean openedForReply;
     HashSet<Integer> excludeTopics;
     private boolean mute = false;
 
@@ -282,6 +284,8 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
         chatId = arguments.getLong("chat_id", 0);
         opnendForSelect = arguments.getBoolean("for_select", false);
         openedForForward = arguments.getBoolean("forward_to", false);
+        openedForQuote = arguments.getBoolean("quote", false);
+        openedForReply = arguments.getBoolean("reply_to", false);
         topicsController = getMessagesController().getTopicsController();
         canShowProgress = !getUserConfig().getPreferences().getBoolean("topics_end_reached_" + chatId, false);
     }
@@ -726,7 +730,7 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
             }
         };
         SpannableString generalIcon = new SpannableString("#");
-        Drawable generalIconDrawable = ForumUtilities.createGeneralTopicDrawable(getContext(), .85f, Color.WHITE);
+        Drawable generalIconDrawable = ForumUtilities.createGeneralTopicDrawable(getContext(), .85f, Color.WHITE, false);
         generalIconDrawable.setBounds(0, AndroidUtilities.dp(2), AndroidUtilities.dp(16), AndroidUtilities.dp(18));
         generalIcon.setSpan(new ImageSpan(generalIconDrawable, DynamicDrawableSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         pullForegroundDrawable = new PullForegroundDrawable(
@@ -2369,7 +2373,11 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
             }
             updateSubtitle();
         } else {
-            if (openedForForward) {
+            if (openedForReply) {
+                avatarContainer.setTitle(LocaleController.getString(R.string.ReplyToDialog));
+            } else if (openedForQuote) {
+                avatarContainer.setTitle(LocaleController.getString("QuoteTo", R.string.QuoteTo));
+            } else if (openedForForward) {
                 avatarContainer.setTitle(LocaleController.getString("ForwardTo", R.string.ForwardTo));
             } else {
                 avatarContainer.setTitle(LocaleController.getString("SelectTopic", R.string.SelectTopic));
@@ -2970,7 +2978,7 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
             }
             if (topic != null && topic.id == 1) {
                 setAnimatedEmojiDrawable(null);
-                setForumIcon(ForumUtilities.createGeneralTopicDrawable(getContext(), 1f, getThemedColor(Theme.key_chat_inMenu)));
+                setForumIcon(ForumUtilities.createGeneralTopicDrawable(getContext(), 1f, getThemedColor(Theme.key_chat_inMenu), false));
             } else if (topic != null && topic.icon_emoji_id != 0) {
                 setForumIcon(null);
                 if (animatedEmojiDrawable == null || animatedEmojiDrawable.getDocumentId() != topic.icon_emoji_id) {
@@ -2978,7 +2986,7 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
                 }
             } else {
                 setAnimatedEmojiDrawable(null);
-                setForumIcon(ForumUtilities.createTopicDrawable(topic));
+                setForumIcon(ForumUtilities.createTopicDrawable(topic, false));
             }
             updateHidden(topic != null && topic.hidden, true);
 
