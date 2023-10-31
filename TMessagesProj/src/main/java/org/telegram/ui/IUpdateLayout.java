@@ -8,4 +8,7 @@ public abstract class IUpdateLayout {
     public void updateFileProgress(Object[] args) {}
     public void createUpdateUI(int currentAccount) {}
     public void updateAppUpdateViews(int currentAccount, boolean animated) {}
+
+    public void setOnUpdateLayoutClicked(Runnable onUpdateLayoutClicked) {}
+    public boolean isCancelIcon() { return false; }
 }

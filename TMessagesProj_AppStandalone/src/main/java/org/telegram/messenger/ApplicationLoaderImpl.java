@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import androidx.core.content.FileProvider;
 
+import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.messenger.web.BuildConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.AlertsCreator;
@@ -85,7 +86,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
     }
 
     @Override
-    public boolean showUpdateAppPopup(Context context, TLRPC.TL_help_appUpdate update, int account) {
+    public boolean showUpdateAppPopup(Context context, UpdateData update, int account) {
         try {
             (new UpdateAppAlertDialog(context, update, account)).show();
         } catch (Exception e) {

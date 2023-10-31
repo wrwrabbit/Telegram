@@ -16,15 +16,21 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import androidx.collection.LongSparseArray;
+
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.partisan.UpdateChecker;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.IUpdateLayout;
+import org.telegram.ui.LaunchActivity;
 
 import java.io.File;
 
@@ -39,6 +45,8 @@ public class UpdateLayout extends IUpdateLayout {
     private ViewGroup sideMenu;
     private ViewGroup sideMenuContainer;
 
+    private Runnable onUpdateLayoutClicked;
+
     public UpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
         super(activity, sideMenu, sideMenuContainer);
         this.activity = activity;
@@ -49,7 +57,7 @@ public class UpdateLayout extends IUpdateLayout {
     public void updateFileProgress(Object[] args) {
         if (updateTextView != null && SharedConfig.isAppUpdateAvailable()) {
             String location = (String) args[0];
-            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingAppUpdate.document);
+            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
             if (fileName != null && fileName.equals(location)) {
                 Long loadedSize = (Long) args[1];
                 Long totalSize = (Long) args[2];
@@ -105,14 +113,18 @@ public class UpdateLayout extends IUpdateLayout {
             if (!SharedConfig.isAppUpdateAvailable()) {
                 return;
             }
+            if (onUpdateLayoutClicked != null) {
+                onUpdateLayoutClicked.run();
+            }
             if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_DOWNLOAD) {
-                FileLoader.getInstance(currentAccount).loadFile(SharedConfig.pendingAppUpdate.document, "update", FileLoader.PRIORITY_NORMAL, 1);
-                updateAppUpdateViews(currentAccount,  true);
+                startUpdateDownloading(currentAccount);
             } else if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL) {
-                FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingAppUpdate.document);
+                FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
                 updateAppUpdateViews(currentAccount, true);
             } else {
-                AndroidUtilities.openForView(SharedConfig.pendingAppUpdate.document, true, activity);
+                if (!AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, activity)) {
+                    startUpdateDownloading(currentAccount);
+                }
             }
         });
         updateLayoutIcon = new RadialProgress2(updateLayout);
@@ -144,16 +156,16 @@ public class UpdateLayout extends IUpdateLayout {
         if (SharedConfig.isAppUpdateAvailable()) {
             View prevUpdateLayout = updateLayout;
             createUpdateUI(currentAccount);
-            updateSizeTextView.setText(AndroidUtilities.formatFileSize(SharedConfig.pendingAppUpdate.document.size));
-            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingAppUpdate.document);
-            File path = FileLoader.getInstance(currentAccount).getPathToAttach(SharedConfig.pendingAppUpdate.document, true);
+            updateSizeTextView.setText(AndroidUtilities.formatFileSize(SharedConfig.pendingPtgAppUpdate.document.size));
+            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
+            File path = FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
             boolean showSize;
             if (path.exists()) {
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, false);
                 updateTextView.setText(LocaleController.getString("AppUpdateNow", R.string.AppUpdateNow));
                 showSize = false;
             } else {
-                if (FileLoader.getInstance(currentAccount).isLoadingFile(fileName)) {
+                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, false);
                     updateLayoutIcon.setProgress(0, false);
                     Float p = ImageLoader.getInstance().getFileProgress(fileName);
@@ -228,6 +240,32 @@ public class UpdateLayout extends IUpdateLayout {
             }
             sideMenu.setPadding(0, 0, 0, 0);
         }
+    }
+
+    @Override
+    public void setOnUpdateLayoutClicked(Runnable onUpdateLayoutClicked) {
+        this.onUpdateLayoutClicked = onUpdateLayoutClicked;
+    }
+
+    @Override
+    public boolean isCancelIcon() {
+        return updateLayoutIcon != null && updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL;
+    }
+
+    private void startUpdateDownloading(int currentAccount) {
+        if (LaunchActivity.getUpdateAccountNum() != currentAccount || SharedConfig.pendingPtgAppUpdate.message == null) {
+            UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
+                if (updateFounded) {
+                    SharedConfig.pendingPtgAppUpdate = data;
+                    SharedConfig.saveConfig();
+                    AndroidUtilities.runOnUIThread(() -> startUpdateDownloading(currentAccount));
+                }
+            });
+            return;
+        }
+        MessageObject messageObject = new MessageObject(LaunchActivity.getUpdateAccountNum(), SharedConfig.pendingPtgAppUpdate.message, (LongSparseArray<TLRPC.User>) null, null, false, true);
+        FileLoader.getInstance(currentAccount).loadFile(SharedConfig.pendingPtgAppUpdate.document, messageObject, FileLoader.PRIORITY_NORMAL, 1);
+        updateAppUpdateViews(currentAccount, true);
     }
 }
 

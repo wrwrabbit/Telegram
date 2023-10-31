@@ -78,6 +78,14 @@ public class BuildVars {
         return betaApp;
     }
 
+    private static Boolean alphaApp;
+    public static boolean isAlphaApp() {
+        if (alphaApp == null) {
+            alphaApp = ApplicationLoader.applicationContext != null && "org.telegram.messenger.alpha".equals(ApplicationLoader.applicationContext.getPackageName());
+        }
+        return alphaApp;
+    }
+
     public static boolean isHuaweiStoreApp() {
         return ApplicationLoader.isHuaweiStoreBuild();
     }

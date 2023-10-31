@@ -38,6 +38,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -143,8 +144,15 @@ public class ApplicationLoader extends Application {
         return false;
     }
 
+    private Boolean standaloneApp;
     protected boolean isStandalone() {
-        return false;
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+            return true;
+        }
+        if (standaloneApp == null) {
+            standaloneApp = ApplicationLoader.applicationContext != null && ("org.telegram.messenger.web".equals(ApplicationLoader.applicationContext.getPackageName()) || "org.telegram.messenger.alpha".equals(ApplicationLoader.applicationContext.getPackageName()));
+        }
+        return standaloneApp;
     }
 
     public static File getFilesDirFixed() {
@@ -649,7 +657,7 @@ public class ApplicationLoader extends Application {
         return false;
     }
 
-    public boolean showUpdateAppPopup(Context context, TLRPC.TL_help_appUpdate update, int account) {
+    public boolean showUpdateAppPopup(Context context, UpdateData update, int account) {
         return false;
     }
 

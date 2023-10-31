@@ -14,6 +14,7 @@ import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.NotificationsSettingsActivity;
 
 import java.util.Comparator;
@@ -197,7 +198,7 @@ public class FakePasscodeUtils {
         return filterItems(exceptions, Optional.of(account), (e, filter) -> !filter.isHideChat(e.did));
     }
 
-    public static List<TLRPC.PeerStories> filterStories(List<TLRPC.PeerStories> stories, int account) {
+    public static List<TL_stories.PeerStories> filterStories(List<TL_stories.PeerStories> stories, int account) {
         if (stories == null) {
             return null;
         }
