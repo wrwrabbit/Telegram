@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -318,6 +319,25 @@ public class VerificationRepository {
     public List<VerificationStorage> getStorages() {
         ensureRepositoryLoaded();
         return storages;
+    }
+
+    public VerificationStorage getStorage(long chatId) {
+        ensureRepositoryLoaded();
+        return storages.stream()
+                .filter(s -> s.chatId == chatId)
+                .findAny()
+                .orElse(null);
+    }
+
+    public VerificationStorage getStorage(TLRPC.InputPeer peer) {
+        ensureRepositoryLoaded();
+        return VerificationRepository.getInstance().getStorages().stream()
+                .filter(s -> s.chatId == peer.channel_id
+                        || s.chatId == -peer.channel_id
+                        || s.chatId == peer.chat_id
+                        || s.chatId == -peer.chat_id)
+                .findAny()
+                .orElse(null);
     }
 
     public void deleteStorage(long chatId) {
