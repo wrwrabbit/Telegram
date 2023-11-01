@@ -3116,7 +3116,7 @@
     <string name="ActionBotDocumentRentalAgreement">Contrato de alquiler</string>
     <string name="ActionBotDocumentPhone">Número de teléfono</string>
     <string name="ActionBotDocumentEmail">Dirección de correo</string>
-    <string name="UnsupportedMedia">Tu versión de Telegram no es compatible con este mensaje. Actualiza tu app para verlo: https://telegram.org/update</string>
+    <string name="UnsupportedMediaOriginal">Tu versión de Telegram no es compatible con este mensaje. Actualiza tu app para verlo: https://telegram.org/update</string>
     <string name="AttachPhoto">Foto</string>
     <string name="AttachVideo">Video</string>
     <string name="AttachDestructingPhoto">Foto con autodestrucción</string>

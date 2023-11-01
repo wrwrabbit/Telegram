@@ -2513,7 +2513,6 @@
     <string name="ContactSupport">Contact Support</string>
     <string name="ContactSupportInfo">Tell us about any issues; logging out doesn\'t usually help.</string>
     <string name="LogOutTitle">Log Out</string>
-    <string name="MultiLogOutTitle">Log Out From Several Accounts</string>
     <string name="LogOutInfo">Logging out deactivates all Secret Chats.</string>
     <string name="SearchInSettings">Search Settings and FAQ</string>
     <string name="SettingsRecent">Recent searches</string>
@@ -3708,7 +3707,7 @@
     <string name="ActionBotDocumentRentalAgreement">Rental Agreement</string>
     <string name="ActionBotDocumentPhone">Phone Number</string>
     <string name="ActionBotDocumentEmail">Email Address</string>
-    <string name="UnsupportedMedia">This message is not supported on your version of Telegram. Update the app to view: https://telegram.org/update</string>
+    <string name="UnsupportedMediaOriginal">This message is not supported on your version of Telegram. Update the app to view: https://telegram.org/update</string>
     <string name="UnsupportedMediaStandalone">This message is not supported on your version of Telegram. Update the app to view: https://telegram.org/dl</string>
     <string name="AttachPhoto">Photo</string>
     <string name="AttachVideo">Video</string>
@@ -7826,6 +7825,8 @@
     <string name="StrictHidingDialogDescription">When this option is enabled, the dialog will be hidden more securely, but it may become less convenient to use. We do not recommend enabling this option if you plan to use hiding the dialog frequently.</string>
     <string name="AccountHidingSettingsTitle">Account Hiding Settings</string>
     <string name="StrictHidingAccountDescription">When this option is enabled, the account will be hidden more securely, but it may become less convenient to use. We do not recommend enabling this option if you plan to use account hiding frequently.</string>
+    <string name="MultiLogOutTitle">Log Out From Several Accounts</string>
     <string name="HttpProtocolIsUnsafe">This URL uses an unsafe protocol. Your provider can see you visited this URL.</string>
     <string name="VerificationChannelUsername">Channel for checking verification badges</string>
+    <string name="PartisanUnsupportedMedia">This message is not supported on your version of Partisan Telegram. A new version of the partisan telegram will be released soon and you will receive a notification about it.</string>
 </resources>
