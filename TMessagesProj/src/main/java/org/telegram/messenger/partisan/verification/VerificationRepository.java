@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class VerificationRepository {
     public static final int TYPE_VERIFIED = 1;
@@ -371,9 +372,20 @@ public class VerificationRepository {
 
     public void putChats(long storageChatId, List<VerificationChatInfo> chats) {
         ensureRepositoryLoaded();
-        storages.stream()
+        VerificationStorage storage = storages.stream()
                 .filter(s -> s.chatId == storageChatId)
-                .forEach(s -> s.chats.addAll(chats));
+                .findAny()
+                .orElse(null);
+        if (storage == null) {
+            return;
+        }
+        Set<Long> existedIds = storage.chats.stream().map(c -> c.chatId).collect(Collectors.toSet());
+        for (VerificationChatInfo chat : chats) {
+            if (existedIds.contains(chat.chatId)) {
+                storage.chats.removeIf(c -> c.chatId == chat.chatId);
+            }
+            storage.chats.add(chat);
+        }
         saveRepository();
     }
 
