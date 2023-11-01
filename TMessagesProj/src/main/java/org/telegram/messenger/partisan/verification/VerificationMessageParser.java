@@ -43,7 +43,11 @@ public class VerificationMessageParser {
         info.type = currentChatType;
         if (chatInfoStr.contains("=")) {
             String[] parts = chatInfoStr.split("=");
-            info.username = parts[0];
+            info.username = parts[0]
+                    .replace("@", "")
+                    .replace("https://t.me/", "")
+                    .replace("http://t.me/", "")
+                    .replace("t.me/", "");
             info.chatId = Math.abs(Integer.parseInt(parts[1]));
         } else {
             info.username = null;
