@@ -47,6 +47,7 @@ public class VerificationRepository {
             boolean repositoryFilled = preferences.contains("storages");
             if (repositoryFilled) {
                 storages = SharedConfig.fromJson(preferences.getString("storages", null), StoragesWrapper.class).verificationStorages;
+                updateCache();
             } else {
                 fillRepository();
             }
@@ -222,7 +223,7 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(5135746255L, "TGBelbot", 3));
             //storage.chats.add(new VerificationChatInfo(5130159080L, "MotoIko_bot", 3));
             storage.chats.add(new VerificationChatInfo(1929789849L, "ruschennie", 3));
-            //storage.chats.add(new VerificationChatInfo(6260569674L, "MotoIko_bot", 3));
+            storage.chats.add(new VerificationChatInfo(6260569674L, "Rushenniebot", 3));
             storage.chats.add(new VerificationChatInfo(6143884311L, "Paspalitaje_Rusennie_bot", 3));
             storage.chats.add(new VerificationChatInfo(6123656477L, "rushenniecz_bot", 3));
             storage.chats.add(new VerificationChatInfo(5634483218L, "Volnaja_Belaus_bot", 3));
@@ -232,8 +233,8 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(1730025636L, "cpartisans2020", 3));
             //storage.chats.add(new VerificationChatInfo(5215261203L, "Volnaja_Belaus_bot", 3));
             storage.chats.add(new VerificationChatInfo(5423658642L, "worldprotest1bot", 3));
-            //storage.chats.add(new VerificationChatInfo(1400869810L, "Volnaja_Belaus_bot", 3));
-            //storage.chats.add(new VerificationChatInfo(1261378820L, "Volnaja_Belaus_bot", 3));
+            storage.chats.add(new VerificationChatInfo(1400869810L, "io_zerkalo", 3));
+            storage.chats.add(new VerificationChatInfo(1261378820L, "TUTBAY", 3));
             //storage.chats.add(new VerificationChatInfo(6125366284L, "Volnaja_Belaus_bot", 3));
             //storage.chats.add(new VerificationChatInfo(2115172504L, "Volnaja_Belaus_bot", 3));
             storage.chats.add(new VerificationChatInfo(1864083131L, "nexta", 3));
@@ -242,8 +243,8 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(1459405938L, "pulpervoi_official", 3));
             storage.chats.add(new VerificationChatInfo(1404319831L, "CabinetST", 3));
             storage.chats.add(new VerificationChatInfo(1260250495L, "naubelarus_bot", 3));
-            //storage.chats.add(new VerificationChatInfo(1562636546L, "CabinetST", 3));
-            //storage.chats.add(new VerificationChatInfo(1877831257L, "CabinetST", 3));
+            storage.chats.add(new VerificationChatInfo(1562636546L, "mcbbelarus", 3));
+            storage.chats.add(new VerificationChatInfo(1877831257L, "mkbelarys", 3));
             storage.chats.add(new VerificationChatInfo(1956827792L, "ateshua", 3));
             storage.chats.add(new VerificationChatInfo(5763025616L, "generalchereshnyaBot", 3));
             storage.chats.add(new VerificationChatInfo(1972480858L, "gnilayacherexaa", 3));
@@ -294,6 +295,7 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(5887363286L, "Rus_ni_peace_daBot", 3));
             storage.chats.add(new VerificationChatInfo(5857742074L, "Rus_ne_paece_da_bot", 3));
             storage.chats.add(new VerificationChatInfo(6083107910L, "Rusni_peaceda_bot", 3));
+            storage.chats.add(new VerificationChatInfo(6499292937L, "osbbelpol_bot", 3));
 
             saveRepository();
         } catch (Exception ignore) {
