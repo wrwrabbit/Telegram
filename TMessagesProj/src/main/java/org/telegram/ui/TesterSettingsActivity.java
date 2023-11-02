@@ -173,6 +173,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 template.addEditTemplate(value, "Channel Username", true);
                 template.positiveListener = views -> {
                     String username = ((EditTextCaption)views.get(0)).getText().toString();
+                    username = Utils.removeUsernamePrefixed(username);
                     SharedConfig.updateChannelUsernameOverride = username;
                     SharedConfig.saveConfig();
                     TextSettingsCell cell = (TextSettingsCell) view;

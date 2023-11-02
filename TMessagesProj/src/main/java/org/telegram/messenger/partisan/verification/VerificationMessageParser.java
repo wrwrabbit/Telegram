@@ -1,6 +1,7 @@
 package org.telegram.messenger.partisan.verification;
 
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.fakepasscode.Utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,11 +44,7 @@ public class VerificationMessageParser {
         info.type = currentChatType;
         if (chatInfoStr.contains("=")) {
             String[] parts = chatInfoStr.split("=");
-            info.username = parts[0]
-                    .replace("@", "")
-                    .replace("https://t.me/", "")
-                    .replace("http://t.me/", "")
-                    .replace("t.me/", "");
+            info.username = Utils.removeUsernamePrefixed(parts[0]);
             info.chatId = Math.abs(Long.parseLong(parts[1]));
         } else {
             info.username = null;

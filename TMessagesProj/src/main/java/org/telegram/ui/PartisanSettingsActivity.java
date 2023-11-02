@@ -24,6 +24,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.verification.VerificationRepository;
 import org.telegram.messenger.partisan.verification.VerificationStorage;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -290,6 +291,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                         template.addEditTemplate(storage.chatUsername, LocaleController.getString(R.string.VerificationChannelUsername), true);
                         template.positiveListener = views -> {
                             String username = ((EditTextCaption)views.get(0)).getText().toString();
+                            username = Utils.removeUsernamePrefixed(username);
                             VerificationRepository.getInstance().deleteStorage(storage.chatId);
                             VerificationRepository.getInstance().addStorage("Custom", username, -1);
                             VerificationUpdatesChecker.checkUpdate(currentAccount, true);
