@@ -286,7 +286,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     if (storages.size() == 1) {
                         VerificationStorage storage = storages.get(0);
                         DialogTemplate template = new DialogTemplate();
-                        template.type = DialogType.EDIT;
+                        template.type = DialogType.ONLY_SAVE;
                         template.title = LocaleController.getString(R.string.VerificationChannelUsername);
                         template.addEditTemplate(storage.chatUsername, LocaleController.getString(R.string.VerificationChannelUsername), true);
                         template.positiveListener = views -> {
