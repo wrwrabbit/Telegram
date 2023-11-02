@@ -48,10 +48,10 @@ public class VerificationMessageParser {
                     .replace("https://t.me/", "")
                     .replace("http://t.me/", "")
                     .replace("t.me/", "");
-            info.chatId = Math.abs(Integer.parseInt(parts[1]));
+            info.chatId = Math.abs(Long.parseLong(parts[1]));
         } else {
             info.username = null;
-            info.chatId = Math.abs(Integer.parseInt(chatInfoStr));
+            info.chatId = Math.abs(Long.parseLong(chatInfoStr));
         }
         return info;
     }

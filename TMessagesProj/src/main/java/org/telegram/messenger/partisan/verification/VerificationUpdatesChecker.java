@@ -62,7 +62,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
     }
 
     public void removeObservers() {
-        if (!isAllStoragesChecked()) {
+        if (isAllStoragesChecked()) {
             getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
         }
