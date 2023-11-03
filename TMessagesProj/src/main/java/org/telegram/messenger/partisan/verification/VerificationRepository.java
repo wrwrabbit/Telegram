@@ -177,6 +177,10 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(1497187972L, "listovki97_bot", 1));
             storage.chats.add(new VerificationChatInfo(960018259L, "ByTribunaComBot", 1));
             storage.chats.add(new VerificationChatInfo(1984834353L, "youtube_by_bot", 1));
+            storage.chats.add(new VerificationChatInfo(5635638840L, "terbat_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1734398694L, "dns_feedback_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1451093794L, "motolko_NBR_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1099309671L, "dzechat_bot", 1));
 
             storage.chats.add(new VerificationChatInfo(2059952039L, "cpartisan_sanonbot", 2));
             storage.chats.add(new VerificationChatInfo(2007785891L, "cpartisans_anon_bot", 2));
@@ -184,8 +188,6 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(1754069446L, "predateliby", 2));
 
             storage.chats.add(new VerificationChatInfo(5735310739L, "face_menty_bot", 3));
-            storage.chats.add(new VerificationChatInfo(1854185893L, "busliniy_bot", 3));
-            storage.chats.add(new VerificationChatInfo(1786043956L, "dns_cord_bot", 3));
             storage.chats.add(new VerificationChatInfo(5276622916L, "TG_Bel_bot", 3));
             storage.chats.add(new VerificationChatInfo(5617305774L, "occupint_info_bot", 3));
             storage.chats.add(new VerificationChatInfo(5681177489L, "kdp_by_bot", 3));
@@ -229,10 +231,8 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(1709527783L, "plan_peramog_bot", 3));
             storage.chats.add(new VerificationChatInfo(1532380090L, "peramoga_plan_bot", 3));
             storage.chats.add(new VerificationChatInfo(6031551222L, "Razbat_bot", 3));
-            //storage.chats.add(new VerificationChatInfo(6293972219L, "Razbat_bot", 3));
             storage.chats.add(new VerificationChatInfo(1707221120L, "belwariors", 3));
             storage.chats.add(new VerificationChatInfo(1970634134L, "belwarriors_ru", 3));
-            //storage.chats.add(new VerificationChatInfo(5606345142L, "Razbat_bot", 3));
             storage.chats.add(new VerificationChatInfo(6292242979L, "BelarusAndIUkraineBot", 3));
             storage.chats.add(new VerificationChatInfo(5474204114L, "BelarussianAndUkraineBot", 3));
             storage.chats.add(new VerificationChatInfo(5914511754L, "BelarusAdnUkraineBot", 3));
@@ -243,18 +243,14 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(5810084409L, "HajunBYnash_bot", 3));
             storage.chats.add(new VerificationChatInfo(5695418211L, "HajunBLR_bot", 3));
             storage.chats.add(new VerificationChatInfo(1254143359L, "motolkohelp_bot", 3));
-            storage.chats.add(new VerificationChatInfo(1451093794L, "motolko_nbr_bot", 3));
             storage.chats.add(new VerificationChatInfo(2110427751L, "MotolkohelpBot", 3));
             storage.chats.add(new VerificationChatInfo(5700151833L, "motolko_newsbot", 3));
             storage.chats.add(new VerificationChatInfo(5698230921L, "MotoIko_bot", 3));
             storage.chats.add(new VerificationChatInfo(1631724675L, "nic_and_mike_bot", 3));
-            //storage.chats.add(new VerificationChatInfo(1432039243L, "MotoIko_bot", 3));
             storage.chats.add(new VerificationChatInfo(5047547433L, "kpd_blr_bot", 3));
             storage.chats.add(new VerificationChatInfo(5053420704L, "kpd_b_bot", 3));
-            //storage.chats.add(new VerificationChatInfo(5660796162L, "MotoIko_bot", 3));
             storage.chats.add(new VerificationChatInfo(5779625449L, "RuchbelnacBot", 3));
             storage.chats.add(new VerificationChatInfo(5135746255L, "TGBelbot", 3));
-            //storage.chats.add(new VerificationChatInfo(5130159080L, "MotoIko_bot", 3));
             storage.chats.add(new VerificationChatInfo(1929789849L, "ruschennie", 3));
             storage.chats.add(new VerificationChatInfo(6260569674L, "Rushenniebot", 3));
             storage.chats.add(new VerificationChatInfo(6143884311L, "Paspalitaje_Rusennie_bot", 3));
@@ -264,12 +260,10 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(1159302697L, "golosovanie_RF", 3));
             storage.chats.add(new VerificationChatInfo(1766534445L, "insayderyurec", 3));
             storage.chats.add(new VerificationChatInfo(1730025636L, "cpartisans2020", 3));
-            //storage.chats.add(new VerificationChatInfo(5215261203L, "Volnaja_Belaus_bot", 3));
             storage.chats.add(new VerificationChatInfo(5423658642L, "worldprotest1bot", 3));
             storage.chats.add(new VerificationChatInfo(1400869810L, "io_zerkalo", 3));
             storage.chats.add(new VerificationChatInfo(1261378820L, "TUTBAY", 3));
-            //storage.chats.add(new VerificationChatInfo(6125366284L, "Volnaja_Belaus_bot", 3));
-            //storage.chats.add(new VerificationChatInfo(2115172504L, "Volnaja_Belaus_bot", 3));
+            storage.chats.add(new VerificationChatInfo(6125366284L, "zerkalo_iorobot", 3));
             storage.chats.add(new VerificationChatInfo(1864083131L, "nexta", 3));
             storage.chats.add(new VerificationChatInfo(1248808496L, "lats_bot", 3));
             storage.chats.add(new VerificationChatInfo(1847224666L, "stsikhanouskaya", 3));
@@ -282,9 +276,7 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(5763025616L, "generalchereshnyaBot", 3));
             storage.chats.add(new VerificationChatInfo(1972480858L, "gnilayacherexaa", 3));
             storage.chats.add(new VerificationChatInfo(1699191195L, "bahmut_demon", 3));
-            //storage.chats.add(new VerificationChatInfo(1780437970L, "CabinetST", 3));
             storage.chats.add(new VerificationChatInfo(1810978803L, "zhovtastrichka", 3));
-            //storage.chats.add(new VerificationChatInfo(1824347817L, "CabinetST", 3));
             storage.chats.add(new VerificationChatInfo(1175048525L, "crimean_content", 3));
             storage.chats.add(new VerificationChatInfo(6247851779L, "partizany_crimea_bot", 3));
             storage.chats.add(new VerificationChatInfo(6233710456L, "ateshfire_bot", 3));
@@ -341,6 +333,13 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(865462332L, "nextamail", 3));
             storage.chats.add(new VerificationChatInfo(6171240416L, "ChatHonestP_bot", 3));
             storage.chats.add(new VerificationChatInfo(5431821607L, "Blaganoff2022_bot", 3));
+            storage.chats.add(new VerificationChatInfo(5640237945L, "terrorbel_bot", 3));
+            storage.chats.add(new VerificationChatInfo(1651774110L, "supratsiv", 3));
+            storage.chats.add(new VerificationChatInfo(874340248L, "EURORADIOBOT", 3));
+            storage.chats.add(new VerificationChatInfo(5799451422L, "pIan_peramoga_exit_bot", 3));
+            storage.chats.add(new VerificationChatInfo(6294664943L, "peramoga_bot", 3));
+            storage.chats.add(new VerificationChatInfo(5080158788L, "BYBY_peramogaZOOk_bot", 3));
+            storage.chats.add(new VerificationChatInfo(5192128018L, "help_bysol_bot", 3));
 
             saveRepository();
         } catch (Exception ignore) {
