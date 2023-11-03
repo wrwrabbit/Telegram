@@ -56,7 +56,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
                     observersAdded = true;
                 }
                 VerificationRepository.getInstance().saveLastCheckTime(storage.chatId, System.currentTimeMillis());
-                getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 2, 0, 0, 0, 0, 1, false);
+                getMessagesController().loadMessages(storage.chatId, 0, false, 1, 0, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
             }
         });
     }
@@ -87,48 +87,59 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
             synchronized (resolvedUsernames) {
                 resolvedUsernames.add(storage.chatUsername);
             }
-            int lastMessageId = Math.max((int)args[5], storage.lastCheckedMessageId);
-            VerificationRepository.getInstance().saveLastCheckedMessageId(storage.chatId, lastMessageId);
             if (!storageLastMessageLoaded.contains(storage)) {
-                lastMessageLoaded(storage, lastMessageId);
+                lastMessageLoaded(storage);
             } else {
-                channelMessagesLoaded(storage, (ArrayList<MessageObject>)args[2], lastMessageId);
+                ArrayList<MessageObject> messages = (ArrayList<MessageObject>)args[2];
+                int currentLastId = messages.stream()
+                        .map(m -> m.messageOwner.id)
+                        .max(Integer::compareTo)
+                        .orElse(0);
+                int lastMessageId = Math.max(currentLastId, storage.lastCheckedMessageId);
+                int prevLastCheckedMessageId = storage.lastCheckedMessageId;
+                VerificationRepository.getInstance().saveLastCheckedMessageId(storage.chatId, lastMessageId);
+                channelMessagesLoaded(storage, messages, lastMessageId, prevLastCheckedMessageId);
             }
         }
     }
 
-    void lastMessageLoaded(VerificationStorage storage, int lastMessageId) {
+    void lastMessageLoaded(VerificationStorage storage) {
         storageLastMessageLoaded.add(storage);
-        getMessagesController().loadMessages(storage.chatId, 0, false, 50, lastMessageId, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
+        getMessagesController().loadMessages(storage.chatId, 0, false, 50, storage.lastCheckedMessageId + 50, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
     }
 
-    void channelMessagesLoaded(VerificationStorage storage, List<MessageObject> messages, int lastMessageId) {
-        processChannelMessages(storage.chatId, messages);
+    void channelMessagesLoaded(VerificationStorage storage, List<MessageObject> messages, int lastMessageId, int prevLastCheckedMessageId) {
+        processChannelMessages(storage.chatId, messages, prevLastCheckedMessageId);
         boolean isEnd = messages.size() < 50;
         if (isEnd) {
             verificationUpdatesChecked.add(storage);
             removeObservers();
         } else {
-            getMessagesController().loadMessages(storage.chatId, 0, false, 50, lastMessageId, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
+            getMessagesController().loadMessages(storage.chatId, 0, false, 50, lastMessageId + 50, 0, false, 0, classGuid, 0, 0, 0, 0, 0, 1, false);
         }
     }
 
     private void processLoadingMessagesFailed(Object... args) {
-        if (args.length > 1 && args[1] instanceof TLRPC.TL_messages_getPeerDialogs) {
+        if (args.length < 2 || FakePasscodeUtils.isFakePasscodeActivated() || (int)args[0] != classGuid) {
+            return;
+        }
+        VerificationStorage storage = null;
+        if (args[1] instanceof TLRPC.TL_messages_getPeerDialogs) {
             TLRPC.TL_messages_getPeerDialogs oldReq = (TLRPC.TL_messages_getPeerDialogs)args[1];
-            if (FakePasscodeUtils.isFakePasscodeActivated()
-                    || (int)args[0] != classGuid
-                    || oldReq.peers.isEmpty()
+            if (oldReq.peers.isEmpty()
                     || !(oldReq.peers.get(0) instanceof TLRPC.TL_inputDialogPeer)) {
                 return;
             }
             TLRPC.InputPeer peer = ((TLRPC.TL_inputDialogPeer)oldReq.peers.get(0)).peer;
-            VerificationStorage storage = VerificationRepository.getInstance().getStorage(peer);
-            if (storage != null) {
-                synchronized (resolvedUsernames) {
-                    if (!resolvedUsernames.contains(storage.chatUsername)) {
-                        resolveStorageUsername(storage);
-                    }
+            storage = VerificationRepository.getInstance().getStorage(peer);
+        } else if (args[1] instanceof TLRPC.TL_messages_getHistory) {
+            TLRPC.TL_messages_getHistory oldReq = (TLRPC.TL_messages_getHistory)args[1];
+            storage = VerificationRepository.getInstance().getStorage(oldReq.peer);
+        }
+        if (storage != null) {
+            synchronized (resolvedUsernames) {
+                if (!resolvedUsernames.contains(storage.chatUsername)) {
+                    resolveStorageUsername(storage);
                 }
             }
         }
@@ -169,11 +180,12 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
         return peer.channel_id != 0 ? peer.channel_id : peer.chat_id;
     }
 
-    private void processChannelMessages(long storageChatId, List<MessageObject> messages) {
+    private void processChannelMessages(long storageChatId, List<MessageObject> messages, int prevLastCheckedMessageId) {
         List<VerificationChatInfo> chatsToAdd = new ArrayList<>();
         Set<Long> chatsToRemove = new HashSet<>();
         VerificationMessageParser parser = new VerificationMessageParser();
         List<MessageObject> sortedMessages = messages.stream()
+                .filter(m -> m.messageOwner.id > prevLastCheckedMessageId)
                 .sorted(Comparator.comparingInt(MessageObject::getId))
                 .collect(Collectors.toList());
         for (MessageObject message : sortedMessages) {
