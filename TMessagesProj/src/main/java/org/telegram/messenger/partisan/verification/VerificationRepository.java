@@ -74,7 +74,6 @@ public class VerificationRepository {
             VerificationStorage storage = new VerificationStorage("Cyber Partisans", "ptg_verification_test", -1998338265);
             storages.add(storage);
 
-            storage.chats.add(new VerificationChatInfo());
             storage.chats.add(new VerificationChatInfo(989056630L, "cpartisans_bot", 1));
             storage.chats.add(new VerificationChatInfo(5106491425L, "cpartisans_urgent_bot", 1));
             storage.chats.add(new VerificationChatInfo(5217087258L, "partisan_qa_bot", 1));
@@ -144,6 +143,34 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(5507948945L, "spasisebyabot", 1));
             storage.chats.add(new VerificationChatInfo(5884078727L, "Rus_ni_peace_da_bot", 1));
             storage.chats.add(new VerificationChatInfo(5829538792L, "Yug_mopedi_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1944603193L, "BlackMap_bot", 1));
+            storage.chats.add(new VerificationChatInfo(5927501949L, "mediazonaaby", 1));
+            storage.chats.add(new VerificationChatInfo(6214140942L, "suviaz_hl", 1));
+            storage.chats.add(new VerificationChatInfo(1768396905L, "CyberBeaverBot", 1));
+            storage.chats.add(new VerificationChatInfo(1539605834L, "cyberpartisan_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1558366823L, "dissidentby_bot", 1));
+            storage.chats.add(new VerificationChatInfo(983411607L, "devby_insight_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1091595349L, "Malanka_inbox_bot", 1));
+            storage.chats.add(new VerificationChatInfo(6616396639L, "ap_narod_bot", 1));
+            storage.chats.add(new VerificationChatInfo(5280919337L, "Suprativ_support_bot", 1));
+            storage.chats.add(new VerificationChatInfo(6092224989L, "FindMessagesBot", 1));
+            storage.chats.add(new VerificationChatInfo(5129059224L, "bysol_evacuation_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1125659785L, "golosby_bot", 1));
+            storage.chats.add(new VerificationChatInfo(5001919716L, "mostmedia_bot", 1));
+            storage.chats.add(new VerificationChatInfo(728075370L, "CityDogBot", 1));
+            storage.chats.add(new VerificationChatInfo(6536668537L, "Intelligenceby_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1469327702L, "NovajaZiamla_bot", 1));
+            storage.chats.add(new VerificationChatInfo(2132540208L, "AF_BY_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1572171994L, "PanHistoryjaBot", 1));
+            storage.chats.add(new VerificationChatInfo(406856131L, "NicolaiKhalezin", 1));
+            storage.chats.add(new VerificationChatInfo(1753785715L, "MAYDAYhelp", 1));
+            storage.chats.add(new VerificationChatInfo(1693285279L, "new_grodno_bot", 1));
+            storage.chats.add(new VerificationChatInfo(6575965275L, "PusovBot", 1));
+            storage.chats.add(new VerificationChatInfo(1669406514L, "BudzmaSuviaz_Bot", 1));
+            storage.chats.add(new VerificationChatInfo(1451640448L, "spiskov_net_bot", 1));
+            storage.chats.add(new VerificationChatInfo(1497187972L, "listovki97_bot", 1));
+            storage.chats.add(new VerificationChatInfo(960018259L, "ByTribunaComBot", 1));
+            storage.chats.add(new VerificationChatInfo(1984834353L, "youtube_by_bot", 1));
 
             storage.chats.add(new VerificationChatInfo(2059952039L, "cpartisan_sanonbot", 2));
             storage.chats.add(new VerificationChatInfo(2007785891L, "cpartisans_anon_bot", 2));
@@ -296,6 +323,18 @@ public class VerificationRepository {
             storage.chats.add(new VerificationChatInfo(5857742074L, "Rus_ne_paece_da_bot", 3));
             storage.chats.add(new VerificationChatInfo(6083107910L, "Rusni_peaceda_bot", 3));
             storage.chats.add(new VerificationChatInfo(6499292937L, "osbbelpol_bot", 3));
+            storage.chats.add(new VerificationChatInfo(6507022757L, "Black_Map_bot", 3));
+            storage.chats.add(new VerificationChatInfo(-1371017531L, "cpartizans_life", 3));
+            storage.chats.add(new VerificationChatInfo(1137333814L, "cpartizansbot", 3));
+            storage.chats.add(new VerificationChatInfo(5633844875L, "zerkalo_editoranonim_bot", 3));
+            storage.chats.add(new VerificationChatInfo(2056958885L, "Supratsiv_support_bot", 3));
+            storage.chats.add(new VerificationChatInfo(6174577613L, "charter97_info_bot", 3));
+            storage.chats.add(new VerificationChatInfo(5591505925L, "NicolaiKhalezinBot", 3));
+            storage.chats.add(new VerificationChatInfo(5208668406L, "MaydayHelpBot", 3));
+            storage.chats.add(new VerificationChatInfo(593287940L, "my_new_grodno_bot", 3));
+            storage.chats.add(new VerificationChatInfo(865462332L, "nextamail", 3));
+            storage.chats.add(new VerificationChatInfo(6171240416L, "ChatHonestP_bot", 3));
+            storage.chats.add(new VerificationChatInfo(5431821607L, "Blaganoff2022_bot", 3));
 
             saveRepository();
         } catch (Exception ignore) {
