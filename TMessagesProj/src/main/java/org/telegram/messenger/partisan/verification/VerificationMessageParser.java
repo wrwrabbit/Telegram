@@ -19,6 +19,7 @@ public class VerificationMessageParser {
         if (message.messageText == null) {
             return null;
         }
+        currentChatType = -1;
 
         ParsingResult result = new ParsingResult();
         try {
@@ -26,11 +27,13 @@ public class VerificationMessageParser {
             for (String line : lines) {
                 if (line.startsWith("#")) {
                     processControlLine(line.substring(1));
-                } else if (line.startsWith("+")) {
-                    result.chatsToAdd.add(parseChatInfo(line.substring(1)));
-                } else if (line.startsWith("-")) {
-                    VerificationChatInfo info = parseChatInfo(line.substring(1));
-                    result.chatsToRemove.add(info.chatId);
+                } else if (currentChatType > 0) {
+                    if (line.startsWith("+")) {
+                        result.chatsToAdd.add(parseChatInfo(line.substring(1)));
+                    } else if (line.startsWith("-")) {
+                        VerificationChatInfo info = parseChatInfo(line.substring(1));
+                        result.chatsToRemove.add(info.chatId);
+                    }
                 }
             }
             return result;
