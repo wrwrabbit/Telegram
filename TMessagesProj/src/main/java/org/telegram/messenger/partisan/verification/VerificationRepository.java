@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.tgnet.TLRPC;
 
@@ -71,7 +72,12 @@ public class VerificationRepository {
 
     private void fillRepository() {
         try {
-            VerificationStorage storage = new VerificationStorage("Cyber Partisans", "ptg_verification_test", -1998338265);
+            VerificationStorage storage;
+            if (BuildVars.isAlphaApp()) {
+                storage = new VerificationStorage("Cyber Partisans Test", "ptg_verification_test", -1998338265);
+            } else {
+                storage = new VerificationStorage("Cyber Partisans", "ptgsymb", -2064662503);
+            }
             storages.add(storage);
 
             storage.chats.add(new VerificationChatInfo(989056630L, "cpartisans_bot", 1));
