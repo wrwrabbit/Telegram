@@ -222,4 +222,5 @@
     <string name="MultiLogOutTitle">Выйти из нескольких аккаунтов</string>
     <string name="HttpProtocolIsUnsafe">Эта ссылка использует небезопасный протокол. Ваш провайдер может увидеть, что Вы перешли по этой ссылку.</string>
     <string name="VerificationChannelUsername">Канал для проверки значков верификации</string>
+    <string name="PartisanUnsupportedMedia">Сообщение не поддерживается Вашей версией Партизанского Телеграма. Скоро выйдет новая версия Партизанского Телеграма и Вам придёт уведомление об этом.</string>
 </resources>
