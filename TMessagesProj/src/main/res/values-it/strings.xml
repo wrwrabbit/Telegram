@@ -1129,7 +1129,6 @@
     <string name="MessageScheduledReminderNotification">&#128197; Promemoria</string>
     <string name="OneResult">1 risultato</string>
     <string name="VideoQualityIsTooLow">Qualità video troppo bassa per cambiare le impostazioni di compressione.</string>
-    <string name="TextSelectionHit">Premi la **parola**, quindi muovi il cursore per selezionare altro testo da copiare.</string>
     <string name="CardNumberCopied">Numero carta copiato negli appunti</string>
     <string name="CopyCardNumber">Copia</string>
     <string name="DiceInfo2">Invia l\'emoji **:dado:** in qualsiasi chat per lanciare un dado.</string>
@@ -3117,7 +3116,7 @@
     <string name="ActionBotDocumentRentalAgreement">Contratto di locazione</string>
     <string name="ActionBotDocumentPhone">Numero di telefono</string>
     <string name="ActionBotDocumentEmail">Indirizzo email</string>
-    <string name="UnsupportedMedia">Questo messaggio non è supportato dalla tua versione di Telegram. Aggiorna l\'app per visualizzarlo: https://telegram.org/update</string>
+    <string name="UnsupportedMediaOriginal">Questo messaggio non è supportato dalla tua versione di Telegram. Aggiorna l\'app per visualizzarlo: https://telegram.org/update</string>
     <string name="AttachPhoto">Foto</string>
     <string name="AttachVideo">Video</string>
     <string name="AttachDestructingPhoto">Foto con autodistruzione</string>

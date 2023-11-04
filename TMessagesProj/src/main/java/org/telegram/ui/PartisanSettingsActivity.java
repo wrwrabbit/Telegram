@@ -18,22 +18,32 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.verification.VerificationRepository;
+import org.telegram.messenger.partisan.verification.VerificationStorage;
+import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
+import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.AlertsCreator;
+import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.DialogBuilder.DialogTemplate;
+import org.telegram.ui.DialogBuilder.DialogType;
+import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -170,7 +180,7 @@ public class PartisanSettingsActivity extends BaseFragment {
         listView.setLayoutAnimation(null);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter = new ListAdapter(context));
-        listView.setOnItemClickListener((view, position) -> {
+        listView.setOnItemClickListener((view, position, x, y) -> {
             if (position == versionRow) {
                 SharedConfig.showVersion = !SharedConfig.showVersion;
                 SharedConfig.saveConfig();
@@ -271,8 +281,35 @@ public class PartisanSettingsActivity extends BaseFragment {
                 LauncherIconController.toggleMarketIcons();
                 ((TextCheckCell) view).setChecked(SharedConfig.marketIcons);
             } else if (position == verifiedRow) {
-                SharedConfig.toggleAdditionalVerifiedBadges();
-                ((TextCheckCell) view).setChecked(SharedConfig.additionalVerifiedBadges);
+                if (LocaleController.isRTL && x > AndroidUtilities.dp(76) || !LocaleController.isRTL && x < view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
+                    List<VerificationStorage> storages = VerificationRepository.getInstance().getStorages();
+                    if (storages.size() == 1) {
+                        VerificationStorage storage = storages.get(0);
+                        DialogTemplate template = new DialogTemplate();
+                        template.type = DialogType.ONLY_SAVE;
+                        template.title = LocaleController.getString(R.string.VerificationChannelUsername);
+                        template.addEditTemplate(storage.chatUsername, LocaleController.getString(R.string.VerificationChannelUsername), true);
+                        template.positiveListener = views -> {
+                            String username = ((EditTextCaption)views.get(0)).getText().toString();
+                            username = Utils.removeUsernamePrefixed(username);
+                            VerificationRepository.getInstance().deleteStorage(storage.chatId);
+                            VerificationRepository.getInstance().addStorage("Custom", username, -1);
+                            VerificationUpdatesChecker.checkUpdate(currentAccount, true);
+                            NotificationsCheckCell cell = (NotificationsCheckCell) view;
+                            boolean enabled = SharedConfig.additionalVerifiedBadges;
+                            cell.setTextAndValueAndCheck(LocaleController.getString(R.string.AdditionalVerifiedSetting), username, enabled, false);
+                        };
+                        template.negativeListener = (dlg, whichButton) -> {
+                            SharedConfig.toggleAdditionalVerifiedBadges();
+                            ((NotificationsCheckCell) view).setChecked(SharedConfig.additionalVerifiedBadges);
+                        };
+                        AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
+                        showDialog(dialog);
+                    }
+                } else {
+                    SharedConfig.toggleAdditionalVerifiedBadges();
+                    ((NotificationsCheckCell) view).setChecked(SharedConfig.additionalVerifiedBadges);
+                }
             }
         });
 
@@ -383,6 +420,10 @@ public class PartisanSettingsActivity extends BaseFragment {
                     view = new TextSettingsCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
+                case 3:
+                    view = new NotificationsCheckCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
                 case 1:
                 default:
                     view = new TextInfoPrivacyCell(mContext);
@@ -435,9 +476,6 @@ public class PartisanSettingsActivity extends BaseFragment {
                     }  else if (position == marketIconsRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.MarketIcons),
                                 SharedConfig.marketIcons, false);
-                    } else if (position == verifiedRow) {
-                        textCell.setTextAndCheck(LocaleController.getString(R.string.AdditionalVerifiedSetting),
-                                SharedConfig.additionalVerifiedBadges, false);
                     }
                     break;
                 }
@@ -508,6 +546,17 @@ public class PartisanSettingsActivity extends BaseFragment {
                         }
                         textCell.setTextAndValue(LocaleController.getString("OnScreenLockActionTitle", R.string.OnScreenLockActionTitle), value, true);
                     }
+                    break;
+                }
+                case 3: {
+                    NotificationsCheckCell checkCell = (NotificationsCheckCell) holder.itemView;
+                    if (position == verifiedRow) {
+                        List<VerificationStorage> storages = VerificationRepository.getInstance().getStorages();
+                        String value = storages.size() == 1 ? storages.get(0).chatUsername : "";
+                        boolean enabled = SharedConfig.additionalVerifiedBadges;
+                        checkCell.setTextAndValueAndCheck(LocaleController.getString(R.string.AdditionalVerifiedSetting), value, enabled, false);
+                    }
+                    break;
                 }
             }
         }
@@ -518,8 +567,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     || position == renameChatRow || position == deleteMyMessagesRow || position == deleteAfterReadRow
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
                     || position == isClearAllDraftsOnScreenLockRow || position == showCallButtonRow
-                    || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow
-                    || position == verifiedRow) {
+                    || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow || position == deleteAfterReadDetailRow
@@ -530,6 +578,8 @@ public class PartisanSettingsActivity extends BaseFragment {
                 return 1;
             } else if (position == onScreenLockActionRow) {
                 return 2;
+            } else if (position == verifiedRow) {
+                return 3;
             }
             return 0;
         }

@@ -169,10 +169,11 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
             if (getParentActivity() == null) {
                 return;
             }
-            if (position >= otherSessionsStartRow && position < otherSessionsEndRow || position >= passwordSessionsStartRow && position < passwordSessionsEndRow) {
+            if (otherSessionsStartRow != -1 && position >= otherSessionsStartRow && position < otherSessionsEndRow
+                    || passwordSessionsStartRow != -1 && position >= passwordSessionsStartRow && position < passwordSessionsEndRow) {
                 CheckableSessionCell checkableSessionCell = ((CheckableSessionCell) view);
                 boolean isChecked = !checkableSessionCell.isChecked();
-                if (position >= otherSessionsStartRow && position < otherSessionsEndRow) {
+                if (otherSessionsStartRow != -1 && position >= otherSessionsStartRow && position < otherSessionsEndRow) {
                     if (isChecked) {
                         selectedSessions.add(getSessionHash(sessions.get(position - otherSessionsStartRow)));
                     } else {
@@ -336,7 +337,8 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position >= otherSessionsStartRow && position < otherSessionsEndRow || position >= passwordSessionsStartRow && position < passwordSessionsEndRow
+            return otherSessionsStartRow != -1 && position >= otherSessionsStartRow && position < otherSessionsEndRow
+                    || passwordSessionsStartRow != -1 && position >= passwordSessionsStartRow && position < passwordSessionsEndRow
                     || position == modeSectionRow || position == checkAllRow;
         }
 
@@ -423,14 +425,14 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
                     break;
                 default:
                     CheckableSessionCell sessionCell = (CheckableSessionCell) holder.itemView;
-                    if (position >= otherSessionsStartRow && position < otherSessionsEndRow) {
+                    if (otherSessionsStartRow != -1 && position >= otherSessionsStartRow && position < otherSessionsEndRow) {
                         Object session = sessions.get(position - otherSessionsStartRow);
                         if (session instanceof TLRPC.TL_authorization) {
                             sessionCell.setSession((TLRPC.TL_authorization)session, position != otherSessionsEndRow - 1, selectedSessions.contains(getSessionHash(session)));
                         } else {
                             sessionCell.setTerminatedSession(position != otherSessionsEndRow - 1, selectedSessions.contains(getSessionHash(session)));
                         }
-                    } else if (position >= passwordSessionsStartRow && position < passwordSessionsEndRow) {
+                    } else if (passwordSessionsStartRow != -1 && position >= passwordSessionsStartRow && position < passwordSessionsEndRow) {
                         TLRPC.TL_authorization session = passwordSessions.get(position - passwordSessionsStartRow);
                         sessionCell.setSession(session, position != passwordSessionsEndRow - 1, selectedSessions.contains(session.hash));
                     }
@@ -446,7 +448,8 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
                 return 1;
             } else if (position == otherSessionsSectionRow || position == passwordSessionsSectionRow) {
                 return 2;
-            } else if (position >= otherSessionsStartRow && position < otherSessionsEndRow || position >= passwordSessionsStartRow && position < passwordSessionsEndRow) {
+            } else if (otherSessionsStartRow != -1 && position >= otherSessionsStartRow && position < otherSessionsEndRow
+                    || passwordSessionsStartRow != -1 && position >= passwordSessionsStartRow && position < passwordSessionsEndRow) {
                 return 4;
             } else if (position == modeSectionRow) {
                 return 6;

@@ -402,9 +402,14 @@ public class FakePasscodeActivity extends BaseFragment {
                     } else if (position == deleteOtherPasscodesAfterActivationRow) {
                         if (LocaleController.isRTL && x <= AndroidUtilities.dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
                             NotificationsCheckCell checkCell = (NotificationsCheckCell) view;
-                            fakePasscode.deletePasscodesAfterActivation.setActivated(!fakePasscode.deletePasscodesAfterActivation.isActivated());
+                            fakePasscode.deletePasscodesAfterActivation.setSelected(Collections.emptyList());
+                            if (fakePasscode.deletePasscodesAfterActivation.isEnabled()) {
+                                fakePasscode.deletePasscodesAfterActivation.setMode(SelectionMode.SELECTED);
+                            } else {
+                                fakePasscode.deletePasscodesAfterActivation.setMode(SelectionMode.EXCEPT_SELECTED);
+                            }
                             SharedConfig.saveConfig();
-                            boolean enabled = fakePasscode.deletePasscodesAfterActivation.isActivated();
+                            boolean enabled = fakePasscode.deletePasscodesAfterActivation.isEnabled();
                             String value;
                             if (!enabled) {
                                 value = LocaleController.getString(R.string.PopupDisabled);
@@ -473,7 +478,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         } else {
                             toggleSetting.run();
                         }
-                    } else if (firstAccountRow <= position && position <= lastAccountRow) {
+                    } else if (firstAccountRow != -1 && firstAccountRow <= position && position <= lastAccountRow) {
                         AccountActionsCellInfo info = accounts.get(position - firstAccountRow);
                         if (info.accountNum != null) {
                             AccountActions actions = fakePasscode.getOrCreateAccountActions(info.accountNum);
@@ -515,6 +520,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             fakePasscode.onDelete();
                             SharedConfig.fakePasscodes = SharedConfig.fakePasscodes.stream()
                                     .filter(a -> a != fakePasscode).collect(Collectors.toCollection(ArrayList::new));
+                            if (SharedConfig.fakePasscodes.isEmpty()) {
+                                SharedConfig.fakePasscodeIndex = 1;
+                            }
                             SharedConfig.saveConfig();
                             finishFragment();
                         });
@@ -1453,7 +1461,8 @@ public class FakePasscodeActivity extends BaseFragment {
                 case VIEW_TYPE_EXTENDED_CHECK: {
                     NotificationsCheckCell checkCell = (NotificationsCheckCell) holder.itemView;
                     if (position == deleteOtherPasscodesAfterActivationRow) {
-                        boolean enabled = fakePasscode.deletePasscodesAfterActivation.isActivated();
+                        fakePasscode.deletePasscodesAfterActivation.verifySelected();
+                        boolean enabled = fakePasscode.deletePasscodesAfterActivation.isEnabled();
                         String value;
                         if (!enabled) {
                             value = LocaleController.getString(R.string.PopupDisabled);

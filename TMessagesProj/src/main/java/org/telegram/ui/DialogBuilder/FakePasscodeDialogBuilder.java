@@ -36,6 +36,9 @@ public class FakePasscodeDialogBuilder {
             dialogBuilder.setPositiveButton(LocaleController.getString("Save", R.string.Save), null);
             dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
             dialogBuilder.setNegativeButton(LocaleController.getString("Delete", R.string.Delete), template.negativeListener);
+        } else if (template.type == DialogType.ONLY_SAVE) {
+            dialogBuilder.setPositiveButton(LocaleController.getString("Save", R.string.Save), null);
+            dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
         }
         AlertDialog dialog = dialogBuilder.create();
         addPositiveButtonListener(dialog, template, viewsOutput);

@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.multidex.MultiDex;
@@ -37,10 +38,13 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.ForegroundDetector;
+import org.telegram.ui.Components.Premium.boosts.BoostRepository;
+import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
 
 import java.io.BufferedWriter;
@@ -132,8 +136,23 @@ public class ApplicationLoader extends Application {
         return applicationLoaderInstance.isHuaweiBuild();
     }
 
+    public static boolean isStandaloneBuild() {
+        return applicationLoaderInstance.isStandalone();
+    }
+
     protected boolean isHuaweiBuild() {
         return false;
+    }
+
+    private Boolean standaloneApp;
+    protected boolean isStandalone() {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+            return true;
+        }
+        if (standaloneApp == null) {
+            standaloneApp = ApplicationLoader.applicationContext != null && ("org.telegram.messenger.web".equals(ApplicationLoader.applicationContext.getPackageName()) || "org.telegram.messenger.alpha".equals(ApplicationLoader.applicationContext.getPackageName()));
+        }
+        return standaloneApp;
     }
 
     public static File getFilesDirFixed() {
@@ -637,4 +656,13 @@ public class ApplicationLoader extends Application {
     public boolean openApkInstall(Activity activity, TLRPC.Document document) {
         return false;
     }
+
+    public boolean showUpdateAppPopup(Context context, UpdateData update, int account) {
+        return false;
+    }
+
+    public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
+        return null;
+    }
+
 }
