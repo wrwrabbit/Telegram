@@ -474,19 +474,12 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         if (!SharedConfig.allowScreenCapture) {
                             AlertsCreator.showSimpleAlert(PasscodeActivity.this, LocaleController.getString("ScreenCaptureAlert", R.string.ScreenCaptureAlert));
                         }
-                    } else if (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
+                    } else if (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
                         presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_FAKE_PASSCODE_SETTINGS, SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow), false));
                     } else if (position == addFakePasscodeRow) {
-                        FakePasscode fakePasscode = new FakePasscode();
-                        fakePasscode.uuid = UUID.randomUUID();
-                        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
-                        fakePasscode.autoAddAccountHidings();
+                        FakePasscode fakePasscode = FakePasscode.create();
                         presentFragment(new FakePasscodeActivity(FakePasscodeActivity.TYPE_SETUP_FAKE_PASSCODE, fakePasscode, true));
                     } else if (position == restoreFakePasscodeRow) {
-                        FakePasscode fakePasscode = new FakePasscode();
-                        fakePasscode.uuid = UUID.randomUUID();
-                        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
-                        fakePasscode.autoAddAccountHidings();
                         presentFragment(new FakePasscodeRestoreActivity());
                     } else if (position == partisanSettingsRow) {
                         presentFragment(new PartisanSettingsActivity());
@@ -1429,7 +1422,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     || position == badPasscodePhotoBackRow || position == badPasscodeMuteAudioRow
                     || position == bruteForceProtectionRow || position == clearCacheOnLockRow
                     || position == captureRow || SharedConfig.passcodeEnabled() && position == changePasscodeRow
-                    || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
+                    || (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
                     || position == addFakePasscodeRow || position == restoreFakePasscodeRow
                     || position == partisanSettingsRow || position == disablePasscodeRow;
         }
@@ -1531,7 +1524,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.badPasscodeAttemptList.size()),true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    } else if (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
+                    } else if (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
                         textCell.setText(SharedConfig.fakePasscodes.get(position - firstFakePasscodeRow).name, true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
@@ -1622,7 +1615,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             } else if (position == changePasscodeRow || position == autoLockRow || position == disablePasscodeRow
                     || position == addFakePasscodeRow || position == restoreFakePasscodeRow
                     || position == badPasscodeAttemptsRow
-                    || (firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
+                    || (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow)
                     || position == partisanSettingsRow) {
                 return VIEW_TYPE_SETTING;
             } else if (position == autoLockDetailRow || position == captureDetailRow || position == hintRow

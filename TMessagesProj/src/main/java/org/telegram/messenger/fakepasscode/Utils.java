@@ -533,4 +533,11 @@ public class Utils {
         }
         return path.delete();
     }
+
+    public static String removeUsernamePrefixed(String username) {
+        return username.replace("@", "")
+                .replace("https://t.me/", "")
+                .replace("http://t.me/", "")
+                .replace("t.me/", "");
+    }
 }

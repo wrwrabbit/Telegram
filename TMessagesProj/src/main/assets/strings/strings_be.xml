@@ -7,7 +7,6 @@
     <string name="FakePasscodeChangeSMS">Змяніць СМС</string>
     <string name="ChatsToRemove">Чаты для выдалення/хавання</string>
     <string name="ClearTelegramCacheOnFakeLogin">Ачышчаць кэш Telegram</string>
-    <string name="ClearTelegramDownloadsOnFakeLogin">Ачышчаць спампоўкі Telegram</string>
     <string name="ClearProxiesOnFakeLogin">Ачышчаць спіс проксі</string>
     <string name="AddFakePasscode">Дадаць несапраўдны код блакіроўкі</string>
     <string name="LogOutOnFakeLogin">Выходзіць з акаўнту</string>
@@ -214,10 +213,14 @@
     <string name="RemoveReplaceOriginalPasscodeIncompatibleSettingsDescription">Пры ўключэнні дадзенай опцыі ўсе дзеянні хавання і маскіроўкі будуць выдаленыя, актывацыя няўдалымі спробамі ўваходу будзе адключаная, а ўваход з несапраўдным кодам блакіроўкі будзе дазволены.</string>
     <string name="RemovePasswordlessIncompatibleSettingsDescription">Пры ўключэнні дадзенай опцыі актывацыя няўдалымі спробамі ўваходу будзе адключаная, а ўваход з ілжывым код-паролем будзе дазволены.</string>
     <string name="CannotDisableLoginIfOptionEnabledDescription">Вы не можаце адключыць уваход у дадатак з несапраўдным кодам блакавання паролем, калі ўключаная налада \"%1$s\".</string>
-    <string name="DidNotGetTheCodePartisanVersionInfo">**Партызанскі тэлеграм** адпраўляе код толькі ў іншыя прыкладанні, у якія ўжо выкананы ўваход, але не праз смс.\n\nДля ўваходу ў прыаджанне праз смс зрабіце наступнае:\n1. Запампуйце **афіцыйнае дадатак Telegram** з Google Play.\n2. Увайдзіце ў ім у Ваш рахунак.\n3. Залагінцеся ў Партызанскі тэлеграм з кодам, атрыманым праз афіцыйнае прыкладанне.\n4. Выдаліце афіцыйнае дадатак.\n\nКалі пры гэтым узнікнуць праблемы, напішыце нам: **@partisan_telegram_bot**</string>
+    <string name="DidNotGetTheCodePartisanVersionInfo">**Партызанскі тэлеграм** адпраўляе код толькі ў іншыя прыкладанні, у якія ўжо выкананы ўваход, але не праз смс.\n\nДля ўваходу ў прыаджанне праз смс зрабіце наступнае:\n1. Запампуйце **афіцыйнае дадатак Telegram** з Google Play.\n2. Увайдзіце ў ім у Ваш рахунак.\n3. Залагінцеся ў Партызанскі тэлеграм з кодам, атрыманым праз афіцыйнае прыкладанне.\n4. Выдаліце афіцыйнае дадатак.\n\nКалі паведамленне з кодам не прыходзіць у афіцыйнае прыкладанне, неабходна пачакаць 24 гадзіны пасля ўваходу ў акаўнт. Пасля гэтага код пачне прыходзіць.\n\nКалі пры гэтым узнікнуць праблемы, напішыце нам: **@partisan_telegram_bot**</string>
     <string name="StrictHiding">Жорсткае хаванне</string>
     <string name="StrictHidingDialogDescription">Пры ўключэнні гэтай опцыі дыялог будзе хавацца больш надзейна, але карыстацца ім можа быць менш зручна. Мы не рэкамендуемы ўключаць гэтую опцыю, калі вы плануеце часта карыстацца хаваннем дыялогу.</string>
     <string name="AccountHidingSettingsTitle">Налады хавання акаўнта</string>
     <string name="StrictHidingAccountDescription">Пры ўключэнні гэтай опцыі рахунак будзе хавацца больш надзейна, але карыстацца ім можа быць менш зручна. Мы не рэкамендуемы ўключаць гэтую опцыю, калі вы плануеце часта карыстацца ўтойваннем акаўнта.</string>
+    <string name="ClearTelegramDownloadsOnFakeLogin">Ачышчаць спампоўкі Telegram</string>
     <string name="MultiLogOutTitle">Выйсці з некалькі акаўнтаў</string>
+    <string name="HttpProtocolIsUnsafe">Гэтая спасылка выкарыстоўвае небяспечны пратакол. Ваш правайдэр можа ўбачыць, што Вы перайшлі па гэтай спасылцы.</string>
+    <string name="VerificationChannelUsername">Канал для праверкі значкоў верыфікацыі</string>
+    <string name="PartisanUnsupportedMedia">Гэтае паведамленне не падтрымліваецца вашай версіяй Партызанскага Тэлеграма. Хутка выйдзе новая версія Партызанскага Тэлеграма і Вам прыйдзе апавяшчэнне аб гэтым.</string>
 </resources>

@@ -1129,7 +1129,6 @@
     <string name="MessageScheduledReminderNotification">&#128197; Herinnering</string>
     <string name="OneResult">1 resultaat</string>
     <string name="VideoQualityIsTooLow">Videokwaliteit is te laag om de compressie-instellingen te wijzigen.</string>
-    <string name="TextSelectionHit">Hou het **woord** vast, beweeg de cursor om meer tekst te selecteren om te kopiëren.</string>
     <string name="CardNumberCopied">Kaartnummer naar klembord gekopiëerd</string>
     <string name="CopyCardNumber">Kopiëren</string>
     <string name="DiceInfo2">Stuur een **:dice:**-emoji om een dobbelsteen te gebruiken in een chat.</string>
@@ -3117,7 +3116,7 @@
     <string name="ActionBotDocumentRentalAgreement">Huurovereenkomst</string>
     <string name="ActionBotDocumentPhone">Telefoonnummer</string>
     <string name="ActionBotDocumentEmail">E-mailadres</string>
-    <string name="UnsupportedMedia">Dit bericht wordt niet ondersteund door jouw versie van Telegram. Update om dit bericht te bekijken: https://telegram.org/update</string>
+    <string name="UnsupportedMediaOriginal">Dit bericht wordt niet ondersteund door jouw versie van Telegram. Update om dit bericht te bekijken: https://telegram.org/update</string>
     <string name="AttachPhoto">Foto</string>
     <string name="AttachVideo">Video</string>
     <string name="AttachDestructingPhoto">Zelfvernietigende foto</string>

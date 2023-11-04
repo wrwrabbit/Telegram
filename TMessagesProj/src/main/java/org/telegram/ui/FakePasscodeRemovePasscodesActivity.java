@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements AlertsCreator.CheckabeSettingModeAlertDelegate {
 
@@ -93,7 +94,7 @@ public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements
             if (getParentActivity() == null) {
                 return;
             }
-            if (position >= fakePasscodesStartRow) {
+            if (fakePasscodesStartRow != -1 && position >= fakePasscodesStartRow) {
                 TextCheckCell checkableSessionCell = ((TextCheckCell) view);
                 boolean isChecked = !checkableSessionCell.isChecked();
                 if (isChecked) {
@@ -107,13 +108,18 @@ public class FakePasscodeRemovePasscodesActivity extends BaseFragment implements
             } else if (position == modeSectionRow) {
                 AlertsCreator.showCheckableSettingModesAlert(this, getParentActivity(), getTitle(), this, null);
             } else if (position == checkAllRow) {
-                if (selectedPasscodes.size() > 0) {
-                    selectedPasscodes = new ArrayList<>();
-                } else {
-                    selectedPasscodes = new ArrayList<>(fakePasscodes);
-                }
-                listAdapter.notifyDataSetChanged();
-                saveCheckedPasscodes(selectedPasscodes);
+                AlertsCreator.showConfirmationDialog(this, context, selectedPasscodes.size() > 0
+                                ? LocaleController.getString("Clear", R.string.Clear)
+                                : LocaleController.getString("CheckAll", R.string.CheckAll),
+                        () -> {
+                            if (selectedPasscodes.size() > 0) {
+                                selectedPasscodes = new ArrayList<>();
+                            } else {
+                                selectedPasscodes = new ArrayList<>(fakePasscodes);
+                            }
+                            listAdapter.notifyDataSetChanged();
+                            saveCheckedPasscodes(selectedPasscodes);
+                        });
             }
         });
 

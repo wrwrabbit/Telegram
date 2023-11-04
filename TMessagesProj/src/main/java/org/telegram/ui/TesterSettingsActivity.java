@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
@@ -21,6 +20,9 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
+import org.telegram.messenger.partisan.verification.VerificationRepository;
+import org.telegram.messenger.partisan.verification.VerificationStorage;
+import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -88,6 +90,8 @@ public class TesterSettingsActivity extends BaseFragment {
     private int activateAllSecurityIssuesRow;
     private int editSavedChannelsRow;
     private int resetUpdateRow;
+    private int checkVerificationUpdatesRow;
+    private int resetVerificationLastCheckTimeRow;
 
     public static boolean showPlainBackup;
 
@@ -169,6 +173,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 template.addEditTemplate(value, "Channel Username", true);
                 template.positiveListener = views -> {
                     String username = ((EditTextCaption)views.get(0)).getText().toString();
+                    username = Utils.removeUsernamePrefixed(username);
                     SharedConfig.updateChannelUsernameOverride = username;
                     SharedConfig.saveConfig();
                     TextSettingsCell cell = (TextSettingsCell) view;
@@ -267,6 +272,14 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.pendingPtgAppUpdate = null;
                 SharedConfig.saveConfig();
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+            } else if (position == checkVerificationUpdatesRow) {
+                VerificationUpdatesChecker.checkUpdate(currentAccount, true);
+                Toast.makeText(getParentActivity(), "Check started", Toast.LENGTH_SHORT).show();
+            } else if (position == resetVerificationLastCheckTimeRow) {
+                for (VerificationStorage storage : VerificationRepository.getInstance().getStorages()) {
+                    VerificationRepository.getInstance().saveLastCheckTime(storage.chatId, 0);
+                }
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -298,6 +311,8 @@ public class TesterSettingsActivity extends BaseFragment {
         activateAllSecurityIssuesRow = rowCount++;
         editSavedChannelsRow = rowCount++;
         resetUpdateRow = rowCount++;
+        checkVerificationUpdatesRow = rowCount++;
+        resetVerificationLastCheckTimeRow = rowCount++;
     }
 
     @Override
@@ -427,6 +442,10 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setTextAndValue("Saved Channels", Integer.toString(getUserConfig().savedChannels.size()), true);
                     } else if (position == resetUpdateRow) {
                         textCell.setText("Reset Update", true);
+                    } else if (position == checkVerificationUpdatesRow) {
+                        textCell.setText("Check Verification Updates", true);
+                    } else if (position == resetVerificationLastCheckTimeRow) {
+                        textCell.setText("Reset Verification Last Check Time", true);
                     }
                     break;
                 }
@@ -442,7 +461,8 @@ public class TesterSettingsActivity extends BaseFragment {
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
                     || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
-                    || position == resetUpdateRow) {
+                    || position == resetUpdateRow || position == checkVerificationUpdatesRow
+                    || position == resetVerificationLastCheckTimeRow) {
                 return 1;
             }
             return 0;

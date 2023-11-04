@@ -1129,7 +1129,6 @@
     <string name="MessageScheduledReminderNotification">&#128197; تذكير</string>
     <string name="OneResult">نتيجة واحدة</string>
     <string name="VideoQualityIsTooLow">جودة المقطع المرئي أقل مما ينبغي لتغيير إعدادات الضغط.</string>
-    <string name="TextSelectionHit">اضغط باستمرار على **كلمة** ما، ثم حرّك المؤشر لتحديد المزيد والنسخ.</string>
     <string name="CardNumberCopied">تم نسخ رقم البطاقة للحافظة</string>
     <string name="CopyCardNumber">نسخ</string>
     <string name="DiceInfo2">أرسل الرمز التعبيري **&#127922;** لرمي حجر النرد.</string>
@@ -3117,7 +3116,7 @@
     <string name="ActionBotDocumentRentalAgreement">عقد الإيجار</string>
     <string name="ActionBotDocumentPhone">رقم الهاتف</string>
     <string name="ActionBotDocumentEmail">بريد إلكتروني</string>
-    <string name="UnsupportedMedia">نسخة تيليجرام التي لديك لاتدعم هذه الرسالة. حدّث التطبيق لعرضها: https://telegram.org/update</string>
+    <string name="UnsupportedMediaOriginal">نسخة تيليجرام التي لديك لاتدعم هذه الرسالة. حدّث التطبيق لعرضها: https://telegram.org/update</string>
     <string name="AttachPhoto">صورة</string>
     <string name="AttachVideo">مقطع مرئي</string>
     <string name="AttachDestructingPhoto">صورة ذاتية التدمير</string>
