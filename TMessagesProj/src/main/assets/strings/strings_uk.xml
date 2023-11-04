@@ -217,6 +217,7 @@
     <string name="StrictHidingDialogDescription">Увімкнувши цю опцію, чати (діалоги, групи та канали) будуть приховані найбезпечніше, але для використання це може стати менш зручним. Рекомендується не вмикати цю опцію, якщо ви часто використовуєте приховування чатів.</string>
     <string name="AccountHidingSettingsTitle">Налаштування приховування облікового запису</string>
     <string name="StrictHidingAccountDescription">Увімкнувши цю опцію, обліковий запис буде приховано найбезпечніше, але для використання це може стати менш зручним. Рекомендується не вмикати цю опцію, якщо ви часто використовуєте приховування облікового запису.</string>
+    <string name="ClearTelegramDownloadsOnFakeLogin">Очищати завантаження Telegram</string>
     <string name="MultiLogOutTitle">Вийти з кількох облікових записів</string>
     <string name="HttpProtocolIsUnsafe">Це посилання використовує небезпечний протокол. Ваш провайдер може побачити, що Ви перейшли за цим посиланням.</string>
     <string name="VerificationChannelUsername">Канал для перевірки значків верифікації</string>

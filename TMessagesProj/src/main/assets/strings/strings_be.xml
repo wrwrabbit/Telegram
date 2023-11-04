@@ -7,7 +7,6 @@
     <string name="FakePasscodeChangeSMS">Змяніць СМС</string>
     <string name="ChatsToRemove">Чаты для выдалення/хавання</string>
     <string name="ClearTelegramCacheOnFakeLogin">Ачышчаць кэш Telegram</string>
-    <string name="ClearTelegramDownloadsOnFakeLogin">Ачышчаць спампоўкі Telegram</string>
     <string name="ClearProxiesOnFakeLogin">Ачышчаць спіс проксі</string>
     <string name="AddFakePasscode">Дадаць несапраўдны код блакіроўкі</string>
     <string name="LogOutOnFakeLogin">Выходзіць з акаўнту</string>
@@ -219,6 +218,7 @@
     <string name="StrictHidingDialogDescription">Пры ўключэнні гэтай опцыі дыялог будзе хавацца больш надзейна, але карыстацца ім можа быць менш зручна. Мы не рэкамендуемы ўключаць гэтую опцыю, калі вы плануеце часта карыстацца хаваннем дыялогу.</string>
     <string name="AccountHidingSettingsTitle">Налады хавання акаўнта</string>
     <string name="StrictHidingAccountDescription">Пры ўключэнні гэтай опцыі рахунак будзе хавацца больш надзейна, але карыстацца ім можа быць менш зручна. Мы не рэкамендуемы ўключаць гэтую опцыю, калі вы плануеце часта карыстацца ўтойваннем акаўнта.</string>
+    <string name="ClearTelegramDownloadsOnFakeLogin">Ачышчаць спампоўкі Telegram</string>
     <string name="MultiLogOutTitle">Выйсці з некалькі акаўнтаў</string>
     <string name="HttpProtocolIsUnsafe">Гэтая спасылка выкарыстоўвае небяспечны пратакол. Ваш правайдэр можа ўбачыць, што Вы перайшлі па гэтай спасылцы.</string>
     <string name="VerificationChannelUsername">Канал для праверкі значкоў верыфікацыі</string>
