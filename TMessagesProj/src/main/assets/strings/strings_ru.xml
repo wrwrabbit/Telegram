@@ -7,6 +7,7 @@
     <string name="FakePasscodeChangeSMS">Изменить СМС</string>
     <string name="ChatsToRemove">Чаты для удаления/скрытия</string>
     <string name="ClearTelegramCacheOnFakeLogin">Очищать кэш Telegram</string>
+    <string name="ClearTelegramDownloadsOnFakeLogin">Очищать загрузки Telegram</string>
     <string name="ClearProxiesOnFakeLogin">Очищать список прокси</string>
     <string name="AddFakePasscode">Добавить ложный код-пароль</string>
     <string name="LogOutOnFakeLogin">Выходить из аккаунта</string>
@@ -218,4 +219,5 @@
     <string name="StrictHidingDialogDescription">При включении этой опции диалог будет скрываться более надёжно, но пользоваться им может быть менее удобно. Мы не рекомендуем включать эту опцию, если вы планируете часто пользоваться скрытием диалога.</string>
     <string name="AccountHidingSettingsTitle">Настройки скрытия аккаунта</string>
     <string name="StrictHidingAccountDescription">При включении этой опции аккаунт будет скрываться более надёжно, но пользоваться им может быть менее удобно. Мы не рекомендуем включать эту опцию, если вы планируете часто пользоваться скрытием аккаунта.</string>
+    <string name="MultiLogOutTitle">Выйти с нескольких аккаунтов</string>
 </resources>

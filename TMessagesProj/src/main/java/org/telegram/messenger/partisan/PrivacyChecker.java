@@ -107,8 +107,10 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
     }
 
     private void check() {
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.privacyRulesUpdated);
-        AndroidUtilities.runOnUIThread(() -> ContactsController.getInstance(accountNum).loadPrivacySettings());
+        AndroidUtilities.runOnUIThread(() -> {
+            NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.privacyRulesUpdated);
+            ContactsController.getInstance(accountNum).loadPrivacySettings();
+        });
     }
 
     private boolean isGoodPrivacy() {
