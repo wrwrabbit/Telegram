@@ -4761,7 +4761,7 @@ public class AndroidUtilities {
 
     public static boolean shouldShowUrlInAlert(String url) {
         try {
-            if (url.startsWith("http:")) {
+            if (url.toLowerCase(Locale.ROOT).startsWith("http:")) {
                 return true;
             }
             Uri uri = Uri.parse(url);
