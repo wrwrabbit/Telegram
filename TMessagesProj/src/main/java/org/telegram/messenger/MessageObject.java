@@ -4124,7 +4124,7 @@ public class MessageObject {
                     messageText = getMedia(messageOwner).description;
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaUnsupported) {
                     int resourceId;
-                    if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                    if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                         resourceId = R.string.PartisanUnsupportedMedia;
                     } else {
                         resourceId = ApplicationLoader.applicationLoaderInstance.isStandalone() ? R.string.UnsupportedMediaStandalone : R.string.UnsupportedMediaOriginal;
@@ -4234,7 +4234,7 @@ public class MessageObject {
             return media.description;
         } else if (media instanceof TLRPC.TL_messageMediaUnsupported) {
             int resourceId;
-            if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                 resourceId = R.string.PartisanUnsupportedMedia;
             } else {
                 resourceId = ApplicationLoader.applicationLoaderInstance.isStandalone() ? R.string.UnsupportedMediaStandalone : R.string.UnsupportedMediaOriginal;
