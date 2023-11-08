@@ -2552,7 +2552,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             headerView.backupImageView.getImageReceiver().setForUserOrChat(chat, avatarDrawable);
             headerView.titleView.setText(UserConfig.getChatTitleOverride(currentAccount, chat));
 
-            if (chat != null && chat.verified) {
+            if (chat != null && chat.isVerified()) {
                 Drawable verifyDrawable = ContextCompat.getDrawable(getContext(), R.drawable.verified_profile).mutate();
                 verifyDrawable.setAlpha(255);
                 CombinedDrawable drawable = new CombinedDrawable(verifyDrawable, null);
