@@ -127,6 +127,7 @@ public class FakePasscode {
         }
         activationDate = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         actionsResult = new ActionsResult();
+        actionsResult.setActivated();
         SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
         SharedConfig.saveConfig();
         for (Action action : actions()) {

@@ -44,9 +44,11 @@ import androidx.core.util.Consumer;
 
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
+import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeMessages;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.RemoveChatsResult;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
@@ -10056,8 +10058,12 @@ public class MessagesController extends BaseController implements NotificationCe
                 new_dialogMessage.put(did, arrayList);
             }
 
+            RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
             for (int a = 0; a < resetDialogsAll.dialogs.size(); a++) {
                 TLRPC.Dialog d = resetDialogsAll.dialogs.get(a);
+                if (removeChatsResult != null && removeChatsResult.isRemovedChat(d.id)) {
+                    continue;
+                }
                 DialogObject.initDialog(d);
                 if (d.id == 0) {
                     continue;
@@ -10176,8 +10182,12 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
 
+                RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
                 for (int a = 0; a < new_dialogs_dict.size(); a++) {
                     long key = new_dialogs_dict.keyAt(a);
+                    if (removeChatsResult != null && removeChatsResult.isRemovedChat(key)) {
+                        continue;
+                    }
                     TLRPC.Dialog value = new_dialogs_dict.valueAt(a);
                     if (value.draft instanceof TLRPC.TL_draftMessage) {
                         mediaDataController.saveDraft(value.id, 0, value.draft, null, false);
@@ -10589,10 +10599,14 @@ public class MessagesController extends BaseController implements NotificationCe
             }
 
             ArrayList<TLRPC.Dialog> dialogsToReload = new ArrayList<>();
+            RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
             for (int a = 0; a < dialogsRes.dialogs.size(); a++) {
                 TLRPC.Dialog d = dialogsRes.dialogs.get(a);
                 DialogObject.initDialog(d);
                 if (d.id == 0) {
+                    continue;
+                }
+                if (removeChatsResult != null && removeChatsResult.isRemovedChat(d.id)) {
                     continue;
                 }
                 if (DialogObject.isEncryptedDialog(d.id) && enc_chats_dict != null) {
@@ -11177,6 +11191,21 @@ public class MessagesController extends BaseController implements NotificationCe
 
     public void processDialogsUpdate(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, boolean fromCache) {
         Utilities.stageQueue.postRunnable(() -> {
+            if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                if (dialogsRes.messages.stream().anyMatch(m -> FakePasscodeUtils.isSosMessage(currentAccount, m.dialog_id, m.id))) {
+                    return;
+                }
+                ActionsResult result = FakePasscodeUtils.getJustActivatedActionsResult();
+                if (result != null) {
+                    RemoveChatsResult removeChatsResult = result.getRemoveChatsResult(currentAccount);
+                    if (removeChatsResult != null) {
+                        if (dialogsRes.dialogs.stream().anyMatch(d -> removeChatsResult.isRemovedChat(d.id))) {
+                            return;
+                        }
+                    }
+                }
+            }
+
             LongSparseArray<TLRPC.Dialog> new_dialogs_dict = new LongSparseArray<>();
             LongSparseArray<ArrayList<MessageObject>> new_dialogMessage = new LongSparseArray<>();
             LongSparseArray<TLRPC.User> usersDict = new LongSparseArray<>(dialogsRes.users.size());
@@ -11437,9 +11466,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
 
                 allDialogs.clear();
+                RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
                 for (int a = 0, size = dialogs_dict.size(); a < size; a++) {
                     TLRPC.Dialog dialog = dialogs_dict.valueAt(a);
-                    if (deletingDialogs.indexOfKey(dialog.id) >= 0) {
+                    if (deletingDialogs.indexOfKey(dialog.id) >= 0
+                            || removeChatsResult != null && removeChatsResult.isRemovedChat(dialog.id)) {
                         continue;
                     }
                     allDialogs.add(dialog);

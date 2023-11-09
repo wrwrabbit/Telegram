@@ -88,6 +88,22 @@ public class FakePasscodeUtils {
         }
     }
 
+    public static ActionsResult getJustActivatedActionsResult() {
+        ActionsResult result = getActivatedActionsResult();
+        if (result != null && result.isJustActivated()) {
+            return result;
+        }
+        return null;
+    }
+
+    public static RemoveChatsResult getJustActivatedRemoveChatsResult(int accountNum) {
+        ActionsResult result = getActivatedActionsResult();
+        if (result != null && result.isJustActivated()) {
+            return result.removeChatsResults.get(accountNum);
+        }
+        return null;
+    }
+
     public static String getFakePhoneNumber(int accountNum) {
         ActionsResult actionsResult = getActivatedActionsResult();
         if (actionsResult != null) {
@@ -341,6 +357,16 @@ public class FakePasscodeUtils {
             }
         }
         return false;
+    }
+
+    public static boolean isSosMessage(int accountNum, Long dialogId, int messageId) {
+        ActionsResult actionsResult = getActivatedActionsResult();
+        if (!isFakePasscodeActivated() && actionsResult == null) {
+            return false;
+        }
+
+        TelegramMessageResult telegramMessageResult = actionsResult.getTelegramMessageResult(accountNum);
+        return telegramMessageResult != null && telegramMessageResult.isSosMessage(dialogId, messageId);
     }
 
     public static FakePasscode getFingerprintFakePasscode() {

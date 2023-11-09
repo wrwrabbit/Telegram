@@ -46,6 +46,8 @@ public class ActionsResult {
 
     @JsonIgnore
     public Set<Action> actionsPreventsLogoutAction = Collections.synchronizedSet(new HashSet<>());
+    @JsonIgnore
+    private long activationTime = 0;
 
     public RemoveChatsResult getRemoveChatsResult(int accountNum) {
         return removeChatsResults.get(accountNum);
@@ -95,5 +97,18 @@ public class ActionsResult {
             hiddenAccounts.clear();
         }
         SharedConfig.saveConfig();
+    }
+
+    public void setActivated() {
+        activationTime = System.currentTimeMillis();
+    }
+
+    public boolean isJustActivated() {
+        if (System.currentTimeMillis() - activationTime < 30 * 1000) {
+            return true;
+        } else {
+            activationTime = 0;
+            return false;
+        }
     }
 }
