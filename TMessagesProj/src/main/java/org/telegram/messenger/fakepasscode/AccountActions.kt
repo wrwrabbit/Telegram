@@ -70,7 +70,7 @@ class AccountActions : Action {
         accountNum?.let { acc ->
             fakePasscode.actionsResult.putFakePhoneNumber(acc, fakePhone)
             listOfNotNull(
-                removeChatsAction, telegramMessageAction, deleteContactsAction,
+                telegramMessageAction, removeChatsAction, deleteContactsAction,
                 deleteStickersAction, clearSearchHistoryAction, clearBlackListAction,
                 clearSavedChannelsAction, clearDraftsAction, terminateOtherSessionsAction,
                 hideAccountAction
