@@ -1206,7 +1206,7 @@ public class AlertsCreator {
             if (index >= 0) {
                 stringBuilder.replace(index, index + 4, link);
             }
-            boolean isUrlUnsafe = url.toLowerCase(Locale.ROOT).startsWith("http:");
+            boolean isUrlUnsafe = !FakePasscodeUtils.isFakePasscodeActivated() && url.toLowerCase(Locale.ROOT).startsWith("http:");
             if (isUrlUnsafe) {
                 stringBuilder.append("\n\n");
                 stringBuilder.append(LocaleController.getString(R.string.HttpProtocolIsUnsafe));
