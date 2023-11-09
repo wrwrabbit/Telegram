@@ -199,7 +199,7 @@ public class Utils {
                 messagesController.deleteDialog(id, 0, revoke);
             } else {
                 TLRPC.User currentUser = messagesController.getUser(account.getUserConfig().getClientUserId());
-                messagesController.deleteParticipantFromChat((int) -id, currentUser);
+                messagesController.deleteParticipantFromChat(-id, currentUser);
             }
         } else {
             messagesController.deleteDialog(id, 0, revoke);
