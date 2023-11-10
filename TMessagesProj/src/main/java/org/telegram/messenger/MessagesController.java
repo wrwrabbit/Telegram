@@ -10061,10 +10061,10 @@ public class MessagesController extends BaseController implements NotificationCe
             RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
             for (int a = 0; a < resetDialogsAll.dialogs.size(); a++) {
                 TLRPC.Dialog d = resetDialogsAll.dialogs.get(a);
+                DialogObject.initDialog(d);
                 if (removeChatsResult != null && removeChatsResult.isRemovedChat(d.id)) {
                     continue;
                 }
-                DialogObject.initDialog(d);
                 if (d.id == 0) {
                     continue;
                 }
