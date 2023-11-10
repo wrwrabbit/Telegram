@@ -8096,11 +8096,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 avatarsViewPager.initIfEmpty(vectorAvatarThumbDrawable, imageLocation, thumbLocation, reload);
             }
             if (avatarBig == null) {
-                if (vectorAvatar != null) {
+                if (vectorAvatar != null && getUserConfig().isAvatarEnabled(user.id)) {
                     avatarImage.setImageDrawable(vectorAvatarThumbDrawable);
                 } else if (videoThumbLocation != null && !user.photo.personal) {
                     avatarImage.getImageReceiver().setVideoThumbIsSame(true);
-                    avatarImage.setImage(getUserConfig().isAvatarEnabled(user.id) ? videoThumbLocation : null, "avatar", thumbLocation, "50_50", avatarDrawable, user);
+                    avatarImage.setImage(getUserConfig().isAvatarEnabled(user.id) ? videoThumbLocation : null, "avatar", getUserConfig().isAvatarEnabled(user.id) ? thumbLocation : null, "50_50", avatarDrawable, user);
                 } else {
                     avatarImage.setImage(getUserConfig().isAvatarEnabled(user.id) ? videoLocation : null, ImageLoader.AUTOPLAY_FILTER, getUserConfig().isAvatarEnabled(user.id) ? thumbLocation : null, "50_50", avatarDrawable, user);
                 }
