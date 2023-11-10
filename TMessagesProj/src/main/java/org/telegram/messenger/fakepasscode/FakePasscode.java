@@ -143,9 +143,7 @@ public class FakePasscode {
                     }
                 }
             }
-            if (clearAfterActivation) {
-                clear();
-            }
+            checkClearAfterActivation();
             checkPasswordlessMode();
         });
     }
@@ -173,6 +171,12 @@ public class FakePasscode {
                 }
             }
         });
+    }
+
+    public void checkClearAfterActivation() {
+        if (clearAfterActivation) {
+            clear();
+        }
     }
 
     private void clear() {
