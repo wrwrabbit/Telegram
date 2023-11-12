@@ -217,6 +217,8 @@ public class CodeHighlighting {
                 tokens[0] = tokenize(text.subSequence(start, end).toString(), compiledPatterns == null ? null : compiledPatterns.get(lng)).toArray();
             } catch (Exception e) {
                 FileLog.e(e);
+            } catch (StackOverflowError ignore) {
+
             }
             FileLog.d("[CodeHighlighter] tokenize took " + (System.currentTimeMillis() - S) + "ms");
 
