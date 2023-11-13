@@ -28,8 +28,8 @@ import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.RemoveChatsResult;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -9691,10 +9691,27 @@ public class MessagesStorage extends BaseController {
         }
     }
 
-    public void putUsersAndChats(List<TLRPC.User> users, List<TLRPC.Chat> chats, boolean withTransaction, boolean useQueue) {
-        if (users != null && users.isEmpty() && chats != null && chats.isEmpty()) {
+    public void putUsersAndChats(List<TLRPC.User> rawUsers, List<TLRPC.Chat> rawChats, boolean withTransaction, boolean useQueue) {
+        if (rawUsers != null && rawUsers.isEmpty() && rawChats != null && rawChats.isEmpty()) {
             return;
         }
+        List<TLRPC.User> filteredUsers = rawUsers;
+        List<TLRPC.Chat> filteredChats = rawChats;
+        RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
+        if (removeChatsResult != null) {
+            if (rawUsers != null) {
+                filteredUsers = rawUsers.stream()
+                        .filter(u -> !removeChatsResult.isRemovedChat(u.id))
+                        .collect(Collectors.toList());
+            }
+            if (rawChats != null) {
+                filteredChats = rawChats.stream()
+                        .filter(c -> !removeChatsResult.isRemovedChat(c.id))
+                        .collect(Collectors.toList());
+            }
+        }
+        final List<TLRPC.User> users = filteredUsers;
+        final List<TLRPC.Chat> chats = filteredChats;
         if (useQueue) {
             storageQueue.postRunnable(() -> putUsersAndChatsInternal(users, chats, withTransaction));
         } else {

@@ -10058,11 +10058,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 new_dialogMessage.put(did, arrayList);
             }
 
-            RemoveChatsResult removeChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
+            RemoveChatsResult justRemoveChatsResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(currentAccount);
             for (int a = 0; a < resetDialogsAll.dialogs.size(); a++) {
                 TLRPC.Dialog d = resetDialogsAll.dialogs.get(a);
                 DialogObject.initDialog(d);
-                if (removeChatsResult != null && removeChatsResult.isRemovedChat(d.id)) {
+                if (justRemoveChatsResult != null && justRemoveChatsResult.isRemovedChat(d.id)) {
                     continue;
                 }
                 if (d.id == 0) {
@@ -10133,6 +10133,13 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     message.unread = value < message.id;
                 }
+            }
+
+
+            if (justRemoveChatsResult != null) {
+                resetDialogsAll.users.removeIf(u -> justRemoveChatsResult.isRemovedChat(u.id));
+                resetDialogsAll.chats.removeIf(c -> justRemoveChatsResult.isRemovedChat(c.id));
+                resetDialogsAll.dialogs.removeIf(d -> justRemoveChatsResult.isRemovedChat(d.id));
             }
 
             getMessagesStorage().resetDialogs(resetDialogsAll, messagesCount, seq, newPts, date, qts, new_dialogs_dict, new_dialogMessage, lastMessage, dialogsCount);
