@@ -474,7 +474,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
                 hasStripped = chat.photo.stripped_thumb != null;
             }
         }
-        if (vectorImageMarkup != null && vectorType != 0) {
+        if (vectorImageMarkup != null && vectorType != 0 && avatarEnabled) {
             VectorAvatarThumbDrawable drawable = new VectorAvatarThumbDrawable(vectorImageMarkup, isPremium, vectorType);
             setImageBitmap(drawable);
         } else {
