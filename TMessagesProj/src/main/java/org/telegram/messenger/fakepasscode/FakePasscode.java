@@ -127,6 +127,7 @@ public class FakePasscode {
         }
         activationDate = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         actionsResult = new ActionsResult();
+        actionsResult.setActivated();
         SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
         SharedConfig.saveConfig();
         for (Action action : actions()) {
@@ -142,9 +143,7 @@ public class FakePasscode {
                     }
                 }
             }
-            if (clearAfterActivation) {
-                clear();
-            }
+            checkClearAfterActivation();
             checkPasswordlessMode();
         });
     }
@@ -172,6 +171,12 @@ public class FakePasscode {
                 }
             }
         });
+    }
+
+    public void checkClearAfterActivation() {
+        if (clearAfterActivation) {
+            clear();
+        }
     }
 
     private void clear() {

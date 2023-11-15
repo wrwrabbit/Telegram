@@ -1206,18 +1206,19 @@ public class AlertsCreator {
             if (index >= 0) {
                 stringBuilder.replace(index, index + 4, link);
             }
-            if (url.startsWith("http:")) {
+            boolean isUrlUnsafe = !FakePasscodeUtils.isFakePasscodeActivated() && url.toLowerCase(Locale.ROOT).startsWith("http:");
+            if (isUrlUnsafe) {
                 stringBuilder.append("\n\n");
                 stringBuilder.append(LocaleController.getString(R.string.HttpProtocolIsUnsafe));
             }
             builder.setMessage(stringBuilder);
             builder.setMessageTextViewClickable(false);
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-            if (!url.startsWith("http:")) {
+            if (!isUrlUnsafe) {
                 builder.setPositiveButton(LocaleController.getString("Open", R.string.Open), (dialogInterface, i) -> open.run());
             }
             dialog[0] = builder.create();
-            if (url.startsWith("http:")) {
+            if (isUrlUnsafe) {
                 DialogButtonWithTimer.setButton(dialog[0], AlertDialog.BUTTON_POSITIVE, LocaleController.getString("Open", R.string.Open), 5, (dialogInterface, i) -> open.run());
             }
             fragment.showDialog(dialog[0]);

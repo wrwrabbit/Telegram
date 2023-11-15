@@ -19,7 +19,10 @@ public class CheckLogOutActionRunnable implements Runnable {
     @Override
     public void run() {
         if (fakePasscode.actionsResult.actionsPreventsLogoutAction.isEmpty() || i == THRESHOLD / DELAY) {
-            AndroidUtilities.runOnUIThread(() -> action.execute(fakePasscode));
+            AndroidUtilities.runOnUIThread(() -> {
+                action.execute(fakePasscode);
+                fakePasscode.checkClearAfterActivation();
+            });
         } else {
             if (i == 0) {
                 AndroidUtilities.runOnUIThread(() -> action.hideAccount(fakePasscode));
