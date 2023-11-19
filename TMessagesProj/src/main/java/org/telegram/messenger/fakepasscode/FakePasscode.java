@@ -1,5 +1,7 @@
 package org.telegram.messenger.fakepasscode;
 
+import androidx.core.util.Pair;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,6 +12,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
@@ -20,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -157,8 +161,9 @@ public class FakePasscode {
             if (!actionsResult.hiddenAccountEntries.isEmpty()) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
             }
-            for (int account : actionsResult.removeChatsResults.keySet()) {
-                RemoveChatsResult removeResult = actionsResult.removeChatsResults.get(account);
+            for (Map.Entry<Integer, RemoveChatsResult> entry : actionsResult.removeChatsResults.entrySet()) {
+                int account = entry.getKey();
+                RemoveChatsResult removeResult = entry.getValue();
                 if (removeResult == null) {
                     continue;
                 }
@@ -167,6 +172,7 @@ public class FakePasscode {
                     notificationCenter.postNotificationName(NotificationCenter.dialogsHidingChanged);
                 }
                 if (!removeResult.hiddenFolders.isEmpty()) {
+                    MessagesStorage.getInstance(account).removeChatsActionExecuted();
                     notificationCenter.postNotificationName(NotificationCenter.foldersHidingChanged);
                 }
             }
