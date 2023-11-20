@@ -1191,6 +1191,11 @@ public class FilterTabsView extends FrameLayout {
     }
 
     public void finishAddingTabs(boolean animated) {
+        RemoveChatsResult removeResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(UserConfig.selectedAccount);
+        if (removeResult != null && removeResult.hasHiddenFolders()) {
+            animated = false;
+        }
+
         listView.setItemAnimator(animated ? itemAnimator : null);
         adapter.notifyDataSetChanged();
     }

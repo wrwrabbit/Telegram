@@ -318,11 +318,22 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
 
         if (folder.alwaysShow.isEmpty() && folder.pinnedDialogs.size() == 0
                 && (folder.flags & DIALOG_FILTER_FLAG_ALL_CHATS) == 0) {
+
             TLRPC.TL_messages_updateDialogFilter req = new TLRPC.TL_messages_updateDialogFilter();
             req.id = folder.id;
+            hiddenFolders.add(folder.id);
             getMessagesController().removeFilter(folder);
             getMessagesStorage().deleteDialogFilter(folder);
-            getAccount().getConnectionsManager().sendRequest(req, (response, error) -> { });
+            Object folder_id = folder.id;
+            getAccount().getConnectionsManager().sendRequest(req, (response, error) -> {
+                Utilities.globalQueue.postRunnable(() -> {
+                    hiddenFolders.remove(folder_id);
+                    RemoveChatsResult result = fakePasscode.actionsResult.getRemoveChatsResult(accountNum);
+                    if (result != null) {
+                        result.hiddenFolders.remove(folder_id);
+                    }
+                }, 1000);
+            });
             return true;
         } else if (changed) {
             TLRPC.TL_messages_updateDialogFilter req = new TLRPC.TL_messages_updateDialogFilter();
