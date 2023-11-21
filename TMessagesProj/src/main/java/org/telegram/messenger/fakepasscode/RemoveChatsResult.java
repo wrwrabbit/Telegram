@@ -41,6 +41,18 @@ public class RemoveChatsResult implements ChatFilter {
         return hiddenFolders.contains(folderId);
     }
 
+    public boolean hasRemovedChats() {
+        return !removedChats.isEmpty();
+    }
+
+    public boolean hasHiddenChats() {
+        return !hiddenChatEntries.isEmpty();
+    }
+
+    public boolean hasHiddenFolders() {
+        return !hiddenFolders.isEmpty();
+    }
+
     public void migrate() {
         for (Long hiddenChatId : hiddenChats) {
             hiddenChatEntries.add(new RemoveChatsAction.HiddenChatEntry(hiddenChatId, false));

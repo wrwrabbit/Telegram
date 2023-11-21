@@ -55,6 +55,8 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.RemoveChatsResult;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -535,6 +537,10 @@ public class FilterTabsView extends FrameLayout {
         }
 
         public boolean animateChange() {
+            if (isCountersJustChangedByFakePasscode()) {
+                return false;
+            }
+
             boolean changed = false;
             if (currentTab.counter != lastTabCount) {
                 animateTabCounter = true;
@@ -1185,6 +1191,11 @@ public class FilterTabsView extends FrameLayout {
     }
 
     public void finishAddingTabs(boolean animated) {
+        RemoveChatsResult removeResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(UserConfig.selectedAccount);
+        if (removeResult != null && removeResult.hasHiddenFolders()) {
+            animated = false;
+        }
+
         listView.setItemAnimator(animated ? itemAnimator : null);
         adapter.notifyDataSetChanged();
     }
@@ -1481,6 +1492,11 @@ public class FilterTabsView extends FrameLayout {
         return isEditing;
     }
 
+    private boolean isCountersJustChangedByFakePasscode() {
+        RemoveChatsResult removeResult = FakePasscodeUtils.getJustActivatedRemoveChatsResult(UserConfig.selectedAccount);
+        return removeResult != null && (removeResult.hasRemovedChats() || removeResult.hasHiddenChats());
+    }
+
     public void setIsEditing(boolean value) {
         isEditing = value;
         editingForwardAnimation = true;
@@ -1527,7 +1543,9 @@ public class FilterTabsView extends FrameLayout {
             }
         }
         if (changed) {
-            listView.setItemAnimator(itemAnimator);
+            if (!isCountersJustChangedByFakePasscode()) {
+                listView.setItemAnimator(itemAnimator);
+            }
             adapter.notifyDataSetChanged();
         }
     }
