@@ -505,14 +505,14 @@ public class UserCell extends FrameLayout implements NotificationCenter.Notifica
                     ((LayoutParams) nameTextView.getLayoutParams()).topMargin = AndroidUtilities.dp(19);
                     return;
                 }
-                avatarDrawable.setInfo(currentUser, currentAccount);
+                avatarDrawable.setInfo(currentAccount, currentUser);
                 if (currentUser.status != null) {
                     lastStatus = currentUser.status.expires;
                 } else {
                     lastStatus = 0;
                 }
             } else if (currentChat != null) {
-                avatarDrawable.setInfo(currentChat, currentAccount);
+                avatarDrawable.setInfo(currentAccount, currentChat);
             } else if (currentName != null) {
                 String title = UserConfig.getChatTitleOverride(currentAccount, currentId, currentName.toString());
                 avatarDrawable.setInfo(currentId, title, null);

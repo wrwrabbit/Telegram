@@ -344,7 +344,7 @@ public class ScrollSlidingTabStrip extends HorizontalScrollView {
 
             AvatarDrawable avatarDrawable = new AvatarDrawable();
             avatarDrawable.setTextSize(AndroidUtilities.dp(14));
-            avatarDrawable.setInfo(chat, UserConfig.selectedAccount);
+            avatarDrawable.setInfo(UserConfig.selectedAccount, chat);
 
             BackupImageView imageView = stickerTabView.imageView;
             imageView.setLayerNum(imageReceiversPlayingNum);
