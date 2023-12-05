@@ -228,7 +228,7 @@ public class AvatarDrawable extends Drawable {
 
     public void setInfo(int currentAccount, TLRPC.User user) {
         if (user != null) {
-            String title = UserConfig.getChatTitleOverride(accountNum, user.id);
+            String title = UserConfig.getChatTitleOverride(currentAccount, user.id);
             if (title != null) {
                 setInfo(user.id, title, null, null);
             } else {
@@ -240,9 +240,9 @@ public class AvatarDrawable extends Drawable {
 
     public void setInfo(TLObject object) {
         if (object instanceof TLRPC.User) {
-            setInfo((TLRPC.User) object, UserConfig.selectedAccount);
+            setInfo((TLRPC.User) object);
         } else if (object instanceof TLRPC.Chat) {
-            setInfo((TLRPC.Chat) object, UserConfig.selectedAccount);
+            setInfo((TLRPC.Chat) object);
         } else if (object instanceof TLRPC.ChatInvite) {
             setInfo((TLRPC.ChatInvite) object);
         }
@@ -337,7 +337,7 @@ public class AvatarDrawable extends Drawable {
     }
     public void setInfo(int currentAccount, TLRPC.Chat chat) {
         if (chat != null) {
-            setInfo(chat.id, chat.title, null, null, chat != null && chat.color != null ? ChatObject.getColorId(chat) : null, ChatObject.getPeerColorForAvatar(currentAccount, chat));
+            setInfo(chat.id, UserConfig.getChatTitleOverride(currentAccount, chat), null, null, chat != null && chat.color != null ? ChatObject.getColorId(chat) : null, ChatObject.getPeerColorForAvatar(currentAccount, chat));
         }
     }
 
@@ -346,7 +346,7 @@ public class AvatarDrawable extends Drawable {
     }
     public void setInfo(int currentAccount, TLRPC.ChatInvite chat) {
         if (chat != null) {
-            setInfo(0, UserConfig.getChatTitleOverride(accountNum, chat), null, null, chat.chat != null && chat.chat.color != null ? ChatObject.getColorId(chat.chat) : null, ChatObject.getPeerColorForAvatar(currentAccount, chat.chat));
+            setInfo(0, UserConfig.getChatTitleOverride(currentAccount, chat), null, null, chat.chat != null && chat.chat.color != null ? ChatObject.getColorId(chat.chat) : null, ChatObject.getPeerColorForAvatar(currentAccount, chat.chat));
         }
     }
 

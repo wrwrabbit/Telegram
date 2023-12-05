@@ -251,7 +251,7 @@ public class ChatRemoveCell extends FrameLayout {
                 return;
             }
         }
-        avatarDrawable.setInfo(currentUser, currentAccount);
+        avatarDrawable.setInfo(currentAccount, currentUser);
         lastStatus = currentUser.status != null ? currentUser.status.expires : 0;
 
         if (currentName != null) {
@@ -325,7 +325,7 @@ public class ChatRemoveCell extends FrameLayout {
                 return;
             }
         }
-        avatarDrawable.setInfo(currentUser, currentAccount);
+        avatarDrawable.setInfo(currentAccount, currentUser);
         lastStatus = currentUser.status != null ? currentUser.status.expires : 0;
 
         if (currentName != null) {
@@ -387,7 +387,7 @@ public class ChatRemoveCell extends FrameLayout {
             }
         }
 
-        avatarDrawable.setInfo(currentChat, currentAccount);
+        avatarDrawable.setInfo(currentAccount, currentChat);
 
         if (currentName != null) {
             lastName = null;

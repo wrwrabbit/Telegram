@@ -129,7 +129,7 @@ public class SenderSelectView extends View {
             objName = ((TLRPC.ChatInvite) obj).title;
         }
         setContentDescription(LocaleController.formatString("AccDescrSendAsPeer", R.string.AccDescrSendAsPeer, objName));
-        avatarDrawable.setInfo(obj, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(obj);
         avatarImage.setForUserOrChat(obj, avatarDrawable);
     }
 

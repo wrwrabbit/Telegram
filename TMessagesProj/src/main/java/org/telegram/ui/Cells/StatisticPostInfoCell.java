@@ -263,7 +263,7 @@ public class StatisticPostInfoCell extends FrameLayout {
     }
 
     public void setData(StatisticActivity.MemberData memberData) {
-        avatarDrawable.setInfo(memberData.user, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(memberData.user);
         imageView.setForUserOrChat(memberData.user, avatarDrawable);
         imageView.setRoundRadius(AndroidUtilities.dp(46) >> 1);
         message.setText(memberData.user.first_name);

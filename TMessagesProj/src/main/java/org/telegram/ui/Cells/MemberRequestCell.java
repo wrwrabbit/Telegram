@@ -97,7 +97,7 @@ public class MemberRequestCell extends FrameLayout {
         setWillNotDraw(!isNeedDivider);
 
         TLRPC.User user = users.get(importer.user_id);
-        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(user);
         avatarImageView.setForUserOrChat(user, avatarDrawable);
         nameTextView.setText(UserObject.getUserName(user, UserConfig.selectedAccount));
         String dateText = LocaleController.formatDateAudio(importer.date, false);

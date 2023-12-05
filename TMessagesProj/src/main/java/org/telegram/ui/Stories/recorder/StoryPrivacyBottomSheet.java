@@ -2728,7 +2728,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
         private boolean[] isOnline = new boolean[1];
 
         public void setUser(TLRPC.User user) {
-            avatarDrawable.setInfo(user, accountNum);
+            avatarDrawable.setInfo(accountNum, user);
             imageView.setRoundRadius(dp(20));
             imageView.setForUserOrChat(user, avatarDrawable);
 
@@ -2750,7 +2750,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
         }
 
         public void setChat(TLRPC.Chat chat, int participants_count) {
-            avatarDrawable.setInfo(chat, accountNum);
+            avatarDrawable.setInfo(accountNum, chat);
             imageView.setRoundRadius(dp(ChatObject.isForum(chat) ? 12 : 20));
             imageView.setForUserOrChat(chat, avatarDrawable);
 
