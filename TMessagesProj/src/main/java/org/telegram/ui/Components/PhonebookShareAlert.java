@@ -112,7 +112,7 @@ public class PhonebookShareAlert extends BottomSheet {
 
             AvatarDrawable avatarDrawable = new AvatarDrawable();
             avatarDrawable.setTextSize(AndroidUtilities.dp(30));
-            avatarDrawable.setInfo(currentUser, getCurrentAccount());
+            avatarDrawable.setInfo(currentAccount, currentUser);
 
             BackupImageView avatarImageView = new BackupImageView(context);
             avatarImageView.setRoundRadius(AndroidUtilities.dp(40));

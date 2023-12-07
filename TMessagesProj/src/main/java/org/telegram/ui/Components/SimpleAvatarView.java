@@ -86,7 +86,7 @@ public class SimpleAvatarView extends View {
      * @param obj User or chat
      */
     public void setAvatar(TLObject obj) {
-        avatarDrawable.setInfo(obj, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(obj);
         avatarImage.setForUserOrChat(obj, avatarDrawable);
     }
 

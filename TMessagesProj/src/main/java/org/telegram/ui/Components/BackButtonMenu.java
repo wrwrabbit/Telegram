@@ -106,7 +106,7 @@ public class BackButtonMenu {
             Drawable thumb = avatarDrawable;
             boolean addDivider = false;
             if (chat != null) {
-                avatarDrawable.setInfo(chat, UserConfig.selectedAccount);
+                avatarDrawable.setInfo(thisFragment.getCurrentAccount(), chat);
                 if (chat.photo != null && chat.photo.strippedBitmap != null) {
                     thumb = chat.photo.strippedBitmap;
                 }
@@ -127,11 +127,11 @@ public class BackButtonMenu {
                     imageView.setImageDrawable(avatarDrawable);
                 } else if (UserObject.isDeleted(user)) {
                     name = LocaleController.getString("HiddenName", R.string.HiddenName);
-                    avatarDrawable.setInfo(user, UserConfig.selectedAccount);
+                    avatarDrawable.setInfo(thisFragment.getCurrentAccount(), user);
                     imageView.setImage(ImageLocation.getForUser(user, ImageLocation.TYPE_SMALL), "50_50", avatarDrawable, user);
                 } else {
-                    name = UserObject.getUserName(user, UserConfig.selectedAccount);
-                    avatarDrawable.setInfo(user, UserConfig.selectedAccount);
+                    name = UserObject.getUserName(user);
+                    avatarDrawable.setInfo(thisFragment.getCurrentAccount(), user);
                     imageView.setImage(ImageLocation.getForUser(user, ImageLocation.TYPE_SMALL), "50_50", thumb, user);
                 }
                 titleView.setText(name);

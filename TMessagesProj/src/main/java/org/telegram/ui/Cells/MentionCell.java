@@ -33,11 +33,11 @@ import org.telegram.ui.Components.LayoutHelper;
 
 public class MentionCell extends LinearLayout {
 
-    private BackupImageView imageView;
-    private TextView nameTextView;
-    private TextView usernameTextView;
-    private AvatarDrawable avatarDrawable;
-    private Theme.ResourcesProvider resourcesProvider;
+    private final BackupImageView imageView;
+    private final TextView nameTextView;
+    private final TextView usernameTextView;
+    private final AvatarDrawable avatarDrawable;
+    private final Theme.ResourcesProvider resourcesProvider;
 
     private Drawable emojiDrawable;
 
@@ -91,7 +91,7 @@ public class MentionCell extends LinearLayout {
             imageView.setImageDrawable(null);
             return;
         }
-        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(user);
         if (user.photo != null && user.photo.photo_small != null) {
             imageView.setForUserOrChat(user, avatarDrawable);
         } else {
@@ -132,7 +132,7 @@ public class MentionCell extends LinearLayout {
             imageView.setImageDrawable(null);
             return;
         }
-        avatarDrawable.setInfo(chat, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(chat);
         if (chat.photo != null && chat.photo.photo_small != null) {
             imageView.setForUserOrChat(chat, avatarDrawable);
         } else {
@@ -226,7 +226,7 @@ public class MentionCell extends LinearLayout {
         resetEmojiSuggestion();
         if (user != null) {
             imageView.setVisibility(VISIBLE);
-            avatarDrawable.setInfo(user, UserConfig.selectedAccount);
+            avatarDrawable.setInfo(user);
             if (user.photo != null && user.photo.photo_small != null) {
                 imageView.setForUserOrChat(user, avatarDrawable);
             } else {

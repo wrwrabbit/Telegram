@@ -195,6 +195,14 @@ public class UserConfig extends BaseController {
         return getChatTitleOverride(accountNum, chat.id, chat.title);
     }
 
+    public static String getChatTitleOverride(Integer accountNum, TLRPC.ChatInvite chat) {
+        if (chat.chat != null) {
+            return getChatTitleOverride(accountNum, chat.chat.id, chat.title);
+        } else {
+            return chat.title;
+        }
+    }
+
     public static String getChatTitleOverride(Integer accountNum, TLRPC.Peer peer, String defaultValue) {
         if (peer == null) {
             return defaultValue;
@@ -421,7 +429,7 @@ public class UserConfig extends BaseController {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.premiumStatusChangedGlobal);
 
                 getMediaDataController().loadPremiumPromo(false);
-                getMediaDataController().loadReactions(false, true);
+                getMediaDataController().loadReactions(false, null);
                 getMessagesController().getStoriesController().invalidateStoryLimit();
             });
         }

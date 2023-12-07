@@ -88,9 +88,8 @@ public class AdminedChannelCell extends FrameLayout {
     public void setChannel(TLRPC.Chat channel, boolean last) {
         final String url = MessagesController.getInstance(currentAccount).linkPrefix + "/";
         currentChannel = channel;
-        avatarDrawable.setInfo(channel, currentAccount);
-        String title = UserConfig.getChatTitleOverride(currentAccount, channel);
-        nameTextView.setText(title);
+        avatarDrawable.setInfo(currentAccount, channel);
+        nameTextView.setText(UserConfig.getChatTitleOverride(currentAccount, channel));
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder(url + ChatObject.getPublicUsername(channel));
         stringBuilder.setSpan(new URLSpanNoUnderline(""), url.length(), stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         statusTextView.setText(stringBuilder);
@@ -99,7 +98,7 @@ public class AdminedChannelCell extends FrameLayout {
     }
 
     public void update() {
-        avatarDrawable.setInfo(currentChannel, currentAccount);
+        avatarDrawable.setInfo(currentAccount, currentChannel);
         avatarImageView.invalidate();
     }
 

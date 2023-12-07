@@ -18,16 +18,12 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.Layout;
-import android.text.SpannableStringBuilder;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
-import android.text.style.ReplacementSpan;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -164,7 +160,7 @@ public class GroupCreateSpan extends View {
                 imageLocation = null;
                 imageParent = null;
             } else {
-                avatarDrawable.setInfo(user, currentAccount);
+                avatarDrawable.setInfo(currentAccount, user);
                 firstName = UserConfig.getChatTitleOverride(currentAccount, user.id, UserObject.getFirstName(user));
                 int index;
                 if ((index = firstName.indexOf(' ')) >= 0) {
@@ -175,7 +171,7 @@ public class GroupCreateSpan extends View {
             }
         } else if (object instanceof TLRPC.Chat) {
             TLRPC.Chat chat = (TLRPC.Chat) object;
-            avatarDrawable.setInfo(chat, currentAccount);
+            avatarDrawable.setInfo(currentAccount, chat);
             uid = -chat.id;
             firstName = UserConfig.getChatTitleOverride(currentAccount, chat);
             imageLocation = ImageLocation.getForUserOrChat(chat, ImageLocation.TYPE_SMALL, currentAccount);
