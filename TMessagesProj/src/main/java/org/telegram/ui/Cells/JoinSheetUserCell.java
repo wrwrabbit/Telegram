@@ -17,7 +17,6 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
-import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
@@ -58,7 +57,7 @@ public class JoinSheetUserCell extends FrameLayout {
 
     public void setUser(TLRPC.User user) {
         nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
-        avatarDrawable.setInfo(user, UserConfig.selectedAccount);
+        avatarDrawable.setInfo(user);
         imageView.setForUserOrChat(user, avatarDrawable);
     }
 

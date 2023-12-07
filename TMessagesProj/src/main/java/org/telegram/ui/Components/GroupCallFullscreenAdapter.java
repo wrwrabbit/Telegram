@@ -227,7 +227,7 @@ public class GroupCallFullscreenAdapter extends RecyclerListView.SelectionAdapte
             if (peerId > 0) {
                 currentUser = AccountInstance.getInstance(currentAccount).getMessagesController().getUser(peerId);
                 currentChat = null;
-                avatarDrawable.setInfo(currentUser, currentAccount);
+                avatarDrawable.setInfo(currentAccount, currentUser);
 
                 name = UserObject.getFirstName(currentUser);
                 avatarImageView.getImageReceiver().setCurrentAccount(currentAccount);
@@ -238,7 +238,7 @@ public class GroupCallFullscreenAdapter extends RecyclerListView.SelectionAdapte
             } else {
                 currentChat = AccountInstance.getInstance(currentAccount).getMessagesController().getChat(-peerId);
                 currentUser = null;
-                avatarDrawable.setInfo(currentChat, currentAccount);
+                avatarDrawable.setInfo(currentAccount, currentChat);
 
                 if (currentChat != null) {
                     name = UserConfig.getChatTitleOverride(currentAccount, currentChat);

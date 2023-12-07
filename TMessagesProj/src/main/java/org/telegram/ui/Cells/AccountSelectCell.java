@@ -21,7 +21,6 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
-import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
@@ -108,12 +107,12 @@ public class AccountSelectCell extends FrameLayout {
     public void setObject(TLObject object) {
         if (object instanceof TLRPC.User) {
             TLRPC.User user = (TLRPC.User) object;
-            avatarDrawable.setInfo(user, accountNumber);
+            avatarDrawable.setInfo(accountNumber, user);
             infoTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
             imageView.setForUserOrChat(user, avatarDrawable);
         } else {
             TLRPC.Chat chat = (TLRPC.Chat) object;
-            avatarDrawable.setInfo(chat, accountNumber);
+            avatarDrawable.setInfo(accountNumber, chat);
             infoTextView.setText(UserConfig.getChatTitleOverride(getAccountNumber(), chat));
             imageView.setForUserOrChat(chat, avatarDrawable);
         }
@@ -122,7 +121,7 @@ public class AccountSelectCell extends FrameLayout {
     public void setAccount(int account, boolean check) {
         accountNumber = account;
         TLRPC.User user = UserConfig.getInstance(accountNumber).getCurrentUser();
-        avatarDrawable.setInfo(user);
+        avatarDrawable.setInfo(account, user);
         textView.setText(ContactsController.formatName(user.first_name, user.last_name));
         imageView.getImageReceiver().setCurrentAccount(account);
         imageView.setForUserOrChat(user, avatarDrawable);

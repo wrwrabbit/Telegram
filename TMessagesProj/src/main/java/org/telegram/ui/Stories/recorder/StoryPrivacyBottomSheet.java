@@ -50,8 +50,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.exoplayer2.util.Consumer;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -90,13 +88,11 @@ import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.GroupCreateSpan;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.ListView.AdapterWithDiffUtils;
-import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.RadioButton;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.StickerEmptyView;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.ViewPagerFixed;
-import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.StoriesController;
 
 import java.util.ArrayList;
@@ -2732,7 +2728,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
         private boolean[] isOnline = new boolean[1];
 
         public void setUser(TLRPC.User user) {
-            avatarDrawable.setInfo(user, accountNum);
+            avatarDrawable.setInfo(accountNum, user);
             imageView.setRoundRadius(dp(20));
             imageView.setForUserOrChat(user, avatarDrawable);
 
@@ -2754,7 +2750,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
         }
 
         public void setChat(TLRPC.Chat chat, int participants_count) {
-            avatarDrawable.setInfo(chat, accountNum);
+            avatarDrawable.setInfo(accountNum, chat);
             imageView.setRoundRadius(dp(ChatObject.isForum(chat) ? 12 : 20));
             imageView.setForUserOrChat(chat, avatarDrawable);
 

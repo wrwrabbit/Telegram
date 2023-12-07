@@ -1615,7 +1615,7 @@ public class SavedChannelCell extends BaseCell {
         drawPin = chat != null && UserConfig.getInstance(currentAccount).pinnedSavedChannels.contains(chat.username);
 
         if (user != null) {
-            avatarDrawable.setInfo(user, currentAccount);
+            avatarDrawable.setInfo(currentAccount, user);
             if (UserObject.isReplyUser(user)) {
                 avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_REPLIES);
                 avatarImage.setImage(null, null, avatarDrawable, null, user, 0);
@@ -1626,7 +1626,7 @@ public class SavedChannelCell extends BaseCell {
                 avatarImage.setForUserOrChat(user, avatarDrawable);
             }
         } else if (chat != null) {
-            avatarDrawable.setInfo(chat, currentAccount);
+            avatarDrawable.setInfo(currentAccount, chat);
             avatarImage.setForUserOrChat(chat, avatarDrawable);
         }
         if (getMeasuredWidth() != 0 || getMeasuredHeight() != 0) {
