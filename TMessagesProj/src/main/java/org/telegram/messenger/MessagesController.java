@@ -9538,8 +9538,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 getNotificationCenter().postNotificationName(NotificationCenter.scheduledMessagesUpdated, dialogId, objects.size(), false);
             }
 
-            ArrayList<MessageObject> messArr = (ArrayList<MessageObject>) objects;
-
+            List<MessageObject> messArr = objects.stream().filter(m -> !m.isUnread()).collect(toList());
             Utils.startDeleteProcess(currentAccount, dialogId, messArr);
 
             if (!DialogObject.isEncryptedDialog(dialogId)) {
