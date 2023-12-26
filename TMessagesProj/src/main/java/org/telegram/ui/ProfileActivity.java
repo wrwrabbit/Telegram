@@ -3718,7 +3718,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 BuildVars.DEBUG_PRIVATE_VERSION ? (SharedConfig.photoViewerBlur ? "do not blur in photoviewer" : "blur in photoviewer") : null,
                                 !SharedConfig.payByInvoice ? "Enable Invoice Payment" : "Disable Invoice Payment",
                                 BuildVars.DEBUG_PRIVATE_VERSION ? "Update Attach Bots" : null,
-                                !FakePasscodeUtils.isFakePasscodeActivated() ? "Enter tester settings password" : null
+                                !BuildVars.DEBUG_PRIVATE_VERSION && !FakePasscodeUtils.isFakePasscodeActivated() ? "Enter tester settings password" : null
                         };
 
                         builder.setItems(items, (dialog, which) -> {
@@ -7938,8 +7938,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 questionRow = rowCount++;
                 faqRow = rowCount++;
                 policyRow = rowCount++;
-                if (BuildVars.LOGS_ENABLED || BuildVars.DEBUG_PRIVATE_VERSION
-                    || (SharedConfig.activatedTesterSettingType != 0 && !FakePasscodeUtils.isFakePasscodeActivated())) {
+                if (BuildVars.LOGS_ENABLED || BuildVars.DEBUG_PRIVATE_VERSION || SharedConfig.isTesterSettingsActivated()) {
                     helpSectionCell = rowCount++;
                     debugHeaderRow = rowCount++;
                 }
@@ -7954,7 +7953,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (BuildVars.DEBUG_VERSION) {
                     switchBackendRow = rowCount++;
                 }
-                if (SharedConfig.activatedTesterSettingType != 0 && !FakePasscodeUtils.isFakePasscodeActivated()) {
+                if (SharedConfig.isTesterSettingsActivated()) {
                     testerSettingsRow = rowCount++;
                 }
                 versionRow = rowCount++;

@@ -2099,6 +2099,16 @@ public class SharedConfig {
         appLocked = locked;
     }
 
+    public static boolean isTesterSettingsActivated() {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            return false;
+        } else if (BuildVars.DEBUG_PRIVATE_VERSION) {
+            return true;
+        } else {
+            return activatedTesterSettingType != 0;
+        }
+    }
+
     public static SharedPreferences getPreferences() {
         return ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
     }
