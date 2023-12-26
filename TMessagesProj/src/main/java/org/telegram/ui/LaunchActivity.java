@@ -6758,7 +6758,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         } else if (id == NotificationCenter.fakePasscodeActivated) {
             switchToAvailableAccountIfCurrentAccountIsHidden();
-            updateLayout.updateAppUpdateViews(currentAccount, false);
+            if (updateLayout != null) {
+                updateLayout.updateAppUpdateViews(currentAccount, false);
+            }
             if (FakePasscodeUtils.isFakePasscodeActivated()) {
                 Utilities.globalQueue.postRunnable(() -> {
                     List<BaseFragment> fragmentsStack = actionBarLayout.getFragmentStack();
