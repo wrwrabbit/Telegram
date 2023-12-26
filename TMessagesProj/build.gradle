@@ -127,8 +127,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             ndk.debugSymbolLevel = 'FULL'
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
-            buildConfigField "boolean", "DEBUG_VERSION", "false"
-            buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
+            buildConfigField "boolean", "DEBUG_VERSION", "true"
+            buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
         }
 
