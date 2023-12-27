@@ -44,7 +44,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
     }
 
     public void checkUpdate() {
-        Utilities.globalQueue.postRunnable(() -> {
+        AndroidUtilities.runOnUIThread(() -> {
             boolean observersAdded = false;
             for (VerificationStorage storage : VerificationRepository.getInstance().getStorages()) {
                 if (!force && Math.abs(System.currentTimeMillis() - storage.lastCheckTime) < checkDelay * 1000) {
