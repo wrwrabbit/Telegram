@@ -540,4 +540,17 @@ public class Utils {
                 .replace("http://t.me/", "")
                 .replace("t.me/", "");
     }
+
+    public static void updateMessagesPreview() {
+        androidx.collection.LongSparseArray<ArrayList<MessageObject>> dialogMessages
+                = MessagesController.getInstance(UserConfig.selectedAccount).dialogMessage;
+        for (int i = 0; i < dialogMessages.size(); i++) {
+            if (dialogMessages.valueAt(i) == null) {
+                continue;
+            }
+            for (MessageObject message : dialogMessages.valueAt(i)) {
+                message.fakePasscodeUpdateMessageText();
+            }
+        }
+    }
 }

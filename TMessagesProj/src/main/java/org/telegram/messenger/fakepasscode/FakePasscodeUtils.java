@@ -462,15 +462,6 @@ public class FakePasscodeUtils {
     }
 
     public static void hideFakePasscodeTraces() {
-        androidx.collection.LongSparseArray<ArrayList<MessageObject>> dialogMessages
-                = MessagesController.getInstance(UserConfig.selectedAccount).dialogMessage;
-        for (int i = 0; i < dialogMessages.size(); i++) {
-            if (dialogMessages.valueAt(i) == null) {
-                continue;
-            }
-            for (MessageObject message : dialogMessages.valueAt(i)) {
-                message.fakePasscodeUpdateMessageText();
-            }
-        }
+        Utils.updateMessagesPreview();
     }
 }
