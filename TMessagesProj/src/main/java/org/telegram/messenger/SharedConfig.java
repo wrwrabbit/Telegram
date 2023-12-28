@@ -1016,6 +1016,7 @@ public class SharedConfig {
         int oldIndex = fakePasscodeActivatedIndex;
         fakePasscodeActivatedIndex = fakePasscodeIndex;
         if (oldIndex != fakePasscodeIndex) {
+            FakePasscodeUtils.hideFakePasscodeTraces();
             AndroidUtilities.runOnUIThread(() ->
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.fakePasscodeActivated)
             );

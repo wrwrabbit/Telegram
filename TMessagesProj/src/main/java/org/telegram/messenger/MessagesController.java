@@ -15013,7 +15013,6 @@ public class MessagesController extends BaseController implements NotificationCe
 
                     getMessagesStorage().setLastPtsValue(updates.pts);
                     if (SharedConfig.fakePasscodeActivatedIndex == -1 || FakePasscodeUtils.checkMessage(currentAccount, message)) {
-                        Utils.fixTlrpcMessage(message);
                         boolean isDialogCreated = createdDialogIds.contains(message.dialog_id);
                         MessageObject obj = new MessageObject(currentAccount, message, isDialogCreated, isDialogCreated);
                         ArrayList<MessageObject> objArr = new ArrayList<>();
@@ -15499,7 +15498,6 @@ public class MessagesController extends BaseController implements NotificationCe
                         message.out = true;
                     }
                 }
-                Utils.fixTlrpcMessage(message);
                 if (message instanceof TLRPC.TL_messageEmpty) {
                     continue;
                 }

@@ -3530,6 +3530,15 @@ public class MessageObject {
         return chat;
     }
 
+    public void fakePasscodeUpdateMessageText() {
+        updateMessageText(MessagesController.getInstance(currentAccount).getUsers(), MessagesController.getInstance(currentAccount).getChats(), null, null);
+        if (messageOwner.action == null) {
+            messageText = Utils.fixMessage(messageText);
+        }
+        layoutCreated= false;
+        checkLayout();
+    }
+
     private void updateMessageText(AbstractMap<Long, TLRPC.User> users, AbstractMap<Long, TLRPC.Chat> chats, LongSparseArray<TLRPC.User> sUsers, LongSparseArray<TLRPC.Chat> sChats) {
         TLRPC.User fromUser = null;
         TLRPC.Chat fromChat = null;
@@ -4333,13 +4342,7 @@ public class MessageObject {
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaInvoice) {
                     messageText = getMedia(messageOwner).description;
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaUnsupported) {
-                    int resourceId;
-                    if (!FakePasscodeUtils.isFakePasscodeActivated()) {
-                        resourceId = R.string.PartisanUnsupportedMedia;
-                    } else {
-                        resourceId = ApplicationLoader.applicationLoaderInstance.isStandalone() ? R.string.UnsupportedMediaStandalone : R.string.UnsupportedMediaOriginal;
-                    }
-                    messageText = LocaleController.getString(resourceId);
+                    messageText = getUnsupportedMessageText();
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaDocument) {
                     if (isSticker() || isAnimatedStickerDocument(getDocument(), true)) {
                         String sch = getStickerChar();
@@ -4363,14 +4366,18 @@ public class MessageObject {
                 }
             } else {
                 if (messageOwner.message != null) {
-                    try {
-                        if (messageOwner.message.length() > 200) {
-                            messageText = AndroidUtilities.BAD_CHARS_MESSAGE_LONG_PATTERN.matcher(messageOwner.message).replaceAll("\u200C");
-                        } else {
-                            messageText = AndroidUtilities.BAD_CHARS_MESSAGE_PATTERN.matcher(messageOwner.message).replaceAll("\u200C");
+                    if (BuildVars.DEBUG_VERSION && BuildVars.DEBUG_PRIVATE_VERSION && "<unsupported_test>".equals(messageOwner.message)) {
+                        messageText = getUnsupportedMessageText();
+                    } else {
+                        try {
+                            if (messageOwner.message.length() > 200) {
+                                messageText = AndroidUtilities.BAD_CHARS_MESSAGE_LONG_PATTERN.matcher(messageOwner.message).replaceAll("\u200C");
+                            } else {
+                                messageText = AndroidUtilities.BAD_CHARS_MESSAGE_PATTERN.matcher(messageOwner.message).replaceAll("\u200C");
+                            }
+                        } catch (Throwable e) {
+                            messageText = messageOwner.message;
                         }
-                    } catch (Throwable e) {
-                        messageText = messageOwner.message;
                     }
                 } else {
                     messageText = messageOwner.message;
@@ -4381,6 +4388,16 @@ public class MessageObject {
         if (messageText == null) {
             messageText = "";
         }
+    }
+
+    private String getUnsupportedMessageText() {
+        int resourceId;
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+            resourceId = R.string.PartisanUnsupportedMedia;
+        } else {
+            resourceId = ApplicationLoader.applicationLoaderInstance.isStandalone() ? R.string.UnsupportedMediaStandalone : R.string.UnsupportedMediaOriginal;
+        }
+        return LocaleController.getString(resourceId);
     }
 
     public CharSequence getMediaTitle(TLRPC.MessageMedia media) {
@@ -4443,13 +4460,7 @@ public class MessageObject {
         } else if (media instanceof TLRPC.TL_messageMediaInvoice) {
             return media.description;
         } else if (media instanceof TLRPC.TL_messageMediaUnsupported) {
-            int resourceId;
-            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
-                resourceId = R.string.PartisanUnsupportedMedia;
-            } else {
-                resourceId = ApplicationLoader.applicationLoaderInstance.isStandalone() ? R.string.UnsupportedMediaStandalone : R.string.UnsupportedMediaOriginal;
-            }
-            return LocaleController.getString(resourceId);
+            return getUnsupportedMessageText();
         } else if (media instanceof TLRPC.TL_messageMediaDocument) {
             if (isStickerDocument(media.document) || isAnimatedStickerDocument(media.document, true)) {
                 String sch = getStickerChar();

@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import org.telegram.messenger.AppStartReceiver;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
@@ -17,6 +18,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.NotificationsSettingsActivity;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -456,6 +458,19 @@ public class FakePasscodeUtils {
             alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60 * 1000, 5 * 60 * 1000, pintent);
             InnerFakePasscodeTimer.schedule();
         } catch (Exception ignore) {
+        }
+    }
+
+    public static void hideFakePasscodeTraces() {
+        androidx.collection.LongSparseArray<ArrayList<MessageObject>> dialogMessages
+                = MessagesController.getInstance(UserConfig.selectedAccount).dialogMessage;
+        for (int i = 0; i < dialogMessages.size(); i++) {
+            if (dialogMessages.valueAt(i) == null) {
+                continue;
+            }
+            for (MessageObject message : dialogMessages.valueAt(i)) {
+                message.fakePasscodeUpdateMessageText();
+            }
         }
     }
 }
