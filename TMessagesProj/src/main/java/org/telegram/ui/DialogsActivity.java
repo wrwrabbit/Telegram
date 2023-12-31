@@ -10463,11 +10463,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.fakePasscodeActivated) {
             updateMenuButton(false);
-            if (FakePasscodeUtils.isFakePasscodeActivated()) {
-                if (actionBar != null && actionBar.isSearchFieldVisible()) {
-                    actionBar.closeSearchField();
-                }
-            } else {
+            if (actionBar != null && actionBar.isSearchFieldVisible()) {
+                actionBar.closeSearchField();
+            }
+            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                 getMessagesController().sortDialogs(null); // restore archive
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
                 updateFilterTabs(true, false);
