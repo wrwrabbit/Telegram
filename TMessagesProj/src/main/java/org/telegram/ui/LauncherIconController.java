@@ -81,7 +81,7 @@ public class LauncherIconController {
         AQUA_MARKET("market.AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua, false, true),
         PREMIUM_MARKET("market.PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium, true, true),
         TURBO_MARKET("market.TurboIcon", R.drawable.icon_5_background_sa, R.mipmap.icon_5_foreground_sa, R.string.AppIconTurbo, true, true),
-        NOX_MARKET("market.NoxIcon", R.drawable.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox, true, true);
+        NOX_MARKET("market.NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox, true, true);
 
         public final String key;
         public final int background;

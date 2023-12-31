@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
