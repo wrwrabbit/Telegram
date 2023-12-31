@@ -472,7 +472,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         }
 
         if (!hasOverlayText) {
-            titleView.setText(currentTitle, animated);
+            titleView.setText(currentTitle, animated && !LocaleController.isRTL);
         }
 
         miniItems.clear();
@@ -912,12 +912,12 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                         textToSet = spannableString;
                     }
                 }
-                titleView.setText(textToSet, true);
+                titleView.setText(textToSet, !LocaleController.isRTL);
             }
         } else {
             hasOverlayText = false;
             overlayTextId = 0;
-            titleView.setText(currentTitle, true);
+            titleView.setText(currentTitle, !LocaleController.isRTL);
         }
         if (hasEllipsizedText) {
             ellipsizeSpanAnimator.addView(titleView);
