@@ -107,7 +107,7 @@ public class SavedChannelsAdapter extends RecyclerListView.SelectionAdapter {
             int insertPosition = -(position + 1);
             int oldSize = chats.size();
             chats.add(insertPosition, chat);
-            notifyItemInserted(insertPosition);
+            notifyDataSetChanged();
         }
     }
 

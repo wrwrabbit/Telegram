@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import org.telegram.messenger.AppStartReceiver;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
@@ -17,6 +18,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.NotificationsSettingsActivity;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -457,5 +459,9 @@ public class FakePasscodeUtils {
             InnerFakePasscodeTimer.schedule();
         } catch (Exception ignore) {
         }
+    }
+
+    public static void hideFakePasscodeTraces() {
+        Utils.updateMessagesPreview();
     }
 }
