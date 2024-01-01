@@ -992,7 +992,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             long dialogId = Long.valueOf(idToMs.getValue().second);
             long shift = System.currentTimeMillis() - idToMs.getValue().first.second;
             shift = idToMs.getValue().first.first - shift;
-            Utilities.globalQueue.postRunnable(() -> {
+            AndroidUtilities.runOnUIThread(() -> {
                 MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, dialogId,
                         true, false, false, 0,
                         null, false, false);

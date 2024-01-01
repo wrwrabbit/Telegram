@@ -19,21 +19,17 @@ import java.util.Set;
 public class RemoveAfterReadingMessages {
     public static class RemoveAsReadMessage {
         private int id;
+        private long randomId = -1; // from encrypted dialogs
         private long readTime = -1;
         private int scheduledTimeMs;
 
         public RemoveAsReadMessage() {
         }
 
-        public RemoveAsReadMessage(int id, int scheduledTimeMs) {
+        public RemoveAsReadMessage(int id, long randomId, int scheduledTimeMs) {
             this.id = id;
+            this.randomId = randomId;
             this.scheduledTimeMs = scheduledTimeMs;
-        }
-
-        public RemoveAsReadMessage(int id, int scheduledTimeMs, long readTime) {
-            this.id = id;
-            this.scheduledTimeMs = scheduledTimeMs;
-            this.readTime = readTime;
         }
 
         public int getId() {
@@ -42,6 +38,10 @@ public class RemoveAfterReadingMessages {
 
         public void setId(int id) {
             this.id = id;
+        }
+
+        public long getRandomId() {
+            return randomId;
         }
 
         public int getScheduledTimeMs() {

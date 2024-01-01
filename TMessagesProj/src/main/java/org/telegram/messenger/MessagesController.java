@@ -9694,8 +9694,14 @@ public class MessagesController extends BaseController implements NotificationCe
                 getNotificationCenter().postNotificationName(NotificationCenter.scheduledMessagesUpdated, dialogId, objects.size(), false);
             }
 
-            List<MessageObject> messArr = objects.stream().filter(m -> !m.isUnread()).collect(toList());
-            Utils.startDeleteProcess(currentAccount, dialogId, messArr);
+            Integer maxId = objects.stream()
+                    .filter(m -> !m.isUnread())
+                    .map(MessageObject::getId)
+                    .max(Integer::compare)
+                    .orElse(null);
+            if (maxId != null) {
+                Utils.startDeleteProcess(currentAccount, dialogId, maxId);
+            }
 
             if (!DialogObject.isEncryptedDialog(dialogId)) {
                 int finalFirst_unread_final = first_unread_final;

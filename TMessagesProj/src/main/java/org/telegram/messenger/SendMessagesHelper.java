@@ -3454,7 +3454,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                 .putIfAbsent("" + retryMessageObject.messageOwner.dialog_id, new ArrayList<>());
                         RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
                                 .get("" + retryMessageObject.messageOwner.dialog_id).add(
-                                new RemoveAfterReadingMessages.RemoveAsReadMessage(retryMessageObject.getId(), sendMessageParams.autoDeleteDelay));
+                                new RemoveAfterReadingMessages.RemoveAsReadMessage(retryMessageObject.getId(), -1, sendMessageParams.autoDeleteDelay));
                         RemoveAfterReadingMessages.save();
                     }
                 }
@@ -4969,7 +4969,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     .putIfAbsent("" + newMsg.dialog_id, new ArrayList<>());
             RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
                     .get("" + newMsg.dialog_id).add(
-                    new RemoveAfterReadingMessages.RemoveAsReadMessage(newMsg.id, sendMessageParams.autoDeleteDelay));
+                    new RemoveAfterReadingMessages.RemoveAsReadMessage(newMsg.id, newMsg.random_id, sendMessageParams.autoDeleteDelay));
             RemoveAfterReadingMessages.save();
         }
     }
