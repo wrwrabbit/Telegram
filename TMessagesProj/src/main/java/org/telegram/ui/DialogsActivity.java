@@ -119,6 +119,7 @@ import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -10346,7 +10347,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 RemoveAfterReadingMessages.load();
                 RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
                 if (newMsgObj != null && RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).containsKey("" + newMsgObj.dialog_id)) {
-                    for (RemoveAfterReadingMessages.RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + newMsgObj.dialog_id)) {
+                    for (RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + newMsgObj.dialog_id)) {
                         if (message.getId() == msgId) {
                             message.setId(newMsgId);
                             break;

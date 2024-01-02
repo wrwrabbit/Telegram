@@ -47,12 +47,11 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -68,7 +67,6 @@ import org.telegram.ui.Components.SwipeGestureSettingsView;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.URLSpanNoUnderlineBold;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
-import org.telegram.ui.SavedChannelsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1549,7 +1547,7 @@ public class SavedChannelCell extends BaseCell {
             }
             if (!continueUpdate && (mask & MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE) != 0) {
                 if (adapter.getMessage(currentDialogId) != null && !adapter.getMessage(currentDialogId).isUnread() && lastUnreadState != adapter.getMessage(currentDialogId).isUnread()) {
-                    Utils.startDeleteProcess(currentAccount, currentDialogId, adapter.getMessage(currentDialogId).getId());
+                    RemoveAfterReadingMessages.startDeleteProcess(currentAccount, currentDialogId, adapter.getMessage(currentDialogId).getId());
                 }
 
                 if (adapter.getMessage(currentDialogId) != null && lastUnreadState != adapter.getMessage(currentDialogId).isUnread()) {

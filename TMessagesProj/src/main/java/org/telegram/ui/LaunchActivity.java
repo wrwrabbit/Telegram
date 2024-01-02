@@ -50,7 +50,6 @@ import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.ActionMode;
@@ -974,32 +973,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             updateLayout.updateAppUpdateViews(currentAccount, false);
         }
 
-        RemoveAfterReadingMessages.load();
-        Map<Integer, Pair<Pair<Integer, Long>, String>> idsToDelays = new HashMap<>();
-        RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-        for (Map.Entry<String, List<RemoveAfterReadingMessages.RemoveAsReadMessage>> messagesToRemove : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).entrySet()) {
-            for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove : messagesToRemove.getValue()) {
-                if (messageToRemove.getReadTime() <= 0) {
-                    messageToRemove.setReadTime(System.currentTimeMillis());
-                }
-                idsToDelays.put(messageToRemove.getId(), new Pair<>(new Pair<>(messageToRemove.getScheduledTimeMs(), messageToRemove.getReadTime()), messagesToRemove.getKey()));
-            }
-        }
-
-        for (Map.Entry<Integer, Pair<Pair<Integer, Long>, String>> idToMs : idsToDelays.entrySet()) {
-            ArrayList<Integer> ids = new ArrayList<>();
-            ids.add(idToMs.getKey());
-            long dialogId = Long.valueOf(idToMs.getValue().second);
-            long shift = System.currentTimeMillis() - idToMs.getValue().first.second;
-            shift = idToMs.getValue().first.first - shift;
-            AndroidUtilities.runOnUIThread(() -> {
-                MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, dialogId,
-                        true, false, false, 0,
-                        null, false, false);
-                Utils.cleanAutoDeletable(ids.get(0), currentAccount, dialogId);
-            }, Math.max(shift, 0));
-        }
-        RemoveAfterReadingMessages.save();
+        RemoveAfterReadingMessages.checkReadDialogs(currentAccount);
         FakePasscodeUtils.scheduleFakePasscodeTimer(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

@@ -12,7 +12,6 @@ import static org.telegram.messenger.NotificationsController.TYPE_CHANNEL;
 import static org.telegram.messenger.NotificationsController.TYPE_PRIVATE;
 
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 
 import android.Manifest;
 import android.app.Activity;
@@ -46,9 +45,9 @@ import androidx.core.util.Consumer;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.messenger.fakepasscode.ActionsResult;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeMessages;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.RemoveChatsResult;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.SQLite.SQLiteException;
@@ -104,7 +103,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -9700,7 +9698,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     .max(Integer::compare)
                     .orElse(null);
             if (maxId != null) {
-                Utils.startDeleteProcess(currentAccount, dialogId, maxId);
+                RemoveAfterReadingMessages.startDeleteProcess(currentAccount, dialogId, maxId);
             }
 
             if (!DialogObject.isEncryptedDialog(dialogId)) {
@@ -17907,7 +17905,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 autoDeleteMessages = autoDeleteMessages.stream().filter(m -> !m.isUnread())
                         .collect(Collectors.toList());
-                Utils.startDeleteProcess(currentAccount, autoDeleteMessages);
+                RemoveAfterReadingMessages.startDeleteProcess(currentAccount, autoDeleteMessages);
             }
             if (markAsReadEncryptedFinal != null) {
                 for (int a = 0, size = markAsReadEncryptedFinal.size(); a < size; a++) {

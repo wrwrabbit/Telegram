@@ -24,13 +24,13 @@ import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -39,11 +39,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -232,84 +230,6 @@ public class Utils {
                 return id;
             }
         }
-    }
-
-    public static void cleanAutoDeletable(int messageId, int currentAccount, long dialogId) {
-        RemoveAfterReadingMessages.load();
-        Map<String, List<RemoveAfterReadingMessages.RemoveAsReadMessage>> curAccountMessages =
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount);
-
-        if (curAccountMessages == null || curAccountMessages.get("" + dialogId) == null) {
-            return;
-        }
-
-        for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove : new ArrayList<>(curAccountMessages.get("" + dialogId))) {
-            if (messageToRemove.getId() == messageId) {
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + dialogId).remove(messageToRemove);
-            }
-        }
-
-        if (curAccountMessages.get("" + dialogId) != null
-                && curAccountMessages.get("" + dialogId).isEmpty()) {
-            RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).remove("" + dialogId);
-        }
-        RemoveAfterReadingMessages.save();
-    }
-
-    public static void startDeleteProcess(int currentAccount, List<MessageObject> messages) {
-        Map<Long, Integer> dialogLastReadIds = new HashMap<>();
-        for (MessageObject message : messages) {
-            long dialogId = message.messageOwner.dialog_id;
-            if (dialogLastReadIds.getOrDefault(dialogId, 0) < message.getId()) {
-                dialogLastReadIds.put(dialogId, message.getId());
-            }
-        }
-        for (Map.Entry<Long, Integer> entry : dialogLastReadIds.entrySet()) {
-            startDeleteProcess(currentAccount, entry.getKey(), entry.getValue());
-        }
-    }
-
-    public static void startDeleteProcess(int currentAccount, long currentDialogId, int lastReadId) {
-        RemoveAfterReadingMessages.load();
-        List<RemoveAfterReadingMessages.RemoveAsReadMessage> messagesToRemove = new ArrayList<>();
-        RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-        for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove :
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
-                        .getOrDefault("" + currentDialogId, new ArrayList<>())) {
-            if (messageToRemove.getId() <= lastReadId) {
-                messagesToRemove.add(messageToRemove);
-                messageToRemove.setReadTime(System.currentTimeMillis());
-            }
-        }
-        RemoveAfterReadingMessages.save();
-
-        for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove : messagesToRemove) {
-            Utilities.globalQueue.postRunnable(() -> {
-                AndroidUtilities.runOnUIThread(() -> {
-                    if (DialogObject.isEncryptedDialog(currentDialogId)) {
-                        ArrayList<Integer> ids = new ArrayList<>();
-                        ids.add(messageToRemove.getId());
-                        ArrayList<Long> random_ids = new ArrayList<>();
-                        random_ids.add(messageToRemove.getRandomId());
-                        Integer encryptedChatId = DialogObject.getEncryptedChatId(currentDialogId);
-                        TLRPC.EncryptedChat encryptedChat = MessagesController.getInstance(currentAccount)
-                                .getEncryptedChat(encryptedChatId);
-
-                        MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids,
-                                encryptedChat, currentDialogId, false, false,
-                                false, 0, null, false, false);
-                    } else {
-                        ArrayList<Integer> ids = new ArrayList<>();
-                        ids.add(messageToRemove.getId());
-                        MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, currentDialogId,
-                                true, false, false, 0,
-                                null, false, false);
-                    }
-                    cleanAutoDeletable(messageToRemove.getId(), currentAccount, currentDialogId);
-                });
-            }, Math.max(messageToRemove.getScheduledTimeMs(), 0));
-        }
-        RemoveAfterReadingMessages.save();
     }
 
     public static boolean isNetworkConnected() {

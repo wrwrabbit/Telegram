@@ -169,6 +169,7 @@ import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
@@ -17826,7 +17827,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 RemoveAfterReadingMessages.load();
                 RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
                 if (RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).containsKey("" + dialog_id)) {
-                    for (RemoveAfterReadingMessages.RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + dialog_id)) {
+                    for (RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + dialog_id)) {
                         if (message.getId() == msgId) {
                             message.setId(newMsgId);
                             break;
@@ -18169,7 +18170,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     if (obj.messageOwner.date - 1 <= date) {
                         obj.setIsRead();
-                        Utils.startDeleteProcess(currentAccount, Arrays.asList(obj));
+                        RemoveAfterReadingMessages.startDeleteProcess(currentAccount, Arrays.asList(obj));
                         if (chatAdapter != null) {
                             chatAdapter.invalidateRowWithMessageObject(obj);
                         }
