@@ -129,7 +129,7 @@ public class FakePasscodeUtils {
     public static <T> List<T> filterItems(List<T> items, Optional<Integer> account, BiPredicate<T, ChatFilter> filter) {
         FakePasscode passcode = getActivatedFakePasscode();
         ActionsResult actionsResult = getActivatedActionsResult();
-        if ((passcode == null && actionsResult == null) || items == null) {
+        if ((passcode == null && actionsResult == null) || items == null || (passcode != null && !passcode.activated)) {
             return items;
         }
         List<T> filteredItems = items;
