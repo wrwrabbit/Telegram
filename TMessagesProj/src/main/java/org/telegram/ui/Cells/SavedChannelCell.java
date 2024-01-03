@@ -1547,7 +1547,7 @@ public class SavedChannelCell extends BaseCell {
             }
             if (!continueUpdate && (mask & MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE) != 0) {
                 if (adapter.getMessage(currentDialogId) != null && !adapter.getMessage(currentDialogId).isUnread() && lastUnreadState != adapter.getMessage(currentDialogId).isUnread()) {
-                    RemoveAfterReadingMessages.startDeleteProcess(currentAccount, currentDialogId, adapter.getMessage(currentDialogId).getId());
+                    RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, currentDialogId, adapter.getMessage(currentDialogId).getId());
                 }
 
                 if (adapter.getMessage(currentDialogId) != null && lastUnreadState != adapter.getMessage(currentDialogId).isUnread()) {
