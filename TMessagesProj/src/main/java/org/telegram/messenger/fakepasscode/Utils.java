@@ -24,13 +24,13 @@ import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -39,11 +39,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -234,92 +232,6 @@ public class Utils {
         }
     }
 
-    public static void cleanAutoDeletable(int messageId, int currentAccount, long dialogId) {
-        RemoveAfterReadingMessages.load();
-        Map<String, List<RemoveAfterReadingMessages.RemoveAsReadMessage>> curAccountMessages =
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount);
-
-        if (curAccountMessages == null || curAccountMessages.get("" + dialogId) == null) {
-            return;
-        }
-
-        for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove : new ArrayList<>(curAccountMessages.get("" + dialogId))) {
-            if (messageToRemove.getId() == messageId) {
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + dialogId).remove(messageToRemove);
-            }
-        }
-
-        if (curAccountMessages.get("" + dialogId) != null
-                && curAccountMessages.get("" + dialogId).isEmpty()) {
-            RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).remove("" + dialogId);
-        }
-        RemoveAfterReadingMessages.save();
-    }
-
-    public static void startDeleteProcess(int currentAccount, List<MessageObject> messages) {
-        Map<Long, List<MessageObject>> dialogMessages = new HashMap<>();
-        for (MessageObject message : messages) {
-            long dialogId = message.messageOwner.dialog_id;
-            if (!dialogMessages.containsKey(dialogId)) {
-                dialogMessages.put(dialogId, new ArrayList<>());
-            }
-            dialogMessages.get(dialogId).add(message);
-        }
-        for (Map.Entry<Long, List<MessageObject>> entry : dialogMessages.entrySet()) {
-            startDeleteProcess(currentAccount, entry.getKey(), entry.getValue());
-        }
-    }
-
-    public static void startDeleteProcess(int currentAccount, long currentDialogId,
-                                          List<MessageObject> messages) {
-        RemoveAfterReadingMessages.load();
-        Map<Integer, Integer> idsToDelays = new HashMap<>();
-        RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-        for (MessageObject message : messages) {
-            for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove :
-                    RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
-                            .getOrDefault("" + currentDialogId, new ArrayList<>())) {
-                if (messageToRemove.getId() == message.getId()) {
-                    idsToDelays.put(message.getId(), messageToRemove.getScheduledTimeMs());
-                    messageToRemove.setReadTime(System.currentTimeMillis());
-                }
-            }
-        }
-        RemoveAfterReadingMessages.save();
-
-        for (Map.Entry<Integer, Integer> idToMs : idsToDelays.entrySet()) {
-            ArrayList<Integer> ids = new ArrayList<>();
-            ids.add(idToMs.getKey());
-            int delay = idToMs.getValue();
-            Utilities.globalQueue.postRunnable(() -> {
-                AndroidUtilities.runOnUIThread(() -> {
-                    if (DialogObject.isEncryptedDialog(currentDialogId)) {
-                        Optional<MessageObject> messageObject = messages.stream()
-                                .filter(m -> m.messageOwner.id == idToMs.getKey())
-                                .findFirst();
-                        if (messageObject.isPresent()) {
-                            ArrayList<Long> random_ids = new ArrayList<>();
-                            random_ids.add(messageObject.get().messageOwner.random_id);
-                            Integer encryptedChatId = DialogObject.getEncryptedChatId(currentDialogId);
-                            TLRPC.EncryptedChat encryptedChat = MessagesController.getInstance(currentAccount)
-                                    .getEncryptedChat(encryptedChatId);
-
-                            MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids,
-                                    encryptedChat, currentDialogId, false, false,
-                                    false, 0, null, false, false);
-                        }
-                    } else {
-                        MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, currentDialogId,
-                                true, false, false, 0,
-                                null, false, false);
-                    }
-                    cleanAutoDeletable(ids.get(0), currentAccount, currentDialogId);
-                });
-            }, Math.max(delay, 0));
-        }
-        RemoveAfterReadingMessages.save();
-    }
-
     public static boolean isNetworkConnected() {
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
             AccountInstance account = AccountInstance.getInstance(i);
@@ -474,11 +386,8 @@ public class Utils {
         for (int i = UserConfig.MAX_ACCOUNT_COUNT - 1; i >= 0; i--) {
             if (UserConfig.getInstance(i).isClientActivated() && (acc == null || acc == i)) {
                 final int accountNum = i;
-                ConnectionsManager.getInstance(accountNum).sendRequest(req, (response, error) ->
-                        AndroidUtilities.runOnUIThread(() ->
-                                MediaDataController.getInstance(accountNum).clearAllDrafts(true)
-                        )
-                );
+                ConnectionsManager.getInstance(accountNum).sendRequest(req, null);
+                runOnUIThreadOrNow(() -> MediaDataController.getInstance(accountNum).clearAllDrafts(true));
             }
         }
     }
@@ -551,6 +460,14 @@ public class Utils {
             for (MessageObject message : dialogMessages.valueAt(i)) {
                 message.fakePasscodeUpdateMessageText();
             }
+        }
+    }
+
+    public static void runOnUIThreadOrNow(Runnable runnable) {
+        if (Thread.currentThread() == ApplicationLoader.applicationHandler.getLooper().getThread()) {
+            runnable.run();
+        } else {
+            AndroidUtilities.runOnUIThread(runnable, 0);
         }
     }
 }

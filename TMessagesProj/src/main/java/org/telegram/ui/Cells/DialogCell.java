@@ -73,9 +73,8 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -2807,9 +2806,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 }
                 if (!continueUpdate) {
                     if (message != null && !message.isUnread() && lastUnreadState != message.isUnread()) {
-                        List<MessageObject> messages = new ArrayList<>();
-                        messages.add(message);
-                        Utils.startDeleteProcess(currentAccount, currentDialogId, messages);
+                        RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, currentDialogId, message.getId());
                     }
 
                     if (message != null && lastUnreadState != message.isUnread()) {

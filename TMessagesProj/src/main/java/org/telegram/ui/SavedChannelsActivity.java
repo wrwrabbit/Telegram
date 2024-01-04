@@ -742,6 +742,7 @@ public class SavedChannelsActivity extends BaseFragment implements NotificationC
                 super.setTranslationY(translationY);
             }
         };
+        actionBar.setUseContainerForTitles();
         actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_actionBarDefaultSelector), false);
         actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), true);
         actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon), false);

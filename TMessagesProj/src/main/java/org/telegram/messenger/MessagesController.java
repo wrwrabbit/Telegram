@@ -12,7 +12,6 @@ import static org.telegram.messenger.NotificationsController.TYPE_CHANNEL;
 import static org.telegram.messenger.NotificationsController.TYPE_PRIVATE;
 
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 
 import android.Manifest;
 import android.app.Activity;
@@ -46,9 +45,9 @@ import androidx.core.util.Consumer;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.messenger.fakepasscode.ActionsResult;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeMessages;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.RemoveChatsResult;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.SQLite.SQLiteException;
@@ -104,7 +103,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -9694,8 +9692,14 @@ public class MessagesController extends BaseController implements NotificationCe
                 getNotificationCenter().postNotificationName(NotificationCenter.scheduledMessagesUpdated, dialogId, objects.size(), false);
             }
 
-            List<MessageObject> messArr = objects.stream().filter(m -> !m.isUnread()).collect(toList());
-            Utils.startDeleteProcess(currentAccount, dialogId, messArr);
+            Integer maxId = objects.stream()
+                    .filter(m -> !m.isUnread())
+                    .map(MessageObject::getId)
+                    .max(Integer::compare)
+                    .orElse(null);
+            if (maxId != null) {
+                RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, dialogId, maxId);
+            }
 
             if (!DialogObject.isEncryptedDialog(dialogId)) {
                 int finalFirst_unread_final = first_unread_final;
@@ -17845,9 +17849,9 @@ public class MessagesController extends BaseController implements NotificationCe
         LongSparseIntArray clearHistoryMessagesFinal = clearHistoryMessages;
         getMessagesStorage().getStorageQueue().postRunnable(() -> AndroidUtilities.runOnUIThread(() -> {
             int updateMask = 0;
+            List<MessageObject> autoDeleteMessages = new ArrayList<>();
             if (markAsReadMessagesInboxFinal != null || markAsReadMessagesOutboxFinal != null) {
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesRead, markAsReadMessagesInboxFinal, markAsReadMessagesOutboxFinal);
-                List<MessageObject> autoDeleteMessages = new ArrayList<>();
                 if (markAsReadMessagesInboxFinal != null) {
                     getNotificationsController().processReadMessages(markAsReadMessagesInboxFinal, 0, 0, 0, false);
                     SharedPreferences.Editor editor = notificationsPreferences.edit();
@@ -17899,9 +17903,6 @@ public class MessagesController extends BaseController implements NotificationCe
                         }
                     }
                 }
-                autoDeleteMessages = autoDeleteMessages.stream().filter(m -> !m.isUnread())
-                        .collect(Collectors.toList());
-                Utils.startDeleteProcess(currentAccount, autoDeleteMessages);
             }
             if (markAsReadEncryptedFinal != null) {
                 for (int a = 0, size = markAsReadEncryptedFinal.size(); a < size; a++) {
@@ -17917,6 +17918,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 MessageObject message = dialogMessages.get(i);
                                 if (message != null && message.messageOwner.date <= value) {
                                     message.setIsRead();
+                                    autoDeleteMessages.add(message);
                                     updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
                                 }
                             }
@@ -17924,6 +17926,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
             }
+            autoDeleteMessages = autoDeleteMessages.stream().filter(m -> !m.isUnread())
+                    .collect(Collectors.toList());
+            RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, autoDeleteMessages);
             if (markContentAsReadMessagesFinal != null) {
                 for (int a = 0, size = markContentAsReadMessagesFinal.size(); a < size; a++) {
                     long key = markContentAsReadMessagesFinal.keyAt(a);

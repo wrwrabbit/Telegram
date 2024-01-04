@@ -51,6 +51,7 @@ import androidx.core.view.inputmethod.InputContentInfoCompat;
 import org.json.JSONObject;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.tgnet.ConnectionsManager;
@@ -3454,7 +3455,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                 .putIfAbsent("" + retryMessageObject.messageOwner.dialog_id, new ArrayList<>());
                         RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
                                 .get("" + retryMessageObject.messageOwner.dialog_id).add(
-                                new RemoveAfterReadingMessages.RemoveAsReadMessage(retryMessageObject.getId(), sendMessageParams.autoDeleteDelay));
+                                new RemoveAsReadMessage(retryMessageObject.getId(), -1, sendMessageParams.autoDeleteDelay));
                         RemoveAfterReadingMessages.save();
                     }
                 }
@@ -4969,7 +4970,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     .putIfAbsent("" + newMsg.dialog_id, new ArrayList<>());
             RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
                     .get("" + newMsg.dialog_id).add(
-                    new RemoveAfterReadingMessages.RemoveAsReadMessage(newMsg.id, sendMessageParams.autoDeleteDelay));
+                    new RemoveAsReadMessage(newMsg.id, newMsg.random_id, sendMessageParams.autoDeleteDelay));
             RemoveAfterReadingMessages.save();
         }
     }
