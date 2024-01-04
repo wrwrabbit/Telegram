@@ -63,6 +63,7 @@ public class FakePasscode {
     @FakePasscodeSerializer.Ignore
     ActionsResult actionsResult = new ActionsResult();
     Integer activationDate = null;
+    boolean activated = false;
 
     public List<AccountActions> accountActions = Collections.synchronizedList(new ArrayList<>());
 
@@ -138,6 +139,7 @@ public class FakePasscode {
             action.setExecutionScheduled();
         }
         AndroidUtilities.runOnUIThread(() -> {
+            activated = true;
             for (Action action : actions()) {
                 try {
                     action.execute(this);
@@ -153,6 +155,7 @@ public class FakePasscode {
     }
 
     public void deactivate() {
+        activated = false;
         if (SharedConfig.fakePasscodeActionsResult != null) {
             SharedConfig.fakePasscodeActionsResult = null;
              SharedConfig.saveConfig();

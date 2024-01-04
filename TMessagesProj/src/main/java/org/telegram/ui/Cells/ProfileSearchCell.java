@@ -310,7 +310,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
                 nameLeft = AndroidUtilities.dp(11);
             }
             nameLockTop = AndroidUtilities.dp(22.0f);
-            updateStatus(false, 0, null, false);
+            updateStatus(false, 0, null, null, false);
         } else if (chat != null) {
             dialog_id = -chat.id;
             drawCheck = chat.isVerified();
@@ -326,7 +326,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
             } else {
                 nameLeft = AndroidUtilities.dp(11);
             }
-            updateStatus(drawCheck, drawScam, null, false);
+            updateStatus(drawCheck, drawScam, null, chat, false);
         } else if (user != null) {
             dialog_id = user.id;
             if (!LocaleController.isRTL) {
@@ -344,7 +344,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
                 Theme.dialogs_fakeDrawable.checkText();
             }
             drawPremium = !savedMessages && MessagesController.getInstance(currentAccount).isPremiumUser(user);
-            updateStatus(drawCheck, drawScam, user, false);
+            updateStatus(drawCheck, drawScam, user, null, false);
         } else if (contact != null) {
             dialog_id = 0;
             if (!LocaleController.isRTL) {
@@ -603,7 +603,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
         nameLockLeft += getPaddingLeft();
     }
 
-    public void updateStatus(boolean verified, int scam, TLRPC.User user, boolean animated) {
+    public void updateStatus(boolean verified, int scam, TLRPC.User user, TLRPC.Chat chat, boolean animated) {
         statusDrawable.center = LocaleController.isRTL;
         if (verified) {
             statusDrawable.set(new CombinedDrawable(Theme.dialogs_verifiedDrawable, Theme.dialogs_verifiedCheckDrawable, 0, 0), animated);
@@ -611,11 +611,11 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
         } else if (scam != 0) {
             statusDrawable.set((scam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable), animated);
             statusDrawable.setColor(null);
-        } else if (user != null && !savedMessages && user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
-            statusDrawable.set(((TLRPC.TL_emojiStatusUntil) user.emoji_status).document_id, animated);
+        } else if (user != null && !savedMessages && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0) {
+            statusDrawable.set(DialogObject.getEmojiStatusDocumentId(user.emoji_status), animated);
             statusDrawable.setColor(Theme.getColor(Theme.key_chats_verifiedBackground, resourcesProvider));
-        } else if (user != null && !savedMessages && user.emoji_status instanceof TLRPC.TL_emojiStatus) {
-            statusDrawable.set(((TLRPC.TL_emojiStatus) user.emoji_status).document_id, animated);
+        } else if (chat != null && !savedMessages && DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
+            statusDrawable.set(DialogObject.getEmojiStatusDocumentId(chat.emoji_status), animated);
             statusDrawable.setColor(Theme.getColor(Theme.key_chats_verifiedBackground, resourcesProvider));
         } else if (user != null && !savedMessages && MessagesController.getInstance(currentAccount).isPremiumUser(user)) {
             statusDrawable.set(PremiumGradient.getInstance().premiumStarDrawableMini, animated);
@@ -681,14 +681,14 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
                     continueUpdate = true;
                 }
             }
-            if (!continueUpdate && (mask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0 && user != null) {
+            if (!continueUpdate && (mask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0 && (user != null || chat != null)) {
                 int isScam = 0;
-                if (user.isScam()) {
+                if (user != null ? user.isScam() : chat.isScam()) {
                     isScam = 1;
-                } else if (user.isFake()) {
+                } else if (user != null ? user.isFake() : chat.isFake()) {
                     isScam = 2;
                 }
-                updateStatus(user.isVerified(), isScam, user, true);
+                updateStatus(user != null ? user.isVerified() : chat.isVerified(), isScam, user, chat, true);
             }
             if (!continueUpdate && ((mask & MessagesController.UPDATE_MASK_NAME) != 0 && user != null) || (mask & MessagesController.UPDATE_MASK_CHAT_NAME) != 0 && chat != null) {
                 String newName;

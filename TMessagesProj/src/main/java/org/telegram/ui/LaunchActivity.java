@@ -50,7 +50,6 @@ import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.ActionMode;
@@ -177,6 +176,7 @@ import org.telegram.ui.Components.PipRoundVideoView;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.Premium.boosts.BoostPagerBottomSheet;
 import org.telegram.ui.Components.Premium.boosts.GiftInfoBottomSheet;
+import org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RecyclerListView;
@@ -267,7 +267,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private List<PasscodeView> overlayPasscodeViews = new ArrayList<>();
     private TermsOfServiceView termsOfServiceView;
     private BlockingUpdateView blockingUpdateView;
-    public Dialog visibleDialog;
+    public final ArrayList<Dialog> visibleDialogs = new ArrayList<>();
     private Dialog proxyErrorDialog;
     private RecyclerListView sideMenu;
     private SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialog;
@@ -275,6 +275,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private FrameLayout sideMenuContainer;
     private View rippleAbove;
     private IUpdateLayout updateLayout;
+    public Dialog getVisibleDialog() {
+        for (int i = visibleDialogs.size() - 1; i >= 0; --i) {
+            Dialog dialog = visibleDialogs.get(i);
+            if (dialog.isShowing()) {
+                return dialog;
+            }
+        }
+        return null;
+    }
 
     private Dialog localeDialog;
     private boolean loadingLocaleDialog;
@@ -964,32 +973,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             updateLayout.updateAppUpdateViews(currentAccount, false);
         }
 
-        RemoveAfterReadingMessages.load();
-        Map<Integer, Pair<Pair<Integer, Long>, String>> idsToDelays = new HashMap<>();
-        RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-        for (Map.Entry<String, List<RemoveAfterReadingMessages.RemoveAsReadMessage>> messagesToRemove : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).entrySet()) {
-            for (RemoveAfterReadingMessages.RemoveAsReadMessage messageToRemove : messagesToRemove.getValue()) {
-                if (messageToRemove.getReadTime() <= 0) {
-                    messageToRemove.setReadTime(System.currentTimeMillis());
-                }
-                idsToDelays.put(messageToRemove.getId(), new Pair<>(new Pair<>(messageToRemove.getScheduledTimeMs(), messageToRemove.getReadTime()), messagesToRemove.getKey()));
-            }
-        }
-
-        for (Map.Entry<Integer, Pair<Pair<Integer, Long>, String>> idToMs : idsToDelays.entrySet()) {
-            ArrayList<Integer> ids = new ArrayList<>();
-            ids.add(idToMs.getKey());
-            long dialogId = Long.valueOf(idToMs.getValue().second);
-            long shift = System.currentTimeMillis() - idToMs.getValue().first.second;
-            shift = idToMs.getValue().first.first - shift;
-            Utilities.globalQueue.postRunnable(() -> {
-                MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, dialogId,
-                        true, false, false, 0,
-                        null, false, false);
-                Utils.cleanAutoDeletable(ids.get(0), currentAccount, dialogId);
-            }, Math.max(shift, 0));
-        }
-        RemoveAfterReadingMessages.save();
+        RemoveAfterReadingMessages.checkReadDialogs(currentAccount);
         FakePasscodeUtils.scheduleFakePasscodeTimer(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -1027,12 +1011,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         BotWebViewSheet webViewSheet = new BotWebViewSheet(this, getLastFragment().getResourceProvider());
         webViewSheet.setParentActivity(this);
         webViewSheet.requestWebView(currentAccount, attachMenuBot.bot_id, attachMenuBot.bot_id, attachMenuBot.short_name, null, BotWebViewSheet.TYPE_SIMPLE_WEB_VIEW_BUTTON, 0, false, null, null, false, startApp, null,  BotWebViewSheet.FLAG_FROM_SIDE_MENU);
-        if (visibleDialog != null) {
-            visibleDialog.dismiss();
-            visibleDialog = null;
-        }
         webViewSheet.show();
-        visibleDialog = webViewSheet;
+        visibleDialogs.add(webViewSheet);
     }
 
     @Override
@@ -1290,9 +1270,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                             }
                             ((DrawerProfileCell) child).setUser(user, drawerLayoutAdapter.isAccountsShown());
                         } else if (child instanceof DrawerActionCell && drawerLayoutAdapter.getId(sideMenu.getChildAdapterPosition(child)) == 15) {
-                            boolean hasStatus =
-                                    user.emoji_status instanceof TLRPC.TL_emojiStatus ||
-                                            user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000);
+                            boolean hasStatus = user != null && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0;
                             ((DrawerActionCell) child).updateTextAndIcon(
                                 hasStatus ?
                                     LocaleController.getString("ChangeEmojiStatus", R.string.ChangeEmojiStatus) :
@@ -1310,8 +1288,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 }
             }
         };
-        if (user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
-            popupLayout.setExpireDateHint(((TLRPC.TL_emojiStatusUntil) user.emoji_status).until);
+        if (user != null) {
+            popupLayout.setExpireDateHint(DialogObject.getEmojiStatusUntil(user.emoji_status));
         }
         popupLayout.setSelected(scrimDrawable != null && scrimDrawable.getDrawable() instanceof AnimatedEmojiDrawable ? ((AnimatedEmojiDrawable) scrimDrawable.getDrawable()).getDocumentId() : null);
         popupLayout.setSaveState(2);
@@ -1752,6 +1730,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @SuppressLint("Range")
     private boolean handleIntent(Intent intent, boolean isNew, boolean restore, boolean fromPassword, Browser.Progress progress, boolean rebuildFragments) {
         if (GiftInfoBottomSheet.handleIntent(intent, progress)) {
+            return true;
+        }
+        if (UserSelectorBottomSheet.handleIntent(intent, progress)) {
             return true;
         }
         if (AndroidUtilities.handleProxyIntent(this, intent)) {
@@ -3951,7 +3932,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                                         }
                                                     }), ConnectionsManager.RequestFlagInvokeAfter | ConnectionsManager.RequestFlagFailOnServerErrors);
 
-                                                    processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, botAttachable);
+                                                    processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, botAttachable, true);
                                                 }, null);
                                             } else if (attachBot.request_write_access || forceNotInternalForApps) {
                                                 AtomicBoolean allowWrite = new AtomicBoolean(true);
@@ -3969,15 +3950,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                                         }
                                                     }), ConnectionsManager.RequestFlagInvokeAfter | ConnectionsManager.RequestFlagFailOnServerErrors);
 
-                                                    processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, false);
+                                                    processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, false, false);
                                                 });
                                             } else {
-                                                processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, false);
+                                                processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, false, false);
                                             }
                                         }
                                     }));
                                 } else {
-                                    processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, false);
+                                    processWebAppBot(intentAccount, username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, loginToken, wallPaper, inputInvoiceSlug, theme, voicechat, livestream, state, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, botAppStartParam, progress, forceNotInternalForApps, storyId, isBoost, user, dismissLoading, false, false);
                                 }
                                 return;
                             }
@@ -4955,7 +4936,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                   final int storyId,
                                   final boolean isBoost,
                                   TLRPC.User user,
-                                  Runnable dismissLoading, boolean botAttachable) {
+                                  Runnable dismissLoading, boolean botAttachable, boolean ignoreInactive) {
 
         TLRPC.TL_messages_getBotApp getBotApp = new TLRPC.TL_messages_getBotApp();
         TLRPC.TL_inputBotAppShortName app = new TLRPC.TL_inputBotAppShortName();
@@ -4979,18 +4960,16 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         BotWebViewSheet sheet = new BotWebViewSheet(LaunchActivity.this, lastFragment.getResourceProvider());
                         sheet.setParentActivity(LaunchActivity.this);
                         sheet.requestWebView(intentAccount, user.id, user.id, null, null, BotWebViewSheet.TYPE_WEB_VIEW_BOT_APP, 0, false, lastFragment, botApp.app, allowWrite.get(), botAppStartParam, user);
-                        if (visibleDialog != null) {
-                            visibleDialog.dismiss();
-                            visibleDialog = null;
-                        }
                         sheet.show();
-                        visibleDialog = sheet;
+                        visibleDialogs.add(sheet);
                         if (botApp.inactive || forceNotInternalForApps) {
                             sheet.showJustAddedBulletin();
                         }
                     };
 
-                    if (botApp.inactive && botAttachable) {
+                    if (ignoreInactive) {
+                        loadBotSheet.run();
+                    } else if (botApp.inactive && botAttachable) {
                         WebAppDisclaimerAlert.show(this, (allowSendMessage) -> {
                             loadBotSheet.run();
                         }, null);
@@ -5124,10 +5103,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         if (lastFragment != null) {
                             lastFragment.dismissCurrentDialog();
                         }
-                        if (visibleDialog != null) {
-                            visibleDialog.dismiss();
-                            visibleDialog = null;
+                        for (int i = 0; i < visibleDialogs.size(); ++i) {
+                            Dialog dialog = visibleDialogs.get(i);
+                            if (dialog.isShowing()) {
+                                visibleDialogs.get(i).dismiss();
+                            }
                         }
+                        visibleDialogs.clear();
                         presentFragment(dialogsActivity);
                     } else if (lastFragment instanceof ChatActivity) {
                         ChatActivity chatActivity = (ChatActivity) lastFragment;
@@ -5158,10 +5140,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                         if (lastFragment != null) {
                                             lastFragment.dismissCurrentDialog();
                                         }
-                                        if (visibleDialog != null) {
-                                            visibleDialog.dismiss();
-                                            visibleDialog = null;
+                                        for (int i = 0; i < visibleDialogs.size(); ++i) {
+                                            Dialog dialog = visibleDialogs.get(i);
+                                            if (dialog.isShowing()) {
+                                                visibleDialogs.get(i).dismiss();
+                                            }
                                         }
+                                        visibleDialogs.clear();
                                         presentFragment(dialogsActivity);
                                     } else if (lastFragment instanceof ChatActivity) {
                                         ((ChatActivity) lastFragment).openAttachBotLayout(user.id, setAsAttachBot, true);
@@ -5347,19 +5332,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     public Dialog showAlertDialog(AlertDialog.Builder builder) {
         try {
-            if (visibleDialog != null) {
-                visibleDialog.dismiss();
-                visibleDialog = null;
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        try {
-            visibleDialog = builder.show();
-            visibleDialog.setCanceledOnTouchOutside(true);
-            visibleDialog.setOnDismissListener(dialog -> {
-                if (visibleDialog != null) {
-                    if (visibleDialog == localeDialog) {
+            AlertDialog dialog = builder.show();
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.setOnDismissListener(d -> {
+                if (dialog != null) {
+                    if (dialog == localeDialog) {
                         BaseFragment fragment = actionBarLayout == null ? null : actionBarLayout.getLastFragment();
                         try {
                             String shorname = LocaleController.getInstance().getCurrentLocaleInfo().shortName;
@@ -5378,7 +5355,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                             FileLog.e(e);
                         }
                         localeDialog = null;
-                    } else if (visibleDialog == proxyErrorDialog) {
+                    } else if (dialog == proxyErrorDialog) {
                         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                         SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
                         editor.putBoolean("proxy_enabled", false);
@@ -5389,9 +5366,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         proxyErrorDialog = null;
                     }
                 }
-                visibleDialog = null;
+                visibleDialogs.remove(dialog);
             });
-            return visibleDialog;
+            visibleDialogs.add(dialog);
+            return dialog;
         } catch (Exception e) {
             FileLog.e(e);
         }
@@ -5976,10 +5954,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             editorView.destroy();
         }
         try {
-            if (visibleDialog != null) {
-                visibleDialog.dismiss();
-                visibleDialog = null;
+            for (int i = 0; i < visibleDialogs.size(); ++i) {
+                Dialog dialog = visibleDialogs.get(i);
+                if (dialog.isShowing()) {
+                    visibleDialogs.get(i).dismiss();
+                }
             }
+            visibleDialogs.clear();
         } catch (Exception e) {
             FileLog.e(e);
         }
@@ -6758,7 +6739,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         } else if (id == NotificationCenter.fakePasscodeActivated) {
             switchToAvailableAccountIfCurrentAccountIsHidden();
-            updateLayout.updateAppUpdateViews(currentAccount, false);
+            if (updateLayout != null) {
+                updateLayout.updateAppUpdateViews(currentAccount, false);
+            }
             if (FakePasscodeUtils.isFakePasscodeActivated()) {
                 Utilities.globalQueue.postRunnable(() -> {
                     List<BaseFragment> fragmentsStack = actionBarLayout.getFragmentStack();
@@ -7001,10 +6984,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 localeDialog = null;
                 drawerLayoutContainer.closeDrawer(true);
                 presentFragment(new LanguageSelectActivity());
-                if (visibleDialog != null) {
-                    visibleDialog.dismiss();
-                    visibleDialog = null;
+                for (int i = 0; i < visibleDialogs.size(); ++i) {
+                    Dialog dialog = visibleDialogs.get(i);
+                    if (dialog.isShowing()) {
+                        visibleDialogs.get(i).dismiss();
+                    }
                 }
+                visibleDialogs.clear();
             });
             linearLayout.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
             builder.setView(linearLayout);

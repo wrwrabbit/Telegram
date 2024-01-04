@@ -45,6 +45,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.transition.ChangeBounds;
+import android.transition.TransitionManager;
 import android.util.LongSparseArray;
 import android.util.Property;
 import android.util.StateSet;
@@ -117,6 +119,7 @@ import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -198,6 +201,7 @@ import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.PacmanAnimation;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
+import org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet;
 import org.telegram.ui.Components.ProxyDrawable;
 import org.telegram.ui.Components.PullForegroundDrawable;
 import org.telegram.ui.Components.RLottieDrawable;
@@ -1311,7 +1315,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             filterTabsView != null && !filterTabsView.isEditing() &&
                             !searching &&
                             !rightSlidingDialogContainer.hasFragment() &&
-                            !parentLayout.checkTransitionAnimation() && !parentLayout.isInPreviewMode() && !parentLayout.isPreviewOpenAnimationInProgress() && !parentLayout.getDrawerLayoutContainer().isDrawerOpened() &&
+                            !parentLayout.checkTransitionAnimation() && !parentLayout.isInPreviewMode() && !parentLayout.isPreviewOpenAnimationInProgress() && !(parentLayout.getDrawerLayoutContainer() != null && parentLayout.getDrawerLayoutContainer().isDrawerOpened()) &&
                             (
                                     ev == null ||
                                             startedTracking ||
@@ -1332,7 +1336,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     startedTracking = true;
                     startedTrackingPointerId = ev.getPointerId(0);
                     startedTrackingX = (int) ev.getX();
-                    parentLayout.getDrawerLayoutContainer().setAllowOpenDrawerBySwipe(false);
+                    if (parentLayout.getDrawerLayoutContainer() != null) {
+                        parentLayout.getDrawerLayoutContainer().setAllowOpenDrawerBySwipe(false);
+                    }
                     if (animatingForward) {
                         if (startedTrackingX < viewPages[0].getMeasuredWidth() + viewPages[0].getTranslationX()) {
                             additionalOffset = viewPages[0].getTranslationX();
@@ -3271,7 +3277,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                 @Override
                 protected void onDefaultTabMoved() {
-                    if (!getMessagesController().premiumLocked) {
+                    if (!getMessagesController().premiumFeaturesBlocked()) {
                         try {
                             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                         } catch (Exception ignore) {
@@ -4750,7 +4756,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 @Override
-                public void needStartRecordVideo(int state, boolean notify, int scheduleDate) {
+                public void needStartRecordVideo(int state, boolean notify, int scheduleDate, int ttl) {
 
                 }
 
@@ -5450,14 +5456,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     public boolean isPremiumRestoreHintVisible() {
-        if (!MessagesController.getInstance(currentAccount).premiumLocked && folderId == 0) {
+        if (!MessagesController.getInstance(currentAccount).premiumFeaturesBlocked() && folderId == 0) {
             return MessagesController.getInstance(currentAccount).pendingSuggestions.contains("PREMIUM_RESTORE") && !getUserConfig().isPremium();
         }
         return false;
     }
 
+    public boolean isPremiumChristmasHintVisible() {
+        if (!MessagesController.getInstance(currentAccount).premiumFeaturesBlocked() && folderId == 0) {
+            return MessagesController.getInstance(currentAccount).pendingSuggestions.contains("PREMIUM_CHRISTMAS");
+        }
+        return false;
+    }
+
     public boolean isPremiumHintVisible() {
-        if (!MessagesController.getInstance(currentAccount).premiumLocked && folderId == 0) {
+        if (!MessagesController.getInstance(currentAccount).premiumFeaturesBlocked() && folderId == 0) {
             if (MessagesController.getInstance(currentAccount).pendingSuggestions.contains("PREMIUM_UPGRADE") && getUserConfig().isPremium() || MessagesController.getInstance(currentAccount).pendingSuggestions.contains("PREMIUM_ANNUAL") && !getUserConfig().isPremium()) {
                 if (UserConfig.getInstance(currentAccount).isPremium() ? !BuildVars.useInvoiceBilling() && MediaDataController.getInstance(currentAccount).getPremiumHintAnnualDiscount(true) != null : MediaDataController.getInstance(currentAccount).getPremiumHintAnnualDiscount(false) != null) {
                     isPremiumHintUpgrade = MessagesController.getInstance(currentAccount).pendingSuggestions.contains("PREMIUM_UPGRADE");
@@ -5545,8 +5558,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         };
-        if (user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) user.emoji_status).until > (int) (System.currentTimeMillis() / 1000)) {
-            popupLayout.setExpireDateHint(((TLRPC.TL_emojiStatusUntil) user.emoji_status).until);
+        if (user != null && DialogObject.getEmojiStatusUntil(user.emoji_status) > 0) {
+            popupLayout.setExpireDateHint(DialogObject.getEmojiStatusUntil(user.emoji_status));
         }
         popupLayout.setSelected(statusDrawable.getDrawable() instanceof AnimatedEmojiDrawable ? ((AnimatedEmojiDrawable) statusDrawable.getDrawable()).getDocumentId() : null);
         popupLayout.setSaveState(1);
@@ -5677,6 +5690,31 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             authHintCell.set(DialogsActivity.this, currentAccount);
             updateAuthHintCellVisibility(true);
+        } else if (isPremiumChristmasHintVisible()) {
+            dialogsHintCellVisible = true;
+            dialogsHintCell.setVisibility(View.VISIBLE);
+            dialogsHintCell.setOnClickListener(v -> UserSelectorBottomSheet.open());
+            dialogsHintCell.setText(
+                    AndroidUtilities.replaceSingleTag(
+                            LocaleController.getString("BoostingPremiumChristmasTitle", R.string.BoostingPremiumChristmasTitle),
+                            Theme.key_windowBackgroundWhiteValueText,
+                            AndroidUtilities.REPLACING_TAG_TYPE_LINKBOLD,
+                            null
+                    ),
+                    LocaleController.formatString("BoostingPremiumChristmasSubTitle", R.string.BoostingPremiumChristmasSubTitle)
+            );
+            dialogsHintCell.setChristmasStyle(v -> {
+                MessagesController.getInstance(currentAccount).removeSuggestion(0, "PREMIUM_CHRISTMAS");
+                ChangeBounds transition = new ChangeBounds();
+                transition.setDuration(200);
+                TransitionManager.beginDelayedTransition((ViewGroup) dialogsHintCell.getParent(), transition);
+                updateDialogsHint();
+                BulletinFactory.of(this)
+                        .createSimpleBulletin(R.raw.chats_infotip, LocaleController.getString("BoostingPremiumChristmasToast", R.string.BoostingPremiumChristmasToast), 4)
+                        .setDuration(Bulletin.DURATION_PROLONG)
+                        .show();
+            });
+            updateAuthHintCellVisibility(false);
         } else if (isPremiumRestoreHintVisible()) {
             dialogsHintCellVisible = true;
             dialogsHintCell.setVisibility(View.VISIBLE);
@@ -6130,7 +6168,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 break;
             }
         }
-        boolean visible = !getUserConfig().isPremium() && !getMessagesController().premiumLocked && visibleByDownload && visibleByPosition && DISPLAY_SPEEDOMETER_IN_DOWNLOADS_SEARCH;
+        boolean visible = !getUserConfig().isPremium() && !getMessagesController().premiumFeaturesBlocked() && visibleByDownload && visibleByPosition && DISPLAY_SPEEDOMETER_IN_DOWNLOADS_SEARCH;
 
         boolean wasVisible = speedItem.getTag() != null;
         if (visible != wasVisible) {
@@ -6260,7 +6298,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             }
                         } else if (onlySelect || folderId != 0) {
                             finishFragment();
-                        } else if (parentLayout != null) {
+                        } else if (parentLayout != null && parentLayout.getDrawerLayoutContainer() != null) {
                             parentLayout.getDrawerLayoutContainer().openDrawer(false);
                         }
                     } else if (id == 1) {
@@ -7522,6 +7560,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     dialogsHintCell.setVisibility(View.INVISIBLE);
                 } else {
                     dialogsHintCell.setVisibility(View.VISIBLE);
+                    ViewParent dialogsHintCellParent = dialogsHintCell.getParent();
+                    if (dialogsHintCellParent != null) {
+                        dialogsHintCellParent.requestLayout();
+                    }
                 }
             }
         }
@@ -10305,7 +10347,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 RemoveAfterReadingMessages.load();
                 RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
                 if (newMsgObj != null && RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).containsKey("" + newMsgObj.dialog_id)) {
-                    for (RemoveAfterReadingMessages.RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + newMsgObj.dialog_id)) {
+                    for (RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + newMsgObj.dialog_id)) {
                         if (message.getId() == msgId) {
                             message.setId(newMsgId);
                             break;
@@ -10462,11 +10504,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } catch (Exception ignored) {
             }
         } else if (id == NotificationCenter.fakePasscodeActivated) {
-            if (FakePasscodeUtils.isFakePasscodeActivated()) {
-                if (actionBar != null && actionBar.isSearchFieldVisible()) {
-                    actionBar.closeSearchField();
-                }
-            } else {
+            updateMenuButton(false);
+            if (actionBar != null && actionBar.isSearchFieldVisible()) {
+                actionBar.closeSearchField();
+            }
+            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                 getMessagesController().sortDialogs(null); // restore archive
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
                 updateFilterTabs(true, false);
