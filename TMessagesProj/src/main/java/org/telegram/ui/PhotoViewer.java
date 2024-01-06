@@ -2685,6 +2685,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         boolean cancelButtonPressed();
         void needAddMorePhotos();
         void sendButtonPressed(int index, VideoEditedInfo videoEditedInfo, boolean notify, int scheduleDate, boolean forceDocument);
+        default void sendButtonPressed(int index, VideoEditedInfo videoEditedInfo, boolean notify, int scheduleDate, boolean forceDocument, Integer autoDeleteDelay) {
+            sendButtonPressed(index, videoEditedInfo, notify, scheduleDate, forceDocument);
+        }
         void replaceButtonPressed(int index, VideoEditedInfo videoEditedInfo);
         boolean canReplace(int index);
         int getSelectedCount();
@@ -6863,11 +6866,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 }
             }
             if (!replace) {
-                if (autoDeleteDelay != null) {
-                    placeProvider.sendButtonPressed(currentIndex, videoEditedInfo, notify, -autoDeleteDelay, forceDocument);
-                } else {
-                    placeProvider.sendButtonPressed(currentIndex, videoEditedInfo, notify, scheduleDate, forceDocument);
-                }
+                placeProvider.sendButtonPressed(currentIndex, videoEditedInfo, notify, scheduleDate, forceDocument, autoDeleteDelay);
             } else {
                 placeProvider.replaceButtonPressed(currentIndex, videoEditedInfo);
             }

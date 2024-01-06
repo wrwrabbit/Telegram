@@ -7645,15 +7645,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return bmOptions.outWidth < 800 && bmOptions.outHeight < 800;
     }
 
-    /*
-    @UiThread
-    public static void prepareSendingMedia(AccountInstance accountInstance, ArrayList<SendingMediaInfo> media, long dialogId, MessageObject replyToMsg, MessageObject replyToTopMsg, InputContentInfoCompat inputContent, boolean forceDocument, boolean groupMedia, MessageObject editingMessageObject, boolean notify, int scheduleDate) {
-        prepareSendingMedia(accountInstance, media, dialogId, replyToMsg, replyToTopMsg, inputContent, forceDocument, groupMedia, editingMessageObject, notify, scheduleDate, false);
+    public static void prepareSendingMedia(AccountInstance accountInstance, ArrayList<SendingMediaInfo> media, long dialogId, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, boolean forceDocument, boolean groupMedia, MessageObject editingMessageObject, boolean notify, int scheduleDate, boolean updateStikcersOrder, InputContentInfoCompat inputContent) {
+        prepareSendingMedia(accountInstance, media, dialogId, replyToMsg, replyToTopMsg, storyItem, quote, forceDocument, groupMedia, editingMessageObject, notify, scheduleDate, updateStikcersOrder, inputContent, null);
     }
-     */
 
     @UiThread
-    public static void prepareSendingMedia(AccountInstance accountInstance, ArrayList<SendingMediaInfo> media, long dialogId, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, boolean forceDocument, boolean groupMedia, MessageObject editingMessageObject, boolean notify, int scheduleDate, boolean updateStikcersOrder, InputContentInfoCompat inputContent) {
+    public static void prepareSendingMedia(AccountInstance accountInstance, ArrayList<SendingMediaInfo> media, long dialogId, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, boolean forceDocument, boolean groupMedia, MessageObject editingMessageObject, boolean notify, int scheduleDate, boolean updateStikcersOrder, InputContentInfoCompat inputContent, Integer autoDeleteDelay) {
         if (media.isEmpty()) {
             return;
         }
@@ -7860,6 +7857,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                 SendMessageParams sendMessageParams = SendMessageParams.of(documentFinal, null, pathFinal, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, 0, parentFinal, null, false, info.hasMediaSpoilers);
                                 sendMessageParams.replyToStoryItem = storyItem;
                                 sendMessageParams.replyQuote = quote;
+                                sendMessageParams.autoDeleteDelay = autoDeleteDelay;
                                 accountInstance.getSendMessagesHelper().sendMessage(sendMessageParams);
                             }
                         });
@@ -7934,6 +7932,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     SendMessageParams sendMessageParams = SendMessageParams.of(photoFinal, needDownloadHttpFinal ? info.searchImage.imageUrl : null, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, info.ttl, parentFinal, false, info.hasMediaSpoilers);
                                     sendMessageParams.replyToStoryItem = storyItem;
                                     sendMessageParams.replyQuote = quote;
+                                    sendMessageParams.autoDeleteDelay = autoDeleteDelay;
                                     accountInstance.getSendMessagesHelper().sendMessage(sendMessageParams);
                                 }
                             });
@@ -8111,6 +8110,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     SendMessageParams sendMessageParams = SendMessageParams.of(videoFinal, videoEditedInfo, finalPath, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, info.ttl, parentFinal, null, false, info.hasMediaSpoilers);
                                     sendMessageParams.replyToStoryItem = storyItem;
                                     sendMessageParams.replyQuote = quote;
+                                    sendMessageParams.autoDeleteDelay = autoDeleteDelay;
                                     accountInstance.getSendMessagesHelper().sendMessage(sendMessageParams);
                                 }
                             });
@@ -8311,6 +8311,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                         SendMessageParams sendMessageParams = SendMessageParams.of(photoFinal, null, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, info.ttl, parentFinal, updateStikcersOrder, info.hasMediaSpoilers);
                                         sendMessageParams.replyToStoryItem = storyItem;
                                         sendMessageParams.replyQuote = quote;
+                                        sendMessageParams.autoDeleteDelay = autoDeleteDelay;
                                         accountInstance.getSendMessagesHelper().sendMessage(sendMessageParams);
                                     }
                                 });

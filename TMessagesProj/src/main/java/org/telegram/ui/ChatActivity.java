@@ -9912,6 +9912,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatAttachAlert.setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
                 @Override
                 public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument) {
+                    didPressedButton(button, arg, notify, scheduleDate, forceDocument, null);
+                }
+
+                @Override
+                public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, Integer autoDeleteDelay) {
                     if (getParentActivity() == null || chatAttachAlert == null) {
                         return;
                     }
@@ -9956,7 +9961,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     fillEditingMediaWithCaption(photos.get(0).caption, photos.get(0).entities);
                                     updateStickersOrder = photos.get(0).updateStickersOrder;
                                 }
-                                SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, updateStickersOrder, null);
+                                if (autoDeleteDelay != null) {
+                                    SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, updateStickersOrder, null, autoDeleteDelay);
+                                } else {
+                                    SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, updateStickersOrder, null);
+                                }
                             }
                             afterMessageSend();
                             chatActivityEnterView.setFieldText("");

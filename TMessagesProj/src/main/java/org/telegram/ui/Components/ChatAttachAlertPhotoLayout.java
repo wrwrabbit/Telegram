@@ -468,6 +468,11 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
 
         @Override
         public void sendButtonPressed(int index, VideoEditedInfo videoEditedInfo, boolean notify, int scheduleDate, boolean forceDocument) {
+            sendButtonPressed(index, videoEditedInfo, notify, scheduleDate, forceDocument, null);
+        }
+
+        @Override
+        public void sendButtonPressed(int index, VideoEditedInfo videoEditedInfo, boolean notify, int scheduleDate, boolean forceDocument, Integer autoDeleteDelay) {
             MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(index);
             if (photoEntry != null) {
                 photoEntry.editedInfo = videoEditedInfo;
@@ -501,11 +506,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                     }
                 }
             }
-            if (scheduleDate < 0) {
-                parentAlert.delegate.didPressedButton(7, true, notify, 0, forceDocument);
-            } else {
-                parentAlert.delegate.didPressedButton(7, true, notify, scheduleDate, forceDocument);
-            }
+            parentAlert.delegate.didPressedButton(7, true, notify, 0, forceDocument, autoDeleteDelay);
             selectedPhotos.clear();
             cameraPhotos.clear();
             selectedPhotosOrder.clear();

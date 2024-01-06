@@ -481,7 +481,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             return false;
         }
 
+        // If scheduleDate < 0 then it is autoDeleteDelay
         void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument);
+        default void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, Integer autoDeleteDelay) {
+            didPressedButton(button, arg, notify, scheduleDate, forceDocument);
+        }
         default void onCameraOpened() {
         }
 
@@ -2750,7 +2754,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                         RemoveAfterReadingMessages.delays.putIfAbsent("" + currentAccount, 5 * 1000);
                         AlertsCreator.createScheduleDeleteTimePickerDialog(getContext(), RemoveAfterReadingMessages.delays.get("" + currentAccount),
                                 (notify, delay) -> {
-                                    sendPressed(notify, 0, true, delay);
+                                    sendPressed(notify, 0, delay);
                                     RemoveAfterReadingMessages.delays.put("" + currentAccount, delay);
                                     RemoveAfterReadingMessages.save();
                                 });
@@ -2968,10 +2972,10 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
 
     private void sendPressed(boolean notify, int scheduleDate) {
-        sendPressed(notify, scheduleDate, false, 0);
+        sendPressed(notify, scheduleDate, null);
     }
 
-    private void sendPressed(boolean notify, int scheduleDate, boolean autoDeletable, int delay) {
+    private void sendPressed(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
         if (buttonPressed) {
             return;
         }
@@ -2988,7 +2992,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         }
         applyCaption();
         buttonPressed = true;
-        delegate.didPressedButton(7, true, notify, scheduleDate, false);
+        delegate.didPressedButton(7, true, notify, scheduleDate, false, autoDeleteDelay);
     }
 
     public void showLayout(AttachAlertLayout layout) {
