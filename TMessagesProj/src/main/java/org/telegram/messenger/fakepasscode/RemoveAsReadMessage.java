@@ -31,15 +31,16 @@ public class RemoveAsReadMessage {
         return scheduledTimeMs;
     }
 
-    public void setScheduledTimeMs(int scheduledTimeMs) {
-        this.scheduledTimeMs = scheduledTimeMs;
-    }
-
-    public long getReadTime() {
-        return readTime;
+    public boolean isRead() {
+        return readTime != -1;
     }
 
     public void setReadTime(long readTime) {
         this.readTime = readTime;
+    }
+
+    public int calculateRemainingDelay() {
+        long remainingDelay = readTime + scheduledTimeMs - System.currentTimeMillis();
+        return Math.max((int)remainingDelay, 0);
     }
 }
