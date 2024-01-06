@@ -4960,7 +4960,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
 
         if (sendMessageParams.autoDeleteDelay != null) {
-            RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(newMsg.id, -1, sendMessageParams.autoDeleteDelay);
+            RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(newMsg.id, newMsg.random_id, sendMessageParams.autoDeleteDelay);
             RemoveAfterReadingMessages.addMessageToRemove(currentAccount, newMsg.dialog_id, messageToRemove);
         }
     }
