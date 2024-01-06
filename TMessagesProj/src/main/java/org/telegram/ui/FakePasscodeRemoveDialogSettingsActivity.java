@@ -39,6 +39,10 @@ import org.telegram.ui.Components.CheckBoxSquareThreeState;
 import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.DialogBuilder.DialogCheckBox;
+import org.telegram.ui.DialogBuilder.DialogTemplate;
+import org.telegram.ui.DialogBuilder.DialogType;
+import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -226,15 +230,19 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
     }
 
     private void showHideDialogIsNotSafeWarning() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString("Warning", R.string.Warning));
-        builder.setMessage(LocaleController.getString("HideDialogIsNotSafeWarningMessage", R.string.HideDialogIsNotSafeWarningMessage));
-        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
-        builder.setNegativeButton(LocaleController.getString("DoNotShowAgain", R.string.DoNotShowAgain), (dialog, whichButton) -> {
-            SharedConfig.showHideDialogIsNotSafeWarning = false;
-            SharedConfig.saveConfig();
-        });
-        showDialog(builder.create());
+        DialogTemplate template = new DialogTemplate();
+        template.type = DialogType.OK;
+        template.title = LocaleController.getString("Warning", R.string.Warning);
+        template.message = LocaleController.getString("HideDialogIsNotSafeWarningMessage", R.string.HideDialogIsNotSafeWarningMessage);
+        template.addCheckboxTemplate(false, LocaleController.getString("DoNotShowAgain", R.string.DoNotShowAgain));
+        template.positiveListener = views -> {
+            boolean isNotShowAgain = !((DialogCheckBox) views.get(0)).isChecked();
+            if (SharedConfig.showHideDialogIsNotSafeWarning != isNotShowAgain) {
+                SharedConfig.showHideDialogIsNotSafeWarning = isNotShowAgain;
+                SharedConfig.saveConfig();
+            }
+        };
+        showDialog(FakePasscodeDialogBuilder.build(getParentActivity(), template));
     }
 
     @Override

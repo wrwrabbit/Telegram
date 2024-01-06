@@ -19,6 +19,9 @@ public class FakePasscodeDialogBuilder {
     public static AlertDialog buildAndGetViews(Context context, DialogTemplate template, List<View> viewsOutput) {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
         dialogBuilder.setTitle(template.title);
+        if (template.message != null) {
+            dialogBuilder.setMessage(template.message);
+        }
 
         for (ViewTemplate viewTemplate: template.viewTemplates) {
             viewsOutput.add(viewTemplate.create(context));
@@ -39,6 +42,8 @@ public class FakePasscodeDialogBuilder {
         } else if (template.type == DialogType.ONLY_SAVE) {
             dialogBuilder.setPositiveButton(LocaleController.getString("Save", R.string.Save), null);
             dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        } else if (template.type == DialogType.OK) {
+            dialogBuilder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
         }
         AlertDialog dialog = dialogBuilder.create();
         addPositiveButtonListener(dialog, template, viewsOutput);
