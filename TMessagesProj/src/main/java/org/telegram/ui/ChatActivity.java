@@ -17820,19 +17820,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     obj.shouldRemoveVideoEditedInfo = false;
                 }
                 Integer newMsgId = (Integer) args[1];
-
-                RemoveAfterReadingMessages.load();
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-                if (RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).containsKey("" + dialog_id)) {
-                    for (RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + dialog_id)) {
-                        if (message.getId() == msgId) {
-                            message.setId(newMsgId);
-                            break;
-                        }
-                    }
-                }
-                RemoveAfterReadingMessages.save();
-
+                RemoveAfterReadingMessages.updateMessageId(currentAccount, dialog_id, msgId, newMsgId);
                 if (!newMsgId.equals(msgId) && messagesDict[0].indexOfKey(newMsgId) >= 0) {
                     MessageObject removed = messagesDict[0].get(msgId);
                     messagesDict[0].remove(msgId);

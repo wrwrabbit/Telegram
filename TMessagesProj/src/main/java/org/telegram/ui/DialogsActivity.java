@@ -10344,17 +10344,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 Integer msgId = (Integer) args[0];
                 Integer newMsgId = (Integer) args[1];
                 TLRPC.Message newMsgObj = (TLRPC.Message) args[2];
-                RemoveAfterReadingMessages.load();
-                RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-                if (newMsgObj != null && RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).containsKey("" + newMsgObj.dialog_id)) {
-                    for (RemoveAsReadMessage message : RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount).get("" + newMsgObj.dialog_id)) {
-                        if (message.getId() == msgId) {
-                            message.setId(newMsgId);
-                            break;
-                        }
-                    }
+                if (newMsgObj != null) {
+                    RemoveAfterReadingMessages.updateMessageId(currentAccount, newMsgObj.dialog_id, msgId, newMsgId);
                 }
-                RemoveAfterReadingMessages.save();
             }
         } else if (id == NotificationCenter.didSetPasscode) {
             updatePasscodeButton();

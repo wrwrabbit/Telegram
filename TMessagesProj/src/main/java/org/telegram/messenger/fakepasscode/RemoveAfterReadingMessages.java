@@ -91,22 +91,20 @@ public class RemoveAfterReadingMessages {
         }
     }
 
-    private static void cleanAutoDeletable(int messageId, int currentAccount, long dialogId) {
-        load();
-        Map<String, List<RemoveAsReadMessage>> curAccountMessages = messagesToRemoveAsRead.get("" + currentAccount);
-
-        if (curAccountMessages == null || curAccountMessages.get("" + dialogId) == null) {
+    private static void removeMessage(int currentAccount, long dialogId, int messageId) {
+        List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(currentAccount, dialogId);
+        if (messagesToRemove == null) {
             return;
         }
 
-        for (RemoveAsReadMessage messageToRemove : new ArrayList<>(curAccountMessages.get("" + dialogId))) {
+        for (RemoveAsReadMessage messageToRemove : new ArrayList<>(messagesToRemove)) {
             if (messageToRemove.getId() == messageId) {
-                messagesToRemoveAsRead.get("" + currentAccount).get("" + dialogId).remove(messageToRemove);
+                messagesToRemove.remove(messageToRemove);
+                break;
             }
         }
 
-        if (curAccountMessages.get("" + dialogId) != null
-                && curAccountMessages.get("" + dialogId).isEmpty()) {
+        if (messagesToRemove.isEmpty()) {
             messagesToRemoveAsRead.get("" + currentAccount).remove("" + dialogId);
         }
         save();
@@ -118,15 +116,12 @@ public class RemoveAfterReadingMessages {
             AndroidUtilities.runOnUIThread(() -> checkReadDialogs(currentAccount), 100);
             return;
         }
-        load();
-        Map<String, List<RemoveAsReadMessage>> dialogsToCheck =
-                messagesToRemoveAsRead.get("" + currentAccount);
         for (int i = 0; i < controller.dialogs_dict.size(); i++) {
             TLRPC.Dialog dialog = controller.dialogs_dict.valueAt(i);
             if (dialog == null) {
                 continue;
             }
-            List<RemoveAsReadMessage> messagesToCheck = dialogsToCheck.get("" + dialog.id);
+            List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(currentAccount, dialog.id);
             if (messagesToCheck == null) {
                 continue;
             }
@@ -147,12 +142,10 @@ public class RemoveAfterReadingMessages {
     public static void notifyMessagesRead(int currentAccount, List<MessageObject> messages) {
         Map<Long, Integer> dialogLastReadIds = new HashMap<>();
         Map<Long, RemoveAsReadMessage> encryptedMessagesToDelete = new HashMap<>();
-        messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-        Map<String, List<RemoveAsReadMessage>> dialogsToCheck = messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
         for (MessageObject message : messages) {
             long dialogId = message.messageOwner.dialog_id;
             if (DialogObject.isEncryptedDialog(dialogId)) {
-                List<RemoveAsReadMessage> messagesToCheck = dialogsToCheck.get("" + dialogId);
+                List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(currentAccount, dialogId);
                 if (messagesToCheck != null) {
                     for (RemoveAsReadMessage messageToCheck : messagesToCheck) {
                         if (messageToCheck.getId() == message.getId()) {
@@ -173,14 +166,12 @@ public class RemoveAfterReadingMessages {
     }
 
     public static void readMaxIdUpdated(int currentAccount, long currentDialogId, int readMaxId) {
-        if (DialogObject.isEncryptedDialog(currentDialogId)) {
+        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(currentAccount, currentDialogId);
+        if (dialogMessagesToRemove == null || DialogObject.isEncryptedDialog(currentDialogId)) {
             return;
         }
-        load();
         List<RemoveAsReadMessage> messagesToRemove = new ArrayList<>();
-        messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-        for (RemoveAsReadMessage messageToRemove : messagesToRemoveAsRead.get("" + currentAccount)
-                .getOrDefault("" + currentDialogId, new ArrayList<>())) {
+        for (RemoveAsReadMessage messageToRemove : dialogMessagesToRemove) {
             if (messageToRemove.getId() <= readMaxId) {
                 messagesToRemove.add(messageToRemove);
                 messageToRemove.setReadTime(System.currentTimeMillis());
@@ -198,7 +189,7 @@ public class RemoveAfterReadingMessages {
                 MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, currentDialogId,
                         true, false, false, 0,
                         null, false, false);
-                cleanAutoDeletable(messageToRemove.getId(), currentAccount, currentDialogId);
+                removeMessage(currentAccount, currentDialogId, messageToRemove.getId());
             }, Math.max(messageToRemove.getScheduledTimeMs(), 0));
         }
     }
@@ -218,7 +209,34 @@ public class RemoveAfterReadingMessages {
                         encryptedChat, currentDialogId, false, false,
                         false, 0, null, false, false);
             }
-            cleanAutoDeletable(messageToRemove.getId(), currentAccount, currentDialogId);
+            removeMessage(currentAccount, currentDialogId, messageToRemove.getId());
         }, Math.max(messageToRemove.getScheduledTimeMs(), 0));
+    }
+
+    public static void addMessageToRemove(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {
+        load();
+        messagesToRemoveAsRead.putIfAbsent("" + accountNum, new HashMap<>());
+        Map<String, List<RemoveAsReadMessage>> dialogs = messagesToRemoveAsRead.get("" + accountNum);
+        dialogs.putIfAbsent("" + dialogId, new ArrayList<>());
+        dialogs.get("" + dialogId).add(messageToRemove);
+        save();
+    }
+
+    public static List<RemoveAsReadMessage> getDialogMessagesToRemove(int accountNum, long dialogId) {
+        Map<String, List<RemoveAsReadMessage>> dialogs = messagesToRemoveAsRead.get("" + accountNum);
+        return dialogs != null ? dialogs.get("" + dialogId) : null;
+    }
+
+    public static void updateMessageId(int accountNum, long dialogId, int oldMessageId, int newMessageId) {
+        List<RemoveAsReadMessage> removeAsReadMessages = getDialogMessagesToRemove(accountNum, dialogId);
+        if (removeAsReadMessages != null) {
+            for (RemoveAsReadMessage message : removeAsReadMessages) {
+                if (message.getId() == oldMessageId) {
+                    message.setId(newMessageId);
+                    RemoveAfterReadingMessages.save();
+                    break;
+                }
+            }
+        }
     }
 }

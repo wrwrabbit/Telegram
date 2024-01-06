@@ -3449,14 +3449,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     processSentMessage(retryMessageObject.getId());
 
                     if (sendMessageParams.autoDeleteDelay != null) {
-                        RemoveAfterReadingMessages.load();
-                        RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-                        RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
-                                .putIfAbsent("" + retryMessageObject.messageOwner.dialog_id, new ArrayList<>());
-                        RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
-                                .get("" + retryMessageObject.messageOwner.dialog_id).add(
-                                new RemoveAsReadMessage(retryMessageObject.getId(), -1, sendMessageParams.autoDeleteDelay));
-                        RemoveAfterReadingMessages.save();
+                        long dialogId = retryMessageObject.messageOwner.dialog_id;
+                        RemoveAsReadMessage messageToRemove =
+                                new RemoveAsReadMessage(retryMessageObject.getId(), -1, sendMessageParams.autoDeleteDelay);
+                        RemoveAfterReadingMessages.addMessageToRemove(currentAccount, dialogId, messageToRemove);
                     }
                 }
                 return;
@@ -4964,14 +4960,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
 
         if (sendMessageParams.autoDeleteDelay != null) {
-            RemoveAfterReadingMessages.load();
-            RemoveAfterReadingMessages.messagesToRemoveAsRead.putIfAbsent("" + currentAccount, new HashMap<>());
-            RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
-                    .putIfAbsent("" + newMsg.dialog_id, new ArrayList<>());
-            RemoveAfterReadingMessages.messagesToRemoveAsRead.get("" + currentAccount)
-                    .get("" + newMsg.dialog_id).add(
-                    new RemoveAsReadMessage(newMsg.id, newMsg.random_id, sendMessageParams.autoDeleteDelay));
-            RemoveAfterReadingMessages.save();
+            RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(newMsg.id, -1, sendMessageParams.autoDeleteDelay);
+            RemoveAfterReadingMessages.addMessageToRemove(currentAccount, newMsg.dialog_id, messageToRemove);
         }
     }
 
