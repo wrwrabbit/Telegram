@@ -655,7 +655,8 @@ public class SharedConfig {
                 if (pendingPtgAppUpdate != null) {
                     try {
                         editor.putString("ptgAppUpdate", toJson(pendingPtgAppUpdate));
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
+                        Utils.handleException(e);
                     }
                 } else {
                     editor.remove("ptgAppUpdate");
@@ -694,7 +695,8 @@ public class SharedConfig {
             SharedPreferences.Editor editor = preferences.edit();
             try {
                 editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
             editor.commit();
         }
@@ -748,26 +750,22 @@ public class SharedConfig {
                         fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
                     }
                 } catch (Exception e) {
-                    fakePasscodeLoadedWithErrors = true;
-                    boolean logsEnabled = ApplicationLoader.applicationContext
-                            .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
-                            .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
-                    if (BuildVars.LOGS_ENABLED || logsEnabled) {
-                        Log.e("SharedConfig", "error", e);
-                    }
+                    Utils.handleException(e);
                 }
             }
             try {
                 if (preferences.contains("fakePasscodeActionsResult")) {
                     fakePasscodeActionsResult = fromJson(preferences.getString("fakePasscodeActionsResult", null), ActionsResult.class);
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
             try {
                 if (preferences.contains("badPasscodeAttemptList")) {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
             takePhotoWithBadPasscodeBack = preferences.getBoolean("takePhotoOnBadPasscodeBack", false);
@@ -818,7 +816,8 @@ public class SharedConfig {
                 if (update != null) {
                     pendingPtgAppUpdate = fromJson(update, UpdateData.class);
                 }
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 

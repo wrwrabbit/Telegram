@@ -65,11 +65,16 @@ public class RemoveAfterReadingMessages {
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.enableDefaultTyping();
                 String messagesToRemoveAsReadString = preferences.getString("messagesToRemoveAsRead", null);
+                if (messagesToRemoveAsReadString != null) {
+                    messagesToRemoveAsRead = mapper.readValue(messagesToRemoveAsReadString, HashMap.class);
+                }
                 String delaysString = preferences.getString("delays", null);
-                messagesToRemoveAsRead = mapper.readValue(messagesToRemoveAsReadString, HashMap.class);
-                delays = mapper.readValue(delaysString, HashMap.class);
+                if (delays != null) {
+                    delays = mapper.readValue(delaysString, HashMap.class);
+                }
                 isLoaded = true;
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
         }
     }
@@ -86,7 +91,8 @@ public class RemoveAfterReadingMessages {
                 editor.putString("messagesToRemoveAsRead", messagesToRemoveAsReadString);
                 editor.putString("delays", delaysString);
                 editor.commit();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
         }
     }
@@ -235,6 +241,7 @@ public class RemoveAfterReadingMessages {
     }
 
     public static List<RemoveAsReadMessage> getDialogMessagesToRemove(int accountNum, long dialogId) {
+        load();
         Map<String, List<RemoveAsReadMessage>> dialogs = messagesToRemoveAsRead.get("" + accountNum);
         return dialogs != null ? dialogs.get("" + dialogId) : null;
     }

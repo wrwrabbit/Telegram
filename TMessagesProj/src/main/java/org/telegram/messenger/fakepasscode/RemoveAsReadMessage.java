@@ -1,5 +1,7 @@
 package org.telegram.messenger.fakepasscode;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class RemoveAsReadMessage {
     private int id;
     private long randomId = -1; // from encrypted dialogs
@@ -31,6 +33,7 @@ public class RemoveAsReadMessage {
         return scheduledTimeMs;
     }
 
+    @JsonIgnore
     public boolean isRead() {
         return readTime != -1;
     }
