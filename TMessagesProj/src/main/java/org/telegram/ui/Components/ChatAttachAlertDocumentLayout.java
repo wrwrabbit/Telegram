@@ -94,6 +94,11 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
 
     public interface DocumentSelectActivityDelegate {
         void didSelectFiles(ArrayList<String> files, String caption, ArrayList<MessageObject> fmessages, boolean notify, int scheduleDate);
+
+        default void didSelectFiles(ArrayList<String> files, String caption, ArrayList<MessageObject> fmessages, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
+            didSelectFiles(files, caption, fmessages, notify, scheduleDate);
+        }
+
         default void didSelectPhotos(ArrayList<SendMessagesHelper.SendingMediaInfo> photos, boolean notify, int scheduleDate) {
 
         }
@@ -747,7 +752,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    void sendSelectedItems(boolean notify, int scheduleDate) {
+    void sendSelectedItems(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
         if (selectedFiles.size() == 0 && selectedMessages.size() == 0 || delegate == null || sendPressed) {
             return;
         }
@@ -759,7 +764,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
             fmessages.add(selectedMessages.get(hashId));
         }
         ArrayList<String> files = new ArrayList<>(selectedFilesOrder);
-        delegate.didSelectFiles(files, parentAlert.commentTextView.getText().toString(), fmessages, notify, scheduleDate);
+        delegate.didSelectFiles(files, parentAlert.commentTextView.getText().toString(), fmessages, notify, scheduleDate, autoDeleteDelay);
 
         parentAlert.dismiss(true);
     }
