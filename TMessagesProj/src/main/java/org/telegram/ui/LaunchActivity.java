@@ -5707,7 +5707,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.accountHidingChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.fakePasscodeActivated);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.shouldKillApp);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.shouldHideApp);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.shouldHideApp);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.savedChannelsButtonStateChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.cacheClearedByPtg);
 
