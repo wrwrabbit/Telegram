@@ -211,6 +211,24 @@ public class RemoveAfterReadingMessages {
         }
     }
 
+    public static void encryptedReadMaxTimeUpdated(int currentAccount, long currentDialogId, int readMaxTime) {
+        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(currentAccount, currentDialogId);
+        if (dialogMessagesToRemove == null || !DialogObject.isEncryptedDialog(currentDialogId)) {
+            return;
+        }
+        List<RemoveAsReadMessage> messagesToRemove = new ArrayList<>();
+        for (RemoveAsReadMessage messageToRemove : dialogMessagesToRemove) {
+            if (!messageToRemove.isRead() && messageToRemove.getSendTime() - 1 <= readMaxTime) {
+                messagesToRemove.add(messageToRemove);
+                messageToRemove.setReadTime(System.currentTimeMillis());
+            }
+        }
+        save();
+        for (RemoveAsReadMessage messageToRemove : messagesToRemove) {
+            startEncryptedDialogDeleteProcess(currentAccount, currentDialogId, messageToRemove);
+        }
+    }
+
     public static void startEncryptedDialogDeleteProcess(int currentAccount, long currentDialogId, RemoveAsReadMessage messageToRemove) {
         if (!messageToRemove.isRead()) {
             return;
@@ -248,12 +266,15 @@ public class RemoveAfterReadingMessages {
         return dialogs != null ? dialogs.get("" + dialogId) : null;
     }
 
-    public static void updateMessageId(int accountNum, long dialogId, int oldMessageId, int newMessageId) {
+    public static void updateMessage(int accountNum, long dialogId, int oldMessageId, int newMessageId, Integer newSendTime) {
         List<RemoveAsReadMessage> removeAsReadMessages = getDialogMessagesToRemove(accountNum, dialogId);
         if (removeAsReadMessages != null) {
             for (RemoveAsReadMessage message : removeAsReadMessages) {
                 if (message.getId() == oldMessageId) {
                     message.setId(newMessageId);
+                    if (newSendTime != null) {
+                        message.setSendTime(newSendTime);
+                    }
                     RemoveAfterReadingMessages.save();
                     break;
                 }

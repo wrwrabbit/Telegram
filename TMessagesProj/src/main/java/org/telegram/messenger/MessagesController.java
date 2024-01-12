@@ -17910,6 +17910,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     int value = markAsReadEncryptedFinal.valueAt(a);
                     getNotificationCenter().postNotificationName(NotificationCenter.messagesReadEncrypted, key, value);
                     long dialogId = DialogObject.makeEncryptedDialogId(key);
+                    RemoveAfterReadingMessages.encryptedReadMaxTimeUpdated(currentAccount, dialogId, value);
                     TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
                     if (dialog != null) {
                         ArrayList<MessageObject> dialogMessages = dialogMessage.get(dialogId);

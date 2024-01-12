@@ -168,7 +168,6 @@ import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
-import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
@@ -17834,7 +17833,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     obj.shouldRemoveVideoEditedInfo = false;
                 }
                 Integer newMsgId = (Integer) args[1];
-                RemoveAfterReadingMessages.updateMessageId(currentAccount, dialog_id, msgId, newMsgId);
+                RemoveAfterReadingMessages.updateMessage(currentAccount, dialog_id, msgId, newMsgId, null);
                 if (!newMsgId.equals(msgId) && messagesDict[0].indexOfKey(newMsgId) >= 0) {
                     MessageObject removed = messagesDict[0].get(msgId);
                     messagesDict[0].remove(msgId);
@@ -17856,6 +17855,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     return;
                 }
                 TLRPC.Message newMsgObj = (TLRPC.Message) args[2];
+                RemoveAfterReadingMessages.updateMessage(currentAccount, dialog_id, newMsgId, newMsgId, newMsgObj.date);
                 Long grouped_id;
                 if (args.length >= 4) {
                     grouped_id = (Long) args[4];
@@ -18161,6 +18161,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             int encId = (Integer) args[0];
             if (currentEncryptedChat != null && currentEncryptedChat.id == encId) {
                 int date = (Integer) args[1];
+                RemoveAfterReadingMessages.encryptedReadMaxTimeUpdated(currentAccount, encId, date);
                 for (MessageObject obj : messages) {
                     if (!obj.isOut()) {
                         continue;
@@ -18169,9 +18170,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     if (obj.messageOwner.date - 1 <= date) {
                         obj.setIsRead();
-                        List<Pair<Long, Integer>> messages =
-                                Collections.singletonList(new Pair<>(obj.messageOwner.dialog_id, obj.getId()));
-                        RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, messages);
                         if (chatAdapter != null) {
                             chatAdapter.invalidateRowWithMessageObject(obj);
                         }

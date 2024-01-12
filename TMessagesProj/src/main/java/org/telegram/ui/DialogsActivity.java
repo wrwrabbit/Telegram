@@ -90,7 +90,6 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BadPasscodeAttempt;
 import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
@@ -119,7 +118,6 @@ import org.telegram.messenger.fakepasscode.AccountActions;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
-import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -229,7 +227,6 @@ import org.telegram.ui.Stories.recorder.StoryRecorder;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10345,7 +10342,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 Integer newMsgId = (Integer) args[1];
                 TLRPC.Message newMsgObj = (TLRPC.Message) args[2];
                 if (newMsgObj != null) {
-                    RemoveAfterReadingMessages.updateMessageId(currentAccount, newMsgObj.dialog_id, msgId, newMsgId);
+                    RemoveAfterReadingMessages.updateMessage(currentAccount, newMsgObj.dialog_id, msgId, newMsgId, newMsgObj.date);
                 }
             }
         } else if (id == NotificationCenter.didSetPasscode) {
