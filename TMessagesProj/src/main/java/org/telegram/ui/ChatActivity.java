@@ -18169,7 +18169,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     if (obj.messageOwner.date - 1 <= date) {
                         obj.setIsRead();
-                        RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, Arrays.asList(obj));
+                        List<Pair<Long, Integer>> messages =
+                                Collections.singletonList(new Pair<>(obj.messageOwner.dialog_id, obj.getId()));
+                        RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, messages);
                         if (chatAdapter != null) {
                             chatAdapter.invalidateRowWithMessageObject(obj);
                         }

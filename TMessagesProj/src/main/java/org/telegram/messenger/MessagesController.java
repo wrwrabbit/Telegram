@@ -17849,7 +17849,7 @@ public class MessagesController extends BaseController implements NotificationCe
         LongSparseIntArray clearHistoryMessagesFinal = clearHistoryMessages;
         getMessagesStorage().getStorageQueue().postRunnable(() -> AndroidUtilities.runOnUIThread(() -> {
             int updateMask = 0;
-            List<MessageObject> autoDeleteMessages = new ArrayList<>();
+            List<Pair<Long, Integer>> autoDeleteMessages = new ArrayList<>();
             if (markAsReadMessagesInboxFinal != null || markAsReadMessagesOutboxFinal != null) {
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesRead, markAsReadMessagesInboxFinal, markAsReadMessagesOutboxFinal);
                 if (markAsReadMessagesInboxFinal != null) {
@@ -17858,6 +17858,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (int b = 0, size = markAsReadMessagesInboxFinal.size(); b < size; b++) {
                         long key = markAsReadMessagesInboxFinal.keyAt(b);
                         int messageId = markAsReadMessagesInboxFinal.valueAt(b);
+                        autoDeleteMessages.add(Pair.create(key, messageId));
                         TLRPC.Dialog dialog = dialogs_dict.get(key);
                         if (dialog != null && dialog.top_message > 0 && dialog.top_message <= messageId) {
                             ArrayList<MessageObject> objs = dialogMessage.get(dialog.id);
@@ -17867,7 +17868,6 @@ public class MessagesController extends BaseController implements NotificationCe
                                     if (obj != null && !obj.isOut()) {
                                         obj.setIsRead();
                                         updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
-                                        autoDeleteMessages.add(obj);
                                     }
                                 }
                             }
@@ -17883,6 +17883,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (int b = 0, size = markAsReadMessagesOutboxFinal.size(); b < size; b++) {
                         long key = markAsReadMessagesOutboxFinal.keyAt(b);
                         int messageId = markAsReadMessagesOutboxFinal.valueAt(b);
+                        autoDeleteMessages.add(Pair.create(key, messageId));
                         TLRPC.Dialog dialog = dialogs_dict.get(key);
                         if (dialog != null && messageId > dialog.read_outbox_max_id) {
                             dialog.read_outbox_max_id = messageId;
@@ -17896,7 +17897,6 @@ public class MessagesController extends BaseController implements NotificationCe
                                     if (obj != null && obj.isOut()) {
                                         obj.setIsRead();
                                         updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
-                                        autoDeleteMessages.add(obj);
                                     }
                                 }
                             }
@@ -17918,16 +17918,14 @@ public class MessagesController extends BaseController implements NotificationCe
                                 MessageObject message = dialogMessages.get(i);
                                 if (message != null && message.messageOwner.date <= value) {
                                     message.setIsRead();
-                                    autoDeleteMessages.add(message);
                                     updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
+                                    autoDeleteMessages.add(Pair.create(message.messageOwner.dialog_id, message.getId()));
                                 }
                             }
                         }
                     }
                 }
             }
-            autoDeleteMessages = autoDeleteMessages.stream().filter(m -> !m.isUnread())
-                    .collect(Collectors.toList());
             RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, autoDeleteMessages);
             if (markContentAsReadMessagesFinal != null) {
                 for (int a = 0, size = markContentAsReadMessagesFinal.size(); a < size; a++) {

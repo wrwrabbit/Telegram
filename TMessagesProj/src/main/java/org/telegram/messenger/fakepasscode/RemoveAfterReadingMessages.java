@@ -2,6 +2,7 @@ package org.telegram.messenger.fakepasscode;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Pair;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.exoplayer2.util.Consumer;
@@ -145,25 +146,26 @@ public class RemoveAfterReadingMessages {
         }
     }
 
-    public static void notifyMessagesRead(int currentAccount, List<MessageObject> messages) {
+    public static void notifyMessagesRead(int currentAccount, List<Pair<Long, Integer>> messages) {
         Map<Long, Integer> dialogLastReadIds = new HashMap<>();
         Map<Long, List<RemoveAsReadMessage>> encryptedMessagesToDelete = new HashMap<>();
-        for (MessageObject message : messages) {
-            long dialogId = message.messageOwner.dialog_id;
+        for (Pair<Long, Integer> message : messages) {
+            long dialogId = message.first;
+            int messageId = message.second;
             if (DialogObject.isEncryptedDialog(dialogId)) {
                 List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(currentAccount, dialogId);
                 if (messagesToCheck == null) {
                     continue;
                 }
                 for (RemoveAsReadMessage messageToCheck : messagesToCheck) {
-                    if (messageToCheck.getId() == message.getId() && !messageToCheck.isRead()) {
+                    if (messageToCheck.getId() == messageId && !messageToCheck.isRead()) {
                         messageToCheck.setReadTime(System.currentTimeMillis());
                         encryptedMessagesToDelete.put(dialogId, new ArrayList<>());
                         encryptedMessagesToDelete.get(dialogId).add(messageToCheck);
                     }
                 }
-            } else if (dialogLastReadIds.getOrDefault(dialogId, 0) < message.getId()) {
-                dialogLastReadIds.put(dialogId, message.getId());
+            } else if (dialogLastReadIds.getOrDefault(dialogId, 0) < messageId) {
+                dialogLastReadIds.put(dialogId, messageId);
             }
         }
         for (Map.Entry<Long, Integer> entry : dialogLastReadIds.entrySet()) {
