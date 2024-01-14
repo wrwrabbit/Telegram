@@ -17858,7 +17858,6 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (int b = 0, size = markAsReadMessagesInboxFinal.size(); b < size; b++) {
                         long key = markAsReadMessagesInboxFinal.keyAt(b);
                         int messageId = markAsReadMessagesInboxFinal.valueAt(b);
-                        autoDeleteMessages.add(Pair.create(key, messageId));
                         TLRPC.Dialog dialog = dialogs_dict.get(key);
                         if (dialog != null && dialog.top_message > 0 && dialog.top_message <= messageId) {
                             ArrayList<MessageObject> objs = dialogMessage.get(dialog.id);
