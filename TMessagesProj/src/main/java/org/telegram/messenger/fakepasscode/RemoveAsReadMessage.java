@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class RemoveAsReadMessage {
     private int id;
+    private int topicId;
     private long randomId = -1; // from encrypted dialogs
     private long readTime = -1;
     private int sendTime = -1;
@@ -12,8 +13,9 @@ public class RemoveAsReadMessage {
     public RemoveAsReadMessage() {
     }
 
-    public RemoveAsReadMessage(int id, long randomId, int sendTime, int scheduledTimeMs) {
+    public RemoveAsReadMessage(int id, int topicId, long randomId, int sendTime, int scheduledTimeMs) {
         this.id = id;
+        this.topicId = topicId;
         this.randomId = randomId;
         this.sendTime = sendTime;
         this.scheduledTimeMs = scheduledTimeMs;
@@ -25,6 +27,10 @@ public class RemoveAsReadMessage {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getTopicId() {
+        return topicId;
     }
 
     public int getSendTime() {

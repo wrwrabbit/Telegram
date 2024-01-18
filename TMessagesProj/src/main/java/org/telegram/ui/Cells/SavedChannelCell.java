@@ -47,6 +47,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -1547,7 +1548,7 @@ public class SavedChannelCell extends BaseCell {
             }
             if (!continueUpdate && (mask & MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE) != 0) {
                 if (adapter.getMessage(currentDialogId) != null && !adapter.getMessage(currentDialogId).isUnread() && lastUnreadState != adapter.getMessage(currentDialogId).isUnread()) {
-                    RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, currentDialogId, adapter.getMessage(currentDialogId).getId());
+                    RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, MessagesStorage.TopicKey.of(currentDialogId, 0), adapter.getMessage(currentDialogId).getId());
                 }
 
                 if (adapter.getMessage(currentDialogId) != null && lastUnreadState != adapter.getMessage(currentDialogId).isUnread()) {

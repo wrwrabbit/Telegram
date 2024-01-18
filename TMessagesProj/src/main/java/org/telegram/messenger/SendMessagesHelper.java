@@ -3451,7 +3451,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     if (sendMessageParams.autoDeleteDelay != null) {
                         long dialogId = retryMessageObject.messageOwner.dialog_id;
                         RemoveAsReadMessage messageToRemove =
-                                new RemoveAsReadMessage(retryMessageObject.getId(), -1, retryMessageObject.messageOwner.date, sendMessageParams.autoDeleteDelay);
+                                new RemoveAsReadMessage(retryMessageObject.getId(), MessageObject.getTopicId(retryMessageObject.messageOwner, false), -1, retryMessageObject.messageOwner.date, sendMessageParams.autoDeleteDelay);
                         RemoveAfterReadingMessages.addMessageToRemove(currentAccount, dialogId, messageToRemove);
                     }
                 }
@@ -4960,7 +4960,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
 
         if (sendMessageParams.autoDeleteDelay != null) {
-            RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(newMsg.id, newMsg.random_id, newMsg.date, sendMessageParams.autoDeleteDelay);
+            RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(newMsg.id, MessageObject.getTopicId(newMsg, false), newMsg.random_id, newMsg.date, sendMessageParams.autoDeleteDelay);
             RemoveAfterReadingMessages.addMessageToRemove(currentAccount, newMsg.dialog_id, messageToRemove);
         }
     }

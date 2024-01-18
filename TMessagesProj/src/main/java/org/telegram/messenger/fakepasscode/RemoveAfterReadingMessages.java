@@ -12,6 +12,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -141,17 +142,17 @@ public class RemoveAfterReadingMessages {
                     });
                 }
             } else {
-                readMaxIdUpdated(currentAccount, dialog.id, dialog.read_outbox_max_id);
+                readMaxIdUpdated(currentAccount, MessagesStorage.TopicKey.of(dialog.id, 0), dialog.read_outbox_max_id);
             }
         }
     }
 
-    public static void notifyMessagesRead(int currentAccount, List<Pair<Long, Integer>> messages) {
-        Map<Long, Integer> dialogLastReadIds = new HashMap<>();
+    public static void notifyMessagesRead(int currentAccount, Map<MessagesStorage.TopicKey, Integer> messages) {
+        Map<MessagesStorage.TopicKey, Integer> dialogLastReadIds = new HashMap<>();
         Map<Long, List<RemoveAsReadMessage>> encryptedMessagesToDelete = new HashMap<>();
-        for (Pair<Long, Integer> message : messages) {
-            long dialogId = message.first;
-            int messageId = message.second;
+        for (Map.Entry<MessagesStorage.TopicKey, Integer> message : messages.entrySet()) {
+            long dialogId = message.getKey().dialogId;
+            int messageId = message.getValue();
             if (DialogObject.isEncryptedDialog(dialogId)) {
                 List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(currentAccount, dialogId);
                 if (messagesToCheck == null) {
@@ -164,11 +165,11 @@ public class RemoveAfterReadingMessages {
                         encryptedMessagesToDelete.get(dialogId).add(messageToCheck);
                     }
                 }
-            } else if (dialogLastReadIds.getOrDefault(dialogId, 0) < messageId) {
-                dialogLastReadIds.put(dialogId, messageId);
+            } else if (dialogLastReadIds.getOrDefault(message.getKey(), 0) < messageId) {
+                dialogLastReadIds.put(message.getKey(), messageId);
             }
         }
-        for (Map.Entry<Long, Integer> entry : dialogLastReadIds.entrySet()) {
+        for (Map.Entry<MessagesStorage.TopicKey, Integer> entry : dialogLastReadIds.entrySet()) {
             readMaxIdUpdated(currentAccount, entry.getKey(), entry.getValue());
         }
         for (Map.Entry<Long, List<RemoveAsReadMessage>> entry : encryptedMessagesToDelete.entrySet()) {
@@ -179,20 +180,20 @@ public class RemoveAfterReadingMessages {
         }
     }
 
-    public static void readMaxIdUpdated(int currentAccount, long currentDialogId, int readMaxId) {
-        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(currentAccount, currentDialogId);
-        if (dialogMessagesToRemove == null || DialogObject.isEncryptedDialog(currentDialogId)) {
+    public static void readMaxIdUpdated(int currentAccount, MessagesStorage.TopicKey key, int readMaxId) {
+        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(currentAccount, key.dialogId);
+        if (dialogMessagesToRemove == null || DialogObject.isEncryptedDialog(key.dialogId)) {
             return;
         }
         List<RemoveAsReadMessage> messagesToRemove = new ArrayList<>();
         for (RemoveAsReadMessage messageToRemove : dialogMessagesToRemove) {
-            if (!messageToRemove.isRead() && messageToRemove.getId() <= readMaxId) {
+            if (!messageToRemove.isRead() && messageToRemove.getId() <= readMaxId && key.topicId == messageToRemove.getTopicId()) {
                 messagesToRemove.add(messageToRemove);
                 messageToRemove.setReadTime(System.currentTimeMillis());
             }
         }
         save();
-        startDeleteProcess(currentAccount, currentDialogId, messagesToRemove);
+        startDeleteProcess(currentAccount, key.dialogId, messagesToRemove);
     }
 
     private static void startDeleteProcess(int currentAccount, long currentDialogId, List<RemoveAsReadMessage> messagesToRemove) {

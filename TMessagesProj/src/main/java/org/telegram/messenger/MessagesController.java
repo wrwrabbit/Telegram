@@ -9698,7 +9698,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     .max(Integer::compare)
                     .orElse(null);
             if (maxId != null) {
-                RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, dialogId, maxId);
+                RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, MessagesStorage.TopicKey.of(dialogId, 0), maxId);
             }
 
             if (!DialogObject.isEncryptedDialog(dialogId)) {
@@ -17849,7 +17849,7 @@ public class MessagesController extends BaseController implements NotificationCe
         LongSparseIntArray clearHistoryMessagesFinal = clearHistoryMessages;
         getMessagesStorage().getStorageQueue().postRunnable(() -> AndroidUtilities.runOnUIThread(() -> {
             int updateMask = 0;
-            List<Pair<Long, Integer>> autoDeleteMessages = new ArrayList<>();
+            Map<MessagesStorage.TopicKey, Integer> autoDeleteMessages = new HashMap<>();
             if (markAsReadMessagesInboxFinal != null || markAsReadMessagesOutboxFinal != null) {
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesRead, markAsReadMessagesInboxFinal, markAsReadMessagesOutboxFinal);
                 if (markAsReadMessagesInboxFinal != null) {
@@ -17882,7 +17882,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (int b = 0, size = markAsReadMessagesOutboxFinal.size(); b < size; b++) {
                         long key = markAsReadMessagesOutboxFinal.keyAt(b);
                         int messageId = markAsReadMessagesOutboxFinal.valueAt(b);
-                        autoDeleteMessages.add(Pair.create(key, messageId));
+                        autoDeleteMessages.put(MessagesStorage.TopicKey.of(key, 0), messageId);
                         TLRPC.Dialog dialog = dialogs_dict.get(key);
                         if (dialog != null && messageId > dialog.read_outbox_max_id) {
                             dialog.read_outbox_max_id = messageId;
@@ -17919,14 +17919,16 @@ public class MessagesController extends BaseController implements NotificationCe
                                 if (message != null && message.messageOwner.date <= value) {
                                     message.setIsRead();
                                     updateMask |= UPDATE_MASK_READ_DIALOG_MESSAGE;
-                                    autoDeleteMessages.add(Pair.create(message.messageOwner.dialog_id, message.getId()));
+                                    autoDeleteMessages.put(MessagesStorage.TopicKey.of(message.messageOwner.dialog_id, 0), message.getId());
                                 }
                             }
                         }
                     }
                 }
             }
-            RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, autoDeleteMessages);
+            if (!autoDeleteMessages.isEmpty()) {
+                RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, autoDeleteMessages);
+            }
             if (markContentAsReadMessagesFinal != null) {
                 for (int a = 0, size = markContentAsReadMessagesFinal.size(); a < size; a++) {
                     long key = markContentAsReadMessagesFinal.keyAt(a);
@@ -18022,6 +18024,7 @@ public class MessagesController extends BaseController implements NotificationCe
             }
         }
         if (topicsReadOutbox != null) {
+            RemoveAfterReadingMessages.notifyMessagesRead(currentAccount, topicsReadOutbox);
             getMessagesStorage().updateTopicsWithReadMessages(topicsReadOutbox);
             getTopicsController().updateReadOutbox(topicsReadOutbox);
         }

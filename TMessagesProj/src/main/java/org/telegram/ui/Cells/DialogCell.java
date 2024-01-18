@@ -2806,7 +2806,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 }
                 if (!continueUpdate) {
                     if (message != null && !message.isUnread() && lastUnreadState != message.isUnread()) {
-                        RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, currentDialogId, message.getId());
+                        RemoveAfterReadingMessages.readMaxIdUpdated(currentAccount, MessagesStorage.TopicKey.of(currentDialogId, getTopicId()), message.getId());
                     }
 
                     if (message != null && lastUnreadState != message.isUnread()) {
