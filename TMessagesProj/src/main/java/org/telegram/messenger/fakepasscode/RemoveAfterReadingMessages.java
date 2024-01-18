@@ -17,6 +17,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -220,6 +221,9 @@ public class RemoveAfterReadingMessages {
                 continue;
             }
             AndroidUtilities.runOnUIThread(() -> {
+                if (!Utils.isConnectedToNetwork()) {
+                    Utilities.globalQueue.postRunnable(() -> startDeleteProcess(currentAccount, currentDialogId, messagesToRemove), 1000);
+                }
                 FileLog.d("[RemoveAfterReading] startDeleteProcess: delete: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId());
                 ArrayList<Integer> ids = new ArrayList<>();
                 ids.add(messageToRemove.getId());
@@ -257,6 +261,9 @@ public class RemoveAfterReadingMessages {
         }
         FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
         AndroidUtilities.runOnUIThread(() -> {
+            if (!Utils.isConnectedToNetwork()) {
+                Utilities.globalQueue.postRunnable(() -> startEncryptedDialogDeleteProcess(currentAccount, currentDialogId, messageToRemove), 1000);
+            }
             ArrayList<Integer> ids = new ArrayList<>();
             ids.add(messageToRemove.getId());
             ArrayList<Long> random_ids = new ArrayList<>();
