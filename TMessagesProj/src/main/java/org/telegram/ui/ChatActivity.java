@@ -18161,7 +18161,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             int encId = (Integer) args[0];
             if (currentEncryptedChat != null && currentEncryptedChat.id == encId) {
                 int date = (Integer) args[1];
-                RemoveAfterReadingMessages.encryptedReadMaxTimeUpdated(currentAccount, encId, date);
                 for (MessageObject obj : messages) {
                     if (!obj.isOut()) {
                         continue;
