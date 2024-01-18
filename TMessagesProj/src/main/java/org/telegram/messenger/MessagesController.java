@@ -19610,7 +19610,7 @@ public class MessagesController extends BaseController implements NotificationCe
     private int deleteAllMessagesGuid = -1;
 
     private Predicate<MessageObject> ocondition = null;
-    public void deleteAllMessagesFromDialogByUser(long userId, long dialogId, int topicId, Predicate<MessageObject> condition) {
+    public void deleteAllMessagesFromDialogByUser(long userId, long dialogId, long topicId, Predicate<MessageObject> condition) {
         if (!DialogObject.isEncryptedDialog(dialogId)) {
             if (deleteAllMessagesGuid < 0) {
                 deleteAllMessagesGuid = ConnectionsManager.generateClassGuid();
@@ -19624,7 +19624,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     if (!messages.isEmpty()) {
                         deleteMessages(messagesIds, null, null, dialogId, true, false, false, 0, null, false, true);
                         getMediaDataController().searchMessagesInChat("", dialogId, 0, deleteAllMessagesGuid, 0, 0,
-                                getUser(userId), getChat(dialogId), messages.get(messages.size() - 1).getId());
+                                getUser(userId), getChat(dialogId), null, messages.get(messages.size() - 1).getId());
                     } else {
                         getNotificationCenter().removeObserver(deleteMessagesDelegate, NotificationCenter.chatSearchResultsAvailableAll);
                     }
@@ -19634,7 +19634,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             };
             getNotificationCenter().addObserver(deleteMessagesDelegate, NotificationCenter.chatSearchResultsAvailableAll);
-            getMediaDataController().searchMessagesInChat("", dialogId, 0, deleteAllMessagesGuid, 0, 0, getUser(userId), getChat(dialogId));
+            getMediaDataController().searchMessagesInChat("", dialogId, 0, deleteAllMessagesGuid, 0, 0, getUser(userId), getChat(dialogId), null);
         }
 
         deleteAllMessagesFromDialog(dialogId, topicId, userId, ocondition);
@@ -19670,7 +19670,7 @@ public class MessagesController extends BaseController implements NotificationCe
      * @param ownerId
      * @param condition
      */
-    public void deleteAllMessagesFromDialog(long dialogId, int topicId, long ownerId,
+    public void deleteAllMessagesFromDialog(long dialogId, long topicId, long ownerId,
                                             Predicate<MessageObject> condition) {
         final int[] loadIndex = new int[]{0};
 
