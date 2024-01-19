@@ -2,21 +2,19 @@ package org.telegram.messenger.fakepasscode;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
-import android.util.Pair;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.exoplayer2.util.Consumer;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -71,16 +69,14 @@ public class RemoveAfterReadingMessages {
 
             try {
                 SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("removeasreadmessages", Context.MODE_PRIVATE);
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.enableDefaultTyping();
                 String messagesToRemoveAsReadString = preferences.getString("messagesToRemoveAsRead", null);
                 if (messagesToRemoveAsReadString != null) {
                     FileLog.d("[RemoveAfterReading] Messages loaded: " + messagesToRemoveAsReadString);
-                    messagesToRemoveAsRead = mapper.readValue(messagesToRemoveAsReadString, HashMap.class);
+                    messagesToRemoveAsRead = SharedConfig.fromJson(messagesToRemoveAsReadString, HashMap.class);
                 }
                 String delaysString = preferences.getString("delays", null);
                 if (delays != null) {
-                    delays = mapper.readValue(delaysString, HashMap.class);
+                    delays = SharedConfig.fromJson(delaysString, HashMap.class);
                 }
                 isLoaded = true;
             } catch (Exception e) {
@@ -94,11 +90,9 @@ public class RemoveAfterReadingMessages {
             try {
                 SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("removeasreadmessages", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.enableDefaultTyping();
-                String messagesToRemoveAsReadString = mapper.writeValueAsString(messagesToRemoveAsRead);
+                String messagesToRemoveAsReadString = SharedConfig.toJson(messagesToRemoveAsRead);
                 FileLog.d("[RemoveAfterReading] Messages saved: " + messagesToRemoveAsReadString);
-                String delaysString = mapper.writeValueAsString(delays);
+                String delaysString = SharedConfig.toJson(delays);
                 editor.putString("messagesToRemoveAsRead", messagesToRemoveAsReadString);
                 editor.putString("delays", delaysString);
                 editor.commit();
