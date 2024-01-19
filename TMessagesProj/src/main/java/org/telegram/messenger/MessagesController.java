@@ -7671,11 +7671,14 @@ public class MessagesController extends BaseController implements NotificationCe
 
             getConnectionsManager().sendRequest(req, (response, error) -> {
                 if (error == null) {
+                    RemoveAfterReadingMessages.removeMessages(currentAccount, dialogId, messages);
                     TLRPC.TL_messages_affectedMessages res = (TLRPC.TL_messages_affectedMessages) response;
                     processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
                     if (reset) {
                         resetDialogs(true, getMessagesStorage().getLastSeqValue(), getMessagesStorage().getLastPtsValue(), getMessagesStorage().getLastDateValue(), getMessagesStorage().getLastQtsValue());
                     }
+                } else {
+                    FileLog.d("[RemoveAfterReading] deleteMessages: error: acc = " + currentAccount + ", did = " + dialogId);
                 }
                 if (newTaskId != 0) {
                     getMessagesStorage().removePendingTask(newTaskId);

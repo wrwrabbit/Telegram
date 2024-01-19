@@ -23,8 +23,10 @@ import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class RemoveAfterReadingMessages {
     private static class MessageLoader implements NotificationCenter.NotificationCenterDelegate {
@@ -105,16 +107,17 @@ public class RemoveAfterReadingMessages {
         }
     }
 
-    private static void removeMessage(int currentAccount, long dialogId, int messageId) {
+    public static void removeMessages(int currentAccount, long dialogId, List<Integer> messageIds) {
         List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(currentAccount, dialogId);
         if (messagesToRemove == null) {
             return;
         }
 
+        Set<Integer> messageIdsSet = new HashSet<>(messageIds);
         for (RemoveAsReadMessage messageToRemove : new ArrayList<>(messagesToRemove)) {
-            if (messageToRemove.getId() == messageId) {
+            if (messageIdsSet.contains(messageToRemove.getId())) {
                 messagesToRemove.remove(messageToRemove);
-                FileLog.d("[RemoveAfterReading] Message removed: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + messageId);
+                FileLog.d("[RemoveAfterReading] Message removed: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
                 break;
             }
         }
@@ -231,7 +234,6 @@ public class RemoveAfterReadingMessages {
                 MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, currentDialogId,
                         true, false, false, 0,
                         null, false, false);
-                removeMessage(currentAccount, currentDialogId, messageToRemove.getId());
             }, messageToRemove.calculateRemainingDelay());
         }
     }
@@ -277,7 +279,6 @@ public class RemoveAfterReadingMessages {
             MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids,
                     encryptedChat, currentDialogId, false, false,
                     false, 0, null, false, false);
-            removeMessage(currentAccount, currentDialogId, messageToRemove.getId());
         }, messageToRemove.calculateRemainingDelay());
     }
 
