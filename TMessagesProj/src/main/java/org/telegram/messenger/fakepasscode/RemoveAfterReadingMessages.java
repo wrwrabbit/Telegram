@@ -22,6 +22,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -220,17 +221,28 @@ public class RemoveAfterReadingMessages {
         startDeleteProcess(currentAccount, key.dialogId, messagesToRemove);
     }
 
+    private static void scheduleMessageDeletionRetry(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {
+        Utilities.globalQueue.postRunnable(() -> {
+            List<RemoveAsReadMessage> remainingMessages =  getDialogMessagesToRemove(accountNum, dialogId);
+            if (remainingMessages != null && remainingMessages.contains(messageToRemove)) {
+                if (DialogObject.isEncryptedDialog(dialogId)) {
+                    startDeleteProcess(accountNum, dialogId, Collections.singletonList(messageToRemove));
+                } else {
+                    startEncryptedDialogDeleteProcess(accountNum, dialogId, messageToRemove);
+                }
+            }
+        }, messageToRemove.calculateRemainingDelay() + 10_000);
+
+    }
+
     private static void startDeleteProcess(int currentAccount, long currentDialogId, List<RemoveAsReadMessage> messagesToRemove) {
         for (RemoveAsReadMessage messageToRemove : messagesToRemove) {
             FileLog.d("[RemoveAfterReading] startDeleteProcess: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
             if (!messageToRemove.isRead()) {
+                FileLog.d("[RemoveAfterReading] startDeleteProcess: not read: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
                 continue;
             }
             AndroidUtilities.runOnUIThread(() -> {
-                if (!Utils.isConnectedToNetwork()) {
-                    FileLog.d("[RemoveAfterReading] startDeleteProcess: network disconnected: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
-                    Utilities.globalQueue.postRunnable(() -> startDeleteProcess(currentAccount, currentDialogId, messagesToRemove), 1000);
-                }
                 FileLog.d("[RemoveAfterReading] startDeleteProcess: delete: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId());
                 ArrayList<Integer> ids = new ArrayList<>();
                 ids.add(messageToRemove.getId());
@@ -238,6 +250,7 @@ public class RemoveAfterReadingMessages {
                         true, false, false, 0,
                         null, false, false);
             }, messageToRemove.calculateRemainingDelay());
+            scheduleMessageDeletionRetry(currentAccount, currentDialogId, messageToRemove);
         }
     }
 
@@ -267,10 +280,6 @@ public class RemoveAfterReadingMessages {
         }
         FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
         AndroidUtilities.runOnUIThread(() -> {
-            if (!Utils.isConnectedToNetwork()) {
-                FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: network disconnected: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
-                Utilities.globalQueue.postRunnable(() -> startEncryptedDialogDeleteProcess(currentAccount, currentDialogId, messageToRemove), 1000);
-            }
             ArrayList<Integer> ids = new ArrayList<>();
             ids.add(messageToRemove.getId());
             ArrayList<Long> random_ids = new ArrayList<>();
@@ -283,6 +292,7 @@ public class RemoveAfterReadingMessages {
                     encryptedChat, currentDialogId, false, false,
                     false, 0, null, false, false);
         }, messageToRemove.calculateRemainingDelay());
+        scheduleMessageDeletionRetry(currentAccount, currentDialogId, messageToRemove);
     }
 
     public static void addMessageToRemove(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {

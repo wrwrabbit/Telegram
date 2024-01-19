@@ -484,16 +484,4 @@ public class Utils {
             throw new Error(e);
         }
     }
-
-    public static boolean isConnectedToNetwork() {
-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
-            AccountInstance account = AccountInstance.getInstance(i);
-            ConnectionsManager connectionsManager = account.getConnectionsManager();
-            int connectionState = connectionsManager.getConnectionState();
-            if (connectionState != ConnectionsManager.ConnectionStateWaitingForNetwork) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
