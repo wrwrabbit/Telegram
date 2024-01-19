@@ -103,6 +103,9 @@ public class RemoveAfterReadingMessages {
     }
 
     public static void removeMessages(int accountNum, long dialogId, List<Integer> messageIds) {
+        if (messageIds == null || messageIds.isEmpty()) {
+            return;
+        }
         load();
         synchronized (sync) {
             List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(accountNum, dialogId);
