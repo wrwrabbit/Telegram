@@ -222,6 +222,7 @@ public class RemoveAfterReadingMessages {
             }
             AndroidUtilities.runOnUIThread(() -> {
                 if (!Utils.isConnectedToNetwork()) {
+                    FileLog.d("[RemoveAfterReading] startDeleteProcess: network disconnected: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
                     Utilities.globalQueue.postRunnable(() -> startDeleteProcess(currentAccount, currentDialogId, messagesToRemove), 1000);
                 }
                 FileLog.d("[RemoveAfterReading] startDeleteProcess: delete: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId());
@@ -262,6 +263,7 @@ public class RemoveAfterReadingMessages {
         FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
         AndroidUtilities.runOnUIThread(() -> {
             if (!Utils.isConnectedToNetwork()) {
+                FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: network disconnected: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
                 Utilities.globalQueue.postRunnable(() -> startEncryptedDialogDeleteProcess(currentAccount, currentDialogId, messageToRemove), 1000);
             }
             ArrayList<Integer> ids = new ArrayList<>();

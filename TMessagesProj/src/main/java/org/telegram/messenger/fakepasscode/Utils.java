@@ -490,7 +490,7 @@ public class Utils {
             AccountInstance account = AccountInstance.getInstance(i);
             ConnectionsManager connectionsManager = account.getConnectionsManager();
             int connectionState = connectionsManager.getConnectionState();
-            if (connectionState == ConnectionsManager.ConnectionStateConnected) {
+            if (connectionState != ConnectionsManager.ConnectionStateWaitingForNetwork) {
                 return true;
             }
         }
