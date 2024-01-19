@@ -4098,8 +4098,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showDeleteAfterRead;
             if (scheduleDeleteButtonValue) {
                 TLRPC.Chat chat = accountInstance.getMessagesController().getChat(-dialog_id);
-                if (ChatObject.isChannel(chat) && !chat.megagroup) {
-                    scheduleDeleteButtonValue = false;
+                if (chat != null) {
+                    if (ChatObject.isChannel(chat) && !chat.megagroup || ChatObject.isNotInChat(chat)) {
+                        scheduleDeleteButtonValue = false;
+                    }
                 }
             }
             if (scheduleButtonValue) {
