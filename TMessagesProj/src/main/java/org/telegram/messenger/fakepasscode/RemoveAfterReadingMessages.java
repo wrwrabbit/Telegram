@@ -108,23 +108,26 @@ public class RemoveAfterReadingMessages {
     }
 
     public static void removeMessages(int currentAccount, long dialogId, List<Integer> messageIds) {
-        List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(currentAccount, dialogId);
-        if (messagesToRemove == null) {
-            return;
-        }
-
-        Set<Integer> messageIdsSet = new HashSet<>(messageIds);
-        for (RemoveAsReadMessage messageToRemove : new ArrayList<>(messagesToRemove)) {
-            if (messageIdsSet.contains(messageToRemove.getId())) {
-                messagesToRemove.remove(messageToRemove);
-                FileLog.d("[RemoveAfterReading] Message removed: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
-                break;
+        load();
+        synchronized (sync) {
+            List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(currentAccount, dialogId);
+            if (messagesToRemove == null) {
+                return;
             }
-        }
 
-        if (messagesToRemove.isEmpty()) {
-            messagesToRemoveAsRead.get("" + currentAccount).remove("" + dialogId);
-            FileLog.d("[RemoveAfterReading] Dialog removed: acc = " + currentAccount + ", did = " + dialogId);
+            Set<Integer> messageIdsSet = new HashSet<>(messageIds);
+            for (RemoveAsReadMessage messageToRemove : new ArrayList<>(messagesToRemove)) {
+                if (messageIdsSet.contains(messageToRemove.getId())) {
+                    messagesToRemove.remove(messageToRemove);
+                    FileLog.d("[RemoveAfterReading] Message removed: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
+                    break;
+                }
+            }
+
+            if (messagesToRemove.isEmpty()) {
+                messagesToRemoveAsRead.get("" + currentAccount).remove("" + dialogId);
+                FileLog.d("[RemoveAfterReading] Dialog removed: acc = " + currentAccount + ", did = " + dialogId);
+            }
         }
         save();
     }
@@ -284,11 +287,13 @@ public class RemoveAfterReadingMessages {
 
     public static void addMessageToRemove(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {
         load();
-        FileLog.d("[RemoveAfterReading] addMessageToRemove: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId() + ", scheduledTime = " + messageToRemove.getScheduledTimeMs());
-        messagesToRemoveAsRead.putIfAbsent("" + accountNum, new HashMap<>());
-        Map<String, List<RemoveAsReadMessage>> dialogs = messagesToRemoveAsRead.get("" + accountNum);
-        dialogs.putIfAbsent("" + dialogId, new ArrayList<>());
-        dialogs.get("" + dialogId).add(messageToRemove);
+        synchronized (sync) {
+            FileLog.d("[RemoveAfterReading] addMessageToRemove: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId() + ", scheduledTime = " + messageToRemove.getScheduledTimeMs());
+            messagesToRemoveAsRead.putIfAbsent("" + accountNum, new HashMap<>());
+            Map<String, List<RemoveAsReadMessage>> dialogs = messagesToRemoveAsRead.get("" + accountNum);
+            dialogs.putIfAbsent("" + dialogId, new ArrayList<>());
+            dialogs.get("" + dialogId).add(messageToRemove);
+        }
         save();
     }
 
