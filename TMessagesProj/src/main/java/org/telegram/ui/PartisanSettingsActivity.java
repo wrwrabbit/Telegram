@@ -89,6 +89,8 @@ public class PartisanSettingsActivity extends BaseFragment {
     private int marketIconsDetailRow;
     private int verifiedRow;
     private int verifiedDetailRow;
+    private int confirmDangerousActionRow;
+    private int confirmDangerousActionDetailRow;
 
     private class DangerousSettingSwitcher {
         public Context context;
@@ -281,7 +283,10 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == marketIconsRow) {
                 LauncherIconController.toggleMarketIcons();
                 ((TextCheckCell) view).setChecked(SharedConfig.marketIcons);
-            } else if (position == verifiedRow) {
+            } else if (position == confirmDangerousActionRow) {
+                SharedConfig.toggleIsConfirmDangerousActions();
+                ((TextCheckCell) view).setChecked(SharedConfig.confirmDangerousActions);
+            }else if (position == verifiedRow) {
                 if (LocaleController.isRTL && x > AndroidUtilities.dp(76) || !LocaleController.isRTL && x < view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
                     List<VerificationStorage> storages = VerificationRepository.getInstance().getStorages();
                     if (storages.size() == 1) {
@@ -367,6 +372,8 @@ public class PartisanSettingsActivity extends BaseFragment {
         marketIconsDetailRow = rowCount++;
         verifiedRow = rowCount++;
         verifiedDetailRow = rowCount++;
+        confirmDangerousActionRow = rowCount++;
+        confirmDangerousActionDetailRow = rowCount++;
     }
 
     @Override
@@ -400,7 +407,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     && position != savedChannelsDetailRow && position != reactionsDetailRow && position != foreignAgentsDetailRow
                     && position != onScreenLockActionDetailRow && position != isClearAllDraftsOnScreenLockDetailRow
                     && position != showCallButtonDetailRow && position != isDeleteMessagesForAllByDefaultDetailRow
-                    && position != marketIconsDetailRow;
+                    && position != marketIconsDetailRow && position!= confirmDangerousActionDetailRow;
         }
 
         @Override
@@ -477,6 +484,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     }  else if (position == marketIconsRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.MarketIcons),
                                 SharedConfig.marketIcons, false);
+                    }else if (position == confirmDangerousActionRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("ConfirmDangerousAction", R.string.ConfirmDangerousAction),
+                                SharedConfig.confirmDangerousActions, false);
                     }
                     break;
                 }
@@ -527,6 +537,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     } else if (position == verifiedDetailRow) {
                         cell.setText(LocaleController.getString(R.string.AdditionalVerifiedSettingInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    }else if (position == confirmDangerousActionDetailRow) {
+                        cell.setText(LocaleController.getString( R.string.ConfirmDangerousActionInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
                 }
@@ -568,14 +581,14 @@ public class PartisanSettingsActivity extends BaseFragment {
                     || position == renameChatRow || position == deleteMyMessagesRow || position == deleteAfterReadRow
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
                     || position == isClearAllDraftsOnScreenLockRow || position == showCallButtonRow
-                    || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow) {
+                    || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow || position == confirmDangerousActionRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow || position == deleteAfterReadDetailRow
                     || position == savedChannelsDetailRow || position == reactionsDetailRow || position == foreignAgentsDetailRow
                     || position == onScreenLockActionDetailRow || position == isClearAllDraftsOnScreenLockDetailRow
                     || position == showCallButtonDetailRow || position == isDeleteMessagesForAllByDefaultDetailRow
-                    || position == marketIconsDetailRow || position == verifiedDetailRow) {
+                    || position == marketIconsDetailRow || position == verifiedDetailRow || position == confirmDangerousActionDetailRow) {
                 return 1;
             } else if (position == onScreenLockActionRow) {
                 return 2;

@@ -126,7 +126,10 @@ public class RemoveAfterReadingMessages {
             if (dialog == null) {
                 continue;
             }
-            List<RemoveAsReadMessage> messagesToCheck = dialogsToCheck.get("" + dialog.id);
+            List<RemoveAsReadMessage> messagesToCheck = null;
+            if(dialogsToCheck != null){
+                messagesToCheck = dialogsToCheck.get("" + dialog.id);
+            }
             if (messagesToCheck == null) {
                 continue;
             }

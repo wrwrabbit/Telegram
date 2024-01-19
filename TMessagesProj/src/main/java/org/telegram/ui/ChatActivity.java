@@ -7207,14 +7207,26 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
                                 chatInviteRunnable = null;
                             }
-                            showBottomOverlayProgress(true, true);
-                            getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
-                            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
+                            boolean isConfirm = SharedConfig.confirmDangerousActions;
+                            if (isConfirm) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                                builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
+                                builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
+                                builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
+                                    showBottomOverlayProgress(true, true);
+                                    getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
+                                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
+                                    if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
+                                        SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+                                        preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
+                                        getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
+                                    }
+                                });
+                                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
+                                    bottomOverlayChatText.setEnabled(false);
 
-                            if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
-                                SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                                preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
-                                getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
+                                });
+                                builder.show();
                             }
                         }
                     } else {

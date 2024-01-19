@@ -430,6 +430,7 @@ public class SharedConfig {
     public static boolean premiumDisabled;
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+    public static boolean confirmDangerousActions;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -910,6 +911,7 @@ public class SharedConfig {
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
             showNotificationsForAllAccounts = preferences.getBoolean("AllAccounts", true);
+            confirmDangerousActions = preferences.getBoolean("IsConfirmDangerousAction", true);
 
             configLoaded = true;
             migrateFakePasscode();
@@ -978,6 +980,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("deleteMessagesForAllByDefault", deleteMessagesForAllByDefault);
+        editor.commit();
+    }
+
+    public static void toggleIsConfirmDangerousActions() {
+        confirmDangerousActions = !confirmDangerousActions;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("confirmDangerousActions", confirmDangerousActions);
         editor.commit();
     }
 
