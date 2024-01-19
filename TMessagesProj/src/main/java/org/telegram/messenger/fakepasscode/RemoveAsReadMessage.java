@@ -54,12 +54,15 @@ public class RemoveAsReadMessage {
         return readTime != -1;
     }
 
+    public long getReadTime() {
+        return readTime;
+    }
+
     public void setReadTime(long readTime) {
         this.readTime = readTime;
     }
 
-    public int calculateRemainingDelay() {
-        long remainingDelay = readTime + scheduledTimeMs - System.currentTimeMillis();
-        return Math.max((int)remainingDelay, 0);
+    public long calculateTargetTime() {
+        return readTime + scheduledTimeMs;
     }
 }
