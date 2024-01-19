@@ -533,7 +533,7 @@ public class SharedConfig {
 
     private static ObjectMapper jsonMapper = null;
 
-    static synchronized private ObjectMapper getJsonMapper() {
+    private static synchronized ObjectMapper getJsonMapper() {
         if (jsonMapper != null) {
             return jsonMapper;
         }

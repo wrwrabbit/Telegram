@@ -108,10 +108,10 @@ public class RemoveAfterReadingMessages {
         }
     }
 
-    public static void removeMessages(int currentAccount, long dialogId, List<Integer> messageIds) {
+    public static void removeMessages(int accountNum, long dialogId, List<Integer> messageIds) {
         load();
         synchronized (sync) {
-            List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(currentAccount, dialogId);
+            List<RemoveAsReadMessage> messagesToRemove = getDialogMessagesToRemove(accountNum, dialogId);
             if (messagesToRemove == null) {
                 return;
             }
@@ -120,25 +120,25 @@ public class RemoveAfterReadingMessages {
             for (RemoveAsReadMessage messageToRemove : new ArrayList<>(messagesToRemove)) {
                 if (messageIdsSet.contains(messageToRemove.getId())) {
                     messagesToRemove.remove(messageToRemove);
-                    FileLog.d("[RemoveAfterReading] Message removed: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
+                    FileLog.d("[RemoveAfterReading] Message removed: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
                     break;
                 }
             }
 
             if (messagesToRemove.isEmpty()) {
-                messagesToRemoveAsRead.get("" + currentAccount).remove("" + dialogId);
-                FileLog.d("[RemoveAfterReading] Dialog removed: acc = " + currentAccount + ", did = " + dialogId);
+                messagesToRemoveAsRead.get("" + accountNum).remove("" + dialogId);
+                FileLog.d("[RemoveAfterReading] Dialog removed: acc = " + accountNum + ", did = " + dialogId);
             }
         }
         save();
     }
 
-    public static void checkReadDialogs(int currentAccount) {
-        FileLog.d("[RemoveAfterReading] checkReadDialogs: acc = " + currentAccount);
-        MessagesController controller = MessagesController.getInstance(currentAccount);
+    public static void checkReadDialogs(int accountNum) {
+        FileLog.d("[RemoveAfterReading] checkReadDialogs: acc = " + accountNum);
+        MessagesController controller = MessagesController.getInstance(accountNum);
         if (!controller.dialogsLoaded) {
-            AndroidUtilities.runOnUIThread(() -> checkReadDialogs(currentAccount), 100);
-            FileLog.d("[RemoveAfterReading] checkReadDialogs: retry: acc = " + currentAccount);
+            AndroidUtilities.runOnUIThread(() -> checkReadDialogs(accountNum), 100);
+            FileLog.d("[RemoveAfterReading] checkReadDialogs: retry: acc = " + accountNum);
             return;
         }
         for (int i = 0; i < controller.dialogs_dict.size(); i++) {
@@ -146,36 +146,36 @@ public class RemoveAfterReadingMessages {
             if (dialog == null) {
                 continue;
             }
-            List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(currentAccount, dialog.id);
+            List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(accountNum, dialog.id);
             if (messagesToCheck == null) {
                 continue;
             }
             if (DialogObject.isEncryptedDialog(dialog.id)) {
                 for (RemoveAsReadMessage messageToRemove : messagesToCheck) {
-                    MessageLoader.load(currentAccount, dialog.id, messageToRemove.getId(), message -> {
+                    MessageLoader.load(accountNum, dialog.id, messageToRemove.getId(), message -> {
                         if (!message.isUnread()) {
-                            FileLog.d("[RemoveAfterReading] checkReadDialogs: start encrypted deletion: acc = " + currentAccount + ", did = " + dialog.id + ", mid = " + messageToRemove.getId());
-                            startEncryptedDialogDeleteProcess(currentAccount, dialog.id, messageToRemove);
+                            FileLog.d("[RemoveAfterReading] checkReadDialogs: start encrypted deletion: acc = " + accountNum + ", did = " + dialog.id + ", mid = " + messageToRemove.getId());
+                            startEncryptedDialogDeleteProcess(accountNum, dialog.id, messageToRemove);
                         }
                     });
                 }
             } else {
-                FileLog.d("[RemoveAfterReading] checkReadDialogs: max id update: acc = " + currentAccount + ", did = " + dialog.id + ", mid = " + dialog.read_outbox_max_id);
-                readMaxIdUpdated(currentAccount, MessagesStorage.TopicKey.of(dialog.id, 0), dialog.read_outbox_max_id);
+                FileLog.d("[RemoveAfterReading] checkReadDialogs: max id update: acc = " + accountNum + ", did = " + dialog.id + ", mid = " + dialog.read_outbox_max_id);
+                readMaxIdUpdated(accountNum, MessagesStorage.TopicKey.of(dialog.id, 0), dialog.read_outbox_max_id);
             }
         }
     }
 
-    public static void notifyMessagesRead(int currentAccount, Map<MessagesStorage.TopicKey, Integer> messages) {
-        FileLog.d("[RemoveAfterReading] notifyMessagesRead: acc = " + currentAccount);
+    public static void notifyMessagesRead(int accountNum, Map<MessagesStorage.TopicKey, Integer> messages) {
+        FileLog.d("[RemoveAfterReading] notifyMessagesRead: acc = " + accountNum);
         Map<MessagesStorage.TopicKey, Integer> dialogLastReadIds = new HashMap<>();
         Map<Long, List<RemoveAsReadMessage>> encryptedMessagesToDelete = new HashMap<>();
         for (Map.Entry<MessagesStorage.TopicKey, Integer> message : messages.entrySet()) {
             long dialogId = message.getKey().dialogId;
             int messageId = message.getValue();
-            FileLog.d("[RemoveAfterReading] notifyMessagesRead: message: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + messageId);
+            FileLog.d("[RemoveAfterReading] notifyMessagesRead: message: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageId);
             if (DialogObject.isEncryptedDialog(dialogId)) {
-                List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(currentAccount, dialogId);
+                List<RemoveAsReadMessage> messagesToCheck = getDialogMessagesToRemove(accountNum, dialogId);
                 if (messagesToCheck == null) {
                     continue;
                 }
@@ -191,34 +191,34 @@ public class RemoveAfterReadingMessages {
             }
         }
         for (Map.Entry<MessagesStorage.TopicKey, Integer> entry : dialogLastReadIds.entrySet()) {
-            FileLog.d("[RemoveAfterReading] notifyMessagesRead: readMaxIdUpdated: acc = " + currentAccount + ", did = " + entry.getKey().dialogId + ", mid = " + entry.getValue());
-            readMaxIdUpdated(currentAccount, entry.getKey(), entry.getValue());
+            FileLog.d("[RemoveAfterReading] notifyMessagesRead: readMaxIdUpdated: acc = " + accountNum + ", did = " + entry.getKey().dialogId + ", mid = " + entry.getValue());
+            readMaxIdUpdated(accountNum, entry.getKey(), entry.getValue());
         }
         for (Map.Entry<Long, List<RemoveAsReadMessage>> entry : encryptedMessagesToDelete.entrySet()) {
             long dialogId = entry.getKey();
             for (RemoveAsReadMessage removeAsReadMessage : entry.getValue()) {
-                FileLog.d("[RemoveAfterReading] notifyMessagesRead: startEncryptedDialogDeleteProcess: acc = " + currentAccount + ", did = " + dialogId + ", mid = " + removeAsReadMessage.getId());
-                startEncryptedDialogDeleteProcess(currentAccount, dialogId, removeAsReadMessage);
+                FileLog.d("[RemoveAfterReading] notifyMessagesRead: startEncryptedDialogDeleteProcess: acc = " + accountNum + ", did = " + dialogId + ", mid = " + removeAsReadMessage.getId());
+                startEncryptedDialogDeleteProcess(accountNum, dialogId, removeAsReadMessage);
             }
         }
     }
 
-    public static void readMaxIdUpdated(int currentAccount, MessagesStorage.TopicKey key, int readMaxId) {
-        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(currentAccount, key.dialogId);
+    public static void readMaxIdUpdated(int accountNum, MessagesStorage.TopicKey key, int readMaxId) {
+        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(accountNum, key.dialogId);
         if (dialogMessagesToRemove == null || DialogObject.isEncryptedDialog(key.dialogId)) {
             return;
         }
-        FileLog.d("[RemoveAfterReading] readMaxIdUpdated: acc = " + currentAccount + ", did = " + key.dialogId + ", mid = " + readMaxId);
+        FileLog.d("[RemoveAfterReading] readMaxIdUpdated: acc = " + accountNum + ", did = " + key.dialogId + ", mid = " + readMaxId);
         List<RemoveAsReadMessage> messagesToRemove = new ArrayList<>();
         for (RemoveAsReadMessage messageToRemove : dialogMessagesToRemove) {
             if (!messageToRemove.isRead() && messageToRemove.getId() <= readMaxId && key.topicId == messageToRemove.getTopicId()) {
                 messagesToRemove.add(messageToRemove);
                 messageToRemove.setReadTime(System.currentTimeMillis());
-                FileLog.d("[RemoveAfterReading] readMaxIdUpdated: setReadTime: acc = " + currentAccount + ", did = " + key.dialogId + ", mid = " + messageToRemove.getId());
+                FileLog.d("[RemoveAfterReading] readMaxIdUpdated: setReadTime: acc = " + accountNum + ", did = " + key.dialogId + ", mid = " + messageToRemove.getId());
             }
         }
         save();
-        startDeleteProcess(currentAccount, key.dialogId, messagesToRemove);
+        startDeleteProcess(accountNum, key.dialogId, messagesToRemove);
     }
 
     private static void scheduleMessageDeletionRetry(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {
@@ -235,64 +235,64 @@ public class RemoveAfterReadingMessages {
 
     }
 
-    private static void startDeleteProcess(int currentAccount, long currentDialogId, List<RemoveAsReadMessage> messagesToRemove) {
+    private static void startDeleteProcess(int accountNum, long dialogId, List<RemoveAsReadMessage> messagesToRemove) {
         for (RemoveAsReadMessage messageToRemove : messagesToRemove) {
-            FileLog.d("[RemoveAfterReading] startDeleteProcess: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
+            FileLog.d("[RemoveAfterReading] startDeleteProcess: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
             if (!messageToRemove.isRead()) {
-                FileLog.d("[RemoveAfterReading] startDeleteProcess: not read: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
+                FileLog.d("[RemoveAfterReading] startDeleteProcess: not read: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
                 continue;
             }
             AndroidUtilities.runOnUIThread(() -> {
-                FileLog.d("[RemoveAfterReading] startDeleteProcess: delete: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId());
+                FileLog.d("[RemoveAfterReading] startDeleteProcess: delete: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
                 ArrayList<Integer> ids = new ArrayList<>();
                 ids.add(messageToRemove.getId());
-                MessagesController.getInstance(currentAccount).deleteMessages(ids, null, null, currentDialogId,
+                MessagesController.getInstance(accountNum).deleteMessages(ids, null, null, dialogId,
                         true, false, false, 0,
                         null, false, false);
             }, messageToRemove.calculateRemainingDelay());
-            scheduleMessageDeletionRetry(currentAccount, currentDialogId, messageToRemove);
+            scheduleMessageDeletionRetry(accountNum, dialogId, messageToRemove);
         }
     }
 
-    public static void encryptedReadMaxTimeUpdated(int currentAccount, long currentDialogId, int readMaxTime) {
-        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(currentAccount, currentDialogId);
-        if (dialogMessagesToRemove == null || !DialogObject.isEncryptedDialog(currentDialogId)) {
+    public static void encryptedReadMaxTimeUpdated(int accountNum, long dialogId, int readMaxTime) {
+        List<RemoveAsReadMessage> dialogMessagesToRemove = getDialogMessagesToRemove(accountNum, dialogId);
+        if (dialogMessagesToRemove == null || !DialogObject.isEncryptedDialog(dialogId)) {
             return;
         }
-        FileLog.d("[RemoveAfterReading] encryptedReadMaxTimeUpdated: acc = " + currentAccount + ", did = " + currentDialogId + ", time = " + readMaxTime);
+        FileLog.d("[RemoveAfterReading] encryptedReadMaxTimeUpdated: acc = " + accountNum + ", did = " + dialogId + ", time = " + readMaxTime);
         List<RemoveAsReadMessage> messagesToRemove = new ArrayList<>();
         for (RemoveAsReadMessage messageToRemove : dialogMessagesToRemove) {
             if (!messageToRemove.isRead() && messageToRemove.getSendTime() - 1 <= readMaxTime) {
                 messagesToRemove.add(messageToRemove);
                 messageToRemove.setReadTime(System.currentTimeMillis());
-                FileLog.d("[RemoveAfterReading] encryptedReadMaxTimeUpdated: setReadTime: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId());
+                FileLog.d("[RemoveAfterReading] encryptedReadMaxTimeUpdated: setReadTime: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
             }
         }
         save();
         for (RemoveAsReadMessage messageToRemove : messagesToRemove) {
-            startEncryptedDialogDeleteProcess(currentAccount, currentDialogId, messageToRemove);
+            startEncryptedDialogDeleteProcess(accountNum, dialogId, messageToRemove);
         }
     }
 
-    public static void startEncryptedDialogDeleteProcess(int currentAccount, long currentDialogId, RemoveAsReadMessage messageToRemove) {
-        if (!messageToRemove.isRead() || !DialogObject.isEncryptedDialog(currentDialogId)) {
+    public static void startEncryptedDialogDeleteProcess(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {
+        if (!messageToRemove.isRead() || !DialogObject.isEncryptedDialog(dialogId)) {
             return;
         }
-        FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
+        FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId() + ", delay = " + messageToRemove.calculateRemainingDelay());
         AndroidUtilities.runOnUIThread(() -> {
             ArrayList<Integer> ids = new ArrayList<>();
             ids.add(messageToRemove.getId());
             ArrayList<Long> random_ids = new ArrayList<>();
             random_ids.add(messageToRemove.getRandomId());
-            Integer encryptedChatId = DialogObject.getEncryptedChatId(currentDialogId);
-            TLRPC.EncryptedChat encryptedChat = MessagesController.getInstance(currentAccount)
+            Integer encryptedChatId = DialogObject.getEncryptedChatId(dialogId);
+            TLRPC.EncryptedChat encryptedChat = MessagesController.getInstance(accountNum)
                     .getEncryptedChat(encryptedChatId);
-            FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: delete: acc = " + currentAccount + ", did = " + currentDialogId + ", mid = " + messageToRemove.getId());
-            MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids,
-                    encryptedChat, currentDialogId, false, false,
+            FileLog.d("[RemoveAfterReading] startEncryptedDialogDeleteProcess: delete: acc = " + accountNum + ", did = " + dialogId + ", mid = " + messageToRemove.getId());
+            MessagesController.getInstance(accountNum).deleteMessages(ids, random_ids,
+                    encryptedChat, dialogId, false, false,
                     false, 0, null, false, false);
         }, messageToRemove.calculateRemainingDelay());
-        scheduleMessageDeletionRetry(currentAccount, currentDialogId, messageToRemove);
+        scheduleMessageDeletionRetry(accountNum, dialogId, messageToRemove);
     }
 
     public static void addMessageToRemove(int accountNum, long dialogId, RemoveAsReadMessage messageToRemove) {
