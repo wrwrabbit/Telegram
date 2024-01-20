@@ -7678,7 +7678,6 @@ public class MessagesController extends BaseController implements NotificationCe
                         resetDialogs(true, getMessagesStorage().getLastSeqValue(), getMessagesStorage().getLastPtsValue(), getMessagesStorage().getLastDateValue(), getMessagesStorage().getLastQtsValue());
                     }
                 } else {
-                    FileLog.d("[RemoveAfterReading] deleteMessages: error: acc = " + currentAccount + ", did = " + dialogId);
                 }
                 if (newTaskId != 0) {
                     getMessagesStorage().removePendingTask(newTaskId);
