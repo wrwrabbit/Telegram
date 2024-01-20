@@ -7172,7 +7172,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (botUser.length() != 0) {
                     getMessagesController().sendBotStart(currentUser, botUser);
                 } else {
-                    getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
+                    confirmDangerousActionDialog(() -> {
+                        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
+                    });
+
                 }
                 botUser = null;
                 updateBottomOverlay();
@@ -7209,10 +7212,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             }
                             boolean isConfirm = SharedConfig.confirmDangerousActions;
                             if (isConfirm) {
-                                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                                builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
-                                builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
-                                builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
+                                confirmDangerousActionDialog(() -> {
                                     showBottomOverlayProgress(true, true);
                                     getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
                                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
@@ -7222,11 +7222,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                         getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
                                     }
                                 });
-                                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
-                                    bottomOverlayChatText.setEnabled(false);
-
-                                });
-                                builder.show();
                             }
                         }
                     } else {
@@ -7474,6 +7469,19 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         return fragmentView;
     }
+    private void confirmDangerousActionDialog(Runnable sendMessageAction) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
+        builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
+        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
+            sendMessageAction.run();
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
+            bottomOverlayChatText.setEnabled(false);
+        });
+        builder.show();
+    }
+
 
     private void createBottomMessagesActionButtons() {
         if (replyButton != null || getContext() == null) {
