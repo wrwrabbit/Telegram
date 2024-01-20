@@ -201,6 +201,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
     public boolean voiceOnce;
     public boolean onceVisible;
+    public boolean isConfirmDialogAlreadyShown;
 
     public void drawRecordedPannel(Canvas canvas) {
         if (getAlpha() == 0 || recordedAudioPanel == null || recordedAudioPanel.getParent() == null || recordedAudioPanel.getVisibility() != View.VISIBLE) {
@@ -5622,6 +5623,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 if (parentFragment != null && parentFragment.isThreadChat() && !parentFragment.isTopic) {
                     if (parentFragment.isReplyChatComment()) {
                         messageEditText.setHintText(LocaleController.getString("Comment", R.string.Comment));
+                        if(!isConfirmDialogAlreadyShown) {
+                            confirmDangerousActionDialog(() -> {}, () -> messageEditText.setEnabled(false));
+                            isConfirmDialogAlreadyShown = true;
+                        }
                     } else {
                         messageEditText.setHintText(LocaleController.getString("Reply", R.string.Reply));
                     }
@@ -5637,7 +5642,20 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
         }
     }
-
+    private void confirmDangerousActionDialog(Runnable positive, Runnable negative) {
+        if (SharedConfig.confirmDangerousActions) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
+            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
+            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
+                positive.run();
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
+                negative.run();
+            });
+            builder.show();
+        }
+    }
     public void setReplyingMessageObject(MessageObject messageObject, ChatActivity.ReplyQuote quote) {
         setReplyingMessageObject(messageObject, quote, null);
     }

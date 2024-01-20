@@ -7210,8 +7210,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
                                 chatInviteRunnable = null;
                             }
-                            boolean isConfirm = SharedConfig.confirmDangerousActions;
-                            if (isConfirm) {
+
                                 confirmDangerousActionDialog(() -> {
                                     showBottomOverlayProgress(true, true);
                                     getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
@@ -7223,7 +7222,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     }
                                 });
                             }
-                        }
+
                     } else {
                         toggleMute(true);
                     }
@@ -7470,16 +7469,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return fragmentView;
     }
     private void confirmDangerousActionDialog(Runnable sendMessageAction) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
-        builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
-        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
-            sendMessageAction.run();
-        });
-        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
-            bottomOverlayChatText.setEnabled(false);
-        });
-        builder.show();
+        if (SharedConfig.confirmDangerousActions) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
+            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
+            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
+                sendMessageAction.run();
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
+                bottomOverlayChatText.setEnabled(false);
+            });
+            builder.show();
+        }
     }
 
 
