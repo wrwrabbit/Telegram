@@ -4,5 +4,6 @@ public enum DialogType {
     ADD,
     DELETE,
     EDIT,
-    ONLY_SAVE
+    ONLY_SAVE,
+    OK
 }

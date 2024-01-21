@@ -11,8 +11,4 @@ public enum SecurityIssue {
     public boolean isGlobal() {
         return Arrays.asList(ROOT, USB_DEBUGGING).contains(this);
     }
-
-    public boolean isFixable() {
-        return Arrays.asList(TWO_STEP_VERIFICATION, PRIVACY).contains(this);
-    }
 }

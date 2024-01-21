@@ -34,6 +34,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SvgHelper;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -191,15 +192,15 @@ public class ReactedUserHolderView extends FrameLayout {
 
         Drawable thumb = avatarDrawable;
         if (user != null) {
-            if (user.photo != null && user.photo.strippedBitmap != null) {
+            if (user.photo != null && user.photo.strippedBitmap != null && UserConfig.isAvatarEnabled(currentAccount, dialogId)) {
                 thumb = user.photo.strippedBitmap;
             }
         } else {
-            if (chat.photo != null && chat.photo.strippedBitmap != null) {
+            if (chat.photo != null && chat.photo.strippedBitmap != null && UserConfig.isAvatarEnabled(currentAccount, dialogId)) {
                 thumb = chat.photo.strippedBitmap;
             }
         }
-        avatarView.setImage(ImageLocation.getForUserOrChat(u, ImageLocation.TYPE_SMALL), "50_50", thumb, u);
+        avatarView.setImage(ImageLocation.getForUserOrChat(u, ImageLocation.TYPE_SMALL, currentAccount), "50_50", thumb, u);
 
         String contentDescription;
         boolean hasReactImage = false;

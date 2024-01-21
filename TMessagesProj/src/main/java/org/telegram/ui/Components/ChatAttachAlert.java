@@ -481,7 +481,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             return false;
         }
 
+        // If scheduleDate < 0 then it is autoDeleteDelay
         void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument);
+        default void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument, Integer autoDeleteDelay) {
+            didPressedButton(button, arg, notify, scheduleDate, forceDocument);
+        }
         default void onCameraOpened() {
         }
 
@@ -509,7 +513,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
         }
 
-        default void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate) {
+        default void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
 
         }
     }
@@ -718,6 +722,10 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         }
 
         void sendSelectedItems(boolean notify, int scheduleDate) {
+            sendSelectedItems(notify, scheduleDate, null);
+        }
+
+        void sendSelectedItems(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
 
         }
 
@@ -2750,7 +2758,13 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                         RemoveAfterReadingMessages.delays.putIfAbsent("" + currentAccount, 5 * 1000);
                         AlertsCreator.createScheduleDeleteTimePickerDialog(getContext(), RemoveAfterReadingMessages.delays.get("" + currentAccount),
                                 (notify, delay) -> {
-                                    sendPressed(notify, 0, true, delay);
+                                    if (currentAttachLayout == null || currentAttachLayout == photoLayout || currentAttachLayout == photoPreviewLayout) {
+                                        sendPressed(true, 0, delay);
+                                    } else {
+                                        currentAttachLayout.sendSelectedItems(true, 0, delay);
+                                        allowPassConfirmationAlert = true;
+                                        dismiss();
+                                    }
                                     RemoveAfterReadingMessages.delays.put("" + currentAccount, delay);
                                     RemoveAfterReadingMessages.save();
                                 });
@@ -2968,10 +2982,10 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
 
     private void sendPressed(boolean notify, int scheduleDate) {
-        sendPressed(notify, scheduleDate, false, 0);
+        sendPressed(notify, scheduleDate, null);
     }
 
-    private void sendPressed(boolean notify, int scheduleDate, boolean autoDeletable, int delay) {
+    private void sendPressed(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
         if (buttonPressed) {
             return;
         }
@@ -2988,7 +3002,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         }
         applyCaption();
         buttonPressed = true;
-        delegate.didPressedButton(7, true, notify, scheduleDate, false);
+        delegate.didPressedButton(7, true, notify, scheduleDate, false, autoDeleteDelay);
     }
 
     public void showLayout(AttachAlertLayout layout) {
@@ -3260,11 +3274,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         }
         if (audioLayout == null) {
             layouts[3] = audioLayout = new ChatAttachAlertAudioLayout(this, getContext(), resourcesProvider);
-            audioLayout.setDelegate((audios, caption, notify, scheduleDate) -> {
+            audioLayout.setDelegate((audios, caption, notify, scheduleDate, autoDeleteDelay) -> {
                 if (baseFragment != null && baseFragment instanceof ChatActivity) {
-                    ((ChatActivity) baseFragment).sendAudio(audios, caption, notify, scheduleDate);
+                    ((ChatActivity) baseFragment).sendAudio(audios, caption, notify, scheduleDate, autoDeleteDelay);
                 } else if (delegate != null) {
-                    delegate.sendAudio(audios, caption, notify, scheduleDate);
+                    delegate.sendAudio(audios, caption, notify, scheduleDate, autoDeleteDelay);
                 }
             });
         }
@@ -3303,10 +3317,15 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             documentLayout.setDelegate(new ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate() {
                 @Override
                 public void didSelectFiles(ArrayList<String> files, String caption, ArrayList<MessageObject> fmessages, boolean notify, int scheduleDate) {
+                    didSelectFiles(files, caption, fmessages, notify, scheduleDate, null);
+                }
+
+                @Override
+                public void didSelectFiles(ArrayList<String> files, String caption, ArrayList<MessageObject> fmessages, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
                     if (documentsDelegate != null) {
-                        documentsDelegate.didSelectFiles(files, caption, fmessages, notify, scheduleDate);
+                        documentsDelegate.didSelectFiles(files, caption, fmessages, notify, scheduleDate, autoDeleteDelay);
                     } else if (baseFragment instanceof ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate) {
-                        ((ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate) baseFragment).didSelectFiles(files, caption, fmessages, notify, scheduleDate);
+                        ((ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate) baseFragment).didSelectFiles(files, caption, fmessages, notify, scheduleDate, autoDeleteDelay);
                     } else if (baseFragment instanceof PassportActivity) {
                         ((PassportActivity) baseFragment).didSelectFiles(files, caption, notify, scheduleDate);
                     }
@@ -3905,7 +3924,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 actionBarAnimation = null;
             }
 
-            boolean needsSearchItem = searchItem != null && (avatarSearch || currentAttachLayout == photoLayout && !menuShowed && baseFragment instanceof ChatActivity && ((ChatActivity) baseFragment).allowSendGifs() && ((ChatActivity) baseFragment).allowSendPhotos());
+            boolean needsSearchItem = searchItem != null && (avatarSearch || false && currentAttachLayout == photoLayout && !menuShowed && baseFragment instanceof ChatActivity && ((ChatActivity) baseFragment).allowSendGifs() && ((ChatActivity) baseFragment).allowSendPhotos());
             boolean needMoreItem = !isPhotoPicker && (avatarPicker != 0 || !menuShowed) && currentAttachLayout == photoLayout && (photosEnabled || videosEnabled);
             if (currentAttachLayout == restrictedLayout) {
                 needsSearchItem = false;
@@ -4066,7 +4085,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 menuAnimator.cancel();
                 menuAnimator = null;
             }
-            boolean needsSearchItem = searchItem != null && actionBar.getTag() != null && baseFragment instanceof ChatActivity && ((ChatActivity) baseFragment).allowSendGifs();
+            boolean needsSearchItem = avatarPicker != 0 && searchItem != null && actionBar.getTag() != null && baseFragment instanceof ChatActivity && ((ChatActivity) baseFragment).allowSendGifs();
             if (menuShowed) {
                 if (avatarPicker == 0) {
                     selectedMenuItem.setVisibility(View.VISIBLE);

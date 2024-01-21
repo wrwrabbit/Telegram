@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 
 public class DialogTemplate {
     public String title;
+    public String message;
     public List<ViewTemplate> viewTemplates = new ArrayList<>();
     public DialogType type;
     public Consumer<List<View>> positiveListener;

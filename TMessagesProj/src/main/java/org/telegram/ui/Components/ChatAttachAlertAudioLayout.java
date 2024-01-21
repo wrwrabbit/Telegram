@@ -91,7 +91,11 @@ public class ChatAttachAlertAudioLayout extends ChatAttachAlert.AttachAlertLayou
     private float currentPanTranslationProgress;
 
     public interface AudioSelectDelegate {
-        void didSelectAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate);
+        default void didSelectAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate) {
+            didSelectAudio(audios, caption, notify, scheduleDate, null);
+        }
+
+        void didSelectAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, Integer autoDeleteDelay);
     }
 
     public ChatAttachAlertAudioLayout(ChatAttachAlert alert, Context context, Theme.ResourcesProvider resourcesProvider) {
@@ -494,7 +498,7 @@ public class ChatAttachAlertAudioLayout extends ChatAttachAlert.AttachAlertLayou
     }
 
     @Override
-    void sendSelectedItems(boolean notify, int scheduleDate) {
+    void sendSelectedItems(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
         if (selectedAudios.size() == 0 || delegate == null || sendPressed) {
             return;
         }
@@ -503,7 +507,7 @@ public class ChatAttachAlertAudioLayout extends ChatAttachAlert.AttachAlertLayou
         for (int a = 0; a < selectedAudiosOrder.size(); a++) {
             audios.add(selectedAudiosOrder.get(a).messageObject);
         }
-        delegate.didSelectAudio(audios, parentAlert.commentTextView.getText(), notify, scheduleDate);
+        delegate.didSelectAudio(audios, parentAlert.commentTextView.getText(), notify, scheduleDate, autoDeleteDelay);
     }
 
     public void setDelegate(AudioSelectDelegate audioSelectDelegate) {
