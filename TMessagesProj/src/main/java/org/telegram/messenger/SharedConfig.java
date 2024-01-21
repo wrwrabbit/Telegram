@@ -742,6 +742,7 @@ public class SharedConfig {
             proxyRotationEnabled = preferences.getBoolean("proxyRotationEnabled", false);
             proxyRotationTimeout = preferences.getInt("proxyRotationTimeout", ProxyRotationController.DEFAULT_TIMEOUT_INDEX);
             fakePasscodeIndex = preferences.getInt("fakePasscodeIndex", 1);
+
             synchronized (FakePasscode.class) {
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
                 try {
@@ -821,7 +822,7 @@ public class SharedConfig {
                 }
             } catch (Exception ignore) {
             }
-            confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", true);
+
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
@@ -907,6 +908,7 @@ public class SharedConfig {
             multipleReactionsPromoShowed = preferences.getBoolean("multipleReactionsPromoShowed", false);
             forceLessData = preferences.getBoolean("forceLessData", false);
             callEncryptionHintDisplayedCount = preferences.getInt("callEncryptionHintDisplayedCount", 0);
+            confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", true);
 
             loadDebugConfig(preferences);
 
