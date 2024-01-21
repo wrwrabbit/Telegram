@@ -821,6 +821,7 @@ public class SharedConfig {
                 }
             } catch (Exception ignore) {
             }
+            confirmDangerousActions = preferences.getBoolean("IsConfirmDangerousAction", true);
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
@@ -911,7 +912,6 @@ public class SharedConfig {
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
             showNotificationsForAllAccounts = preferences.getBoolean("AllAccounts", true);
-            confirmDangerousActions = preferences.getBoolean("IsConfirmDangerousAction", true);
 
             configLoaded = true;
             migrateFakePasscode();

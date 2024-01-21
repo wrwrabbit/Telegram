@@ -286,7 +286,7 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == confirmDangerousActionRow) {
                 SharedConfig.toggleIsConfirmDangerousActions();
                 ((TextCheckCell) view).setChecked(SharedConfig.confirmDangerousActions);
-            }else if (position == verifiedRow) {
+            } else if (position == verifiedRow) {
                 if (LocaleController.isRTL && x > AndroidUtilities.dp(76) || !LocaleController.isRTL && x < view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
                     List<VerificationStorage> storages = VerificationRepository.getInstance().getStorages();
                     if (storages.size() == 1) {
@@ -484,7 +484,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     }  else if (position == marketIconsRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.MarketIcons),
                                 SharedConfig.marketIcons, false);
-                    }else if (position == confirmDangerousActionRow) {
+                    } else if (position == confirmDangerousActionRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ConfirmDangerousAction", R.string.ConfirmDangerousAction),
                                 SharedConfig.confirmDangerousActions, false);
                     }
@@ -537,7 +537,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     } else if (position == verifiedDetailRow) {
                         cell.setText(LocaleController.getString(R.string.AdditionalVerifiedSettingInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    }else if (position == confirmDangerousActionDetailRow) {
+                    } else if (position == confirmDangerousActionDetailRow) {
                         cell.setText(LocaleController.getString( R.string.ConfirmDangerousActionInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     }

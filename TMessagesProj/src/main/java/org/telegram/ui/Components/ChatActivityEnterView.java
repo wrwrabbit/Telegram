@@ -5623,7 +5623,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 if (parentFragment != null && parentFragment.isThreadChat() && !parentFragment.isTopic) {
                     if (parentFragment.isReplyChatComment()) {
                         messageEditText.setHintText(LocaleController.getString("Comment", R.string.Comment));
-                        if(!isConfirmDialogAlreadyShown) {
+                        if (!isConfirmDialogAlreadyShown) {
                             confirmDangerousActionDialog(() -> {}, () -> messageEditText.setEnabled(false));
                             isConfirmDialogAlreadyShown = true;
                         }
@@ -5642,6 +5642,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
         }
     }
+
     private void confirmDangerousActionDialog(Runnable positive, Runnable negative) {
         if (SharedConfig.confirmDangerousActions) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -5656,6 +5657,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             builder.show();
         }
     }
+
     public void setReplyingMessageObject(MessageObject messageObject, ChatActivity.ReplyQuote quote) {
         setReplyingMessageObject(messageObject, quote, null);
     }
