@@ -821,7 +821,7 @@ public class SharedConfig {
                 }
             } catch (Exception ignore) {
             }
-            confirmDangerousActions = preferences.getBoolean("IsConfirmDangerousAction", true);
+            confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", true);
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
