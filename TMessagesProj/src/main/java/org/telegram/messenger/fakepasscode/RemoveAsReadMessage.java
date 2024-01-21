@@ -1,17 +1,23 @@
 package org.telegram.messenger.fakepasscode;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class RemoveAsReadMessage {
     private int id;
+    private long topicId;
     private long randomId = -1; // from encrypted dialogs
     private long readTime = -1;
+    private int sendTime = -1;
     private int scheduledTimeMs;
 
     public RemoveAsReadMessage() {
     }
 
-    public RemoveAsReadMessage(int id, long randomId, int scheduledTimeMs) {
+    public RemoveAsReadMessage(int id, long topicId, long randomId, int sendTime, int scheduledTimeMs) {
         this.id = id;
+        this.topicId = topicId;
         this.randomId = randomId;
+        this.sendTime = sendTime;
         this.scheduledTimeMs = scheduledTimeMs;
     }
 
@@ -23,6 +29,18 @@ public class RemoveAsReadMessage {
         this.id = id;
     }
 
+    public long getTopicId() {
+        return topicId;
+    }
+
+    public int getSendTime() {
+        return sendTime;
+    }
+
+    public void setSendTime(int sendTime) {
+        this.sendTime = sendTime;
+    }
+
     public long getRandomId() {
         return randomId;
     }
@@ -31,8 +49,9 @@ public class RemoveAsReadMessage {
         return scheduledTimeMs;
     }
 
-    public void setScheduledTimeMs(int scheduledTimeMs) {
-        this.scheduledTimeMs = scheduledTimeMs;
+    @JsonIgnore
+    public boolean isRead() {
+        return readTime != -1;
     }
 
     public long getReadTime() {
@@ -41,5 +60,9 @@ public class RemoveAsReadMessage {
 
     public void setReadTime(long readTime) {
         this.readTime = readTime;
+    }
+
+    public long calculateTargetTime() {
+        return readTime + scheduledTimeMs;
     }
 }
