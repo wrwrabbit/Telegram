@@ -139,7 +139,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.camera.CameraController;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.tgnet.ConnectionsManager;
@@ -5853,7 +5852,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     if (parentFragment.isReplyChatComment()) {
                         messageEditText.setHintText(LocaleController.getString("Comment", R.string.Comment));
                         if (!isConfirmDialogAlreadyShown) {
-                            confirmDangerousActionDialog(() -> {}, () -> messageEditText.setEnabled(false));
+                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> {}, () -> messageEditText.setEnabled(false), getContext());
+                            if (dialog != null) {
+                                dialog.show();
+                            }
                             isConfirmDialogAlreadyShown = true;
                         }
                     } else {
@@ -5869,21 +5871,6 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     messageEditText.setHintText(LocaleController.getString("TypeMessage", R.string.TypeMessage));
                 }
             }
-        }
-    }
-
-    private void confirmDangerousActionDialog(Runnable positive, Runnable negative) {
-        if (SharedConfig.confirmDangerousActions) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
-            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
-            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
-                positive.run();
-            });
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
-                negative.run();
-            });
-            builder.show();
         }
     }
 

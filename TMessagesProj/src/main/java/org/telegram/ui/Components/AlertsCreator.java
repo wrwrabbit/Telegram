@@ -134,6 +134,22 @@ public class AlertsCreator {
     public final static int PERMISSIONS_REQUEST_TOP_ICON_SIZE = 72;
     public final static int NEW_DENY_DIALOG_TOP_ICON_SIZE = 52;
 
+
+    public static Dialog createConfirmDangerousActionDialog(Runnable positive, Runnable negative, Context context) {
+        if (SharedConfig.confirmDangerousActions) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
+            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
+            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
+                positive.run();
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
+                negative.run();
+            });
+            return builder.create();
+        }
+        return null;
+    }
     public static Dialog createForgotPasscodeDialog(Context ctx) {
         return new AlertDialog.Builder(ctx)
                 .setTitle(LocaleController.getString(R.string.ForgotPasscode))

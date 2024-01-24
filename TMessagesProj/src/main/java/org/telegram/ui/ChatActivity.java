@@ -7276,10 +7276,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (botUser.length() != 0) {
                     getMessagesController().sendBotStart(currentUser, botUser);
                 } else {
-                    confirmDangerousActionDialog(() -> {
-                        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
-                    });
-
+                    Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendStartMsg(), ()->{}, getContext());
+                    if(dialog!=null){
+                        dialog.show();
+                    } else {
+                        sendStartMsg();
+                    }
                 }
                 botUser = null;
                 updateBottomOverlay();
@@ -7315,18 +7317,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 chatInviteRunnable = null;
                             }
 
-                                confirmDangerousActionDialog(() -> {
-                                    showBottomOverlayProgress(true, true);
-                                    getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
-                                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
-                                    if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
-                                        SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                                        preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
-                                        getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
-                                    }
-                                });
+                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> joinChannelAct(), () -> {}, getContext());
+                            if (dialog != null) {
+                                dialog.show();
                             }
-
+                        }
                     } else {
                         toggleMute(true);
                     }
@@ -7609,21 +7604,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         return fragmentView;
     }
-    private void confirmDangerousActionDialog(Runnable sendMessageAction) {
-        if (SharedConfig.confirmDangerousActions) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
-            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
-            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
-                sendMessageAction.run();
-            });
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
-                bottomOverlayChatText.setEnabled(false);
-            });
-            builder.show();
-        }
+
+    private void sendStartMsg() {
+        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
     }
 
+    private void joinChannelAct() {
+        showBottomOverlayProgress(true, true);
+        getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
+        if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
+            SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+            preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
+            getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
+        }
+    }
 
     private void setFilterMessages(boolean filter) {
         if (chatAdapter.isFiltered == filter) return;
