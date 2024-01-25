@@ -87,7 +87,7 @@ public class RemoveAfterReadingMessages {
                     fillMessagesWaitingToDelete();
                 }
                 String delaysString = preferences.getString("delays", null);
-                if (delays != null) {
+                if (delaysString != null) {
                     delays = SharedConfig.fromJson(delaysString, HashMap.class);
                 }
                 isLoaded = true;
