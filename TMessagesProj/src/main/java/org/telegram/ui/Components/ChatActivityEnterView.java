@@ -3113,6 +3113,13 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             if ((sendPopupWindow != null && sendPopupWindow.isShowing()) || (runningAnimationAudio != null && runningAnimationAudio.isRunning()) || moveToSendStateRunnable != null) {
                 return;
             }
+            if (parentFragment.isReplyChatComment()) {
+                    Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendMessage(), () -> {}, getContext());
+                if(dialog!=null){
+                    dialog.show();
+                }
+                return;
+            }
             sendMessage();
         });
         sendButton.setOnLongClickListener(this::onSendLongClick);
@@ -5851,13 +5858,6 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 if (parentFragment != null && parentFragment.isThreadChat() && !parentFragment.isTopic) {
                     if (parentFragment.isReplyChatComment()) {
                         messageEditText.setHintText(LocaleController.getString("Comment", R.string.Comment));
-                        if (!isConfirmDialogAlreadyShown) {
-                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> {}, () -> messageEditText.setEnabled(false), getContext());
-                            if (dialog != null) {
-                                dialog.show();
-                            }
-                            isConfirmDialogAlreadyShown = true;
-                        }
                     } else {
                         messageEditText.setHintText(LocaleController.getString("Reply", R.string.Reply));
                     }
