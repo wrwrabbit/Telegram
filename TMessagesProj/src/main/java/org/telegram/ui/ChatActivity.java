@@ -167,6 +167,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.FindMessagesHelper;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.Utils;
 import org.telegram.messenger.support.LongSparseIntArray;
@@ -2390,6 +2391,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
+        getNotificationCenter().addObserver(this, NotificationCenter.findMessagesJsonReceived);
         getNotificationCenter().addObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsUnreadReactionsCounterChanged);
         getNotificationCenter().addObserver(this, NotificationCenter.groupStickersDidLoad);
@@ -2762,6 +2764,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
+        getNotificationCenter().removeObserver(this, NotificationCenter.findMessagesJsonReceived);
         getNotificationCenter().removeObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSponsoredMessages);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSendAsPeers);
@@ -19756,6 +19759,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (!allowShowing()) {
                 finishFragment();
             }
+        } else if (id == NotificationCenter.findMessagesJsonReceived) {
+            TLRPC.Message message = (TLRPC.Message) args[0];
+            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+            builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
+            builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
+            builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
+                FindMessagesHelper.deletionAccepted(currentAccount, message,
+                        () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
+                        () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> {
+                ArrayList<Integer> ids = new ArrayList<>();
+                ids.add(message.id);
+                getMessagesController().deleteMessages(ids, null, null, message.dialog_id, true, false);
+            });
+            showDialog(builder.create());
         } else if (id == NotificationCenter.chatAvailableReactionsUpdated) {
             long chatId = (long) args[0];
             long topicId = (long) args[1];
