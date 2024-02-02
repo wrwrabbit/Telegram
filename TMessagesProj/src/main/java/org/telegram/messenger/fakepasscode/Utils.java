@@ -150,8 +150,11 @@ public class Utils {
                 File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File logs = new File(downloads, "logs");
                 if (logs.exists()) {
-                    CacheControlActivity.cleanDirJava(logs.getAbsolutePath(), 0, null, x -> {});
-                    logs.delete();
+                    try {
+                        CacheControlActivity.cleanDirJava(logs.getAbsolutePath(), 0, null, x -> {});
+                        logs.delete();
+                    } catch (Exception ignore) {
+                    }
                 }
 
                 logs = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "logs");
