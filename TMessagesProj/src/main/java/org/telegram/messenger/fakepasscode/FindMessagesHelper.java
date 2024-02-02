@@ -12,6 +12,7 @@ import org.telegram.tgnet.TLRPC;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,7 +21,7 @@ public class FindMessagesHelper {
     private TLRPC.Message message;
     private Runnable onSuccess;
     private Runnable onError;
-    Set<Long> chatIdsToParse = ConcurrentHashMap.newKeySet();
+    Set<Long> chatIdsToParse = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private boolean wasError = false;
 
     private FindMessagesHelper(int accountNum, TLRPC.Message message, Runnable onSuccess, Runnable onError) {
