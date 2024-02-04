@@ -78,9 +78,9 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                             camera.setPreviewTexture(surface);
                             Camera.Parameters params = camera.getParameters();
                             if (facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                                params.setRotation(270);
-                            } else {
                                 params.setRotation(90);
+                            } else {
+                                params.setRotation(270);
                             }
                             if (autoFocusSupported(camera)) {
                                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
