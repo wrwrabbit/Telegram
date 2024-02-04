@@ -245,6 +245,7 @@ public class NotificationCenter {
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
     public static final int findMessagesJsonReceived = totalEvents++;
+    public static final int findMessagesJsonParsed = totalEvents++;
 
 
     //global
