@@ -110,7 +110,7 @@ public class VerificationUpdatesChecker implements NotificationCenter.Notificati
 
     void channelMessagesLoaded(VerificationStorage storage, List<MessageObject> messages, int lastMessageId, int prevLastCheckedMessageId) {
         processChannelMessages(storage.chatId, messages, prevLastCheckedMessageId);
-        boolean isEnd = messages.size() < 50;
+        boolean isEnd = messages.stream().noneMatch(m -> m.messageOwner.id > prevLastCheckedMessageId);
         if (isEnd) {
             verificationUpdatesChecked.add(storage);
             removeObservers();
