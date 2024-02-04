@@ -345,7 +345,7 @@ public class ChatObject {
             } else {
                 TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount.getCurrentAccount()).getChatFull(-selfId);
                 if (chatFull != null) {
-                    selfDummyParticipant.about = chatFull.about;
+                    selfDummyParticipant.about = chatFull.getAbout(chat);
                 }
             }
             participants.put(selfId, selfDummyParticipant);

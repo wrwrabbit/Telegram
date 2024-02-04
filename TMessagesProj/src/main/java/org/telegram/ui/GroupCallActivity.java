@@ -1259,7 +1259,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
             if (call != null && chatFull.id == -selfId) {
                 TLRPC.TL_groupCallParticipant participant = call.participants.get(selfId);
                 if (participant != null) {
-                    participant.about = chatFull.about;
+                    participant.about = chatFull.getAbout(currentChat);
                     applyCallParticipantUpdates(true);
                     AndroidUtilities.updateVisibleRows(listView);
 
