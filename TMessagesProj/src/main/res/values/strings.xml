@@ -8280,4 +8280,5 @@
     <string name="HttpProtocolIsUnsafe">This URL uses an unsafe protocol. Your provider can see you visited this URL.</string>
     <string name="VerificationChannelUsername">Channel for checking verification badges</string>
     <string name="PartisanUnsupportedMedia">This message is not supported on your version of Partisan Telegram. A new version of the partisan telegram will be released soon and you will receive a notification about it.</string>
+    <string name="IncorrectActivationMessageWarning">The message must not begin or end with a space.</string>
 </resources>

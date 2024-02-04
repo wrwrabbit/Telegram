@@ -223,4 +223,5 @@
     <string name="HttpProtocolIsUnsafe">Гэтая спасылка выкарыстоўвае небяспечны пратакол. Ваш правайдэр можа ўбачыць, што Вы перайшлі па гэтай спасылцы.</string>
     <string name="VerificationChannelUsername">Канал для праверкі значкоў верыфікацыі</string>
     <string name="PartisanUnsupportedMedia">Гэтае паведамленне не падтрымліваецца вашай версіяй Партызанскага Тэлеграма. Хутка выйдзе новая версія Партызанскага Тэлеграма і Вам прыйдзе апавяшчэнне аб гэтым.</string>
+    <string name="IncorrectActivationMessageWarning">Паведамленне не павінна пачынацца або заканчвацца прабелам.</string>
 </resources>
