@@ -11,6 +11,7 @@ import android.os.Looper;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,7 +61,8 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                 }
             }
             return result;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Utils.handleException(e);
             return false;
         }
     }
@@ -95,11 +97,13 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                             camera.startPreview();
                             muteSound();
                         }
-                    } catch (IOException ignored) {
+                    } catch (IOException e) {
+                        Utils.handleException(e);
                         releaseCamera();
                     }
                 });
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
         });
     }
@@ -156,7 +160,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             camera.setPreviewCallback(null);
             camera.takePicture(null, null, this);
         } catch (Exception e) {
-            e.printStackTrace();
+            Utils.handleException(e);
             releaseCamera();
         }
     }
@@ -168,7 +172,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                 camera.takePicture(null, null, this);
                 this.camera.autoFocus(null);
             } catch (Exception e) {
-                e.printStackTrace();
+                Utils.handleException(e);
                 releaseCamera();
             }
         }
@@ -201,6 +205,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             fos.close();
             return filePath;
         } catch (Exception e) {
+            Utils.handleException(e);
             return null;
         }
     }
