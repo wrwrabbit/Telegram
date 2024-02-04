@@ -24196,10 +24196,7 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                        && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_VERIFIED;
+            return VerificationRepository.getInstance().isVerified(id, verified);
         }
 
         public void setVerified(boolean verified) {
@@ -24207,17 +24204,11 @@ public class TLRPC {
         }
 
         public boolean isScam() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return scam || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_SCAM;
+            return VerificationRepository.getInstance().isScam(id, scam);
         }
 
         public boolean isFake() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_FAKE;
+            return VerificationRepository.getInstance().isFake(id, fake);
         }
     }
 
@@ -46617,10 +46608,7 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_VERIFIED;
+            return VerificationRepository.getInstance().isVerified(id, verified);
         }
 
         public void setVerified(boolean verified) {
@@ -46628,17 +46616,11 @@ public class TLRPC {
         }
 
         public boolean isScam() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return scam || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_SCAM;
+            return VerificationRepository.getInstance().isScam(id, scam);
         }
 
         public boolean isFake() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_FAKE;
+            return VerificationRepository.getInstance().isFake(id, fake);
         }
     }
 
