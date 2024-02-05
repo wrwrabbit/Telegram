@@ -26586,6 +26586,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         @Override
                         public void onReactionClicked(View v, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean longpress, boolean addToRecent) {
                             selectReaction(primaryMessage, finalReactionsLayout, v,0, 0, visibleReaction,false, longpress, addToRecent);
+
                         }
 
                         @Override
@@ -27036,79 +27037,84 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public void selectReaction(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent) {
-        if (!SharedConfig.allowReactions && SharedConfig.fakePasscodeActivatedIndex == -1) {
-            return;
-        }
-        if (isInScheduleMode() || primaryMessage == null) {
-            return;
-        }
-
-        ReactionsEffectOverlay.removeCurrent(false);
-        int currentChosenReactions = primaryMessage.getChoosenReactions().size();
-        boolean added = primaryMessage.selectReaction(visibleReaction, bigEmoji, fromDoubleTap);
-        int messageIdForCell = primaryMessage.getId();
-        if (groupedMessagesMap.get(primaryMessage.getGroupId()) != null) {
-            int flags = primaryMessage.shouldDrawReactionsInLayout() ? MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_LEFT : MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_RIGHT;
-            MessageObject messageObject = groupedMessagesMap.get(primaryMessage.getGroupId()).findMessageWithFlags(flags);
-            if (messageObject != null) {
-                messageIdForCell = messageObject.getId();
+        Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> {
+            if (!SharedConfig.allowReactions && SharedConfig.fakePasscodeActivatedIndex == -1) {
+                return;
             }
-        }
-
-        int finalMessageIdForCell = messageIdForCell;
-
-        if (added) {
-            ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
-            showMultipleReactionsPromo(cell, visibleReaction, currentChosenReactions);
-            if (!fromDoubleTap) {
-                ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, fromView, x, y, visibleReaction, currentAccount, reactionsLayout != null ? (bigEmoji ? ReactionsEffectOverlay.LONG_ANIMATION : ReactionsEffectOverlay.ONLY_MOVE_ANIMATION) : ReactionsEffectOverlay.SHORT_ANIMATION);
+            if (isInScheduleMode() || primaryMessage == null) {
+                return;
             }
-        }
-        if (added) {
-            if (visibleReaction.emojicon != null) {
-                AndroidUtilities.makeAccessibilityAnnouncement(LocaleController.formatString("AccDescrYouReactedWith", R.string.AccDescrYouReactedWith, visibleReaction.emojicon));
-            }
-        }
-        ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions = new ArrayList<>();
-        visibleReactions.addAll(primaryMessage.getChoosenReactions());
-        getSendMessagesHelper().sendReaction(primaryMessage, visibleReactions, added ? visibleReaction : null, bigEmoji, addToRecent, ChatActivity.this, updateReactionRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (updateReactionRunnable != null) {
-                    updateReactionRunnable = null;
-                    if (fromDoubleTap) {
-                        doOnIdle(() -> {
-                            AndroidUtilities.runOnUIThread(() -> {
-                                ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
-                                if (added) {
-                                    ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, null, x, y, visibleReaction, currentAccount, ReactionsEffectOverlay.SHORT_ANIMATION);
-                                    ReactionsEffectOverlay.startAnimation();
-                                }
-                            }, 50);
-                        });
-                    } else {
-                        doOnIdle(() -> {
-                            MessageObject messageToUpdate = primaryMessage;
-                            MessageObject messageInDict = messagesDict[0].get(primaryMessage.getId());
-                            if (messageInDict != null && messageInDict != primaryMessage) {
-                                messageToUpdate = messagesDict[0].get(primaryMessage.getId());
-                                messageToUpdate.messageOwner.reactions = primaryMessage.messageOwner.reactions;
-                            }
 
-                            updateMessageAnimated(messageToUpdate, true);
-                            ReactionsEffectOverlay.startAnimation();
-                        });
-                    }
-                    closeMenu();
+            ReactionsEffectOverlay.removeCurrent(false);
+            int currentChosenReactions = primaryMessage.getChoosenReactions().size();
+            boolean added = primaryMessage.selectReaction(visibleReaction, bigEmoji, fromDoubleTap);
+            int messageIdForCell = primaryMessage.getId();
+            if (groupedMessagesMap.get(primaryMessage.getGroupId()) != null) {
+                int flags = primaryMessage.shouldDrawReactionsInLayout() ? MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_LEFT : MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_RIGHT;
+                MessageObject messageObject = groupedMessagesMap.get(primaryMessage.getGroupId()).findMessageWithFlags(flags);
+                if (messageObject != null) {
+                    messageIdForCell = messageObject.getId();
                 }
             }
-        });
 
-        if (fromDoubleTap) {
-            updateMessageAnimated(primaryMessage, true);
-            updateReactionRunnable.run();
+            int finalMessageIdForCell = messageIdForCell;
+
+            if (added) {
+                ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
+                showMultipleReactionsPromo(cell, visibleReaction, currentChosenReactions);
+                if (!fromDoubleTap) {
+                    ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, fromView, x, y, visibleReaction, currentAccount, reactionsLayout != null ? (bigEmoji ? ReactionsEffectOverlay.LONG_ANIMATION : ReactionsEffectOverlay.ONLY_MOVE_ANIMATION) : ReactionsEffectOverlay.SHORT_ANIMATION);
+                }
+            }
+            if (added) {
+                if (visibleReaction.emojicon != null) {
+                    AndroidUtilities.makeAccessibilityAnnouncement(LocaleController.formatString("AccDescrYouReactedWith", R.string.AccDescrYouReactedWith, visibleReaction.emojicon));
+                }
+            }
+            ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions = new ArrayList<>();
+            visibleReactions.addAll(primaryMessage.getChoosenReactions());
+            getSendMessagesHelper().sendReaction(primaryMessage, visibleReactions, added ? visibleReaction : null, bigEmoji, addToRecent, ChatActivity.this, updateReactionRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (updateReactionRunnable != null) {
+                        updateReactionRunnable = null;
+                        if (fromDoubleTap) {
+                            doOnIdle(() -> {
+                                AndroidUtilities.runOnUIThread(() -> {
+                                    ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
+                                    if (added) {
+                                        ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, null, x, y, visibleReaction, currentAccount, ReactionsEffectOverlay.SHORT_ANIMATION);
+                                        ReactionsEffectOverlay.startAnimation();
+                                    }
+                                }, 50);
+                            });
+                        } else {
+                            doOnIdle(() -> {
+                                MessageObject messageToUpdate = primaryMessage;
+                                MessageObject messageInDict = messagesDict[0].get(primaryMessage.getId());
+                                if (messageInDict != null && messageInDict != primaryMessage) {
+                                    messageToUpdate = messagesDict[0].get(primaryMessage.getId());
+                                    messageToUpdate.messageOwner.reactions = primaryMessage.messageOwner.reactions;
+                                }
+
+                                updateMessageAnimated(messageToUpdate, true);
+                                ReactionsEffectOverlay.startAnimation();
+                            });
+                        }
+                        closeMenu();
+                    }
+                }
+            });
+
+            if (fromDoubleTap) {
+                updateMessageAnimated(primaryMessage, true);
+                updateReactionRunnable.run();
+            }
+            AndroidUtilities.runOnUIThread(updateReactionRunnable, 50);
+        }, ()->{}, getContext());
+        if(dialog!=null){
+            dialog.show();
         }
-        AndroidUtilities.runOnUIThread(updateReactionRunnable, 50);
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -32044,8 +32050,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             } else if (reaction != null) {
-                ReactionsLayoutInBubble.VisibleReaction visibleReaction = ReactionsLayoutInBubble.VisibleReaction.fromTLReaction(reaction.reaction);
-                selectReaction(cell.getPrimaryMessageObject(), null, null,0, 0, visibleReaction,false, false, false);
+                    ReactionsLayoutInBubble.VisibleReaction visibleReaction = ReactionsLayoutInBubble.VisibleReaction.fromTLReaction(reaction.reaction);
+                    selectReaction(cell.getPrimaryMessageObject(), null, null,0, 0, visibleReaction,false, false, false);
             }
         }
 
