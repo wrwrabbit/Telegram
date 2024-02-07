@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
@@ -356,10 +357,34 @@ public class VerificationRepository {
         }
     }
 
-    public int getChatType(long chatId) {
+    private int getChatType(long chatId) {
         ensureRepositoryLoaded();
         Integer type = cacheTypeByChatId.get(chatId);
         return type != null ? type : -1;
+    }
+
+    private boolean checkChatType(long chatId, int targetType, boolean targetValue) {
+        if (FakePasscodeUtils.isFakePasscodeActivated() || !SharedConfig.additionalVerifiedBadges) {
+            return targetValue;
+        }
+        int type = getChatType(chatId);
+        if (type != -1) {
+            return type == targetType;
+        } else {
+            return targetValue;
+        }
+    }
+
+    public boolean isVerified(long chatId, boolean verified) {
+        return checkChatType(chatId, TYPE_VERIFIED, verified);
+    }
+
+    public boolean isScam(long chatId, boolean scam) {
+        return checkChatType(chatId, TYPE_SCAM, scam);
+    }
+
+    public boolean isFake(long chatId, boolean fake) {
+        return checkChatType(chatId, TYPE_FAKE, fake);
     }
 
     public List<VerificationStorage> getStorages() {

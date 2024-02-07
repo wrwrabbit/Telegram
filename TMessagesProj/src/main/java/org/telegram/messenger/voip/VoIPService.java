@@ -750,6 +750,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			FileLog.e(e);
 		}
 		if (FakePasscodeUtils.isHideAccount(currentAccount) || FakePasscodeUtils.isHideChat(userID, currentAccount)) {
+			callIShouldHavePutIntoIntent = null;
 			stopSelf();
 			return START_NOT_STICKY;
 		}

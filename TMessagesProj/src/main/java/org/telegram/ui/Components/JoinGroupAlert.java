@@ -116,7 +116,7 @@ public class JoinGroupAlert extends BottomSheet {
             avatarDrawable = new AvatarDrawable(currentChat, false, currentAccount);
             title = UserConfig.getChatTitleOverride(getCurrentAccount(), currentChat);
             TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount).getChatFull(currentChat.id);
-            about = chatFull != null ? chatFull.about : null;
+            about = chatFull != null ? chatFull.getAbout(currentChat) : null;
             participants_count = Math.max(currentChat.participants_count, chatFull != null ? chatFull.participants_count : 0);
             avatarImageView.setForUserOrChat(currentChat, avatarDrawable, currentChat);
             verified = currentChat.isVerified();
