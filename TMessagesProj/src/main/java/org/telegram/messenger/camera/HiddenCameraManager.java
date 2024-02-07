@@ -11,11 +11,13 @@ import android.os.Looper;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -60,7 +62,8 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                 }
             }
             return result;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Utils.handleException(e);
             return false;
         }
     }
@@ -75,18 +78,16 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                     try {
                         if (camera != null) {
                             surface = new SurfaceTexture(123);
+                            Camera.CameraInfo info = new Camera.CameraInfo();
+                            Camera.getCameraInfo(facing, info);
                             camera.setPreviewTexture(surface);
                             Camera.Parameters params = camera.getParameters();
-                            if (facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                                params.setRotation(270);
-                            } else {
-                                params.setRotation(90);
-                            }
+                            params.setRotation((info.orientation + 360) % 360);
                             if (autoFocusSupported(camera)) {
                                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
                             }
-                            Camera.Size size = params.getSupportedPictureSizes().stream().max((a, b) ->
-                                 Long.compare((long) a.height * (long) a.width, (long) b.height * (long) b.width)
+                            Camera.Size size = params.getSupportedPictureSizes().stream().max(
+                                    Comparator.comparingLong(a -> (long) a.height * (long) a.width)
                             ).get();
                             params.setPictureSize(size.width, size.height);
 
@@ -95,11 +96,13 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                             camera.startPreview();
                             muteSound();
                         }
-                    } catch (IOException ignored) {
+                    } catch (IOException e) {
+                        Utils.handleException(e);
                         releaseCamera();
                     }
                 });
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Utils.handleException(e);
             }
         });
     }
@@ -156,7 +159,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             camera.setPreviewCallback(null);
             camera.takePicture(null, null, this);
         } catch (Exception e) {
-            e.printStackTrace();
+            Utils.handleException(e);
             releaseCamera();
         }
     }
@@ -168,7 +171,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                 camera.takePicture(null, null, this);
                 this.camera.autoFocus(null);
             } catch (Exception e) {
-                e.printStackTrace();
+                Utils.handleException(e);
                 releaseCamera();
             }
         }
@@ -201,6 +204,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             fos.close();
             return filePath;
         } catch (Exception e) {
+            Utils.handleException(e);
             return null;
         }
     }

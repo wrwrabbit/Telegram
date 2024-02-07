@@ -23,10 +23,8 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessageObject;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.verification.VerificationRepository;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.Stories.MessageMediaStoryFull;
@@ -13058,7 +13056,7 @@ public class TLRPC {
         public boolean can_view_participants;
         public boolean can_set_username;
         public boolean has_scheduled;
-        public String about;
+        protected String about;
         public int participants_count;
         public int admins_count;
         public int read_inbox_max_id;
@@ -13254,6 +13252,18 @@ public class TLRPC {
             }
             return result;
         }
+
+        public String getAbout(Chat chat) {
+            if (chat != null && chat.isBadBadgeChanged()) {
+                return null;
+            } else {
+                return about;
+            }
+        };
+
+        public void setAbout(String about) {
+            this.about = about;
+        };
     }
 
     public static class TL_channelFull_layer110 extends ChatFull {
@@ -24196,10 +24206,7 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                        && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_VERIFIED;
+            return VerificationRepository.getInstance().isVerified(id, verified);
         }
 
         public void setVerified(boolean verified) {
@@ -24207,17 +24214,11 @@ public class TLRPC {
         }
 
         public boolean isScam() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return scam || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_SCAM;
+            return VerificationRepository.getInstance().isScam(id, scam);
         }
 
         public boolean isFake() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_FAKE;
+            return VerificationRepository.getInstance().isFake(id, fake);
         }
     }
 
@@ -46617,10 +46618,7 @@ public class TLRPC {
         }
 
         public boolean isVerified() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return verified || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_VERIFIED;
+            return VerificationRepository.getInstance().isVerified(id, verified);
         }
 
         public void setVerified(boolean verified) {
@@ -46628,17 +46626,16 @@ public class TLRPC {
         }
 
         public boolean isScam() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return scam || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_SCAM;
+            return VerificationRepository.getInstance().isScam(id, scam);
         }
 
         public boolean isFake() {
-            VerificationRepository verificationDatabase = VerificationRepository.getInstance();
-            return fake || !FakePasscodeUtils.isFakePasscodeActivated()
-                    && SharedConfig.additionalVerifiedBadges
-                    && verificationDatabase.getChatType(id) == VerificationRepository.TYPE_FAKE;
+            return VerificationRepository.getInstance().isFake(id, fake);
+        }
+
+        public boolean isBadBadgeChanged() {
+            return scam && !isScam()
+                    || fake && !isFake();
         }
     }
 

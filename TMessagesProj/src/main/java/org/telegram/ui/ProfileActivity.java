@@ -2276,8 +2276,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             if (chat == null) {
                                 return;
                             }
-                            if (chatInfo != null && !TextUtils.isEmpty(chatInfo.about)) {
-                                text = String.format("%s\nhttps://" + getMessagesController().linkPrefix + "/%s", chatInfo.about, ChatObject.getPublicUsername(chat));
+                            if (chatInfo != null && !TextUtils.isEmpty(chatInfo.getAbout(chat))) {
+                                text = String.format("%s\nhttps://" + getMessagesController().linkPrefix + "/%s", chatInfo.getAbout(chat), ChatObject.getPublicUsername(chat));
                             } else {
                                 text = String.format("https://" + getMessagesController().linkPrefix + "/%s", ChatObject.getPublicUsername(chat));
                             }
@@ -5768,7 +5768,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == locationRow) {
                 text = chatInfo != null && chatInfo.location instanceof TLRPC.TL_channelLocation ? ((TLRPC.TL_channelLocation) chatInfo.location).address : null;
             } else if (position == channelInfoRow) {
-                text = chatInfo != null ? chatInfo.about : null;
+                text = chatInfo != null ? chatInfo.getAbout(currentChat) : null;
             } else {
                 text = userInfo != null ? userInfo.about : null;
             }
@@ -8132,13 +8132,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 sharedMediaRow = rowCount++;
             }
         } else if (chatId != 0) {
-            if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.about) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat)) {
+            if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.getAbout(currentChat)) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat)) {
                 if (LocaleController.isRTL && ChatObject.isChannel(currentChat) && chatInfo != null && !currentChat.megagroup && chatInfo.linked_chat_id != 0) {
                     emptyRow = rowCount++;
                 }
                 infoHeaderRow = rowCount++;
                 if (chatInfo != null) {
-                    if (!TextUtils.isEmpty(chatInfo.about)) {
+                    if (!TextUtils.isEmpty(chatInfo.getAbout(currentChat))) {
                         channelInfoRow = rowCount++;
                     }
                     if (chatInfo.location instanceof TLRPC.TL_channelLocation) {
@@ -10453,7 +10453,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         boolean addlinks = isBot || (user != null && user.premium && userInfo.about != null);
                         aboutLinkCell.setTextAndValue(userInfo.about, LocaleController.getString("UserBio", R.string.UserBio), addlinks);
                     } else if (position == channelInfoRow) {
-                        String text = chatInfo.about;
+                        String text = chatInfo.getAbout(currentChat);
                         while (text.contains("\n\n\n")) {
                             text = text.replace("\n\n\n", "\n\n");
                         }

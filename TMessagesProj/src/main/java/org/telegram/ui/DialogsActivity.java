@@ -119,6 +119,7 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -6888,6 +6889,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateProxyButton(false, true);
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
+        VerificationUpdatesChecker.checkUpdate(currentAccount, false);
         if (!FakePasscodeUtils.isFakePasscodeActivated() && !AndroidUtilities.needShowPasscode() && !SharedConfig.isAppLocked()) {
             Activity activity = getParentActivity();
             if (!permissionsChecked && activity != null) {
