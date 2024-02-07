@@ -480,8 +480,8 @@ public class Utils {
         boolean logsEnabled = ApplicationLoader.applicationContext
                 .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
                 .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
-        if (BuildVars.LOGS_ENABLED || logsEnabled) {
-            Log.e("SharedConfig", "error", e);
+        if (BuildVars.LOGS_ENABLED || logsEnabled && !FakePasscodeUtils.isFakePasscodeActivated()) {
+            Log.e("PTelegram", "error", e);
         }
         if (BuildVars.DEBUG_PRIVATE_VERSION) {
             throw new Error(e);
