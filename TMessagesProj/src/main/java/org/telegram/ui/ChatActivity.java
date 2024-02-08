@@ -7276,7 +7276,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (botUser.length() != 0) {
                     getMessagesController().sendBotStart(currentUser, botUser);
                 } else {
-                    getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
+                    Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendStartMsg(), ()->{}, getContext());
+                    if (dialog!=null) {
+                        dialog.show();
+                    } else {
+                        sendStartMsg();
+                    }
                 }
                 botUser = null;
                 updateBottomOverlay();
@@ -7311,14 +7316,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
                                 chatInviteRunnable = null;
                             }
-                            showBottomOverlayProgress(true, true);
-                            getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
-                            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
 
-                            if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
-                                SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                                preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
-                                getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
+                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> joinChannelAct(), () -> {}, getContext());
+                            if (dialog != null) {
+                                dialog.show();
                             }
                         }
                     } else {
@@ -7602,6 +7603,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             AndroidUtilities.runOnUIThread(() -> pagedownButtonCounter.setCount(prevSetUnreadCount, false));
         }
         return fragmentView;
+    }
+
+    private void sendStartMsg() {
+        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
+    }
+
+    private void joinChannelAct() {
+        showBottomOverlayProgress(true, true);
+        getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
+        if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
+            SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+            preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
+            getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
+        }
     }
 
     private void setFilterMessages(boolean filter) {
@@ -26570,6 +26586,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         @Override
                         public void onReactionClicked(View v, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean longpress, boolean addToRecent) {
                             selectReaction(primaryMessage, finalReactionsLayout, v,0, 0, visibleReaction,false, longpress, addToRecent);
+
                         }
 
                         @Override
@@ -27020,6 +27037,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public void selectReaction(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent) {
+        Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent), ()->{}, getContext());
+        if (dialog!=null) {
+            dialog.show();
+        }
+    }
+
+    private void selectReactionOnConfirm(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent) {
         if (!SharedConfig.allowReactions && SharedConfig.fakePasscodeActivatedIndex == -1) {
             return;
         }
@@ -32028,8 +32052,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             } else if (reaction != null) {
-                ReactionsLayoutInBubble.VisibleReaction visibleReaction = ReactionsLayoutInBubble.VisibleReaction.fromTLReaction(reaction.reaction);
-                selectReaction(cell.getPrimaryMessageObject(), null, null,0, 0, visibleReaction,false, false, false);
+                    ReactionsLayoutInBubble.VisibleReaction visibleReaction = ReactionsLayoutInBubble.VisibleReaction.fromTLReaction(reaction.reaction);
+                    selectReaction(cell.getPrimaryMessageObject(), null, null,0, 0, visibleReaction,false, false, false);
             }
         }
 

@@ -430,6 +430,7 @@ public class SharedConfig {
     public static boolean premiumDisabled;
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+    public static boolean confirmDangerousActions;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -743,6 +744,7 @@ public class SharedConfig {
             proxyRotationEnabled = preferences.getBoolean("proxyRotationEnabled", false);
             proxyRotationTimeout = preferences.getInt("proxyRotationTimeout", ProxyRotationController.DEFAULT_TIMEOUT_INDEX);
             fakePasscodeIndex = preferences.getInt("fakePasscodeIndex", 1);
+
             synchronized (FakePasscode.class) {
                 fakePasscodeActivatedIndex = preferences.getInt("fakePasscodeLoginedIndex", -1);
                 try {
@@ -819,6 +821,7 @@ public class SharedConfig {
             } catch (Exception e) {
                 Utils.handleException(e);
             }
+
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
@@ -896,6 +899,7 @@ public class SharedConfig {
             updateStickersOrderOnSend = preferences.getBoolean("updateStickersOrderOnSend", true);
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
+            confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", false);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useSurfaceInStories = preferences.getBoolean("useSurfaceInStories", Build.VERSION.SDK_INT >= 30);
@@ -977,6 +981,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("deleteMessagesForAllByDefault", deleteMessagesForAllByDefault);
+        editor.commit();
+    }
+
+    public static void toggleIsConfirmDangerousActions() {
+        confirmDangerousActions = !confirmDangerousActions;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("confirmDangerousActions", confirmDangerousActions);
         editor.commit();
     }
 

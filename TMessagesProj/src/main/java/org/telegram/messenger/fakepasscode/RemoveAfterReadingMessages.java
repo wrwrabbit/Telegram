@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.android.exoplayer2.util.Consumer;
+import com.google.zxing.common.StringUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -87,7 +88,7 @@ public class RemoveAfterReadingMessages {
                     fillMessagesWaitingToDelete();
                 }
                 String delaysString = preferences.getString("delays", null);
-                if (delays != null) {
+                if (delays != null && delaysString != null) {
                     delays = SharedConfig.fromJson(delaysString, HashMap.class);
                 }
                 isLoaded = true;
