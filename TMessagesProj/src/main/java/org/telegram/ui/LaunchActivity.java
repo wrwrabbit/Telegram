@@ -5325,7 +5325,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return;
         }
         final int accountNum = currentAccount;
-        int reqId = UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
+        UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
             SharedConfig.lastUpdateCheckTime = System.currentTimeMillis();
             SharedConfig.saveConfig();
             if (updateFounded) {
@@ -5335,7 +5335,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                     || SharedConfig.pendingPtgAppUpdate.version.equals(data.version))) {
                         return;
                     }
-                    final boolean newVersionAvailable = SharedConfig.setNewAppVersionAvailable(res);
+                    final boolean newVersionAvailable = SharedConfig.setNewAppVersionAvailable(data);
                     if (newVersionAvailable) {
                         if (SharedConfig.isAppUpdateAvailable()) {
                             if (data.canNotSkip) {
@@ -5357,7 +5357,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         }
                     }
                 });
-            } else if (response instanceof TLRPC.TL_help_noAppUpdate) {
+            } else {
                 AndroidUtilities.runOnUIThread(() -> {
                     if (progress != null) {
                         progress.end();
@@ -5367,21 +5367,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         }
                     }
                 });
-            } else if (error != null) {
-                AndroidUtilities.runOnUIThread(() -> {
-                    if (progress != null) {
-                        progress.end();
-                        BaseFragment fragment = getLastFragment();
-                        if (fragment != null) {
-                            BulletinFactory.of(fragment).showForError(error);
-                        }
-                    }
-                });
             }
         });
         if (progress != null) {
             progress.init();
-            progress.onCancel(() -> ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true));
         }
     }
 
