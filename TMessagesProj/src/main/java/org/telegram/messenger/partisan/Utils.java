@@ -1,4 +1,4 @@
-package org.telegram.messenger.fakepasscode;
+package org.telegram.messenger.partisan;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -33,6 +33,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -73,7 +74,7 @@ public class Utils {
         return l;
     }
 
-    static String getLastLocationString() {
+    public static String getLastLocationString() {
         Location loc = Utils.getLastLocation();
         if (loc != null) {
             return " " + LocaleController.getString("Geolocation", R.string.Geolocation) + ":" + loc.getLatitude() + ", " + loc.getLongitude();

@@ -119,6 +119,7 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -6360,7 +6361,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         ((LaunchActivity) getParentActivity()).showPasscodeActivity(false, true, position[0] + passcodeItem.getMeasuredWidth() / 2, position[1] + passcodeItem.getMeasuredHeight() / 2, () -> passcodeItem.setAlpha(1.0f), () -> passcodeItem.setAlpha(0.0f));
                         getNotificationsController().showNotifications();
                         if (SharedConfig.isAppLocked() && SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.clearCacheOnLock) {
-                            org.telegram.messenger.fakepasscode.Utils.clearCache(null);
+                            Utils.clearCache(null);
                         }
                         getNotificationsController().showNotifications();
                         updatePasscodeButton();

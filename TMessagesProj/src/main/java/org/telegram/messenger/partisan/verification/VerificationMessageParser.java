@@ -1,7 +1,7 @@
 package org.telegram.messenger.partisan.verification;
 
 import org.telegram.messenger.MessageObject;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.Utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;

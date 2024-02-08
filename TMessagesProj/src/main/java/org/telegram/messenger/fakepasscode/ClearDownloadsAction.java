@@ -1,5 +1,7 @@
 package org.telegram.messenger.fakepasscode;
 
+import org.telegram.messenger.partisan.Utils;
+
 @FakePasscodeSerializer.EnabledSerialization
 public class ClearDownloadsAction implements Action {
     public boolean enabled = false;

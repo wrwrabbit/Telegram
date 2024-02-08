@@ -169,7 +169,7 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.findmessages.FindMessagesHelper;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.findmessages.FindMessagesItem;
 import org.telegram.messenger.partisan.findmessages.FindMessagesParser;
 import org.telegram.messenger.support.LongSparseIntArray;

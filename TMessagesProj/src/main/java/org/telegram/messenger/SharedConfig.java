@@ -13,7 +13,6 @@ import android.app.ActivityManager;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.Build;
@@ -21,7 +20,6 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
@@ -44,8 +42,8 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.UpdateApkRemoveRunnable;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.UpdateApkRemoveRunnable;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
@@ -75,7 +73,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SharedConfig {

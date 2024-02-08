@@ -11,7 +11,7 @@ import android.os.Looper;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
