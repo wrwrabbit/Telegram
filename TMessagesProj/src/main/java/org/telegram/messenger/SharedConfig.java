@@ -425,6 +425,7 @@ public class SharedConfig {
     public static boolean premiumDisabled;
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+    public static boolean forceAllowScreenshots = false;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -644,6 +645,7 @@ public class SharedConfig {
                 editor.putInt("runNumber", runNumber);
                 editor.putBoolean("premiumDisabled", premiumDisabled);
                 editor.putString("phoneOverride", phoneOverride);
+                editor.putBoolean("forceAllowScreenshots", forceAllowScreenshots);
                 String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                 editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
 
@@ -787,6 +789,7 @@ public class SharedConfig {
             runNumber = preferences.getInt("runNumber", 0);
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
             phoneOverride = preferences.getString("phoneOverride", "");
+            forceAllowScreenshots = preferences.getBoolean("forceAllowScreenshots", false);
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
 

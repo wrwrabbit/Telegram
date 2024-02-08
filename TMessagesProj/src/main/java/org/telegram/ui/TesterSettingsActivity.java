@@ -92,6 +92,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int resetUpdateRow;
     private int checkVerificationUpdatesRow;
     private int resetVerificationLastCheckTimeRow;
+    private int forceAllowScreenshotsRow;
 
     public static boolean showPlainBackup;
 
@@ -280,6 +281,9 @@ public class TesterSettingsActivity extends BaseFragment {
                     VerificationRepository.getInstance().saveLastCheckTime(storage.chatId, 0);
                 }
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+            } else if (position == forceAllowScreenshotsRow) {
+                SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
+                ((TextCheckCell) view).setChecked(SharedConfig.forceAllowScreenshots);
             }
         });
 
@@ -313,6 +317,7 @@ public class TesterSettingsActivity extends BaseFragment {
         resetUpdateRow = rowCount++;
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
+        forceAllowScreenshotsRow = rowCount++;
     }
 
     @Override
@@ -420,6 +425,9 @@ public class TesterSettingsActivity extends BaseFragment {
                     } else if (position == hideDialogIsNotSafeWarningRow) {
                         textCell.setTextAndCheck("Show hide dialog is not safe warning",
                                 SharedConfig.showHideDialogIsNotSafeWarning, true);
+                    } else if (position == forceAllowScreenshotsRow) {
+                        textCell.setTextAndCheck("Force allow screenshots",
+                                SharedConfig.forceAllowScreenshots, true);
                     }
                     break;
                 } case 1: {
@@ -455,7 +463,8 @@ public class TesterSettingsActivity extends BaseFragment {
         @Override
         public int getItemViewType(int position) {
             if (position == sessionTerminateActionWarningRow || position == showPlainBackupRow
-                || position == disablePremiumRow || position == hideDialogIsNotSafeWarningRow) {
+                    || position == disablePremiumRow || position == hideDialogIsNotSafeWarningRow
+                    || position == forceAllowScreenshotsRow) {
                 return 0;
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
