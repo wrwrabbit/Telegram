@@ -14,7 +14,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -92,7 +92,7 @@ public class RemoveAfterReadingMessages {
                 }
                 isLoaded = true;
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
         }
     }
@@ -108,7 +108,7 @@ public class RemoveAfterReadingMessages {
                 editor.putString("delays", delaysString);
                 editor.commit();
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
         }
     }

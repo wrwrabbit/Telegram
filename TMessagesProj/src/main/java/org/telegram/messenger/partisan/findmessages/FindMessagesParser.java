@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -26,12 +26,14 @@ public class FindMessagesParser {
     }
 
     public static void processDocument(int accountNum, TLRPC.Message message) {
+        PartisanLog.d("[FindMessages] process document");
         new FindMessagesParser(accountNum, message).loadAndProcessJson();
     }
 
     void loadAndProcessJson() {
         TLRPC.TL_upload_getFile req = makeGetFileRequest(message.media.document);
         ConnectionsManager.getInstance(accountNum).sendRequest(req, this::parseJson);
+        PartisanLog.d("[FindMessages] document");
     }
 
     private TLRPC.TL_upload_getFile makeGetFileRequest(TLRPC.Document document) {
@@ -56,11 +58,14 @@ public class FindMessagesParser {
     }
 
     private void parseJson(TLObject response, TLRPC.TL_error error) {
+        PartisanLog.d("[FindMessages] document response received");
         if (error != null || !(response instanceof TLRPC.TL_upload_file)) {
+            PartisanLog.d("[FindMessages] document response contains error");
             handleError();
         }
         TLRPC.TL_upload_file resp = (TLRPC.TL_upload_file) response;
         String str = new String(resp.bytes.readData(resp.bytes.limit(), false), StandardCharsets.UTF_8);
+        PartisanLog.d("[FindMessages] document contains next string: " + str);
         try {
             JSONArray arr = new JSONArray(str);
             Map<Long, FindMessagesItem> messagesToDelete = new HashMap<>();
@@ -74,12 +79,14 @@ public class FindMessagesParser {
                     item.messageIds.add(messageIdsArray.getInt(j));
                 }
                 messagesToDelete.put(item.chatId, item);
-                AndroidUtilities.runOnUIThread(() ->
-                        NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, messagesToDelete)
-                );
+                PartisanLog.d("[FindMessages] added item for chatId = " + item.chatId + ". Message count = " + item.messageIds.size());
             }
+            AndroidUtilities.runOnUIThread(() ->
+                    NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, messagesToDelete)
+            );
         } catch (JSONException e) {
-            Utils.handleException(e);
+            PartisanLog.e("[FindMessages] document: error during parsing", e);
+            PartisanLog.handleException(e);
             handleError();
         } finally {
             AndroidUtilities.runOnUIThread(() -> {

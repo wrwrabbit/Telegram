@@ -167,6 +167,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.findmessages.FindMessagesHelper;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.Utils;
@@ -19769,17 +19770,19 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (id == NotificationCenter.findMessagesJsonParsed) {
             Map<Long, FindMessagesItem> messagesToDelete = (Map<Long, FindMessagesItem>) args[0];
             if (messagesToDelete.isEmpty()) {
+                PartisanLog.d("[FindMessages] document was empty");
                 showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Empty").create());
             } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
                 builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
                 builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
-                builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) ->
-                        FindMessagesHelper.deletionAccepted(currentAccount, messagesToDelete,
-                                () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
-                                () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()))
-                );
-                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
+                    PartisanLog.d("[FindMessages] deletion accepted");
+                    FindMessagesHelper.deletionAccepted(currentAccount, messagesToDelete,
+                            () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
+                            () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
+                });
+                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
                 showDialog(builder.create());
             }
         } else if (id == NotificationCenter.chatAvailableReactionsUpdated) {

@@ -12,14 +12,12 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DownloadController;
@@ -33,7 +31,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -474,18 +471,6 @@ public class Utils {
             runnable.run();
         } else {
             AndroidUtilities.runOnUIThread(runnable, 0);
-        }
-    }
-
-    public static void handleException(Exception e) {
-        boolean logsEnabled = ApplicationLoader.applicationContext
-                .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
-                .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
-        if (BuildVars.LOGS_ENABLED || logsEnabled && !FakePasscodeUtils.isFakePasscodeActivated()) {
-            Log.e("PTelegram", "error", e);
-        }
-        if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            throw new Error(e);
         }
     }
 }

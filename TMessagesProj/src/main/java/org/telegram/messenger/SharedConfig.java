@@ -42,8 +42,8 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.UpdateApkRemoveRunnable;
-import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
@@ -653,7 +653,7 @@ public class SharedConfig {
                     try {
                         editor.putString("ptgAppUpdate", toJson(pendingPtgAppUpdate));
                     } catch (Exception e) {
-                        Utils.handleException(e);
+                        PartisanLog.handleException(e);
                     }
                 } else {
                     editor.remove("ptgAppUpdate");
@@ -693,7 +693,7 @@ public class SharedConfig {
             try {
                 editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             editor.commit();
         }
@@ -747,7 +747,7 @@ public class SharedConfig {
                         fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
                     }
                 } catch (Exception e) {
-                    Utils.handleException(e);
+                    PartisanLog.handleException(e);
                 }
             }
             try {
@@ -755,14 +755,14 @@ public class SharedConfig {
                     fakePasscodeActionsResult = fromJson(preferences.getString("fakePasscodeActionsResult", null), ActionsResult.class);
                 }
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             try {
                 if (preferences.contains("badPasscodeAttemptList")) {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
                 }
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
             takePhotoWithBadPasscodeBack = preferences.getBoolean("takePhotoOnBadPasscodeBack", false);
@@ -814,7 +814,7 @@ public class SharedConfig {
                     pendingPtgAppUpdate = fromJson(update, UpdateData.class);
                 }
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
 
