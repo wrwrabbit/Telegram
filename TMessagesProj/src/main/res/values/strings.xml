@@ -8341,4 +8341,7 @@
     <string name="IncorrectActivationMessageWarning">The message must not begin or end with a space.</string>
     <string name="FindMessagesDialogTitle">Removing messages from chats</string>
     <string name="FindMessagesConfirm">Your messages from chats will be deleted. Continue?</string>
+    <string name="ConfirmDangerousAction">Confirm dangerous action</string>
+    <string name="ConfirmDangerousActionInfo">Confirmation the action you are about to take has the potential for significant impact.</string>
+    <string name="ConfirmDangerousActionAlertInfo">Please proceed with care, as the action you are about to take has the potential for significant impact. If you are sure, click OK to proceed. Your safety is our priority!</string>
 </resources>

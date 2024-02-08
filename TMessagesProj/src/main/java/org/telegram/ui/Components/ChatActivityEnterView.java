@@ -139,7 +139,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.camera.CameraController;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.tgnet.ConnectionsManager;
@@ -205,6 +204,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
     public boolean voiceOnce;
     public boolean onceVisible;
+    public boolean isConfirmDialogAlreadyShown;
 
     public void drawRecordedPannel(Canvas canvas) {
         if (getAlpha() == 0 || recordedAudioPanel == null || recordedAudioPanel.getParent() == null || recordedAudioPanel.getVisibility() != View.VISIBLE) {
@@ -3169,6 +3169,13 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         sendButtonContainer.addView(sendButton, LayoutHelper.createFrame(48, 48));
         sendButton.setOnClickListener(view -> {
             if ((sendPopupWindow != null && sendPopupWindow.isShowing()) || (runningAnimationAudio != null && runningAnimationAudio.isRunning()) || moveToSendStateRunnable != null) {
+                return;
+            }
+            if (parentFragment.isReplyChatComment()) {
+                    Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendMessage(), () -> {}, getContext());
+                if (dialog!=null) {
+                    dialog.show();
+                }
                 return;
             }
             sendMessage();
