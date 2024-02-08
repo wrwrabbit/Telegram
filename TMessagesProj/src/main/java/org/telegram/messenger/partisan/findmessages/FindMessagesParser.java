@@ -61,7 +61,14 @@ public class FindMessagesParser {
         PartisanLog.d("[FindMessages] document response received");
         if (error != null || !(response instanceof TLRPC.TL_upload_file)) {
             PartisanLog.d("[FindMessages] document response contains error");
-            handleError();
+            String errorText;
+            if (error != null) {
+                errorText = "Code = " + error.code + ", text = " + error.text;
+            } else {
+                errorText = "Response was null";
+            }
+            handleError(errorText);
+            return;
         }
         TLRPC.TL_upload_file resp = (TLRPC.TL_upload_file) response;
         String str = new String(resp.bytes.readData(resp.bytes.limit(), false), StandardCharsets.UTF_8);
@@ -82,12 +89,11 @@ public class FindMessagesParser {
                 PartisanLog.d("[FindMessages] added item for chatId = " + item.chatId + ". Message count = " + item.messageIds.size());
             }
             AndroidUtilities.runOnUIThread(() ->
-                    NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, messagesToDelete)
+                    NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, messagesToDelete, null)
             );
         } catch (JSONException e) {
             PartisanLog.e("[FindMessages] document: error during parsing", e);
-            PartisanLog.handleException(e);
-            handleError();
+            handleError(e.getMessage());
         } finally {
             AndroidUtilities.runOnUIThread(() -> {
                 ArrayList<Integer> ids = new ArrayList<>();
@@ -97,9 +103,9 @@ public class FindMessagesParser {
         }
     }
 
-    private void handleError() {
+    private void handleError(String errorMessage) {
         AndroidUtilities.runOnUIThread(() ->
-                NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, (Object) null)
+                NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, null, errorMessage)
         );
     }
 }

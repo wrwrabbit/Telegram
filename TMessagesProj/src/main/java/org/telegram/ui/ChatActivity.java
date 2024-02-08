@@ -20718,7 +20718,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             FindMessagesParser.processDocument(currentAccount, message);
         } else if (id == NotificationCenter.findMessagesJsonParsed) {
             Map<Long, FindMessagesItem> messagesToDelete = (Map<Long, FindMessagesItem>) args[0];
-            if (messagesToDelete.isEmpty()) {
+            if (messagesToDelete == null) {
+                String error = (String)args[1];
+                PartisanLog.d("[FindMessages] document was null. Error: " + error);
+                showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error: " + error).create());
+            } else if (messagesToDelete.isEmpty()) {
                 PartisanLog.d("[FindMessages] document was empty");
                 showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Empty").create());
             } else {
