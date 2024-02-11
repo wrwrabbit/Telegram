@@ -3175,6 +3175,8 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendMessage(), () -> {}, getContext());
                 if (dialog!=null) {
                     dialog.show();
+                } else {
+                    sendMessage();
                 }
                 return;
             }
