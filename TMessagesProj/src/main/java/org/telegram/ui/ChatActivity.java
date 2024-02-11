@@ -7320,6 +7320,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> joinChannelAct(), () -> {}, getContext());
                             if (dialog != null) {
                                 dialog.show();
+                            } else {
+                                joinChannelAct();
                             }
                         }
                     } else {
@@ -27037,6 +27039,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public void selectReaction(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent) {
+        if (!SharedConfig.allowReactions && SharedConfig.fakePasscodeActivatedIndex == -1) {
+            return;
+        }
         Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent), ()->{}, getContext());
         if (dialog!=null) {
             dialog.show();
@@ -27044,9 +27049,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void selectReactionOnConfirm(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent) {
-        if (!SharedConfig.allowReactions && SharedConfig.fakePasscodeActivatedIndex == -1) {
-            return;
-        }
         if (isInScheduleMode() || primaryMessage == null) {
             return;
         }
