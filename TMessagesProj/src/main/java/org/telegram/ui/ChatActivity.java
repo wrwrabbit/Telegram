@@ -27045,6 +27045,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent), ()->{}, getContext());
         if (dialog!=null) {
             dialog.show();
+        } else {
+            selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent);
         }
     }
 
