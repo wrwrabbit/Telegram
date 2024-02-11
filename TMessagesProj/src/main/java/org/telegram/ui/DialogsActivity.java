@@ -220,6 +220,7 @@ import org.telegram.ui.Components.StickersAlert;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.ViewPagerFixed;
+import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 import org.telegram.ui.Stories.DialogStoriesCell;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
@@ -638,6 +639,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     public BaseFragment passwordFragment = null;
 
     private AlertDialog oldPtgNotRemovedDialog;
+    private static boolean otherPtgChecked;
     private static boolean permissionsChecked;
 
     public final Property<DialogsActivity, Float> SCROLL_Y = new AnimationProperties.FloatProperty<DialogsActivity>("animationValue") {
@@ -6901,6 +6903,47 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
         VerificationUpdatesChecker.checkUpdate(currentAccount, false);
+        if (!otherPtgChecked) {
+            otherPtgChecked = true;
+
+            if (SharedConfig.filesCopiedFromOldTelegram && !SharedConfig.oldTelegramRemoved) {
+
+                if (getParentActivity() instanceof LaunchActivity
+                        && !((LaunchActivity) getParentActivity()).isOldTelegramInstalled()) {
+                    SharedConfig.oldTelegramRemoved = true;
+                    SharedConfig.saveConfig();
+                } else if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+                    if (SharedConfig.runNumber >= 1) {
+                        SharedConfig.runNumber++;
+                        SharedConfig.saveConfig();
+                    }
+                    if (SharedConfig.runNumber == 0 && !FakePasscodeUtils.isFakePasscodeActivated()) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                        builder.setTitle(LocaleController.getString(R.string.UpdateCompletedTitle));
+                        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UpdateCompletedMessage)));
+                        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) -> {
+                            SharedConfig.runNumber = 1;
+                            SharedConfig.saveConfig();
+                            dlg.dismiss();
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.setCanCancel(false);
+                        dialog.setCancelable(false);
+                        dialog.show();
+                    } else if (SharedConfig.runNumber > 3 && !FakePasscodeUtils.isFakePasscodeActivated()) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                        builder.setTitle(LocaleController.getString(R.string.OldAppNotRemovedTitle));
+                        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.OldAppNotRemovedMessage)));
+                        oldPtgNotRemovedDialog = builder.create();
+                        oldPtgNotRemovedDialog.setCanCancel(false);
+                        oldPtgNotRemovedDialog.setCancelable(false);
+                        DialogButtonWithTimer.setButton(oldPtgNotRemovedDialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.Cancel), 10,
+                                (dlg, which) -> dlg.dismiss());
+                        oldPtgNotRemovedDialog.show();
+                    }
+                }
+            }
+        }
         if (!FakePasscodeUtils.isFakePasscodeActivated() && !AndroidUtilities.needShowPasscode() && !SharedConfig.isAppLocked()) {
             Activity activity = getParentActivity();
             if (!permissionsChecked && activity != null) {

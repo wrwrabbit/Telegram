@@ -49,7 +49,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.util.Base64;
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.ActionMode;
@@ -72,6 +71,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.arch.core.util.Function;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.ColorUtils;
@@ -6119,6 +6119,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
 
         invalidateTabletMode();
+        checkOtherPtgIntent();
         SpoilerEffect2.pause(false);
     }
 
@@ -7837,6 +7838,19 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         } else {
             fileOrDirectory.delete();
+        }
+    }
+
+    private void checkOtherPtgIntent() {
+        if (getIntent().getBooleanExtra("fromOtherPtg", false)) {
+            byte[] password = getIntent().getByteArrayExtra("zipPassword");
+            if (password != null) {
+                if (ContextCompat.checkSelfPermission( this, android.Manifest.permission.READ_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ) {
+                    ActivityCompat.requestPermissions( this, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, 1001);
+                } else {
+                    receiveZip();
+                }
+            }
         }
     }
 
