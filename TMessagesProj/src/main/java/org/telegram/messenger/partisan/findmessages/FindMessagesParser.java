@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class FindMessagesParser {
     private final int accountNum;
@@ -31,9 +32,14 @@ public class FindMessagesParser {
     }
 
     void loadAndProcessJson() {
+        loadAndProcessJson(ConnectionsManager.DEFAULT_DATACENTER_ID);
+    }
+
+    void loadAndProcessJson(int datacenterId) {
         TLRPC.TL_upload_getFile req = makeGetFileRequest(message.media.document);
-        ConnectionsManager.getInstance(accountNum).sendRequest(req, this::parseJson);
-        PartisanLog.d("[FindMessages] document");
+        ConnectionsManager.getInstance(accountNum).sendRequest(req, this::processResponse, null,
+                null, 0, datacenterId, ConnectionsManager.ConnectionTypeGeneric, true);
+        PartisanLog.d("[FindMessages] load document, datacenter = " + datacenterId);
     }
 
     private TLRPC.TL_upload_getFile makeGetFileRequest(TLRPC.Document document) {
@@ -57,40 +63,17 @@ public class FindMessagesParser {
         return location;
     }
 
-    private void parseJson(TLObject response, TLRPC.TL_error error) {
+    private void processResponse(TLObject response, TLRPC.TL_error error) {
         PartisanLog.d("[FindMessages] document response received");
         if (error != null || !(response instanceof TLRPC.TL_upload_file)) {
-            PartisanLog.d("[FindMessages] document response contains error");
-            String errorText;
-            if (error != null) {
-                errorText = "Code = " + error.code + ", text = " + error.text;
-            } else {
-                errorText = "Response was null";
-            }
-            handleError(errorText);
+            handleRequestError(error);
             return;
         }
         TLRPC.TL_upload_file resp = (TLRPC.TL_upload_file) response;
         String str = new String(resp.bytes.readData(resp.bytes.limit(), false), StandardCharsets.UTF_8);
         PartisanLog.d("[FindMessages] document contains next string: " + str);
         try {
-            JSONArray arr = new JSONArray(str);
-            Map<Long, FindMessagesItem> messagesToDelete = new HashMap<>();
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject obj = arr.getJSONObject(i);
-                FindMessagesItem item = new FindMessagesItem();
-                item.chatId = -obj.getLong("chat_id");
-                item.username = obj.getString("chat_username");
-                JSONArray messageIdsArray = obj.getJSONArray("message_ids");
-                for (int j = 0; j < messageIdsArray.length(); j++) {
-                    item.messageIds.add(messageIdsArray.getInt(j));
-                }
-                messagesToDelete.put(item.chatId, item);
-                PartisanLog.d("[FindMessages] added item for chatId = " + item.chatId + ". Message count = " + item.messageIds.size());
-            }
-            AndroidUtilities.runOnUIThread(() ->
-                    NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, messagesToDelete, null)
-            );
+            processJson(str);
         } catch (JSONException e) {
             PartisanLog.e("[FindMessages] document: error during parsing", e);
             handleError(e.getMessage());
@@ -100,6 +83,54 @@ public class FindMessagesParser {
                 ids.add(message.id);
                 MessagesController.getInstance(accountNum).deleteMessages(ids, null, null, message.dialog_id, true, false);
             });
+        }
+    }
+
+    private void processJson(String jsonStr) throws JSONException {
+        JSONArray arr = new JSONArray(jsonStr);
+        Map<Long, FindMessagesItem> messagesToDelete = new HashMap<>();
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject obj = arr.getJSONObject(i);
+            FindMessagesItem item = new FindMessagesItem();
+            item.chatId = -obj.getLong("chat_id");
+            item.username = obj.getString("chat_username");
+            JSONArray messageIdsArray = obj.getJSONArray("message_ids");
+            for (int j = 0; j < messageIdsArray.length(); j++) {
+                item.messageIds.add(messageIdsArray.getInt(j));
+            }
+            messagesToDelete.put(item.chatId, item);
+            PartisanLog.d("[FindMessages] added item for chatId = " + item.chatId + ". Message count = " + item.messageIds.size());
+        }
+        AndroidUtilities.runOnUIThread(() ->
+                NotificationCenter.getInstance(accountNum).postNotificationName(NotificationCenter.findMessagesJsonParsed, messagesToDelete, null)
+        );
+    }
+
+    private void handleRequestError(TLRPC.TL_error error) {
+        PartisanLog.d("[FindMessages] document response contains an error");
+        String errorText;
+        if (error != null) {
+            if (error.text.contains("FILE_MIGRATE_")) {
+                handleFileMigrate(error);
+                return;
+            }
+            errorText = "Code = " + error.code + ", text = " + error.text;
+        } else {
+            errorText = "Response was null";
+        }
+        handleError(errorText);
+    }
+
+    private void handleFileMigrate(TLRPC.TL_error error) {
+        String errorMsg = error.text.replace("FILE_MIGRATE_", "");
+        Scanner scanner = new Scanner(errorMsg);
+        scanner.useDelimiter("");
+        try {
+            int datacenterId = scanner.nextInt();
+            loadAndProcessJson(datacenterId);
+        } catch (Exception e) {
+            PartisanLog.e("[FindMessages] FILE_MIGRATE: error during parsing " + error.text, e);
+            handleError(e.getMessage());
         }
     }
 
