@@ -20735,6 +20735,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             TLRPC.Message message = (TLRPC.Message) args[0];
             FindMessagesParser.processDocument(currentAccount, message);
         } else if (id == NotificationCenter.findMessagesJsonParsed) {
+            if (getContext() == null) {
+                return;
+            }
             Map<Long, FindMessagesItem> messagesToDelete = (Map<Long, FindMessagesItem>) args[0];
             if (messagesToDelete == null) {
                 String error = (String)args[1];
@@ -20749,6 +20752,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
                 builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
                     PartisanLog.d("[FindMessages] deletion accepted");
+                    if (getContext() == null) {
+                        return;
+                    }
                     FindMessagesHelper.deletionAccepted(currentAccount, messagesToDelete,
                             () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
                             () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
