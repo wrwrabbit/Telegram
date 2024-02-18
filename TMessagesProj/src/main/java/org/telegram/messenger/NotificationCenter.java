@@ -9,7 +9,6 @@
 package org.telegram.messenger;
 
 import android.os.SystemClock;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
@@ -248,8 +247,7 @@ public class NotificationCenter {
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
-    public static final int findMessagesJsonReceived = totalEvents++;
-    public static final int findMessagesJsonParsed = totalEvents++;
+    public static final int findMessagesFileLoaded = totalEvents++;
 
 
     //global

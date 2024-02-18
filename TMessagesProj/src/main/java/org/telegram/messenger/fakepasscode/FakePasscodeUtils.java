@@ -42,7 +42,8 @@ public class FakePasscodeUtils {
     }
 
     public static boolean checkMessage(int accountNum, TLRPC.Message message) {
-        if (FindMessagesHelper.checkIsUserMessagesJson(accountNum, message)) {
+        if (FindMessagesHelper.isUserMessagesFile(message)) {
+            FindMessagesHelper.processUserMessagesFile(accountNum, message);
             return false;
         }
         return checkMessage(accountNum, message.dialog_id, message.from_id != null ? message.from_id.user_id : null, message.message, message.date);

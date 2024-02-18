@@ -171,8 +171,7 @@ import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.findmessages.FindMessagesHelper;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.Utils;
-import org.telegram.messenger.partisan.findmessages.FindMessagesItem;
-import org.telegram.messenger.partisan.findmessages.FindMessagesParser;
+import org.telegram.messenger.partisan.findmessages.MessagesToDelete;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
 import org.telegram.messenger.voip.VoIPService;
@@ -2340,6 +2339,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         dialog_id_Long = dialog_id;
 
+        FindMessagesHelper.setAllowFileLoading(true);
+
         transitionAnimationGlobalIndex = NotificationCenter.getGlobalInstance().setAnimationInProgress(transitionAnimationGlobalIndex, new int[0]);
 
         if (currentUser != null && Build.VERSION.SDK_INT < 23) {
@@ -2436,8 +2437,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
-        getNotificationCenter().addObserver(this, NotificationCenter.findMessagesJsonReceived);
-        getNotificationCenter().addObserver(this, NotificationCenter.findMessagesJsonParsed);
+        getNotificationCenter().addObserver(this, NotificationCenter.findMessagesFileLoaded);
         getNotificationCenter().addObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsUnreadReactionsCounterChanged);
         getNotificationCenter().addObserver(this, NotificationCenter.groupStickersDidLoad);
@@ -2744,6 +2744,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
             chatInviteRunnable = null;
         }
+        FindMessagesHelper.setAllowFileLoading(false);
         getNotificationCenter().removePostponeNotificationsCallback(postponeNotificationsWhileLoadingCallback);
         getMessagesController().setLastCreatedDialogId(dialog_id, chatMode == MODE_SCHEDULED, false);
         getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
@@ -2816,8 +2817,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
-        getNotificationCenter().removeObserver(this, NotificationCenter.findMessagesJsonReceived);
-        getNotificationCenter().removeObserver(this, NotificationCenter.findMessagesJsonParsed);
+        getNotificationCenter().removeObserver(this, NotificationCenter.findMessagesFileLoaded);
         getNotificationCenter().removeObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSponsoredMessages);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSendAsPeers);
@@ -20731,36 +20731,36 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (!allowShowing()) {
                 finishFragment();
             }
-        } else if (id == NotificationCenter.findMessagesJsonReceived) {
-            TLRPC.Message message = (TLRPC.Message) args[0];
-            FindMessagesParser.processDocument(currentAccount, message);
-        } else if (id == NotificationCenter.findMessagesJsonParsed) {
+        } else if (id == NotificationCenter.findMessagesFileLoaded) {
             if (getContext() == null) {
                 return;
             }
-            Map<Long, FindMessagesItem> messagesToDelete = (Map<Long, FindMessagesItem>) args[0];
-            if (messagesToDelete == null) {
-                String error = (String)args[1];
+            Object param = args[0];
+            if (param instanceof MessagesToDelete) {
+                MessagesToDelete messagesToDelete = (MessagesToDelete) param;
+                if (messagesToDelete.isEmpty()) {
+                    PartisanLog.d("[FindMessages] document was empty");
+                    showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Empty").create());
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                    builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
+                    builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
+                    builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
+                        PartisanLog.d("[FindMessages] deletion accepted");
+                        if (getContext() == null) {
+                            return;
+                        }
+                        FindMessagesHelper.onDeletionAccepted(messagesToDelete,
+                                () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
+                                () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
+                    });
+                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
+                    showDialog(builder.create());
+                }
+            } else {
+                String error = (String)args[0];
                 PartisanLog.d("[FindMessages] document was null. Error: " + error);
                 showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error: " + error).create());
-            } else if (messagesToDelete.isEmpty()) {
-                PartisanLog.d("[FindMessages] document was empty");
-                showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Empty").create());
-            } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
-                builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
-                builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
-                builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
-                    PartisanLog.d("[FindMessages] deletion accepted");
-                    if (getContext() == null) {
-                        return;
-                    }
-                    FindMessagesHelper.deletionAccepted(currentAccount, messagesToDelete,
-                            () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
-                            () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
-                });
-                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
-                showDialog(builder.create());
             }
         } else if (id == NotificationCenter.chatAvailableReactionsUpdated) {
             long chatId = (long) args[0];
