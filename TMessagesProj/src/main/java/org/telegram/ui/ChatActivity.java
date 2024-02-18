@@ -7290,27 +7290,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (ChatObject.isNotInChat(currentChat)) {
                         if (currentChat.join_request) {
 //                            showDialog(new JoinGroupAlert(context, currentChat, null, this));
-                            showBottomOverlayProgress(true, true);
-                            MessagesController.getInstance(currentAccount).addUserToChat(
-                                currentChat.id,
-                                UserConfig.getInstance(currentAccount).getCurrentUser(),
-                                0,
-                                null,
-                                null,
-                                true,
-                                () -> {
-                                    showBottomOverlayProgress(false, true);
-                                },
-                                err -> {
-                                    SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                                    preferences.edit().putLong("dialog_join_requested_time_" + dialog_id, System.currentTimeMillis()).commit();
-                                    if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
-                                        JoinGroupAlert.showBulletin(context, this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
-                                    }
-                                    showBottomOverlayProgress(false, true);
-                                    return false;
-                                }
-                            );
+                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendInviteRequest(context), ()->{}, context);
+                            if (dialog!=null) {
+                                dialog.show();
+                            } else {
+                                sendInviteRequest(context);
+                            }
                         } else {
                             if (chatInviteRunnable != null) {
                                 AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
@@ -7605,6 +7590,30 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             AndroidUtilities.runOnUIThread(() -> pagedownButtonCounter.setCount(prevSetUnreadCount, false));
         }
         return fragmentView;
+    }
+
+    private void sendInviteRequest(Context context) {
+        showBottomOverlayProgress(true, true);
+        MessagesController.getInstance(currentAccount).addUserToChat(
+            currentChat.id,
+            UserConfig.getInstance(currentAccount).getCurrentUser(),
+            0,
+            null,
+            null,
+            true,
+            () -> {
+                showBottomOverlayProgress(false, true);
+            },
+            err -> {
+                SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+                preferences.edit().putLong("dialog_join_requested_time_" + dialog_id, System.currentTimeMillis()).commit();
+                if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
+                    JoinGroupAlert.showBulletin(context, this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
+                }
+                showBottomOverlayProgress(false, true);
+                return false;
+            }
+        );
     }
 
     private void sendStartMsg() {
