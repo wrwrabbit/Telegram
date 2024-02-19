@@ -1266,7 +1266,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         nameTextView.setText(Emoji.replaceEmoji(currentUser != null ? ContactsController.formatName(currentUser) : currentChat.title, nameTextView.getEditText().getPaint().getFontMetricsInt(), AndroidUtilities.dp(16), true));
         nameTextView.setSelection(nameTextView.length());
         if (info != null) {
-            descriptionTextView.setText(info.about);
+            descriptionTextView.setText(info.getAbout(currentChat));
         } else if (userInfo != null) {
             descriptionTextView.setText(userInfo.about);
         }
@@ -1366,7 +1366,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             TLRPC.ChatFull chatFull = (TLRPC.ChatFull) args[0];
             if (chatFull.id == chatId) {
                 if (info == null && descriptionTextView != null) {
-                    descriptionTextView.setText(chatFull.about);
+                    descriptionTextView.setText(chatFull.getAbout(currentChat));
                 }
                 boolean infoWasEmpty = info == null;
                 info = chatFull;
@@ -1505,7 +1505,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             return true;
         }
 
-        String about = info != null && info.about != null ? info.about : "";
+        String about = info != null && info.getAbout(currentChat) != null ? info.getAbout(currentChat) : "";
         if (info != null && ChatObject.isChannel(currentChat) && info.hidden_prehistory != historyHidden ||
                 nameTextView != null && !currentChat.title.equals(nameTextView.getText().toString()) ||
                 descriptionTextView != null && !about.equals(descriptionTextView.getText().toString()) ||
@@ -1629,7 +1629,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         if (!currentChat.title.equals(nameTextView.getText().toString())) {
             getMessagesController().changeChatTitle(chatId, nameTextView.getText().toString());
         }
-        String about = info != null && info.about != null ? info.about : "";
+        String about = info != null && info.getAbout(currentChat) != null ? info.getAbout(currentChat) : "";
         if (descriptionTextView != null && !about.equals(descriptionTextView.getText().toString())) {
             getMessagesController().updateChatAbout(chatId, descriptionTextView.getText().toString(), info);
         }

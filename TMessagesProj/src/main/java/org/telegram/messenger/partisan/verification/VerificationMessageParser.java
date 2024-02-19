@@ -1,7 +1,7 @@
 package org.telegram.messenger.partisan.verification;
 
 import org.telegram.messenger.MessageObject;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.Utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,7 +26,7 @@ public class VerificationMessageParser {
             String[] lines = message.messageText.toString().split("\n");
             for (String line : lines) {
                 if (line.startsWith("#")) {
-                    processControlLine(line.substring(1));
+                    processControlLine(line.substring(1).trim());
                 } else if (currentChatType > 0) {
                     if (line.startsWith("+")) {
                         result.chatsToAdd.add(parseChatInfo(line.substring(1)));

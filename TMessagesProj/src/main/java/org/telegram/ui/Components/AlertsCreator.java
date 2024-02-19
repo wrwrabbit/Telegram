@@ -2228,7 +2228,7 @@ public class AlertsCreator {
                 TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount).getChatFull(-peerId);
                 final String newAbout = editTextView.getText().toString();
                 if (chatFull != null) {
-                    String currentName = chatFull.about;
+                    String currentName = chatFull.getAbout(null);
                     if (currentName == null) {
                         currentName = "";
                     }
@@ -2237,7 +2237,7 @@ public class AlertsCreator {
                         dialogInterface.dismiss();
                         return;
                     }
-                    chatFull.about = newAbout;
+                    chatFull.setAbout(newAbout);
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.chatInfoDidLoad, chatFull, 0, false, false);
                 }
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_BIO_CHANGED, peerId);

@@ -6,6 +6,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.StickersActivity;
@@ -21,31 +22,35 @@ import static org.telegram.messenger.MediaDataController.TYPE_IMAGE;
 @FakePasscodeSerializer.ToggleSerialization
 public class DeleteStickersAction extends AccountAction implements NotificationCenter.NotificationCenterDelegate {
     @JsonIgnore
-    private Set<Integer> loadedStickerTypes = new HashSet<>();
+    private static final int STEP_DELETE_REGULAR_STICKERS = 0;
     @JsonIgnore
-    private Set<Long> deletedStickerSets = new HashSet<>();
+    private static final int STEP_DELETE_ARCHIVED_STICKERS = 1;
     @JsonIgnore
-    private Set<Long> archivedStickerSets = new HashSet<>();
-
+    private int step = STEP_DELETE_REGULAR_STICKERS;
+    @JsonIgnore
+    private long lastUpdateTime = 0;
     private boolean preventBulletin = false;
 
     @Override
     public void execute(FakePasscode fakePasscode) {
-        loadedStickerTypes.clear();
-        deletedStickerSets.clear();
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.stickersDidLoad);
-        preventBulletin = true;
-        MediaDataController.getInstance(accountNum).loadStickers(TYPE_IMAGE, true, false, false, s -> {
-            NotificationCenter.getInstance(accountNum).removeObserver(this, NotificationCenter.stickersDidLoad);
-            preventBulletin = false;
-        });
+        step = STEP_DELETE_REGULAR_STICKERS;
+        lastUpdateTime = 0;
+        loadStickers();
         //delete recent emoji
         Emoji.clearRecentEmoji();
         // delete recent gif
         for (TLRPC.Document document : MediaDataController.getInstance(accountNum).getRecentGifs()) {
             MediaDataController.getInstance(accountNum).removeRecentGif(document);
         }
-        deleteArchivedStickers();
+    }
+
+    private void loadStickers() {
+        preventBulletin = true;
+        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.stickersDidLoad);
+        MediaDataController.getInstance(accountNum).loadStickers(TYPE_IMAGE, false, false, true, s -> {
+            deleteStickers();
+            preventBulletin = false;
+        });
     }
 
     private void deleteArchivedStickers() {
@@ -66,42 +71,14 @@ public class DeleteStickersAction extends AccountAction implements NotificationC
         for (TLRPC.StickerSetCovered set : res.sets) {
             controller.toggleStickerSet(null, set, 2, null, false, false);
         }
-        synchronized (this) {
-            archivedStickerSets = res.sets.stream().map(s -> s.set.id).collect(Collectors.toSet());
-        }
+        AndroidUtilities.runOnUIThread(this::loadStickers);
     }
 
-    @Override
-    public synchronized void didReceivedNotification(int id, int account, Object... args) {
-        if (account != accountNum) {
-            return;
-        }
-        int type = (int) args[0];
+    private synchronized void deleteStickers() {
         MediaDataController controller = MediaDataController.getInstance(accountNum);
-        List<TLRPC.TL_messages_stickerSet> stickerSets = new ArrayList<>(controller.getStickerSets(type));
-        if (!loadedStickerTypes.contains(type)) {
-            loadedStickerTypes.add(type);
-            for (TLRPC.TL_messages_stickerSet stickerSet : stickerSets) {
-                if (!deletedStickerSets.contains(stickerSet.set.id)) {
-                    deletedStickerSets.add(stickerSet.set.id);
-                    controller.toggleStickerSet(null, stickerSet, 0, null, false, false);
-                    synchronized (this) {
-                        archivedStickerSets.remove(stickerSet.set.id);
-                    }
-                }
-            }
-        } else {
-            for (TLRPC.TL_messages_stickerSet stickerSet : stickerSets) {
-                synchronized (this) {
-                    if (!archivedStickerSets.contains(stickerSet.set.id)) {
-                        continue;
-                    }
-                }
-                if (!deletedStickerSets.contains(stickerSet.set.id)) {
-                    deletedStickerSets.add(stickerSet.set.id);
-                    controller.toggleStickerSet(null, stickerSet, 0, null, false, false);
-                }
-            }
+        List<TLRPC.TL_messages_stickerSet> stickerSets = new ArrayList<>(controller.getStickerSets(TYPE_IMAGE));
+        for (TLRPC.TL_messages_stickerSet stickerSet : stickerSets) {
+            AndroidUtilities.runOnUIThread(() -> controller.toggleStickerSet(null, stickerSet, 0, null, false, false));
         }
         for (int recent_sticker_type = 0; recent_sticker_type < 8; recent_sticker_type++) {
             for (TLRPC.Document document : controller.getRecentStickers(recent_sticker_type)) {
@@ -109,6 +86,25 @@ public class DeleteStickersAction extends AccountAction implements NotificationC
             }
         }
         controller.clearRecentStickers();
+    }
+
+    @Override
+    public synchronized void didReceivedNotification(int id, int account, Object... args) {
+        if (account != accountNum) {
+            return;
+        }
+        if (lastUpdateTime != 0 && System.currentTimeMillis() - lastUpdateTime > 5000) {
+            step = STEP_DELETE_REGULAR_STICKERS; // reset step
+            NotificationCenter.getInstance(accountNum).removeObserver(this, NotificationCenter.stickersDidLoad);
+            return;
+        } else {
+            lastUpdateTime = System.currentTimeMillis();
+        }
+        deleteStickers();
+        if (step == STEP_DELETE_REGULAR_STICKERS) {
+            step = STEP_DELETE_ARCHIVED_STICKERS;
+            deleteArchivedStickers();
+        }
     }
 
     public boolean isPreventBulletin() {

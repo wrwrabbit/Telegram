@@ -13,7 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 
 public class ScreenReceiver extends BroadcastReceiver {

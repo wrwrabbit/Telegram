@@ -1,4 +1,4 @@
-package org.telegram.messenger.fakepasscode;
+package org.telegram.messenger.partisan;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;

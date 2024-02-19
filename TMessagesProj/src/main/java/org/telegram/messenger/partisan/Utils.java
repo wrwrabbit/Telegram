@@ -1,4 +1,4 @@
-package org.telegram.messenger.fakepasscode;
+package org.telegram.messenger.partisan;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -12,14 +12,12 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DownloadController;
@@ -73,7 +71,7 @@ public class Utils {
         return l;
     }
 
-    static String getLastLocationString() {
+    public static String getLastLocationString() {
         Location loc = Utils.getLastLocation();
         if (loc != null) {
             return " " + LocaleController.getString("Geolocation", R.string.Geolocation) + ":" + loc.getLatitude() + ", " + loc.getLongitude();
@@ -150,8 +148,11 @@ public class Utils {
                 File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File logs = new File(downloads, "logs");
                 if (logs.exists()) {
-                    CacheControlActivity.cleanDirJava(logs.getAbsolutePath(), 0, null, x -> {});
-                    logs.delete();
+                    try {
+                        CacheControlActivity.cleanDirJava(logs.getAbsolutePath(), 0, null, x -> {});
+                        logs.delete();
+                    } catch (Exception ignore) {
+                    }
                 }
 
                 logs = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "logs");
@@ -470,18 +471,6 @@ public class Utils {
             runnable.run();
         } else {
             AndroidUtilities.runOnUIThread(runnable, 0);
-        }
-    }
-
-    public static void handleException(Exception e) {
-        boolean logsEnabled = ApplicationLoader.applicationContext
-                .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
-                .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
-        if (BuildVars.LOGS_ENABLED || logsEnabled) {
-            Log.e("SharedConfig", "error", e);
-        }
-        if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            throw new Error(e);
         }
     }
 }

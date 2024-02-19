@@ -138,7 +138,7 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                         EditTextCaption edit = (EditTextCaption) view;
                         String text = edit.getText().toString();
                         if (text.startsWith(" ") || text.endsWith(" ")) {
-                            edit.setError(LocaleController.getString(R.string.ErrorOccurred));
+                            edit.setError(LocaleController.getString(R.string.IncorrectActivationMessageWarning));
                             return false;
                         }
                         return true;

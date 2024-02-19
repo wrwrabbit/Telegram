@@ -119,6 +119,8 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -410,6 +412,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private boolean askingForPermissions;
     private RLottieDrawable passcodeDrawable;
     private SearchViewPager searchViewPager;
+    private SharedMediaLayout.SharedMediaPreloader sharedMediaPreloader;
     public DialogStoriesCell dialogStoriesCell;
     public boolean dialogStoriesCellVisible;
     public float progressToDialogStoriesCell;
@@ -2739,6 +2742,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         getContactsController().loadGlobalPrivacySetting();
 
+        if (getMessagesController().savedViewAsChats) {
+            getMessagesController().getSavedMessagesController().preloadDialogs(true);
+        }
+
         FakePasscodeUtils.checkPendingRemovalChats();
         return true;
     }
@@ -5015,6 +5022,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         animateToHasStories = false;
         hasOnlySlefStories = false;
         hasStories = false;
+
+        if (onlySelect && initialDialogsType == DIALOGS_TYPE_FORWARD) {
+            MessagesController.getInstance(currentAccount).getSavedReactionTags(0);
+        }
+
         if (!onlySelect || initialDialogsType == DIALOGS_TYPE_FORWARD) {
             final FrameLayout.LayoutParams layoutParams = LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT);
             if (inPreviewMode && Build.VERSION.SDK_INT >= 21) {
@@ -6101,7 +6113,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 totalOffset -= dialogsHintCell.getMeasuredHeight() * rightSlidingDialogContainer.openedProgress;
             }
             dialogsHintCell.setTranslationY(totalOffset);
-            totalOffset += dialogsHintCell.getMeasuredHeight();
+            totalOffset += dialogsHintCell.getMeasuredHeight() * (1f - searchAnimationProgress);
         }
         if (authHintCell != null && authHintCell.getVisibility() == View.VISIBLE) {
             if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
@@ -6359,7 +6371,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         ((LaunchActivity) getParentActivity()).showPasscodeActivity(false, true, position[0] + passcodeItem.getMeasuredWidth() / 2, position[1] + passcodeItem.getMeasuredHeight() / 2, () -> passcodeItem.setAlpha(1.0f), () -> passcodeItem.setAlpha(0.0f));
                         getNotificationsController().showNotifications();
                         if (SharedConfig.isAppLocked() && SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.clearCacheOnLock) {
-                            org.telegram.messenger.fakepasscode.Utils.clearCache(null);
+                            Utils.clearCache(null);
                         }
                         getNotificationsController().showNotifications();
                         updatePasscodeButton();
@@ -6888,6 +6900,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateProxyButton(false, true);
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
+        VerificationUpdatesChecker.checkUpdate(currentAccount, false);
         if (!FakePasscodeUtils.isFakePasscodeActivated() && !AndroidUtilities.needShowPasscode() && !SharedConfig.isAppLocked()) {
             Activity activity = getParentActivity();
             if (!permissionsChecked && activity != null) {
@@ -7348,9 +7361,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             }
+            if (fragmentContextView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                fragmentContextView.setTranslationZ(1f);
+            }
             searchAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
+                    if (fragmentContextView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        fragmentContextView.setTranslationZ(0f);
+                    }
                     notificationsLocker.unlock();
                     if (searchAnimator != animation) {
                         return;
@@ -7964,7 +7983,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (searchViewPager.actionModeShowing()) {
                 searchViewPager.hideActionMode();
             }
-            if (searchString != null) {
+            if (dialogId == getUserConfig().getClientUserId() && getMessagesController().savedViewAsChats) {
+                args = new Bundle();
+                args.putLong("dialog_id", UserConfig.getInstance(currentAccount).getClientUserId());
+                args.putInt("type", MediaActivity.TYPE_MEDIA);
+                args.putInt("start_from", SharedMediaLayout.TAB_SAVED_DIALOGS);
+                if (sharedMediaPreloader == null) {
+                    sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(this);
+                }
+                MediaActivity mediaActivity = new MediaActivity(args, sharedMediaPreloader);
+                presentFragment(mediaActivity);
+            } else if (searchString != null) {
                 if (getMessagesController().checkCanOpenChat(args, DialogsActivity.this)) {
                     getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                     presentFragment(new ChatActivity(args));

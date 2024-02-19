@@ -13,7 +13,6 @@ import android.app.ActivityManager;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.Build;
@@ -21,7 +20,6 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
@@ -44,8 +42,8 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.UpdateApkRemoveRunnable;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.UpdateApkRemoveRunnable;
 import org.telegram.messenger.partisan.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
@@ -75,7 +73,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SharedConfig {
@@ -270,7 +267,6 @@ public class SharedConfig {
     public static int keepMedia = CacheByChatsController.KEEP_MEDIA_ONE_MONTH; //deprecated
     public static int lastKeepMediaCheckTime;
     public static int lastLogsCheckTime;
-    public static int searchMessagesAsListHintShows;
     public static int textSelectionHintShows;
     public static int scheduledOrNoSoundHintShows;
     public static long scheduledOrNoSoundHintSeenAt;
@@ -342,7 +338,6 @@ public class SharedConfig {
     public static int messageSeenHintCount;
     public static int emojiInteractionsHintCount;
     public static int dayNightThemeSwitchHintCount;
-    public static boolean forceLessData;
     public static int callEncryptionHintDisplayedCount;
 
     public static UpdateData pendingPtgAppUpdate;
@@ -430,6 +425,7 @@ public class SharedConfig {
     public static boolean premiumDisabled;
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
+    public static boolean forceAllowScreenshots = false;
     public static boolean confirmDangerousActions;
 
     private static final int[] LOW_SOC = {
@@ -650,6 +646,7 @@ public class SharedConfig {
                 editor.putInt("runNumber", runNumber);
                 editor.putBoolean("premiumDisabled", premiumDisabled);
                 editor.putString("phoneOverride", phoneOverride);
+                editor.putBoolean("forceAllowScreenshots", forceAllowScreenshots);
                 String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                 editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
 
@@ -657,7 +654,7 @@ public class SharedConfig {
                     try {
                         editor.putString("ptgAppUpdate", toJson(pendingPtgAppUpdate));
                     } catch (Exception e) {
-                        Utils.handleException(e);
+                        PartisanLog.handleException(e);
                     }
                 } else {
                     editor.remove("ptgAppUpdate");
@@ -697,7 +694,7 @@ public class SharedConfig {
             try {
                 editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             editor.commit();
         }
@@ -752,7 +749,7 @@ public class SharedConfig {
                         fakePasscodes = fromJson(preferences.getString("fakePasscodes", null), FakePasscodesWrapper.class).fakePasscodes;
                     }
                 } catch (Exception e) {
-                    Utils.handleException(e);
+                    PartisanLog.handleException(e);
                 }
             }
             try {
@@ -760,14 +757,14 @@ public class SharedConfig {
                     fakePasscodeActionsResult = fromJson(preferences.getString("fakePasscodeActionsResult", null), ActionsResult.class);
                 }
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             try {
                 if (preferences.contains("badPasscodeAttemptList")) {
                     badPasscodeAttemptList = fromJson(preferences.getString("badPasscodeAttemptList", null), BadPasscodeAttemptWrapper.class).badTries;
                 }
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
             takePhotoWithBadPasscodeFront = preferences.getBoolean("takePhotoOnBadPasscodeFront", false);
             takePhotoWithBadPasscodeBack = preferences.getBoolean("takePhotoOnBadPasscodeBack", false);
@@ -794,6 +791,7 @@ public class SharedConfig {
             runNumber = preferences.getInt("runNumber", 0);
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
             phoneOverride = preferences.getString("phoneOverride", "");
+            forceAllowScreenshots = preferences.getBoolean("forceAllowScreenshots", false);
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
 
@@ -819,7 +817,7 @@ public class SharedConfig {
                     pendingPtgAppUpdate = fromJson(update, UpdateData.class);
                 }
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
 
             Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
@@ -867,7 +865,6 @@ public class SharedConfig {
             debugWebView = preferences.getBoolean("debugWebView", false);
             lastKeepMediaCheckTime = preferences.getInt("lastKeepMediaCheckTime", 0);
             lastLogsCheckTime = preferences.getInt("lastLogsCheckTime", 0);
-            searchMessagesAsListHintShows = preferences.getInt("searchMessagesAsListHintShows", 0);
             searchMessagesAsListUsed = preferences.getBoolean("searchMessagesAsListUsed", false);
             stickersReorderingHintUsed = preferences.getBoolean("stickersReorderingHintUsed", false);
             storyReactionsLongPressHint = preferences.getBoolean("storyReactionsLongPressHint", false);
@@ -906,7 +903,6 @@ public class SharedConfig {
             payByInvoice = preferences.getBoolean("payByInvoice", false);
             photoViewerBlur = preferences.getBoolean("photoViewerBlur", true);
             multipleReactionsPromoShowed = preferences.getBoolean("multipleReactionsPromoShowed", false);
-            forceLessData = preferences.getBoolean("forceLessData", false);
             callEncryptionHintDisplayedCount = preferences.getInt("callEncryptionHintDisplayedCount", 0);
 
             loadDebugConfig(preferences);
@@ -1372,13 +1368,6 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("lockRecordAudioVideoHint", 3);
-        editor.apply();
-    }
-
-    public static void increaseSearchAsListHintShows() {
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("searchMessagesAsListHintShows", ++searchMessagesAsListHintShows);
         editor.apply();
     }
 
@@ -1915,11 +1904,6 @@ public class SharedConfig {
         emojiInteractionsHintCount = count;
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
         preferences.edit().putInt("emojiInteractionsHintCount", emojiInteractionsHintCount).apply();
-    }
-
-    public static void setForceLessData(boolean value) {
-        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        preferences.edit().putBoolean("forceLessData", forceLessData = value).apply();
     }
 
     public static void updateDayNightThemeSwitchHintCount(int count) {

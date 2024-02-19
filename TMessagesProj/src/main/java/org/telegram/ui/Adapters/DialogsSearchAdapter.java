@@ -35,16 +35,14 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -479,7 +477,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
             ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
             reqId = 0;
         }
-        if (TextUtils.isEmpty(query)) {
+        if (TextUtils.isEmpty(query) || delegate.getSearchForumDialogId() != 0) {
             filteredRecentQuery = null;
             searchResultMessages.clear();
             searchForumResultMessages.clear();
@@ -1119,7 +1117,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                     if (searchId != lastSearchId) {
                         return;
                     }
-                    if (needMessagesSearch != 2 && dialogsType != DialogsActivity.DIALOGS_TYPE_GROUPS_ONLY && dialogsType != DialogsActivity.DIALOGS_TYPE_CHANNELS_ONLY) {
+                    if (needMessagesSearch != 2 && dialogsType != DialogsActivity.DIALOGS_TYPE_GROUPS_ONLY && dialogsType != DialogsActivity.DIALOGS_TYPE_CHANNELS_ONLY && delegate.getSearchForumDialogId() == 0) {
                         searchAdapterHelper.queryServerSearch(
                             query,
                             true,

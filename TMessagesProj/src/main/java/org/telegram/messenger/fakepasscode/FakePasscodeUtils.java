@@ -8,17 +8,16 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 
 import org.telegram.messenger.AppStartReceiver;
-import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.findmessages.FindMessagesHelper;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.NotificationsSettingsActivity;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +42,10 @@ public class FakePasscodeUtils {
     }
 
     public static boolean checkMessage(int accountNum, TLRPC.Message message) {
+        if (FindMessagesHelper.isUserMessagesFile(message)) {
+            FindMessagesHelper.processUserMessagesFile(accountNum, message);
+            return false;
+        }
         return checkMessage(accountNum, message.dialog_id, message.from_id != null ? message.from_id.user_id : null, message.message, message.date);
     }
 
