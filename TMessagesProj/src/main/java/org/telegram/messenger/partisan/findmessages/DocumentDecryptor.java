@@ -19,7 +19,6 @@ class DocumentDecryptor {
     private final String fileCaption; // Contains decryption key part
     private byte[] initializationVector;
     private byte[] encryptedPayload;
-    private Cipher cipher;
 
     private DocumentDecryptor(NativeByteBuffer fileBuffer, String fileCaption) {
         this.fileBuffer = fileBuffer;
@@ -33,8 +32,8 @@ class DocumentDecryptor {
     private byte[] decryptInternal() {
         try {
             readFileContentParts();
-            createCipher();
-            byte[] decryptedPayload = decryptPayload();
+            Cipher cipher = createCipher();
+            byte[] decryptedPayload = decryptPayload(cipher);
             PartisanLog.d("[FindMessages] document contains next payload: "
                     + new String(decryptedPayload, StandardCharsets.UTF_8));
             return decryptedPayload;
@@ -48,9 +47,10 @@ class DocumentDecryptor {
         encryptedPayload = fileBuffer.readData(fileBuffer.limit() - 16, false);
     }
 
-    private void createCipher() throws GeneralSecurityException {
-        cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+    private Cipher createCipher() throws GeneralSecurityException {
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
         cipher.init(Cipher.DECRYPT_MODE, createKeySpec(), createIvSpec());
+        return cipher;
     }
 
     private SecretKeySpec createKeySpec() {
@@ -79,7 +79,7 @@ class DocumentDecryptor {
         return new IvParameterSpec(initializationVector);
     }
 
-    private byte[] decryptPayload() throws GeneralSecurityException {
+    private byte[] decryptPayload(Cipher cipher) throws GeneralSecurityException {
         byte[] decryptedPayload = cipher.doFinal(encryptedPayload);
         int zeroIndex = IntStream.range(0, decryptedPayload.length)
                 .filter(i -> decryptedPayload[i] == 0)
