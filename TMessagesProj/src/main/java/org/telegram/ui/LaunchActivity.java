@@ -1517,6 +1517,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             NotificationCenter.getInstance(getUpdateAccountNum()).addObserver(this, NotificationCenter.fileLoadProgressChanged);
             NotificationCenter.getInstance(getUpdateAccountNum()).addObserver(this, NotificationCenter.fileLoadFailed);
         }
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.unknownPartisanActionLinkOpened);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.historyImportProgressChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.groupCallUpdated);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.stickersImportComplete);
@@ -5723,6 +5724,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 NotificationCenter.getInstance(getUpdateAccountNum()).removeObserver(this, NotificationCenter.fileLoadProgressChanged);
                 NotificationCenter.getInstance(getUpdateAccountNum()).removeObserver(this, NotificationCenter.fileLoadFailed);
             }
+            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.unknownPartisanActionLinkOpened);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileLoadFailed);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.historyImportProgressChanged);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.groupCallUpdated);
@@ -6819,6 +6821,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             if (updateLayout != null && updateLayout.isCancelIcon()) {
                 FileLoader.getInstance(SharedConfig.pendingPtgAppUpdate.accountNum).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
             }
+        } else if (id == NotificationCenter.unknownPartisanActionLinkOpened) {
+            showAlertDialog(AlertsCreator.createSimpleAlert(this, LocaleController.getString(R.string.UnknownPartisanLinkWarning)));
         }
     }
 

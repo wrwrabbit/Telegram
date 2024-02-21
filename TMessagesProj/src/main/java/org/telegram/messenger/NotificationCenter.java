@@ -232,7 +232,7 @@ public class NotificationCenter {
     public static final int emojiKeywordsLoaded = totalEvents++;
     public static final int storyQualityUpdate = totalEvents++;
 
-    //fake passcode
+    //partisan
     public static final int dialogDeletedByAction = totalEvents++;
     public static final int dialogCleared = totalEvents++;
     public static final int appDidLogoutByAction = totalEvents++;
@@ -248,6 +248,7 @@ public class NotificationCenter {
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
     public static final int findMessagesFileLoaded = totalEvents++;
+    public static final int unknownPartisanActionLinkOpened = totalEvents++;
 
 
     //global
