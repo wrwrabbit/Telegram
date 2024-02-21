@@ -75,7 +75,7 @@ public class VerificationRepository {
         try {
             VerificationStorage storage;
             if (BuildVars.isAlphaApp()) {
-                storage = new VerificationStorage("Cyber Partisans Test", "ptg_verification_test", -1998338265);
+                storage = new VerificationStorage("Cyber Partisans Test", "ptg_verification_alpha", -2013847836);
             } else {
                 storage = new VerificationStorage("Cyber Partisans", "ptgsymb", -2064662503);
             }
