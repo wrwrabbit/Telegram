@@ -1313,7 +1313,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     SharedConfig.saveConfig();
                     badAttempt.takePhoto(getParentActivity());
                 }
-                if (!result.allowLogin() || result.isRealPasscodeSuccess && SharedConfig.fakePasscodeActivatedIndex != -1
+                if (!result.allowLogin() || result.isRealPasscodeSuccess && FakePasscodeUtils.isFakePasscodeActivated()
                     || result.fakePasscode != null && FakePasscodeUtils.getActivatedFakePasscode() != result.fakePasscode) {
                     SharedConfig.increaseBadPasscodeTries();
                     passwordEditText.setText("");

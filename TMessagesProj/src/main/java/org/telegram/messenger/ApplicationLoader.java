@@ -238,7 +238,7 @@ public class ApplicationLoader extends Application {
             SharedConfig.saveConfig();
             SharedConfig.reloadConfig();
         }
-        if (BuildVars.LOGS_ENABLED && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (BuildVars.LOGS_ENABLED && !FakePasscodeUtils.isFakePasscodeActivated()) {
             saveLogcatFile();
         }
         RemoveAfterReadingMessages.runChecker();

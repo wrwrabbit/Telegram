@@ -3788,7 +3788,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else {
                 chat = null;
             }
-            if (SharedConfig.fakePasscodeActivatedIndex == -1 && (!ChatObject.isChannel(chat) || chat.megagroup)
+            if (!FakePasscodeUtils.isFakePasscodeActivated() && (!ChatObject.isChannel(chat) || chat.megagroup)
                     && SharedConfig.showDeleteMyMessages) {
                 headerItem.lazilyAddSubItem(delete_messages, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteMyMessages));
             }
@@ -28187,7 +28187,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public void selectReaction(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent, boolean withoutAnimation) {
-        if (!SharedConfig.allowReactions && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (!SharedConfig.allowReactions && !FakePasscodeUtils.isFakePasscodeActivated()) {
             return;
         }
         Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent, withoutAnimation), ()->{}, getContext());

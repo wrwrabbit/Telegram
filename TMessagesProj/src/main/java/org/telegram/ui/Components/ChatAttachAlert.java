@@ -90,6 +90,7 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -2711,7 +2712,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     }
                 } else if (a == 1 && UserObject.isUserSelf(user)) {
                     continue;
-                } else if (a == 2 && (SharedConfig.fakePasscodeActivatedIndex != -1
+                } else if (a == 2 && (FakePasscodeUtils.isFakePasscodeActivated()
                         || UserObject.isUserSelf(user) || !SharedConfig.showDeleteAfterRead)) {
                     continue;
                 }

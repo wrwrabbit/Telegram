@@ -6370,7 +6370,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         passcodeItem.getLocationInWindow(position);
                         ((LaunchActivity) getParentActivity()).showPasscodeActivity(false, true, position[0] + passcodeItem.getMeasuredWidth() / 2, position[1] + passcodeItem.getMeasuredHeight() / 2, () -> passcodeItem.setAlpha(1.0f), () -> passcodeItem.setAlpha(0.0f));
                         getNotificationsController().showNotifications();
-                        if (SharedConfig.isAppLocked() && SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.clearCacheOnLock) {
+                        if (SharedConfig.isAppLocked() && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.clearCacheOnLock) {
                             Utils.clearCache(null);
                         }
                         getNotificationsController().showNotifications();
@@ -9669,7 +9669,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             pinItem.setContentDescription(LocaleController.getString("UnpinFromTop", R.string.UnpinFromTop));
             pin2Item.setText(LocaleController.getString("DialogUnpin", R.string.DialogUnpin));
         }
-        if (canSaveCount != 0 && SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showSavedChannels) {
+        if (canSaveCount != 0 && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showSavedChannels) {
             saveItem.setVisibility(View.VISIBLE);
         } else {
             saveItem.setVisibility(View.GONE);

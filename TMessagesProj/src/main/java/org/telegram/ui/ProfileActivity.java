@@ -7995,7 +7995,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 numberRow = rowCount++;
                 setUsernameRow = rowCount++;
                 bioRow = rowCount++;
-                if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showId) {
+                if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showId) {
                     chatIdRow = rowCount++;
                 }
 
@@ -8049,7 +8049,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     sendLogsRow = rowCount++;
                     sendLastLogsRow = rowCount++;
                     clearLogsRow = rowCount++;
-                    if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+                    if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                         sendLogcatRow = rowCount++;
                     }
                 }
@@ -8081,7 +8081,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (userId != getUserConfig().getClientUserId()) {
                     notificationsRow = rowCount++;
                 }
-                if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showId) {
+                if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showId) {
                     chatIdRow = rowCount++;
                 }
                 infoSectionRow = rowCount++;
@@ -8155,7 +8155,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 notificationsDividerRow = rowCount++;
             }
             notificationsRow = rowCount++;
-            if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showId) {
+            if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showId) {
                 chatIdRow = rowCount++;
             }
             infoSectionRow = rowCount++;
@@ -9109,7 +9109,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (!isBot && getContactsController().contactsDict.get(userId) != null) {
                     otherItem.addSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString("AddShortcut", R.string.AddShortcut));
                 }
-                if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+                if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                     if (isBot && SharedConfig.allowRenameChat) {
                         otherItem.addSubItem(edit_chat_name, R.drawable.floating_pencil, LocaleController.getString("EditChatName", R.string.EditChatName));
                     }
@@ -9207,7 +9207,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (topicId == 0) {
                 otherItem.addSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString("AddShortcut", R.string.AddShortcut));
             }
-            if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                 if (topicId == 0) {
                     if (SharedConfig.allowRenameChat) {
                         otherItem.addSubItem(edit_chat_name, R.drawable.floating_pencil, LocaleController.getString("EditChatName", R.string.EditChatName));
@@ -10236,7 +10236,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 break;
                         }
                         String versionString = LocaleController.formatString("TelegramVersion", R.string.TelegramVersion, String.format(Locale.US, "v%s (%d) %s", pInfo.versionName, code, abi));
-                        if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showVersion) {
+                        if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showVersion) {
                             versionString += "\nPTelegram version " + BuildVars.PARTISAN_VERSION_STRING + " ("  + BuildVars.PARTISAN_BUILD_VERSION + ")";
                         }
                         cell.setText(versionString);

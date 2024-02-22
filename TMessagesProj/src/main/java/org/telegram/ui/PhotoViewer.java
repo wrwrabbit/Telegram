@@ -174,6 +174,7 @@ import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.WebFile;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.camera.Size;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.video.VideoPlayerRewinder;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -6155,7 +6156,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             for (int i = 0; i < 6; i++) {
                 final int a = order[i];
 
-                if (a == 5 && (SharedConfig.fakePasscodeActivatedIndex != -1 || UserObject.isUserSelf(user)
+                if (a == 5 && (FakePasscodeUtils.isFakePasscodeActivated() || UserObject.isUserSelf(user)
                     || !SharedConfig.showDeleteAfterRead || (ChatObject.isChannel(chat) && !chat.megagroup))) {
                     continue;
                 }

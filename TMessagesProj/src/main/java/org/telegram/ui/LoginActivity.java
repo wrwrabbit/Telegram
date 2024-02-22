@@ -1735,7 +1735,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         }
         MediaDataController.getInstance(currentAccount).loadStickersByEmojiOrName(AndroidUtilities.STICKERS_PLACEHOLDER_PACK_NAME, false, true);
 
-        if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
             if (getParentActivity() == null) {
                 needFinishActivity(afterSignup, res.setup_password_required, res.otherwise_relogin_days);
             } else {

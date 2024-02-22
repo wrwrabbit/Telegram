@@ -408,7 +408,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             items.add(new Item(12, LocaleController.getString("PeopleNearby", R.string.PeopleNearby), peopleNearbyIcon));
         }
         items.add(new Item(11, LocaleController.getString("SavedMessages", R.string.SavedMessages), savedIcon));
-        if (SharedConfig.fakePasscodeActivatedIndex == -1 && SharedConfig.showSavedChannels) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showSavedChannels) {
             items.add(new Item(100, LocaleController.getString("SavedChannels", R.string.SavedChannels), R.drawable.menu_saved_channels));
         }
         items.add(new Item(8, LocaleController.getString("Settings", R.string.Settings), settingsIcon));

@@ -15397,7 +15397,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
 
                     getMessagesStorage().setLastPtsValue(updates.pts);
-                    if (SharedConfig.fakePasscodeActivatedIndex == -1
+                    if (!FakePasscodeUtils.isFakePasscodeActivated()
                             || PartisanMessagesInterceptionController.intercept(currentAccount, message).isAllowMessageSaving()) {
                         boolean isDialogCreated = createdDialogIds.contains(message.dialog_id);
                         MessageObject obj = new MessageObject(currentAccount, message, isDialogCreated, isDialogCreated);

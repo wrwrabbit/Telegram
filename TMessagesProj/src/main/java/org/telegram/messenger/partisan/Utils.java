@@ -31,6 +31,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -266,7 +267,7 @@ public class Utils {
         if (message == null) {
             return;
         }
-        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (SharedConfig.cutForeignAgentsText && !FakePasscodeUtils.isFakePasscodeActivated()) {
             try {
                 SpannableString source = new SpannableString(message.message);
                 for (TLRPC.MessageEntity entity : message.entities) {
@@ -300,7 +301,7 @@ public class Utils {
             return null;
         }
         CharSequence fixedMessage = message;
-        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (SharedConfig.cutForeignAgentsText && !FakePasscodeUtils.isFakePasscodeActivated()) {
             fixedMessage = cutForeignAgentPart(message, leaveEmpty);
         }
         return fixedMessage;
