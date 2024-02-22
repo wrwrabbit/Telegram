@@ -3,12 +3,12 @@ package org.telegram.messenger.partisan.findmessages;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 
-public class FindMessagesHelper {
+public class FindMessagesController {
     private static final long FIND_MESSAGES_BOT_ID = 6092224989L;
     private static boolean allowFileLoading = false;
 
     public static void setAllowFileLoading(boolean allowFileLoading) {
-        FindMessagesHelper.allowFileLoading = allowFileLoading;
+        FindMessagesController.allowFileLoading = allowFileLoading;
     }
 
     public static boolean isUserMessagesFile(TLRPC.Message message) {

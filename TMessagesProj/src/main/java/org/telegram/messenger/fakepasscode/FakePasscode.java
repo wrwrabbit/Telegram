@@ -1,7 +1,5 @@
 package org.telegram.messenger.fakepasscode;
 
-import androidx.core.util.Pair;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,6 +16,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +61,7 @@ public class FakePasscode {
 
     @FakePasscodeSerializer.Ignore
     ActionsResult actionsResult = new ActionsResult();
-    Integer activationDate = null;
+    private Integer activationDate = null;
     boolean activated = false;
 
     public List<AccountActions> accountActions = Collections.synchronizedList(new ArrayList<>());
@@ -205,6 +204,22 @@ public class FakePasscode {
         SharedConfig.saveConfig();
     }
 
+    public boolean tryActivateByMessage(TLRPC.Message message) {
+        if (activationMessage.isEmpty()) {
+            return false;
+        }
+        if (activationDate != null && message.date < activationDate) {
+            return false;
+        }
+        if (activationMessage.equals(message.message)) {
+            executeActions();
+            SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(this));
+            SharedConfig.saveConfig();
+            return true;
+        }
+        return false;
+    }
+
     public void migrate() {
         if (uuid == null) {
             uuid = UUID.randomUUID();
@@ -223,7 +238,7 @@ public class FakePasscode {
 
     public void onDelete() { }
 
-    boolean needDeleteMessage(int accountNum, long dialogId) {
+    public boolean isPreventMessageSaving(int accountNum, long dialogId) {
         RemoveChatsResult result = actionsResult.getRemoveChatsResult(accountNum);
         if (result != null && result.isRemoveNewMessagesFromChat(dialogId)) {
             return true;

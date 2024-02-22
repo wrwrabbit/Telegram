@@ -42,8 +42,6 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.util.Consumer;
 
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.messenger.fakepasscode.ActionsResult;
@@ -55,6 +53,7 @@ import org.telegram.messenger.partisan.Utils;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
 import org.telegram.messenger.voip.VoIPService;
@@ -92,8 +91,6 @@ import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.TopicsFragment;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9623,7 +9620,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 }
                             }
                         }
-                        res.messages = filterMessages(res.messages, dialogId);
+                        res.messages = filterMessages(res.messages);
                         for (TLRPC.Message m : res.messages) {
                             Utils.fixTlrpcMessage(m);
                         }
@@ -14419,7 +14416,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                         continue;
                                     }
                                     MessageObject.getDialogId(message);
-                                    if (!FakePasscodeUtils.checkMessage(currentAccount, message)) {
+                                    if (PartisanMessagesInterceptionController.intercept(currentAccount, message).isPreventMessageSaving()) {
                                         continue;
                                     }
                                     Utils.fixTlrpcMessage(message);
@@ -15400,7 +15397,8 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
 
                     getMessagesStorage().setLastPtsValue(updates.pts);
-                    if (SharedConfig.fakePasscodeActivatedIndex == -1 || FakePasscodeUtils.checkMessage(currentAccount, message)) {
+                    if (SharedConfig.fakePasscodeActivatedIndex == -1
+                            || PartisanMessagesInterceptionController.intercept(currentAccount, message).isAllowMessageSaving()) {
                         boolean isDialogCreated = createdDialogIds.contains(message.dialog_id);
                         MessageObject obj = new MessageObject(currentAccount, message, isDialogCreated, isDialogCreated);
                         ArrayList<MessageObject> objArr = new ArrayList<>();
@@ -15977,7 +15975,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 ImageLoader.saveMessageThumbs(message);
 
                 MessageObject.getDialogId(message);
-                if (!FakePasscodeUtils.checkMessage(currentAccount, message)) {
+                if (PartisanMessagesInterceptionController.intercept(currentAccount, message).isPreventMessageSaving()) {
                     continue;
                 }
                 if (baseUpdate instanceof TLRPC.TL_updateNewChannelMessage && message.reply_to != null && !(message.action instanceof TLRPC.TL_messageActionPinMessage)) {
@@ -19795,14 +19793,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
 
-    private ArrayList<TLRPC.Message> filterMessages(ArrayList<TLRPC.Message> arr, long dialogId) {
+    private ArrayList<TLRPC.Message> filterMessages(ArrayList<TLRPC.Message> arr) {
         return arr.stream()
-                .filter(message ->
-                        FakePasscodeUtils.checkMessage(currentAccount,
-                                dialogId,
-                                message.from_id != null ? message.from_id.user_id : null,
-                                message.message,
-                                message.date))
+                .filter(message -> PartisanMessagesInterceptionController.intercept(currentAccount, message).isAllowMessageSaving())
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 

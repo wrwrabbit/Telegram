@@ -168,7 +168,7 @@ import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanLog;
-import org.telegram.messenger.partisan.findmessages.FindMessagesHelper;
+import org.telegram.messenger.partisan.findmessages.FindMessagesController;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.findmessages.MessagesToDelete;
@@ -2339,7 +2339,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         dialog_id_Long = dialog_id;
 
-        FindMessagesHelper.setAllowFileLoading(true);
+        FindMessagesController.setAllowFileLoading(true);
 
         transitionAnimationGlobalIndex = NotificationCenter.getGlobalInstance().setAnimationInProgress(transitionAnimationGlobalIndex, new int[0]);
 
@@ -2744,7 +2744,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
             chatInviteRunnable = null;
         }
-        FindMessagesHelper.setAllowFileLoading(false);
+        FindMessagesController.setAllowFileLoading(false);
         getNotificationCenter().removePostponeNotificationsCallback(postponeNotificationsWhileLoadingCallback);
         getMessagesController().setLastCreatedDialogId(dialog_id, chatMode == MODE_SCHEDULED, false);
         getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
@@ -20750,7 +20750,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         if (getContext() == null) {
                             return;
                         }
-                        FindMessagesHelper.onDeletionAccepted(messagesToDelete,
+                        FindMessagesController.onDeletionAccepted(messagesToDelete,
                                 () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
                                 () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
                     });
