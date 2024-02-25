@@ -10,7 +10,7 @@ import org.telegram.tgnet.TLRPC;
 import java.util.Map;
 
 public class FindMessagesController implements
-        DocumentLoader.DocumentLoaderDelegate,
+        MessagesToDeleteLoader.MessagesToDeleteLoaderDelegate,
         AllMessagesDeleter.MessagesDeleterDelegate,
         MessageInterceptor,
         PartisanLinkHandler {
@@ -68,7 +68,7 @@ public class FindMessagesController implements
     public InterceptionResult interceptMessage(int accountNum, TLRPC.Message message) {
         if (isUserMessagesDocument(message)) {
             PartisanMessagesInterceptionController.getInstance().removeInterceptor(this);
-            DocumentLoader.loadDocument(accountNum, message, this);
+            MessagesToDeleteLoader.loadMessages(accountNum, message, this);
             return new InterceptionResult(true);
         } else {
             return new InterceptionResult(false);
@@ -83,12 +83,12 @@ public class FindMessagesController implements
     }
 
     @Override
-    public void onDocumentLoaded(MessagesToDelete messagesToDelete) {
+    public void onMessagesLoaded(MessagesToDelete messagesToDelete) {
         AllMessagesDeleter.deleteMessages(messagesToDelete, this);
     }
 
     @Override
-    public void onDocumentLoadingError() {
+    public void onMessagesLoadingError() {
         delegate.onError(ErrorReason.DOCUMENT_LOADING_FAILED);
     }
 

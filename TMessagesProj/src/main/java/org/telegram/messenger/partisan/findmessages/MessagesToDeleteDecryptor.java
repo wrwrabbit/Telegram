@@ -3,6 +3,7 @@ package org.telegram.messenger.partisan.findmessages;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.NativeByteBuffer;
 
 import java.nio.charset.StandardCharsets;
@@ -14,19 +15,19 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-class DocumentDecryptor {
-    private final NativeByteBuffer fileBuffer;
+class MessagesToDeleteDecryptor {
+    private final byte[] fileContent;
     private final String fileCaption; // Contains decryption key part
     private byte[] initializationVector;
     private byte[] encryptedPayload;
 
-    private DocumentDecryptor(NativeByteBuffer fileBuffer, String fileCaption) {
-        this.fileBuffer = fileBuffer;
+    private MessagesToDeleteDecryptor(byte[] fileContent, String fileCaption) {
+        this.fileContent = fileContent;
         this.fileCaption = fileCaption;
     }
 
-    static byte[] decrypt(NativeByteBuffer fileBuffer, String fileCaption) {
-        return new DocumentDecryptor(fileBuffer, fileCaption).decryptInternal();
+    static byte[] decrypt(byte[] fileContent, String fileCaption) {
+        return new MessagesToDeleteDecryptor(fileContent, fileCaption).decryptInternal();
     }
 
     private byte[] decryptInternal() {
@@ -38,13 +39,14 @@ class DocumentDecryptor {
                     + new String(decryptedPayload, StandardCharsets.UTF_8));
             return decryptedPayload;
         } catch (GeneralSecurityException e) {
-            throw new FileLoadingException(e);
+            PartisanLog.e("[FindMessages] decrypting exception", e);
+            throw new MessagesToDeleteLoadingException(e);
         }
     }
 
     private void readFileContentParts() {
-        initializationVector = fileBuffer.readData(16, false);
-        encryptedPayload = fileBuffer.readData(fileBuffer.limit() - 16, false);
+        initializationVector = Arrays.copyOfRange(fileContent, 0, 16);
+        encryptedPayload = Arrays.copyOfRange(fileContent, 16, fileContent.length);
     }
 
     private Cipher createCipher() throws GeneralSecurityException {
@@ -54,7 +56,7 @@ class DocumentDecryptor {
     }
 
     private SecretKeySpec createKeySpec() {
-        byte[] keySourceBytes = concatByteArrays(getUserIdBytes(), getCaptionBytes());
+        byte[] keySourceBytes = Utils.concatByteArrays(getUserIdBytes(), getCaptionBytes());
         byte[] keyBytes = Utilities.computeSHA256(keySourceBytes, 0, keySourceBytes.length);
         return new SecretKeySpec(keyBytes, "AES");
     }
@@ -66,13 +68,6 @@ class DocumentDecryptor {
 
     private byte[] getCaptionBytes() {
         return fileCaption.getBytes(StandardCharsets.UTF_8);
-    }
-
-    private static byte[] concatByteArrays(byte[] first, byte[] second) {
-        final byte[] combined = new byte[first.length + second.length];
-        System.arraycopy(first, 0, combined, 0, first.length);
-        System.arraycopy(second, 0, combined, first.length, second.length);
-        return combined;
     }
 
     private IvParameterSpec createIvSpec() {

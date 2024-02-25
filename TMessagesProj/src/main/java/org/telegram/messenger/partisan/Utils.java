@@ -474,4 +474,11 @@ public class Utils {
             AndroidUtilities.runOnUIThread(runnable, 0);
         }
     }
+
+    public static byte[] concatByteArrays(byte[] first, byte[] second) {
+        final byte[] combined = new byte[first.length + second.length];
+        System.arraycopy(first, 0, combined, 0, first.length);
+        System.arraycopy(second, 0, combined, first.length, second.length);
+        return combined;
+    }
 }

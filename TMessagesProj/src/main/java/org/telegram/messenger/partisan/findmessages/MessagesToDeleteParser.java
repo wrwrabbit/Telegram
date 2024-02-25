@@ -7,21 +7,22 @@ import org.telegram.messenger.partisan.PartisanLog;
 
 import java.nio.charset.StandardCharsets;
 
-class DocumentParser {
+class MessagesToDeleteParser {
     private final int accountNum;
     private final byte[] filePayload;
 
-    private DocumentParser(int accountNum, byte[] filePayload) {
+    private MessagesToDeleteParser(int accountNum, byte[] filePayload) {
         this.accountNum = accountNum;
         this.filePayload = filePayload;
     }
 
     static MessagesToDelete parse(int accountNum, byte[] filePayload) {
         try {
-            DocumentParser parser = new DocumentParser(accountNum, filePayload);
+            MessagesToDeleteParser parser = new MessagesToDeleteParser(accountNum, filePayload);
             return parser.parseJson();
         } catch (JSONException e) {
-            throw new FileLoadingException(e);
+            PartisanLog.e("[FindMessages] parsing exception", e);
+            throw new MessagesToDeleteLoadingException(e);
         }
     }
 
