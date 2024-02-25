@@ -66,7 +66,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.ReplacementSpan;
 import android.util.Property;
 import android.util.SparseIntArray;
 import android.util.TypedValue;
@@ -215,6 +214,7 @@ import org.telegram.ui.Components.IdenticonDrawable;
 import org.telegram.ui.Components.ImageUpdater;
 import org.telegram.ui.Components.InstantCameraView;
 import org.telegram.ui.Components.ItemOptions;
+import org.telegram.ui.Components.JoinGroupAlert;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.MediaActivity;
@@ -1810,7 +1810,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             getNotificationCenter().addObserver(this, NotificationCenter.chatOnlineCountDidLoad);
             getNotificationCenter().addObserver(this, NotificationCenter.groupCallUpdated);
             getNotificationCenter().addObserver(this, NotificationCenter.channelRightsUpdated);
-
+            getNotificationCenter().addObserver(this, NotificationCenter.chatWasBoostedByUser);
+            NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.uploadStoryEnd);
             sortedUsers = new ArrayList<>();
             updateOnlineCount(true);
             if (chatInfo == null) {
@@ -1927,6 +1928,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.reloadInterface);
             getMessagesController().cancelLoadFullUser(userId);
         } else if (chatId != 0) {
+            NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.uploadStoryEnd);
+            getNotificationCenter().removeObserver(this, NotificationCenter.chatWasBoostedByUser);
             getNotificationCenter().removeObserver(this, NotificationCenter.chatInfoDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.chatOnlineCountDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.groupCallUpdated);
@@ -2335,14 +2338,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     openAddMember();
                 } else if (id == statistics) {
                     TLRPC.Chat chat = getMessagesController().getChat(chatId);
-                    Bundle args = new Bundle();
-                    args.putLong("chat_id", chatId);
-                    args.putBoolean("is_megagroup", chat.megagroup);
-                    if (!chatInfo.can_view_stats) {
-                        args.putBoolean("only_boosts", true);
-                    }
-                    StatisticActivity fragment = new StatisticActivity(args);
-                    presentFragment(fragment);
+                    presentFragment(StatisticActivity.create(chat, false));
                 } else if (id == view_discussion) {
                     openDiscussion();
                 } else if (id == gift_premium) {
@@ -3610,7 +3606,27 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     presentFragment(fragment);
                 }
             } else if (position == joinRow) {
-                getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ProfileActivity.this, null);
+                getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ProfileActivity.this, true, () -> {
+                    updateRowsIds();
+                    if (listAdapter != null) {
+                        listAdapter.notifyDataSetChanged();
+                    }
+                }, err -> {
+                    if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
+                        SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+                        preferences.edit().putLong("dialog_join_requested_time_" + dialogId, System.currentTimeMillis()).commit();
+                        JoinGroupAlert.showBulletin(context, ProfileActivity.this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
+                        updateRowsIds();
+                        if (listAdapter != null) {
+                            listAdapter.notifyDataSetChanged();
+                        }
+                        if (lastFragment instanceof ChatActivity) {
+                            ((ChatActivity) lastFragment).showBottomOverlayProgress(false, true);
+                        }
+                        return false;
+                    }
+                    return true;
+                });
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
             } else if (position == subscribersRow) {
                 Bundle args = new Bundle();
@@ -3746,6 +3762,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 BuildVars.DEBUG_PRIVATE_VERSION ? (SharedConfig.photoViewerBlur ? "do not blur in photoviewer" : "blur in photoviewer") : null,
                                 !SharedConfig.payByInvoice ? "Enable Invoice Payment" : "Disable Invoice Payment",
                                 BuildVars.DEBUG_PRIVATE_VERSION ? "Update Attach Bots" : null,
+                                null, // Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? (!SharedConfig.useCamera2 ? "Use Camera 2 API" : "Use old Camera 1 API") : null
                                 !BuildVars.DEBUG_PRIVATE_VERSION && !FakePasscodeUtils.isFakePasscodeActivated() ? "Enter tester settings password" : null
                         };
 
@@ -3780,7 +3797,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 getMessagesStorage().clearSentMedia();
                                 SharedConfig.setNoSoundHintShowed(false);
                                 SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
-                                editor.remove("archivehint").remove("proximityhint").remove("archivehint_l").remove("speedhint").remove("gifhint").remove("reminderhint").remove("soundHint").remove("themehint").remove("bganimationhint").remove("filterhint").remove("n_0").remove("storyprvhint").remove("storyhint").remove("storyhint2").remove("storydualhint").remove("storysvddualhint").remove("stories_camera").remove("dualcam").remove("dualmatrix").remove("dual_available").remove("archivehint").remove("askNotificationsAfter").remove("askNotificationsDuration").remove("viewoncehint").remove("taptostorysoundhint").remove("nothanos").remove("voiceoncehint").remove("savedhint").remove("savedsearchhint").remove("savedsearchtaghint").apply();
+                                editor.remove("archivehint").remove("proximityhint").remove("archivehint_l").remove("speedhint").remove("gifhint").remove("reminderhint").remove("soundHint").remove("themehint").remove("bganimationhint").remove("filterhint").remove("n_0").remove("storyprvhint").remove("storyhint").remove("storyhint2").remove("storydualhint").remove("storysvddualhint").remove("stories_camera").remove("dualcam").remove("dualmatrix").remove("dual_available").remove("archivehint").remove("askNotificationsAfter").remove("askNotificationsDuration").remove("viewoncehint").remove("taptostorysoundhint").remove("nothanos").remove("voiceoncehint").remove("savedhint").remove("savedsearchhint").remove("savedsearchtaghint").remove("groupEmojiPackHintShown").remove("newppsms").apply();
                                 MessagesController.getEmojiSettings(currentAccount).edit().remove("featured_hidden").remove("emoji_featured_hidden").commit();
                                 SharedConfig.textSelectionHintShows = 0;
                                 SharedConfig.lockRecordAudioVideoHint = 0;
@@ -3989,6 +4006,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 SharedConfig.togglePaymentByInvoice();
                             } else if (which == 26) {
                                 getMediaDataController().loadAttachMenuBots(false, true);
+                            } else if (which == 27) {
+                                SharedConfig.toggleUseCamera2();
                             } else if (which == items.length - 1) {
                                 showTesterPasswordDialog();
                             }
@@ -4763,6 +4782,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private final AccelerateDecelerateInterpolator floatingInterpolator = new AccelerateDecelerateInterpolator();
 
+    private void checkCanSendStoryForPosting() {
+        TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(chatId);
+        if (!ChatObject.isBoostSupported(chat)) {
+            return;
+        }
+        StoriesController storiesController = getMessagesController().getStoriesController();
+        waitCanSendStoryRequest = true;
+        storiesController.canSendStoryFor(getDialogId(), canSend -> {
+            waitCanSendStoryRequest = false;
+            showBoostsAlert = !canSend;
+            hideFloatingButton(false);
+        }, false, resourcesProvider);
+    }
+
     private void createFloatingActionButton(Context context) {
         if (!getMessagesController().storiesEnabled()) {
             return;
@@ -4770,19 +4803,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (getDialogId() > 0L) {
             return;
         }
-        if (!ChatObject.isChannelAndNotMegaGroup(-getDialogId(), currentAccount)) {
+        TLRPC.Chat currentChat = MessagesController.getInstance(currentAccount).getChat(chatId);
+        if (!ChatObject.isBoostSupported(currentChat)) {
             return;
         }
         StoriesController storiesController = getMessagesController().getStoriesController();
         if (!storiesController.canPostStories(getDialogId())) {
             return;
         } else {
-            waitCanSendStoryRequest = true;
-            storiesController.canSendStoryFor(getDialogId(), canSend -> {
-                waitCanSendStoryRequest = false;
-                showBoostsAlert = !canSend;
-                hideFloatingButton(false);
-            }, false, resourcesProvider);
+            checkCanSendStoryForPosting();
         }
         long dialogId = getDialogId();
         floatingButtonContainer = new FrameLayout(context);
@@ -4800,23 +4829,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (boostsStatus == null) {
                         return;
                     }
-                    BaseFragment lastFragment = LaunchActivity.getLastFragment();
-                    LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(lastFragment, lastFragment.getContext(), LimitReachedBottomSheet.TYPE_BOOSTS_FOR_POSTING, currentAccount, resourcesProvider);
-                    limitReachedBottomSheet.setBoostsStats(boostsStatus, false);
-                    limitReachedBottomSheet.setDialogId(dialogId);
-                    limitReachedBottomSheet.showStatisticButtonInLink(() -> {
-                        TLRPC.Chat chat = getMessagesController().getChat(chatId);
-                        Bundle args = new Bundle();
-                        args.putLong("chat_id", chatId);
-                        args.putBoolean("is_megagroup", chat.megagroup);
-                        args.putBoolean("start_from_boosts", true);
-                        if (chatInfo == null || !chatInfo.can_view_stats) {
-                            args.putBoolean("only_boosts", true);
-                        };
-                        StatisticActivity fragment = new StatisticActivity(args);
-                        presentFragment(fragment);
+                    messagesController.getBoostsController().userCanBoostChannel(dialogId, boostsStatus, canApplyBoost -> {
+                        if (canApplyBoost == null) {
+                            return;
+                        }
+                        BaseFragment lastFragment = LaunchActivity.getLastFragment();
+                        LimitReachedBottomSheet.openBoostsForPostingStories(lastFragment, dialogId, canApplyBoost, boostsStatus, () -> {
+                            TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                            presentFragment(StatisticActivity.create(chat));
+                        });
                     });
-                    limitReachedBottomSheet.show();
                 });
                 return;
             }
@@ -6883,7 +6905,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     @SuppressWarnings("unchecked")
     @Override
     public void didReceivedNotification(int id, int account, final Object... args) {
-        if (id == NotificationCenter.updateInterfaces) {
+        if (id == NotificationCenter.uploadStoryEnd || id == NotificationCenter.chatWasBoostedByUser) {
+            checkCanSendStoryForPosting();
+        } else if (id == NotificationCenter.updateInterfaces) {
             int mask = (Integer) args[0];
             boolean infoChanged = (mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_NAME) != 0 || (mask & MessagesController.UPDATE_MASK_STATUS) != 0 || (mask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0;
             if (userId != 0) {
@@ -8220,8 +8244,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 if (lastSectionRow == -1 && currentChat.left && !currentChat.kicked) {
-                    joinRow = rowCount++;
-                    lastSectionRow = rowCount++;
+                    long requestedTime = MessagesController.getNotificationsSettings(currentAccount).getLong("dialog_join_requested_time_" + dialogId, -1);
+                    if (!(requestedTime > 0 && System.currentTimeMillis() - requestedTime < 1000 * 60 * 2)) {
+                        joinRow = rowCount++;
+                        lastSectionRow = rowCount++;
+                    }
                 }
             } else if (chatInfo != null) {
                 if (!isTopic && chatInfo.participants != null && chatInfo.participants.participants != null && !(chatInfo.participants instanceof TLRPC.TL_chatParticipantsForbidden)) {
