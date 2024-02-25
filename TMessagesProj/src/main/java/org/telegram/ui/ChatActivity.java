@@ -167,10 +167,10 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.partisan.PartisanLog;
-import org.telegram.messenger.partisan.findmessages.FindMessagesController;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.findmessages.FindMessagesController;
 import org.telegram.messenger.partisan.findmessages.MessagesToDelete;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
@@ -764,6 +764,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private int lastViewedMessageOffset;
     private boolean startLoadFromMessageRestored;
     private boolean isSavedChannel;
+    private FindMessagesController findMessagesController = null;
 
     private boolean first = true;
     private int first_unread_id;
@@ -2141,6 +2142,66 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    private class FindMessagesControllerDelegate implements FindMessagesController.FindMessagesControllerDelegate {
+
+        @Override
+        public void askDeletionPermit() {
+            if (getContext() == null) {
+                return;
+            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+            builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
+            builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
+            builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
+                PartisanLog.d("[FindMessages] deletion accepted");
+                if (getContext() == null) {
+                    return;
+                }
+                findMessagesController.onDeletionAccepted();
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
+            showDialog(builder.create());
+        }
+
+        @Override
+        public void sendBotCommand(String command) {
+            SendMessagesHelper.SendMessageParams params =
+                    SendMessagesHelper.SendMessageParams.of(command, dialog_id, null, null, null, false, null, null, null, true, 0, null, false);
+            getSendMessagesHelper().sendMessage(params);
+        }
+
+        @Override
+        public void onSuccess() {
+            AndroidUtilities.runOnUIThread(() -> {
+                if (getContext() == null) {
+                    return;
+                }
+                String title = LocaleController.getString(R.string.FindMessagesDialogTitle);
+                AlertDialog.Builder builder = AlertsCreator.createSimpleAlert(getContext(), title, "Success");
+                showDialog(builder.create());
+            });
+        }
+
+        @Override
+        public void onError(FindMessagesController.ErrorReason reason) {
+            AndroidUtilities.runOnUIThread(() -> {
+                if (getContext() == null) {
+                    return;
+                }
+                String title = LocaleController.getString(R.string.FindMessagesDialogTitle);
+                String message = null;
+                if (reason == FindMessagesController.ErrorReason.DOCUMENT_LOADING_FAILED) {
+                    message = "Document loading failed";
+                } else if (reason == FindMessagesController.ErrorReason.SOME_MESSAGES_NOT_DELETED) {
+                    message = "Some messages wasn't deleted";
+                }
+                assert message != null;
+                AlertDialog.Builder builder = AlertsCreator.createSimpleAlert(getContext(), title, message);
+                showDialog(builder.create());
+            });
+        }
+    }
+
     private final ChatScrollCallback chatScrollHelperCallback = new ChatScrollCallback();
 
     private final Runnable showScheduledOrNoSoundRunnable = () -> {
@@ -2339,7 +2400,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         dialog_id_Long = dialog_id;
 
-        FindMessagesController.setAllowFileLoading(true);
+        findMessagesController = FindMessagesController.createAndStartIfNeed(dialog_id, new FindMessagesControllerDelegate());
 
         transitionAnimationGlobalIndex = NotificationCenter.getGlobalInstance().setAnimationInProgress(transitionAnimationGlobalIndex, new int[0]);
 
@@ -2437,7 +2498,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
-        getNotificationCenter().addObserver(this, NotificationCenter.findMessagesFileLoaded);
         getNotificationCenter().addObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsUnreadReactionsCounterChanged);
         getNotificationCenter().addObserver(this, NotificationCenter.groupStickersDidLoad);
@@ -2744,7 +2804,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
             chatInviteRunnable = null;
         }
-        FindMessagesController.setAllowFileLoading(false);
+        if (findMessagesController != null) {
+            findMessagesController.stop();
+        }
         getNotificationCenter().removePostponeNotificationsCallback(postponeNotificationsWhileLoadingCallback);
         getMessagesController().setLastCreatedDialogId(dialog_id, chatMode == MODE_SCHEDULED, false);
         getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
@@ -2817,7 +2879,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
-        getNotificationCenter().removeObserver(this, NotificationCenter.findMessagesFileLoaded);
         getNotificationCenter().removeObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSponsoredMessages);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSendAsPeers);
@@ -2845,6 +2906,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         if (currentUser != null) {
             MediaController.getInstance().stopMediaObserver();
+        }
+
+        if (findMessagesController != null) {
+            findMessagesController.stop();
         }
 
         if (flagSecure != null) {
@@ -20730,37 +20795,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
                 finishFragment();
-            }
-        } else if (id == NotificationCenter.findMessagesFileLoaded) {
-            if (getContext() == null) {
-                return;
-            }
-            Object param = args[0];
-            if (param instanceof MessagesToDelete) {
-                MessagesToDelete messagesToDelete = (MessagesToDelete) param;
-                if (messagesToDelete.isEmpty()) {
-                    PartisanLog.d("[FindMessages] document was empty");
-                    showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Empty").create());
-                } else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
-                    builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
-                    builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
-                    builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
-                        PartisanLog.d("[FindMessages] deletion accepted");
-                        if (getContext() == null) {
-                            return;
-                        }
-                        FindMessagesController.onDeletionAccepted(messagesToDelete,
-                                () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Success").create()),
-                                () -> showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error").create()));
-                    });
-                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
-                    showDialog(builder.create());
-                }
-            } else {
-                String error = (String)args[0];
-                PartisanLog.d("[FindMessages] document was null. Error: " + error);
-                showDialog(AlertsCreator.createSimpleAlert(getContext(), LocaleController.getString(R.string.FindMessagesDialogTitle), "Error: " + error).create());
             }
         } else if (id == NotificationCenter.chatAvailableReactionsUpdated) {
             long chatId = (long) args[0];

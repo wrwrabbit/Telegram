@@ -247,7 +247,6 @@ public class NotificationCenter {
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
-    public static final int findMessagesFileLoaded = totalEvents++;
     public static final int unknownPartisanActionLinkOpened = totalEvents++;
 
 

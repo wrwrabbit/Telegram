@@ -9,22 +9,28 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Scanner;
 
 class DocumentLoader {
-    private final int accountNum;
-    private final TLRPC.Message message;
-    private int datacenterId = ConnectionsManager.DEFAULT_DATACENTER_ID;
-
-    private DocumentLoader(int accountNum, TLRPC.Message message) {
-        this.accountNum = accountNum;
-        this.message = message;
+    interface DocumentLoaderDelegate {
+        void onDocumentLoaded(MessagesToDelete messagesToDelete);
+        void onDocumentLoadingError();
     }
 
-    static void loadDocument(int accountNum, TLRPC.Message message) {
+    private final int accountNum;
+    private final TLRPC.Message message;
+    private final DocumentLoaderDelegate delegate;
+    private int datacenterId = ConnectionsManager.DEFAULT_DATACENTER_ID;
+
+    private DocumentLoader(int accountNum, TLRPC.Message message, DocumentLoaderDelegate delegate) {
+        this.accountNum = accountNum;
+        this.message = message;
+        this.delegate = delegate;
+    }
+
+    static void loadDocument(int accountNum, TLRPC.Message message, DocumentLoaderDelegate delegate) {
         PartisanLog.d("[FindMessages] process document");
-        new DocumentLoader(accountNum, message).loadAndProcessJson();
+        new DocumentLoader(accountNum, message, delegate).loadAndProcessJson();
     }
 
     void loadAndProcessJson() {
@@ -103,8 +109,7 @@ class DocumentLoader {
     }
 
     private void notifyMessagesParsed(MessagesToDelete messagesToDelete) {
-        AndroidUtilities.runOnUIThread(() -> getNotificationCenter()
-                .postNotificationName(NotificationCenter.findMessagesFileLoaded, messagesToDelete));
+        delegate.onDocumentLoaded(messagesToDelete);
     }
 
     private void handleException(FileLoadingException exception) {
@@ -115,13 +120,7 @@ class DocumentLoader {
                 ? (Exception) exception.getCause()
                 : exception;
         PartisanLog.e("[FindMessages] handleError: thrown exception", actualThrowable);
-        AndroidUtilities.runOnUIThread(() -> getNotificationCenter()
-                .postNotificationName(NotificationCenter.findMessagesFileLoaded,
-                        actualThrowable.getMessage()));
-    }
-
-    private NotificationCenter getNotificationCenter() {
-        return NotificationCenter.getInstance(accountNum);
+        delegate.onDocumentLoadingError();
     }
 
     private void deleteFileMessage() {

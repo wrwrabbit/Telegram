@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class UnknownActionLinkHandler implements PartisanLinkHandler {
     @Override
-    public void handle(Map<String, String> parameters) {
+    public void handleLinkAction(Map<String, String> parameters) {
         NotificationCenter notificationCenter = NotificationCenter.getInstance(UserConfig.selectedAccount);
         notificationCenter.postNotificationName(NotificationCenter.unknownPartisanActionLinkOpened);
     }

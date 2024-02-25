@@ -6,7 +6,7 @@ import org.telegram.tgnet.TLRPC;
 
 public class HiddenByPasscodeMessageInterceptor implements MessageInterceptor {
     @Override
-    public InterceptionResult intercept(int accountNum, TLRPC.Message message) {
+    public InterceptionResult interceptMessage(int accountNum, TLRPC.Message message) {
         return new InterceptionResult(isMessageHiddenByPasscode(accountNum, message));
     }
 

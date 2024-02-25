@@ -9,7 +9,7 @@ import org.telegram.tgnet.TLRPC;
 
 public class FakePasscodeActivationInterceptor implements MessageInterceptor {
     @Override
-    public InterceptionResult intercept(int accountNum, TLRPC.Message message) {
+    public InterceptionResult interceptMessage(int accountNum, TLRPC.Message message) {
         tryActivateAnyFakePasscode(accountNum, message);
         return new InterceptionResult(false);
     }
