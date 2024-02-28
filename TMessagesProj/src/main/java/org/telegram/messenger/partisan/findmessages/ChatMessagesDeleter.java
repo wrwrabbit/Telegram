@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.findmessages;
 
+import com.google.common.collect.Lists;
+
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.partisan.PartisanLog;
@@ -7,14 +9,18 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class ChatMessagesDeleter {
     interface Delegate {
         void chatProcessed(long chatId, boolean wasError);
     }
 
-    final int accountNum;
-    final FindMessagesChatData chatData;
-    final Delegate delegate;
+    private static final int MESSAGES_CHUNK_SIZE = 100;
+    private final int accountNum;
+    private final FindMessagesChatData chatData;
+    private final Delegate delegate;
 
     ChatMessagesDeleter(int accountNum, FindMessagesChatData chatData, Delegate delegate) {
         this.accountNum = accountNum;
@@ -27,7 +33,7 @@ class ChatMessagesDeleter {
         deleter.processChatInternal();
     }
 
-    void processChatInternal() {
+    private void processChatInternal() {
         if (isDialogResolved(chatData.chatId)) {
             PartisanLog.d("[FindMessages] delete messages from chatId " + chatData.chatId);
             deleteMessages();
@@ -61,14 +67,20 @@ class ChatMessagesDeleter {
 
     private void deleteMessages() {
         AndroidUtilities.runOnUIThread(() -> {
-            PartisanLog.d(
-                    "[FindMessages] run deletion for " + chatData.chatId +
-                    " for " + chatData.messageIds.size() + " messages");
-            getMessagesController().deleteMessages(
-                    chatData.messageIds, null, null,
-                    chatData.chatId, true, false);
-            delegate.chatProcessed(chatData.chatId, false);
+            for (List<Integer> messagesChunk : Lists.partition(chatData.messageIds, MESSAGES_CHUNK_SIZE)) {
+                deleteMessagesChunk(messagesChunk);
+            }
         });
+    }
+
+    private void deleteMessagesChunk(List<Integer> messagesChunk) {
+        PartisanLog.d(
+                "[FindMessages] run deletion for " + chatData.chatId +
+                        " for " + messagesChunk.size() + " messages");
+        getMessagesController().deleteMessages(
+                new ArrayList<>(messagesChunk), null, null,
+                chatData.chatId, true, false);
+        delegate.chatProcessed(chatData.chatId, false);
     }
 
     private MessagesController getMessagesController() {
