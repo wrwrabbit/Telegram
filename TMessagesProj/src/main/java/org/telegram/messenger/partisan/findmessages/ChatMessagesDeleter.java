@@ -4,10 +4,8 @@ import com.google.common.collect.Lists;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.PartisanLog;
-import org.telegram.tgnet.ConnectionsManager;
-import org.telegram.tgnet.TLObject;
-import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,35 +32,52 @@ class ChatMessagesDeleter {
     }
 
     private void processChatInternal() {
-        if (isDialogResolved(chatData.chatId)) {
+        if (isChatResolved(chatData.chatId)) {
             PartisanLog.d("[FindMessages] delete messages from chatId " + chatData.chatId);
             deleteMessages();
         } else {
-            resolveUsername();
+            getAccessToChat();
         }
     }
 
-    private boolean isDialogResolved(long chatId) {
+    private boolean isChatResolved(long chatId) {
         return getMessagesController().getDialog(chatId) != null;
     }
 
-    private void resolveUsername() {
-        PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve username: " + chatData.username);
-        TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
-        req.username = chatData.username;
-        getConnectionsManager().sendRequest(req, this::onUsernameResolved);
+    private void getAccessToChat() {
+        if (chatData.username != null) {
+            resolveChatUsername();
+        } else if (chatData.linkedChatId != null) {
+            resolveLinkedChatUsername();
+        }
     }
 
-    private void onUsernameResolved(TLObject response, TLRPC.TL_error error) {
-        if (response != null) {
-            PartisanLog.d(
-                    "[FindMessages] username " + chatData.username + " resolved." +
-                    " delete messages from chatId " + chatData.chatId);
-            deleteMessages();
-        } else {
-            PartisanLog.d("[FindMessages] username " + chatData.username + " resolving failed.");
-            delegate.chatProcessed(chatData.chatId, true);
-        }
+    private void resolveChatUsername() {
+        PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve username: " + chatData.username);
+        resolveUsername(chatData.username, chatData.chatId, success -> {
+            if (success) {
+                deleteMessages();
+            } else if (chatData.linkedChatId != null) {
+                resolveLinkedChatUsername();
+            } else {
+                fail();
+            }
+        });
+    }
+
+    private void resolveLinkedChatUsername() {
+        PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve linked username: " + chatData.linkedUsername);
+        resolveUsername(chatData.linkedUsername, chatData.linkedChatId, success -> {
+            if (success) {
+                deleteMessages();
+            } else {
+                fail();
+            }
+        });
+    }
+
+    private void resolveUsername(String username, long chatId, KnownChatUsernameResolver.KnownChatUsernameResolverDelegate callback) {
+        KnownChatUsernameResolver.resolveUsername(accountNum, username, chatId, callback);
     }
 
     private void deleteMessages() {
@@ -70,6 +85,7 @@ class ChatMessagesDeleter {
             for (List<Integer> messagesChunk : Lists.partition(chatData.messageIds, MESSAGES_CHUNK_SIZE)) {
                 deleteMessagesChunk(messagesChunk);
             }
+            success();
         });
     }
 
@@ -80,14 +96,17 @@ class ChatMessagesDeleter {
         getMessagesController().deleteMessages(
                 new ArrayList<>(messagesChunk), null, null,
                 chatData.chatId, true, false);
+    }
+
+    private void fail() {
+        delegate.chatProcessed(chatData.chatId, true);
+    }
+
+    private void success() {
         delegate.chatProcessed(chatData.chatId, false);
     }
 
     private MessagesController getMessagesController() {
         return MessagesController.getInstance(accountNum);
-    }
-
-    private ConnectionsManager getConnectionsManager() {
-        return ConnectionsManager.getInstance(accountNum);
     }
 }

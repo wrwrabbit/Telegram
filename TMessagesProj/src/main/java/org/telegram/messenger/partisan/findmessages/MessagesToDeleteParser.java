@@ -6,8 +6,15 @@ import org.json.JSONObject;
 import org.telegram.messenger.partisan.PartisanLog;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 class MessagesToDeleteParser {
+    private enum Mode {
+        NULLABLE,
+        NOT_NULL
+    }
+
     private final int accountNum;
     private final byte[] filePayload;
 
@@ -39,14 +46,44 @@ class MessagesToDeleteParser {
 
     private static FindMessagesChatData parseItem(JSONObject obj) throws JSONException {
         FindMessagesChatData chatData = new FindMessagesChatData();
-        chatData.chatId = -obj.getLong("chat_id");
-        chatData.username = obj.getString("chat_username");
-        JSONArray messageIdsArray = obj.getJSONArray("message_ids");
-        for (int j = 0; j < messageIdsArray.length(); j++) {
-            chatData.messageIds.add(messageIdsArray.getInt(j));
-        }
+        chatData.chatId = getLongFromJson(obj, "chat_id", Mode.NOT_NULL);
+        chatData.username = getStringFromJson(obj, "chat_username", Mode.NULLABLE);
+        chatData.linkedChatId = getLongFromJson(obj, "linked_chat_id", Mode.NULLABLE);
+        chatData.linkedUsername = getStringFromJson(obj, "linked_chat_username", Mode.NULLABLE);
+        chatData.messageIds.addAll(getIntegerList(obj, "message_ids"));
+        fixChatDataIds(chatData);
         PartisanLog.d("[FindMessages] parsed chatData for chatId = " + chatData.chatId + "." +
                 " Message count = " + chatData.messageIds.size());
         return chatData;
+    }
+
+    private static String getStringFromJson(JSONObject obj, String key, Mode mode) throws JSONException {
+        if (mode == Mode.NOT_NULL || obj.has(key) && !obj.isNull(key)) {
+            return obj.getString(key);
+        } else {
+            return null;
+        }
+    }
+
+    private static Long getLongFromJson(JSONObject obj, String key, Mode mode) throws JSONException {
+        if (mode == Mode.NOT_NULL || obj.has(key) && !obj.isNull(key)) {
+            return obj.getLong(key);
+        } else {
+            return null;
+        }
+    }
+
+    private static void fixChatDataIds(FindMessagesChatData chatData) {
+        chatData.chatId = -chatData.chatId;
+        chatData.linkedChatId = -chatData.linkedChatId;
+    }
+
+    private static List<Integer> getIntegerList(JSONObject obj, String key) throws JSONException {
+        List<Integer> result = new ArrayList<>();
+        JSONArray messageIdsArray = obj.getJSONArray("message_ids");
+        for (int j = 0; j < messageIdsArray.length(); j++) {
+            result.add(messageIdsArray.getInt(j));
+        }
+        return result;
     }
 }
