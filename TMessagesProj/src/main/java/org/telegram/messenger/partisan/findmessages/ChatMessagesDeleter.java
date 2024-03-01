@@ -3,9 +3,19 @@ package org.telegram.messenger.partisan.findmessages;
 import com.google.common.collect.Lists;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.R;
 import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ChatActivity;
+import org.telegram.ui.Components.AlertsCreator;
+import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +29,13 @@ class ChatMessagesDeleter {
     private final int accountNum;
     private final FindMessagesChatData chatData;
     private final Delegate delegate;
+    private final int classGuid;
 
     ChatMessagesDeleter(int accountNum, FindMessagesChatData chatData, Delegate delegate) {
         this.accountNum = accountNum;
         this.chatData = chatData;
         this.delegate = delegate;
+        this.classGuid = ConnectionsManager.generateClassGuid();
     }
 
     static void processChat(int accountNum, FindMessagesChatData chatData, Delegate delegate) {
@@ -34,7 +46,7 @@ class ChatMessagesDeleter {
     private void processChatInternal() {
         if (isChatResolved(chatData.chatId)) {
             PartisanLog.d("[FindMessages] delete messages from chatId " + chatData.chatId);
-            deleteMessages();
+            tryDeleteMessages();
         } else {
             getAccessToChat();
         }
@@ -56,7 +68,7 @@ class ChatMessagesDeleter {
         PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve username: " + chatData.username);
         resolveUsername(chatData.username, chatData.chatId, success -> {
             if (success) {
-                deleteMessages();
+                tryDeleteMessages();
             } else if (chatData.linkedChatId != null) {
                 resolveLinkedChatUsername();
             } else {
@@ -69,7 +81,7 @@ class ChatMessagesDeleter {
         PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve linked username: " + chatData.linkedUsername);
         resolveUsername(chatData.linkedUsername, chatData.linkedChatId, success -> {
             if (success) {
-                deleteMessages();
+                tryDeleteMessages();
             } else {
                 fail();
             }
@@ -78,6 +90,20 @@ class ChatMessagesDeleter {
 
     private void resolveUsername(String username, long chatId, KnownChatUsernameResolver.KnownChatUsernameResolverDelegate callback) {
         KnownChatUsernameResolver.resolveUsername(accountNum, username, chatId, callback);
+    }
+
+    private void tryDeleteMessages() {
+        getMessagesController().ensureMessagesLoaded(-chatData.chatId, 0, new MessagesController.MessagesLoadedCallback() {
+            @Override
+            public void onMessagesLoaded(boolean fromCache) {
+                deleteMessages();
+            }
+
+            @Override
+            public void onError() {
+                fail();
+            }
+        });
     }
 
     private void deleteMessages() {
