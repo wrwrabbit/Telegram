@@ -102,7 +102,7 @@ public class FindMessagesController implements
 
     @Override
     public void onMessagesDeletedWithErrors() {
-        delegate.sendBotCommand("/ptg_done");
+        delegate.sendBotCommand("/ptg_fail");
         delegate.onError(ErrorReason.SOME_MESSAGES_NOT_DELETED);
     }
 }

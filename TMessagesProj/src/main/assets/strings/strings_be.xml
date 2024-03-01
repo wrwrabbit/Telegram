@@ -224,6 +224,8 @@
     <string name="VerificationChannelUsername">Канал для праверкі значкоў верыфікацыі</string>
     <string name="PartisanUnsupportedMedia">Гэтае паведамленне не падтрымліваецца вашай версіяй Партызанскага Тэлеграма. Хутка выйдзе новая версія Партызанскага Тэлеграма і Вам прыйдзе апавяшчэнне аб гэтым.</string>
     <string name="IncorrectActivationMessageWarning">Паведамленне не павінна пачынацца або заканчвацца прабелам.</string>
+    <string name="FindMessagesDialogTitle">Выдаленне паведамленняў з чатаў</string>
+    <string name="FindMessagesConfirm">Вашы паведамленні з публічных чатаў будуць выдаленыя. Працягнуць?</string>
     <string name="UnknownPartisanLinkWarning">Гэтая спасылка не падтрымліваецца бягучай версіяй Партызанскага Тэлеграма. Калі ласка, абновіце праграму.\n\nКалі вы ўжо карыстаецеся апошнюю версію прыкладання, магчыма, гэтая спасылка некарэктная.</string>
     <string name="ConfirmDangerousAction">Пацвердзіце небяспечнае дзеянне.</string>
     <string name="ConfirmDangerousActionInfo">Пацверджанне таго, што дзеянне, якое вы збіраецеся прадпрымаць, можа мець значны ўплыў.</string>

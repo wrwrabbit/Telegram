@@ -2208,9 +2208,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     return;
                 }
                 hideProgressDialog();
-                String title = LocaleController.getString(R.string.FindMessagesDialogTitle);
-                AlertDialog.Builder builder = AlertsCreator.createSimpleAlert(getContext(), title, "Success");
-                showDialog(builder.create());
             });
         }
 
@@ -2221,16 +2218,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     return;
                 }
                 hideProgressDialog();
-                String title = LocaleController.getString(R.string.FindMessagesDialogTitle);
-                String message = null;
-                if (reason == FindMessagesController.ErrorReason.DOCUMENT_LOADING_FAILED) {
-                    message = "Document loading failed";
-                } else if (reason == FindMessagesController.ErrorReason.SOME_MESSAGES_NOT_DELETED) {
-                    message = "Some messages wasn't deleted";
-                }
-                assert message != null;
-                AlertDialog.Builder builder = AlertsCreator.createSimpleAlert(getContext(), title, message);
-                showDialog(builder.create());
             });
         }
 
