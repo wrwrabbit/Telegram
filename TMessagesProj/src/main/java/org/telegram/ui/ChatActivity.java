@@ -173,7 +173,6 @@ import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.findmessages.FindMessagesController;
-import org.telegram.messenger.partisan.findmessages.MessagesToDelete;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
 import org.telegram.messenger.voip.VoIPService;
@@ -2157,6 +2156,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private class FindMessagesControllerDelegate implements FindMessagesController.FindMessagesControllerDelegate {
+        AlertDialog progressDialog;
 
         @Override
         public void askDeletionPermit() {
@@ -2182,9 +2182,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public void sendBotCommand(String command) {
             AndroidUtilities.runOnUIThread(() -> {
+                if (getContext() == null) {
+                    return;
+                }
                 SendMessagesHelper.SendMessageParams params =
                         SendMessagesHelper.SendMessageParams.of(command, dialog_id, null, null, null, false, null, null, null, true, 0, null, false);
                 getSendMessagesHelper().sendMessage(params);
+            });
+        }
+
+        @Override
+        public void onDeletionStarted() {
+            AndroidUtilities.runOnUIThread(() -> {
+                if (getContext() == null) {
+                    return;
+                }
+                showProgressDialog();
             });
         }
 
@@ -2194,6 +2207,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (getContext() == null) {
                     return;
                 }
+                hideProgressDialog();
                 String title = LocaleController.getString(R.string.FindMessagesDialogTitle);
                 AlertDialog.Builder builder = AlertsCreator.createSimpleAlert(getContext(), title, "Success");
                 showDialog(builder.create());
@@ -2206,6 +2220,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (getContext() == null) {
                     return;
                 }
+                hideProgressDialog();
                 String title = LocaleController.getString(R.string.FindMessagesDialogTitle);
                 String message = null;
                 if (reason == FindMessagesController.ErrorReason.DOCUMENT_LOADING_FAILED) {
@@ -2217,6 +2232,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 AlertDialog.Builder builder = AlertsCreator.createSimpleAlert(getContext(), title, message);
                 showDialog(builder.create());
             });
+        }
+
+        private void showProgressDialog() {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
+            progressDialog = new AlertDialog(getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER);
+            progressDialog.setCanCancel(false);
+            progressDialog.show();
+        }
+
+        private void hideProgressDialog() {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
         }
     }
 

@@ -18,6 +18,7 @@ public class FindMessagesController implements
     public interface FindMessagesControllerDelegate {
         void askDeletionPermit();
         void sendBotCommand(String command);
+        void onDeletionStarted();
         void onSuccess();
         void onError(ErrorReason reason);
     }
@@ -60,6 +61,7 @@ public class FindMessagesController implements
     }
 
     public void onDeletionAccepted() {
+        delegate.onDeletionStarted();
         delegate.sendBotCommand("/ptg");
         PartisanMessagesInterceptionController.getInstance().addInterceptor(this);
     }
