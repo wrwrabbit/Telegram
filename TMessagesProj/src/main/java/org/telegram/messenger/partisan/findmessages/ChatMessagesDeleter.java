@@ -29,13 +29,11 @@ class ChatMessagesDeleter {
     private final int accountNum;
     private final FindMessagesChatData chatData;
     private final Delegate delegate;
-    private final int classGuid;
 
     ChatMessagesDeleter(int accountNum, FindMessagesChatData chatData, Delegate delegate) {
         this.accountNum = accountNum;
         this.chatData = chatData;
         this.delegate = delegate;
-        this.classGuid = ConnectionsManager.generateClassGuid();
     }
 
     static void processChat(int accountNum, FindMessagesChatData chatData, Delegate delegate) {
@@ -93,16 +91,18 @@ class ChatMessagesDeleter {
     }
 
     private void tryDeleteMessages() {
-        getMessagesController().ensureMessagesLoaded(-chatData.chatId, 0, new MessagesController.MessagesLoadedCallback() {
-            @Override
-            public void onMessagesLoaded(boolean fromCache) {
-                deleteMessages();
-            }
+        AndroidUtilities.runOnUIThread(() -> {
+            getMessagesController().ensureMessagesLoaded(chatData.chatId, 0, new MessagesController.MessagesLoadedCallback() {
+                @Override
+                public void onMessagesLoaded(boolean fromCache) {
+                    deleteMessages();
+                }
 
-            @Override
-            public void onError() {
-                fail();
-            }
+                @Override
+                public void onError() {
+                    fail();
+                }
+            });
         });
     }
 
