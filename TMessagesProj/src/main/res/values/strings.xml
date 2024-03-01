@@ -8485,5 +8485,5 @@
     <string name="UnknownPartisanLinkWarning">This link is not supported by the current version of Partisan Telegram. Please update the application.\n\nIf you are already using the latest version of the application, this link may not be correct.</string>
     <string name="ConfirmDangerousAction">Confirm dangerous action</string>
     <string name="ConfirmDangerousActionInfo">Confirmation the action you are about to take has the potential for significant impact.</string>
-    <string name="ConfirmDangerousActionAlertInfo">Please proceed with care, as the action you are about to take has the potential for significant impact. If you are sure, click OK to proceed. Your safety is our priority!</string>
+    <string name="ConfirmDangerousActionAlertInfo">Please proceed with care, as the action you are about to take has the potential for significant impact. If you are sure, click OK to proceed.</string>
 </resources>

@@ -138,7 +138,7 @@ public class AlertsCreator {
     public static Dialog createConfirmDangerousActionDialog(Runnable positive, Runnable negative, Context context) {
         if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
+            builder.setTitle(LocaleController.getString("ConfirmDangerousAction", R.string.ConfirmDangerousAction));
             builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
             builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
                 positive.run();
