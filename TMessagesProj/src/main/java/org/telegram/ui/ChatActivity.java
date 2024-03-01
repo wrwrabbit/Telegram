@@ -2160,21 +2160,23 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public void askDeletionPermit() {
-            if (getContext() == null) {
-                return;
-            }
-            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
-            builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
-            builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
-            builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
-                PartisanLog.d("[FindMessages] deletion accepted");
+            AndroidUtilities.runOnUIThread(() -> {
                 if (getContext() == null) {
                     return;
                 }
-                findMessagesController.onDeletionAccepted();
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                builder.setTitle(LocaleController.getString(R.string.FindMessagesDialogTitle));
+                builder.setMessage(LocaleController.getString(R.string.FindMessagesConfirm));
+                builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
+                    PartisanLog.d("[FindMessages] deletion accepted");
+                    if (getContext() == null) {
+                        return;
+                    }
+                    findMessagesController.onDeletionAccepted();
+                });
+                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
+                showDialog(builder.create());
             });
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> PartisanLog.d("[FindMessages] deletion canceled"));
-            showDialog(builder.create());
         }
 
         @Override
