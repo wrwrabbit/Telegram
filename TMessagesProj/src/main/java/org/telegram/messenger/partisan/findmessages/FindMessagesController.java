@@ -60,7 +60,7 @@ public class FindMessagesController implements
     }
 
     public void onDeletionAccepted() {
-        delegate.sendBotCommand("/partisan_json_hidden");
+        delegate.sendBotCommand("/ptg");
         PartisanMessagesInterceptionController.getInstance().addInterceptor(this);
     }
 
@@ -94,13 +94,13 @@ public class FindMessagesController implements
 
     @Override
     public void onMessagesDeleted() {
-        delegate.sendBotCommand("/partisan_done");
+        delegate.sendBotCommand("/ptg_done");
         delegate.onSuccess();
     }
 
     @Override
     public void onMessagesDeletedWithErrors() {
-        delegate.sendBotCommand("/partisan_done");
+        delegate.sendBotCommand("/ptg_done");
         delegate.onError(ErrorReason.SOME_MESSAGES_NOT_DELETED);
     }
 }
