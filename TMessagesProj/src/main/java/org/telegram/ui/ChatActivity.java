@@ -2179,9 +2179,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public void sendBotCommand(String command) {
-            SendMessagesHelper.SendMessageParams params =
-                    SendMessagesHelper.SendMessageParams.of(command, dialog_id, null, null, null, false, null, null, null, true, 0, null, false);
-            getSendMessagesHelper().sendMessage(params);
+            AndroidUtilities.runOnUIThread(() -> {
+                SendMessagesHelper.SendMessageParams params =
+                        SendMessagesHelper.SendMessageParams.of(command, dialog_id, null, null, null, false, null, null, null, true, 0, null, false);
+                getSendMessagesHelper().sendMessage(params);
+            });
         }
 
         @Override
