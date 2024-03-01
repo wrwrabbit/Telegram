@@ -75,7 +75,9 @@ class MessagesToDeleteParser {
 
     private static void fixChatDataIds(FindMessagesChatData chatData) {
         chatData.chatId = -chatData.chatId;
-        chatData.linkedChatId = -chatData.linkedChatId;
+        if (chatData.linkedChatId != null) {
+            chatData.linkedChatId = -chatData.linkedChatId;
+        }
     }
 
     private static List<Integer> getIntegerList(JSONObject obj, String key) throws JSONException {
