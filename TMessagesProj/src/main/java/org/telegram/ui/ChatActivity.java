@@ -7543,42 +7543,58 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else if (UserObject.isReplyUser(currentUser)) {
                 toggleMute(true);
             } else if (currentUser != null && currentUser.bot && botUser != null) {
-                if (botUser.length() != 0) {
-                    getMessagesController().sendBotStart(currentUser, botUser);
-                } else {
-                    Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendStartMsg(), ()->{}, getContext());
-                    if (dialog!=null) {
-                        dialog.show();
+                AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, true, () -> {
+                    if (botUser.length() != 0) {
+                        getMessagesController().sendBotStart(currentUser, botUser);
                     } else {
-                        sendStartMsg();
+                        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
                     }
-                }
-                botUser = null;
-                updateBottomOverlay();
+                    botUser = null;
+                    updateBottomOverlay();
+                });
             } else {
                 if (ChatObject.isChannel(currentChat) && !(currentChat instanceof TLRPC.TL_channelForbidden)) {
                     if (ChatObject.isNotInChat(currentChat)) {
-                        if (currentChat.join_request) {
+                        AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, true, () -> {
+                            if (currentChat.join_request) {
 //                            showDialog(new JoinGroupAlert(context, currentChat, null, this));
-                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendInviteRequest(context), ()->{}, context);
-                            if (dialog!=null) {
-                                dialog.show();
+                                showBottomOverlayProgress(true, true);
+                                MessagesController.getInstance(currentAccount).addUserToChat(
+                                        currentChat.id,
+                                        UserConfig.getInstance(currentAccount).getCurrentUser(),
+                                        0,
+                                        null,
+                                        null,
+                                        true,
+                                        () -> {
+                                            showBottomOverlayProgress(false, true);
+                                        },
+                                        err -> {
+                                            SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+                                            preferences.edit().putLong("dialog_join_requested_time_" + dialog_id, System.currentTimeMillis()).commit();
+                                            if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
+                                                JoinGroupAlert.showBulletin(context, this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
+                                            }
+                                            showBottomOverlayProgress(false, true);
+                                            return false;
+                                        }
+                                );
                             } else {
-                                sendInviteRequest(context);
-                            }
-                        } else {
-                            if (chatInviteRunnable != null) {
-                                AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
-                                chatInviteRunnable = null;
-                            }
+                                if (chatInviteRunnable != null) {
+                                    AndroidUtilities.cancelRunOnUIThread(chatInviteRunnable);
+                                    chatInviteRunnable = null;
+                                }
+                                showBottomOverlayProgress(true, true);
+                                getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
+                                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
 
-                            Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> joinChannelAct(), () -> {}, getContext());
-                            if (dialog != null) {
-                                dialog.show();
-                            } else {
-                                joinChannelAct();
+                                if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
+                                    SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+                                    preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
+                                    getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
+                                }
                             }
-                        }
+                        });
                     } else {
                         toggleMute(true);
                     }
@@ -7930,45 +7946,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             AndroidUtilities.runOnUIThread(() -> pagedownButtonCounter.setCount(prevSetUnreadCount, false));
         }
         return fragmentView;
-    }
-
-    private void sendInviteRequest(Context context) {
-        showBottomOverlayProgress(true, true);
-        MessagesController.getInstance(currentAccount).addUserToChat(
-            currentChat.id,
-            UserConfig.getInstance(currentAccount).getCurrentUser(),
-            0,
-            null,
-            null,
-            true,
-            () -> {
-                showBottomOverlayProgress(false, true);
-            },
-            err -> {
-                SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                preferences.edit().putLong("dialog_join_requested_time_" + dialog_id, System.currentTimeMillis()).commit();
-                if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
-                    JoinGroupAlert.showBulletin(context, this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
-                }
-                showBottomOverlayProgress(false, true);
-                return false;
-            }
-        );
-    }
-
-    private void sendStartMsg() {
-        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
-    }
-
-    private void joinChannelAct() {
-        showBottomOverlayProgress(true, true);
-        getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ChatActivity.this, null);
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.closeSearchByActiveAction);
-        if (hasReportSpam() && reportSpamButton.getTag(R.id.object_tag) != null) {
-            SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-            preferences.edit().putInt("dialog_bar_vis3" + dialog_id, 3).commit();
-            getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
-        }
     }
 
     public void setTagFilter(ReactionsLayoutInBubble.VisibleReaction reaction) {
@@ -28402,95 +28379,85 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (!SharedConfig.allowReactions && !FakePasscodeUtils.isFakePasscodeActivated()) {
             return;
         }
-        Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent, withoutAnimation), ()->{}, getContext());
-        if (dialog!=null) {
-            dialog.show();
-        } else {
-            selectReactionOnConfirm(primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent, withoutAnimation);
-        }
-    }
 
-    private void selectReactionOnConfirm(MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent, boolean withoutAnimation) {
-        if (isInScheduleMode() || primaryMessage == null) {
-            return;
-        }
-
-        if (getDialogId() == getUserConfig().getClientUserId() && !getUserConfig().isPremium() && primaryMessage.messageOwner != null && (primaryMessage.messageOwner.reactions == null || (primaryMessage.messageOwner.reactions.reactions_as_tags || primaryMessage.messageOwner.reactions.results.isEmpty()))) {
-            new PremiumFeatureBottomSheet(ChatActivity.this, PremiumPreviewFragment.PREMIUM_FEATURE_SAVED_TAGS, true).show();
-            return;
-        }
-
-        ReactionsEffectOverlay.removeCurrent(false);
-        int currentChosenReactions = primaryMessage.getChoosenReactions().size();
-        boolean added = primaryMessage.selectReaction(visibleReaction, bigEmoji, fromDoubleTap);
-        int messageIdForCell = primaryMessage.getId();
-        if (groupedMessagesMap.get(primaryMessage.getGroupId()) != null) {
-            int flags = primaryMessage.shouldDrawReactionsInLayout() ? MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_LEFT : MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_RIGHT;
-            MessageObject messageObject = groupedMessagesMap.get(primaryMessage.getGroupId()).findMessageWithFlags(flags);
-            if (messageObject != null) {
-                messageIdForCell = messageObject.getId();
+        AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, !ChatObject.isChannelAndNotMegaGroup(currentChat), () -> {
+            if (getDialogId() == getUserConfig().getClientUserId() && !getUserConfig().isPremium() && primaryMessage.messageOwner != null && (primaryMessage.messageOwner.reactions == null || (primaryMessage.messageOwner.reactions.reactions_as_tags || primaryMessage.messageOwner.reactions.results.isEmpty()))) {
+                new PremiumFeatureBottomSheet(ChatActivity.this, PremiumPreviewFragment.PREMIUM_FEATURE_SAVED_TAGS, true).show();
+                return;
             }
-        }
 
-        int finalMessageIdForCell = messageIdForCell;
-
-        if (added) {
-            ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
-            showMultipleReactionsPromo(cell, visibleReaction, currentChosenReactions);
-            if (!fromDoubleTap) {
-                ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, fromView, x, y, visibleReaction, currentAccount, reactionsLayout != null ? (bigEmoji ? ReactionsEffectOverlay.LONG_ANIMATION : ReactionsEffectOverlay.ONLY_MOVE_ANIMATION) : ReactionsEffectOverlay.SHORT_ANIMATION);
-            }
-        }
-        if (added) {
-            if (visibleReaction.emojicon != null) {
-                AndroidUtilities.makeAccessibilityAnnouncement(LocaleController.formatString("AccDescrYouReactedWith", R.string.AccDescrYouReactedWith, visibleReaction.emojicon));
-            }
-        }
-        ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions = new ArrayList<>();
-        visibleReactions.addAll(primaryMessage.getChoosenReactions());
-        getSendMessagesHelper().sendReaction(primaryMessage, visibleReactions, added ? visibleReaction : null, bigEmoji, addToRecent, ChatActivity.this, updateReactionRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (withoutAnimation) {
-                    return;
+            ReactionsEffectOverlay.removeCurrent(false);
+            int currentChosenReactions = primaryMessage.getChoosenReactions().size();
+            boolean added = primaryMessage.selectReaction(visibleReaction, bigEmoji, fromDoubleTap);
+            int messageIdForCell = primaryMessage.getId();
+            if (groupedMessagesMap.get(primaryMessage.getGroupId()) != null) {
+                int flags = primaryMessage.shouldDrawReactionsInLayout() ? MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_LEFT : MessageObject.POSITION_FLAG_BOTTOM | MessageObject.POSITION_FLAG_RIGHT;
+                MessageObject messageObject = groupedMessagesMap.get(primaryMessage.getGroupId()).findMessageWithFlags(flags);
+                if (messageObject != null) {
+                    messageIdForCell = messageObject.getId();
                 }
-                if (updateReactionRunnable != null) {
-                    updateReactionRunnable = null;
-                    if (fromDoubleTap) {
-                        doOnIdle(() -> {
-                            AndroidUtilities.runOnUIThread(() -> {
-                                ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
-                                if (added) {
-                                    ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, null, x, y, visibleReaction, currentAccount, ReactionsEffectOverlay.SHORT_ANIMATION);
-                                    ReactionsEffectOverlay.startAnimation();
-                                }
-                            }, 50);
-                        });
-                    } else {
-                        doOnIdle(() -> {
-                            MessageObject messageToUpdate = primaryMessage;
-                            MessageObject messageInDict = messagesDict[0].get(primaryMessage.getId());
-                            if (messageInDict != null && messageInDict != primaryMessage) {
-                                messageToUpdate = messagesDict[0].get(primaryMessage.getId());
-                                messageToUpdate.messageOwner.reactions = primaryMessage.messageOwner.reactions;
-                            }
+            }
 
-                            updateMessageAnimated(messageToUpdate, true);
-                            ReactionsEffectOverlay.startAnimation();
-                        });
+            int finalMessageIdForCell = messageIdForCell;
+
+            if (added) {
+                ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
+                showMultipleReactionsPromo(cell, visibleReaction, currentChosenReactions);
+                if (!fromDoubleTap) {
+                    ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, fromView, x, y, visibleReaction, currentAccount, reactionsLayout != null ? (bigEmoji ? ReactionsEffectOverlay.LONG_ANIMATION : ReactionsEffectOverlay.ONLY_MOVE_ANIMATION) : ReactionsEffectOverlay.SHORT_ANIMATION);
+                }
+            }
+            if (added) {
+                if (visibleReaction.emojicon != null) {
+                    AndroidUtilities.makeAccessibilityAnnouncement(LocaleController.formatString("AccDescrYouReactedWith", R.string.AccDescrYouReactedWith, visibleReaction.emojicon));
+                }
+            }
+            ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions = new ArrayList<>();
+            visibleReactions.addAll(primaryMessage.getChoosenReactions());
+            getSendMessagesHelper().sendReaction(primaryMessage, visibleReactions, added ? visibleReaction : null, bigEmoji, addToRecent, ChatActivity.this, updateReactionRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (withoutAnimation) {
+                        return;
                     }
-                    closeMenu();
+                    if (updateReactionRunnable != null) {
+                        updateReactionRunnable = null;
+                        if (fromDoubleTap) {
+                            doOnIdle(() -> {
+                                AndroidUtilities.runOnUIThread(() -> {
+                                    ChatMessageCell cell = findMessageCell(finalMessageIdForCell, true);
+                                    if (added) {
+                                        ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, null, x, y, visibleReaction, currentAccount, ReactionsEffectOverlay.SHORT_ANIMATION);
+                                        ReactionsEffectOverlay.startAnimation();
+                                    }
+                                }, 50);
+                            });
+                        } else {
+                            doOnIdle(() -> {
+                                MessageObject messageToUpdate = primaryMessage;
+                                MessageObject messageInDict = messagesDict[0].get(primaryMessage.getId());
+                                if (messageInDict != null && messageInDict != primaryMessage) {
+                                    messageToUpdate = messagesDict[0].get(primaryMessage.getId());
+                                    messageToUpdate.messageOwner.reactions = primaryMessage.messageOwner.reactions;
+                                }
+
+                                updateMessageAnimated(messageToUpdate, true);
+                                ReactionsEffectOverlay.startAnimation();
+                            });
+                        }
+                        closeMenu();
+                    }
                 }
+            });
+
+            if (fromDoubleTap || withoutAnimation) {
+                updateMessageAnimated(primaryMessage, true);
+                updateReactionRunnable.run();
+            }
+            if (!withoutAnimation) {
+                AndroidUtilities.runOnUIThread(updateReactionRunnable, 50);
             }
         });
-
-        if (fromDoubleTap || withoutAnimation) {
-            updateMessageAnimated(primaryMessage, true);
-            updateReactionRunnable.run();
-        }
-        if (!withoutAnimation) {
-            AndroidUtilities.runOnUIThread(updateReactionRunnable, 50);
-        }
     }
 
     @SuppressLint("NotifyDataSetChanged")

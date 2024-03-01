@@ -63,7 +63,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
-import android.util.Log;
 import android.util.Property;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -96,7 +95,6 @@ import androidx.annotation.Nullable;
 import androidx.collection.LongSparseArray;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.math.MathUtils;
 import androidx.core.os.BuildCompat;
 import androidx.core.view.ViewCompat;
@@ -159,7 +157,6 @@ import org.telegram.ui.BasePermissionsActivity;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.Premium.GiftPremiumBottomSheet;
 import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
-import org.telegram.ui.Components.Premium.PremiumGradient;
 import org.telegram.ui.ContentPreviewViewer;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.GroupStickersActivity;
@@ -175,8 +172,6 @@ import org.telegram.ui.Stories.recorder.HintView2;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -3266,16 +3261,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             if ((sendPopupWindow != null && sendPopupWindow.isShowing()) || (runningAnimationAudio != null && runningAnimationAudio.isRunning()) || moveToSendStateRunnable != null) {
                 return;
             }
-            if (parentFragment.isReplyChatComment()) {
-                    Dialog dialog = AlertsCreator.createConfirmDangerousActionDialog(() -> sendMessage(), () -> {}, getContext());
-                if (dialog!=null) {
-                    dialog.show();
-                } else {
-                    sendMessage();
-                }
-                return;
-            }
-            sendMessage();
+            AlertsCreator.showConfirmDangerousActionDialogIfNeed(parentFragment, parentFragment.isReplyChatComment(), () -> {
+                sendMessage();
+            });
         });
         sendButton.setOnLongClickListener(this::onSendLongClick);
 
