@@ -79,7 +79,7 @@ class ChatMessagesDeleter {
         PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve linked username: " + chatData.linkedUsername);
         resolveUsername(chatData.linkedUsername, chatData.linkedChatId, success -> {
             if (success) {
-                tryDeleteMessages();
+                loadFullLinkedChat();
             } else {
                 fail();
             }
@@ -88,6 +88,18 @@ class ChatMessagesDeleter {
 
     private void resolveUsername(String username, long chatId, KnownChatUsernameResolver.KnownChatUsernameResolverDelegate callback) {
         KnownChatUsernameResolver.resolveUsername(accountNum, username, chatId, callback);
+    }
+
+    private void loadFullLinkedChat() {
+        TLRPC.TL_channels_getFullChannel request = new TLRPC.TL_channels_getFullChannel();
+        request.channel = getMessagesController().getInputChannel(chatData.linkedChatId);
+        getConnectionsManager().sendRequest(request, (response, error) -> {
+            if (response != null) {
+                tryDeleteMessages();
+            } else {
+                fail();
+            }
+        });
     }
 
     private void tryDeleteMessages() {
@@ -134,5 +146,9 @@ class ChatMessagesDeleter {
 
     private MessagesController getMessagesController() {
         return MessagesController.getInstance(accountNum);
+    }
+
+    private ConnectionsManager getConnectionsManager() {
+        return ConnectionsManager.getInstance(accountNum);
     }
 }
