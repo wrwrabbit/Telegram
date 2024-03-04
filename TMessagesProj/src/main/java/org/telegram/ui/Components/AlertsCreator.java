@@ -6657,10 +6657,10 @@ public class AlertsCreator {
         // but to wrap it in a positive runnable. The showDialog flag serves the same purpose.
         if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated() && dialogShowingAllowed) {
             AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
-            builder.setTitle(LocaleController.getString("ConfirmDangerousAction", R.string.ConfirmDangerousAction));
-            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
-            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> positive.run());
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+            builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
+            builder.setMessage(LocaleController.getString(R.string.ConfirmDangerousActionAlertInfo));
+            builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog2, which) -> positive.run());
+            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
             fragment.showDialog(builder.create());
         } else if (positive != null) {
             positive.run();
