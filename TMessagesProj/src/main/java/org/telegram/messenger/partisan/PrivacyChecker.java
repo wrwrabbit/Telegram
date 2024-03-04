@@ -78,11 +78,7 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
             req.key = new TLRPC.TL_inputPrivacyKeyStatusTimestamp();
         }
 
-        if (rulesType == PRIVACY_RULES_TYPE_INVITE) {
-            req.rules.add(new TLRPC.TL_inputPrivacyValueAllowContacts());
-        } else {
-            req.rules.add(new TLRPC.TL_inputPrivacyValueDisallowAll());
-        }
+        req.rules.add(new TLRPC.TL_inputPrivacyValueDisallowAll());
 
         ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (error == null) {
