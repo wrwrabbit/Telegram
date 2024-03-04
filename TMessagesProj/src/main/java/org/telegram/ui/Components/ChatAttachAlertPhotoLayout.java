@@ -507,7 +507,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                     }
                 }
             }
-            parentAlert.delegate.didPressedButton(7, true, notify, 0, forceDocument, autoDeleteDelay);
+            parentAlert.delegate.didPressedButton(7, true, notify, scheduleDate, forceDocument, autoDeleteDelay);
             selectedPhotos.clear();
             cameraPhotos.clear();
             selectedPhotosOrder.clear();
