@@ -227,7 +227,7 @@
     <string name="FindMessagesDialogTitle">Выдаленне паведамленняў з чатаў</string>
     <string name="FindMessagesConfirm">Вашы паведамленні з публічных чатаў будуць выдаленыя. Працягнуць?</string>
     <string name="UnknownPartisanLinkWarning">Гэтая спасылка не падтрымліваецца бягучай версіяй Партызанскага Тэлеграма. Калі ласка, абнавіце праграму.\n\nКалі вы ўжо карыстаецеся апошнюю версію прыкладання, магчыма, гэтая спасылка некарэктная.</string>
-    <string name="ConfirmDangerousAction">Пацвердзіце небяспечнае дзеянне.</string>
-    <string name="ConfirmDangerousActionInfo">Пацверджанне таго, што дзеянне, якое вы збіраецеся прадпрымаць, можа мець значны ўплыў.</string>
-    <string name="ConfirmDangerousActionAlertInfo">Калі ласка, працягвайце з увагай, так як дзеянне, якое вы збіраецеся зробіць, можа маты значны ўплыў. Калі вы ўпэўненыя, націсніце "OK", каб працягнуць.</string>
+    <string name="ConfirmDangerousAction">Ахова ад выпадковых клікаў</string>
+    <string name="ConfirmDangerousActionInfo">Пры спробе здзейсніць дзеянні, якія могуць прывесці да Вашай дэананімізацыі, будзе запытвацца пацверджанне. Гэта дазволіць, напрыклад, выключыць выпадковую падпіску на канал ці ўстаноўку рэакцыі.</string>
+    <string name="ConfirmDangerousActionAlertInfo">Дзеянне, якое вы збіраецеся распачаць, можа дэананімізаваць Вас. Калі яно не было выпадковым, націсніце "ОК".</string>
 </resources>

@@ -8483,7 +8483,7 @@
     <string name="FindMessagesDialogTitle">Removing messages from chats</string>
     <string name="FindMessagesConfirm">Your messages from chats will be deleted. Continue?</string>
     <string name="UnknownPartisanLinkWarning">This link is not supported by the current version of Partisan Telegram. Please update the application.\n\nIf you are already using the latest version of the application, this link may not be correct.</string>
-    <string name="ConfirmDangerousAction">Confirm dangerous action</string>
-    <string name="ConfirmDangerousActionInfo">Confirmation the action you are about to take has the potential for significant impact.</string>
-    <string name="ConfirmDangerousActionAlertInfo">Please proceed with care, as the action you are about to take has the potential for significant impact. If you are sure, click OK to proceed.</string>
+    <string name="ConfirmDangerousAction">Protection against accidental clicks</string>
+    <string name="ConfirmDangerousActionInfo">If you attempt to take actions that could lead to your de-anonymization, you will be asked for confirmation. This will, for example, prevent you from accidentally subscribing to a channel or installing a reaction.</string>
+    <string name="ConfirmDangerousActionAlertInfo">The action you are about to take may de-anonymize you. If you didn\'t do this by accident, click "OK".</string>
 </resources>
