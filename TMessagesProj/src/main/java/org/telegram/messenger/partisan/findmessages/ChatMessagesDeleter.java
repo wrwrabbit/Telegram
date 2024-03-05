@@ -63,6 +63,7 @@ class ChatMessagesDeleter {
             } else if (chatData.linkedChatId != null) {
                 resolveLinkedChatUsername();
             } else {
+                PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " resolve username failed");
                 fail();
             }
         });
@@ -74,6 +75,7 @@ class ChatMessagesDeleter {
             if (success) {
                 loadFullLinkedChat();
             } else {
+                PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " resolve linked username failed");
                 fail();
             }
         });
@@ -92,6 +94,7 @@ class ChatMessagesDeleter {
                 getMessagesStorage().putUsersAndChats(res.users, res.chats, true, false);
                 tryDeleteMessages();
             } else {
+                PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " load full linked chat failed");
                 fail();
             }
         });
@@ -107,6 +110,7 @@ class ChatMessagesDeleter {
 
                 @Override
                 public void onError() {
+                    PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " ensure messages loaded failed");
                     fail();
                 }
             });
