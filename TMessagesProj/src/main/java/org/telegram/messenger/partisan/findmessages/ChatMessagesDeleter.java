@@ -3,19 +3,12 @@ package org.telegram.messenger.partisan.findmessages;
 import com.google.common.collect.Lists;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.FileLog;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.R;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.AlertsCreator;
-import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,9 +85,11 @@ class ChatMessagesDeleter {
 
     private void loadFullLinkedChat() {
         TLRPC.TL_channels_getFullChannel request = new TLRPC.TL_channels_getFullChannel();
-        request.channel = getMessagesController().getInputChannel(chatData.linkedChatId);
+        request.channel = getMessagesController().getInputChannel(-chatData.linkedChatId);
         getConnectionsManager().sendRequest(request, (response, error) -> {
             if (response != null) {
+                TLRPC.TL_messages_chatFull res = (TLRPC.TL_messages_chatFull) response;
+                getMessagesStorage().putUsersAndChats(res.users, res.chats, true, false);
                 tryDeleteMessages();
             } else {
                 fail();
@@ -146,6 +141,10 @@ class ChatMessagesDeleter {
 
     private MessagesController getMessagesController() {
         return MessagesController.getInstance(accountNum);
+    }
+
+    private MessagesStorage getMessagesStorage() {
+        return MessagesStorage.getInstance(accountNum);
     }
 
     private ConnectionsManager getConnectionsManager() {
