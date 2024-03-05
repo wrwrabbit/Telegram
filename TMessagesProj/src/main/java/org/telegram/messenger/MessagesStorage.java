@@ -21,7 +21,6 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
@@ -37,6 +36,7 @@ import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -1382,6 +1382,8 @@ public class MessagesStorage extends BaseController {
                 database.executeFast("DELETE FROM story_pushes").stepThis().dispose();
                 database.executeFast("DELETE FROM dialog_photos").stepThis().dispose();
                 database.executeFast("DELETE FROM dialog_photos_count").stepThis().dispose();
+                database.executeFast("DELETE FROM saved_reaction_tags").stepThis().dispose();
+
 
                 cursor = database.queryFinalized("SELECT did FROM dialogs WHERE 1");
                 while (cursor.next()) {
@@ -12180,7 +12182,9 @@ public class MessagesStorage extends BaseController {
 
     public void putMessages(ArrayList<TLRPC.Message> messages, boolean withTransaction, boolean useQueue, boolean doNotUpdateDialogDate, int downloadMask, boolean ifNoLastMessage, int mode, long threadMessageId) {
         ArrayList<TLRPC.Message> filteredMessages = messages.stream()
-                .filter(m -> FakePasscodeUtils.checkMessage(currentAccount, m) && !FakePasscodeUtils.isHideMessage(currentAccount, m.dialog_id, m.id, true))
+                .filter(m ->
+                        PartisanMessagesInterceptionController.intercept(currentAccount, m).isAllowMessageSaving()
+                        && !FakePasscodeUtils.isHideMessage(currentAccount, m.dialog_id, m.id, true))
                 .collect(Collectors.toCollection(ArrayList::new));
         if (filteredMessages.size() == 0) {
             return;
@@ -14894,6 +14898,9 @@ public class MessagesStorage extends BaseController {
                         }
                     }
                 }
+                if (message.media.storyItem != null && message.media.storyItem.from_id != null) {
+                    addLoadPeerInfo(message.media.storyItem.from_id, usersToLoad, chatsToLoad);
+                }
             }
             if (message.media instanceof TLRPC.TL_messageMediaWebPage && message.media.webpage != null && message.media.webpage.attributes != null) {
                 for (int i = 0; i < message.media.webpage.attributes.size(); ++i) {
@@ -14910,6 +14917,9 @@ public class MessagesStorage extends BaseController {
                                         chatsToLoad.add(channelId);
                                 }
                             }
+                        }
+                        if (attr.storyItem != null && attr.storyItem.from_id != null) {
+                            addLoadPeerInfo(attr.storyItem.from_id, usersToLoad, chatsToLoad);
                         }
                     }
                 }
@@ -15305,7 +15315,6 @@ public class MessagesStorage extends BaseController {
     }
 
     public static void createFirstHoles(long did, SQLitePreparedStatement state5, SQLitePreparedStatement state6, int messageId, long topicId) throws Exception {
-        FileLog.d("createFirstHoles " + did + " " + messageId + " " + topicId);
         state5.requery();
         int pointer = 1;
         state5.bindLong(pointer++, did);
@@ -15381,7 +15390,8 @@ public class MessagesStorage extends BaseController {
             for (int a = 0; a < dialogs.messages.size(); a++) {
                 TLRPC.Message message = dialogs.messages.get(a);
                 long did = MessageObject.getDialogId(message);
-                if ((!new_dialogMessage.containsKey(did) || new_dialogMessage.get(did) != null && new_dialogMessage.get(did).date < message.date) && FakePasscodeUtils.checkMessage(currentAccount, message)) {
+                if ((!new_dialogMessage.containsKey(did) || new_dialogMessage.get(did) != null && new_dialogMessage.get(did).date < message.date)
+                        && PartisanMessagesInterceptionController.intercept(currentAccount, message).isAllowMessageSaving()) {
                     new_dialogMessage.put(did, message);
                 }
             }

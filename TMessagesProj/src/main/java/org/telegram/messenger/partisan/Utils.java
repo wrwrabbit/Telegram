@@ -31,6 +31,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -266,7 +267,7 @@ public class Utils {
         if (message == null) {
             return;
         }
-        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (SharedConfig.cutForeignAgentsText && !FakePasscodeUtils.isFakePasscodeActivated()) {
             try {
                 SpannableString source = new SpannableString(message.message);
                 for (TLRPC.MessageEntity entity : message.entities) {
@@ -300,7 +301,7 @@ public class Utils {
             return null;
         }
         CharSequence fixedMessage = message;
-        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (SharedConfig.cutForeignAgentsText && !FakePasscodeUtils.isFakePasscodeActivated()) {
             fixedMessage = cutForeignAgentPart(message, leaveEmpty);
         }
         return fixedMessage;
@@ -472,5 +473,12 @@ public class Utils {
         } else {
             AndroidUtilities.runOnUIThread(runnable, 0);
         }
+    }
+
+    public static byte[] concatByteArrays(byte[] first, byte[] second) {
+        final byte[] combined = new byte[first.length + second.length];
+        System.arraycopy(first, 0, combined, 0, first.length);
+        System.arraycopy(second, 0, combined, first.length, second.length);
+        return combined;
     }
 }

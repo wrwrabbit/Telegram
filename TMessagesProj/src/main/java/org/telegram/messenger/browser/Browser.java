@@ -32,6 +32,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.ShareBroadcastReceiver;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.partisan.links.PartisanLinkController;
 import org.telegram.messenger.support.customtabs.CustomTabsCallback;
 import org.telegram.messenger.support.customtabs.CustomTabsClient;
 import org.telegram.messenger.support.customtabs.CustomTabsIntent;
@@ -246,6 +247,9 @@ public class Browser {
 
     public static void openUrl(final Context context, Uri uri, final boolean allowCustom, boolean tryTelegraph, boolean forceNotInternalForApps, Progress inCaseLoading) {
         if (context == null || uri == null) {
+            return;
+        }
+        if (PartisanLinkController.tryProcessAction(uri)) {
             return;
         }
         final int currentAccount = UserConfig.selectedAccount;

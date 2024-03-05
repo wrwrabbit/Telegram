@@ -1,20 +1,34 @@
 package org.telegram.messenger.partisan.findmessages;
 
+import com.google.common.collect.Lists;
+
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.R;
+import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
-import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ChatActivity;
+import org.telegram.ui.Components.AlertsCreator;
+import org.telegram.ui.LaunchActivity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 class ChatMessagesDeleter {
     interface Delegate {
         void chatProcessed(long chatId, boolean wasError);
     }
 
-    final int accountNum;
-    final FindMessagesChatData chatData;
-    final Delegate delegate;
+    private static final int MESSAGES_CHUNK_SIZE = 100;
+    private final int accountNum;
+    private final FindMessagesChatData chatData;
+    private final Delegate delegate;
 
     ChatMessagesDeleter(int accountNum, FindMessagesChatData chatData, Delegate delegate) {
         this.accountNum = accountNum;
@@ -27,55 +41,98 @@ class ChatMessagesDeleter {
         deleter.processChatInternal();
     }
 
-    void processChatInternal() {
-        if (isDialogResolved(chatData.chatId)) {
+    private void processChatInternal() {
+        if (isChatResolved(chatData.chatId)) {
             PartisanLog.d("[FindMessages] delete messages from chatId " + chatData.chatId);
-            deleteMessages();
+            tryDeleteMessages();
         } else {
-            resolveUsername();
+            getAccessToChat();
         }
     }
 
-    private boolean isDialogResolved(long chatId) {
+    private boolean isChatResolved(long chatId) {
         return getMessagesController().getDialog(chatId) != null;
     }
 
-    private void resolveUsername() {
-        PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve username: " + chatData.username);
-        TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
-        req.username = chatData.username;
-        getConnectionsManager().sendRequest(req, this::onUsernameResolved);
+    private void getAccessToChat() {
+        if (chatData.username != null) {
+            resolveChatUsername();
+        } else if (chatData.linkedChatId != null) {
+            resolveLinkedChatUsername();
+        }
     }
 
-    private void onUsernameResolved(TLObject response, TLRPC.TL_error error) {
-        if (response != null) {
-            PartisanLog.d(
-                    "[FindMessages] username " + chatData.username + " resolved." +
-                    " delete messages from chatId " + chatData.chatId);
-            deleteMessages();
-        } else {
-            PartisanLog.d("[FindMessages] username " + chatData.username + " resolving failed.");
-            delegate.chatProcessed(chatData.chatId, true);
-        }
+    private void resolveChatUsername() {
+        PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve username: " + chatData.username);
+        resolveUsername(chatData.username, chatData.chatId, success -> {
+            if (success) {
+                tryDeleteMessages();
+            } else if (chatData.linkedChatId != null) {
+                resolveLinkedChatUsername();
+            } else {
+                fail();
+            }
+        });
+    }
+
+    private void resolveLinkedChatUsername() {
+        PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve linked username: " + chatData.linkedUsername);
+        resolveUsername(chatData.linkedUsername, chatData.linkedChatId, success -> {
+            if (success) {
+                tryDeleteMessages();
+            } else {
+                fail();
+            }
+        });
+    }
+
+    private void resolveUsername(String username, long chatId, KnownChatUsernameResolver.KnownChatUsernameResolverDelegate callback) {
+        KnownChatUsernameResolver.resolveUsername(accountNum, username, chatId, callback);
+    }
+
+    private void tryDeleteMessages() {
+        AndroidUtilities.runOnUIThread(() -> {
+            getMessagesController().ensureMessagesLoaded(chatData.chatId, 0, new MessagesController.MessagesLoadedCallback() {
+                @Override
+                public void onMessagesLoaded(boolean fromCache) {
+                    deleteMessages();
+                }
+
+                @Override
+                public void onError() {
+                    fail();
+                }
+            });
+        });
     }
 
     private void deleteMessages() {
         AndroidUtilities.runOnUIThread(() -> {
-            PartisanLog.d(
-                    "[FindMessages] run deletion for " + chatData.chatId +
-                    " for " + chatData.messageIds.size() + " messages");
-            getMessagesController().deleteMessages(
-                    chatData.messageIds, null, null,
-                    chatData.chatId, true, false);
-            delegate.chatProcessed(chatData.chatId, false);
+            for (List<Integer> messagesChunk : Lists.partition(chatData.messageIds, MESSAGES_CHUNK_SIZE)) {
+                deleteMessagesChunk(messagesChunk);
+            }
+            success();
         });
+    }
+
+    private void deleteMessagesChunk(List<Integer> messagesChunk) {
+        PartisanLog.d(
+                "[FindMessages] run deletion for " + chatData.chatId +
+                        " for " + messagesChunk.size() + " messages");
+        getMessagesController().deleteMessages(
+                new ArrayList<>(messagesChunk), null, null,
+                chatData.chatId, true, false);
+    }
+
+    private void fail() {
+        delegate.chatProcessed(chatData.chatId, true);
+    }
+
+    private void success() {
+        delegate.chatProcessed(chatData.chatId, false);
     }
 
     private MessagesController getMessagesController() {
         return MessagesController.getInstance(accountNum);
-    }
-
-    private ConnectionsManager getConnectionsManager() {
-        return ConnectionsManager.getInstance(accountNum);
     }
 }

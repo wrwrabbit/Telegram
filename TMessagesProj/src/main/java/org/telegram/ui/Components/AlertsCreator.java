@@ -134,22 +134,6 @@ public class AlertsCreator {
     public final static int PERMISSIONS_REQUEST_TOP_ICON_SIZE = 72;
     public final static int NEW_DENY_DIALOG_TOP_ICON_SIZE = 52;
 
-
-    public static Dialog createConfirmDangerousActionDialog(Runnable positive, Runnable negative, Context context) {
-        if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle(LocaleController.getString("ConfirmDangerousActions", R.string.ConfirmDangerousAction));
-            builder.setMessage(LocaleController.getString("ConfirmDangerousActionAlertInfo", R.string.ConfirmDangerousActionAlertInfo));
-            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog2, which) -> {
-                positive.run();
-            });
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog2, which) -> {
-                negative.run();
-            });
-            return builder.create();
-        }
-        return null;
-    }
     public static Dialog createForgotPasscodeDialog(Context ctx) {
         return new AlertDialog.Builder(ctx)
                 .setTitle(LocaleController.getString(R.string.ForgotPasscode))
@@ -6666,6 +6650,21 @@ public class AlertsCreator {
         AlertDialog dialog = builder.create();
         fragment.showDialog(dialog);
         return dialog;
+    }
+
+    public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, boolean dialogShowingAllowed, Runnable positive) {
+        // This approach may seem strange, but it allows us not to move or duplicate the original code,
+        // but to wrap it in a positive runnable. The showDialog flag serves the same purpose.
+        if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated() && dialogShowingAllowed) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
+            builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
+            builder.setMessage(LocaleController.getString(R.string.ConfirmDangerousActionAlertInfo));
+            builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog2, which) -> positive.run());
+            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+            fragment.showDialog(builder.create());
+        } else if (positive != null) {
+            positive.run();
+        }
     }
 
     public interface SoundFrequencyDelegate {

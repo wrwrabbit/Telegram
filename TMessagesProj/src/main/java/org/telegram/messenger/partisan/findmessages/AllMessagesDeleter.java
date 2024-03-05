@@ -3,19 +3,22 @@ package org.telegram.messenger.partisan.findmessages;
 import org.telegram.messenger.partisan.PartisanLog;
 
 public class AllMessagesDeleter {
-    private final Runnable onSuccess;
-    private final Runnable onError;
-    private final MessagesToDelete messagesToDelete;
-    private boolean wasError = false;
-
-    private AllMessagesDeleter(MessagesToDelete messagesToDelete, Runnable onSuccess, Runnable onError) {
-        this.messagesToDelete = messagesToDelete;
-        this.onSuccess = onSuccess;
-        this.onError = onError;
+    public interface MessagesDeleterDelegate {
+        void onMessagesDeleted();
+        void onMessagesDeletedWithErrors();
     }
 
-    static void deleteMessages(MessagesToDelete messagesToDelete, Runnable onSuccess, Runnable onError) {
-        AllMessagesDeleter deleter = new AllMessagesDeleter(messagesToDelete, onSuccess, onError);
+    private final MessagesToDelete messagesToDelete;
+    private final MessagesDeleterDelegate delegate;
+    private boolean wasError = false;
+
+    private AllMessagesDeleter(MessagesToDelete messagesToDelete, MessagesDeleterDelegate delegate) {
+        this.messagesToDelete = messagesToDelete;
+        this.delegate = delegate;
+    }
+
+    static void deleteMessages(MessagesToDelete messagesToDelete, MessagesDeleterDelegate delegate) {
+        AllMessagesDeleter deleter = new AllMessagesDeleter(messagesToDelete, delegate);
         deleter.processMessagesToDelete();
     }
 
@@ -40,10 +43,10 @@ public class AllMessagesDeleter {
             PartisanLog.d("[FindMessages] all chats were processed");
             if (!wasError) {
                 PartisanLog.d("[FindMessages] success");
-                onSuccess.run();
+                delegate.onMessagesDeleted();
             } else {
                 PartisanLog.d("[FindMessages] was error");
-                onError.run();
+                delegate.onMessagesDeletedWithErrors();
             }
         }
     }
