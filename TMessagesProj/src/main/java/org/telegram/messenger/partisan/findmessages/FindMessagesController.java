@@ -111,7 +111,6 @@ public class FindMessagesController implements
     @Override
     public void onMessagesDeletedWithErrors() {
         delegate.sendBotCommand("/ptg_fail");
-        deletionInProgress = false;
         delegate.onError(ErrorReason.SOME_MESSAGES_NOT_DELETED);
         Utilities.globalQueue.postRunnable(() -> deletionInProgress = false, 1000);
     }
