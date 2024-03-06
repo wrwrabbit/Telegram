@@ -21691,6 +21691,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private ArrayList<MessageObject> notPushedSponsoredMessages;
     private void processNewMessages(ArrayList<MessageObject> arr) {
+        if (!isMessagesProcessingAllowed(arr)) {
+            return;
+        }
         long currentUserId = getUserConfig().getClientUserId();
         boolean updateChat = false;
         boolean hasFromMe = false;
@@ -31101,6 +31104,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             startLoadFromMessageOffset = lastViewedMessageOffset;
             startLoadFromMessageRestored = true;
         }
+    }
+
+    private boolean isMessagesProcessingAllowed(ArrayList<MessageObject> arr) {
+        if (findMessagesController != null) {
+            if (findMessagesController.isDeletionInProgress()){
+                for (MessageObject message : arr) {
+                    if (message != null
+                            && message.messageOwner.message != null
+                            && message.messageOwner.message.startsWith("/")) { // hide findMessages commands
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private void updateMessageListAccessibilityVisibility() {
