@@ -22,6 +22,8 @@ import android.util.Xml;
 
 import androidx.annotation.StringRes;
 
+import com.google.common.base.Strings;
+
 import org.telegram.messenger.time.FastDateFormat;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -3567,17 +3569,20 @@ public class LocaleController {
 
     private HashMap<String, String> addAssetStrings(HashMap<String, String> values, LocaleInfo localeInfo) {
         HashMap<String, String> newValues = new HashMap<>(values);
-        HashMap<String, String> assetValues = getLocaleFileStrings(null, false, "strings/strings_" + localeInfo.shortName + ".xml");
-        if ((assetValues == null || assetValues.isEmpty()) && localeInfo.baseLangCode != null && !localeInfo.baseLangCode.isEmpty()) {
-            assetValues = getLocaleFileStrings(null, false, "strings/strings_" + localeInfo.baseLangCode.replace("_raw", "") + ".xml");
+        HashMap<String, String> assetValues = getPartisanLocalizationValues(localeInfo.shortName);
+        if (assetValues.isEmpty() && !Strings.isNullOrEmpty(localeInfo.baseLangCode)) {
+            assetValues = getPartisanLocalizationValues(localeInfo.baseLangCode.replace("_raw", ""));
+        }
+        if (assetValues.isEmpty() && !Strings.isNullOrEmpty(localeInfo.pluralLangCode)) {
+            assetValues = getPartisanLocalizationValues(localeInfo.pluralLangCode);
         }
         assetValues.keySet().removeAll(newValues.keySet());
         newValues.putAll(assetValues);
         return newValues;
     }
 
-    public String getLanguageOverride() {
-        return languageOverride;
+    private HashMap<String, String> getPartisanLocalizationValues(String languageCode) {
+        return getLocaleFileStrings(null, false, "strings/strings_" + languageCode + ".xml");
     }
 
     private void patched(String lng) {
