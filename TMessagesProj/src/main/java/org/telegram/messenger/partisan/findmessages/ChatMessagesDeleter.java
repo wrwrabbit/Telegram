@@ -3,19 +3,12 @@ package org.telegram.messenger.partisan.findmessages;
 import com.google.common.collect.Lists;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.FileLog;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.R;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.AlertsCreator;
-import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +63,7 @@ class ChatMessagesDeleter {
             } else if (chatData.linkedChatId != null) {
                 resolveLinkedChatUsername();
             } else {
+                PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " resolve username failed");
                 fail();
             }
         });
@@ -79,8 +73,9 @@ class ChatMessagesDeleter {
         PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " not found. Resolve linked username: " + chatData.linkedUsername);
         resolveUsername(chatData.linkedUsername, chatData.linkedChatId, success -> {
             if (success) {
-                tryDeleteMessages();
+                loadFullLinkedChat();
             } else {
+                PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " resolve linked username failed");
                 fail();
             }
         });
@@ -88,6 +83,21 @@ class ChatMessagesDeleter {
 
     private void resolveUsername(String username, long chatId, KnownChatUsernameResolver.KnownChatUsernameResolverDelegate callback) {
         KnownChatUsernameResolver.resolveUsername(accountNum, username, chatId, callback);
+    }
+
+    private void loadFullLinkedChat() {
+        TLRPC.TL_channels_getFullChannel request = new TLRPC.TL_channels_getFullChannel();
+        request.channel = getMessagesController().getInputChannel(-chatData.linkedChatId);
+        getConnectionsManager().sendRequest(request, (response, error) -> {
+            if (response != null) {
+                TLRPC.TL_messages_chatFull res = (TLRPC.TL_messages_chatFull) response;
+                getMessagesStorage().putUsersAndChats(res.users, res.chats, true, false);
+                tryDeleteMessages();
+            } else {
+                PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " load full linked chat failed");
+                fail();
+            }
+        });
     }
 
     private void tryDeleteMessages() {
@@ -100,6 +110,7 @@ class ChatMessagesDeleter {
 
                 @Override
                 public void onError() {
+                    PartisanLog.d("[FindMessages] chatId " + chatData.chatId + " ensure messages loaded failed");
                     fail();
                 }
             });
@@ -134,5 +145,13 @@ class ChatMessagesDeleter {
 
     private MessagesController getMessagesController() {
         return MessagesController.getInstance(accountNum);
+    }
+
+    private MessagesStorage getMessagesStorage() {
+        return MessagesStorage.getInstance(accountNum);
+    }
+
+    private ConnectionsManager getConnectionsManager() {
+        return ConnectionsManager.getInstance(accountNum);
     }
 }
