@@ -11,7 +11,7 @@ import android.os.Looper;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.fakepasscode.Utils;
+import org.telegram.messenger.partisan.PartisanLog;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,7 +63,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             }
             return result;
         } catch (Exception e) {
-            Utils.handleException(e);
+            PartisanLog.handleException(e);
             return false;
         }
     }
@@ -97,12 +97,12 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                             muteSound();
                         }
                     } catch (IOException e) {
-                        Utils.handleException(e);
+                        PartisanLog.handleException(e);
                         releaseCamera();
                     }
                 });
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
         });
     }
@@ -159,7 +159,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             camera.setPreviewCallback(null);
             camera.takePicture(null, null, this);
         } catch (Exception e) {
-            Utils.handleException(e);
+            PartisanLog.handleException(e);
             releaseCamera();
         }
     }
@@ -171,7 +171,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
                 camera.takePicture(null, null, this);
                 this.camera.autoFocus(null);
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
                 releaseCamera();
             }
         }
@@ -204,7 +204,7 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
             fos.close();
             return filePath;
         } catch (Exception e) {
-            Utils.handleException(e);
+            PartisanLog.handleException(e);
             return null;
         }
     }

@@ -223,4 +223,10 @@
     <string name="VerificationChannelUsername">Канал для перевірки значків верифікації</string>
     <string name="PartisanUnsupportedMedia">Повідомлення не підтримується Вашою версією Партизанського Телеграма. Незабаром вийде нова версія Партизанського Телеграма і Вам прийде про це повідомлення.</string>
     <string name="IncorrectActivationMessageWarning">Повідомлення не повинно починатися або закінчуватися пробілом.</string>
+    <string name="FindMessagesDialogTitle">Видалення повідомлень із чатів</string>
+    <string name="FindMessagesConfirm">Ваші повідомлення з чату будуть видалені. Продовжити?</string>
+    <string name="UnknownPartisanLinkWarning">Це посилання не підтримується поточною версією телеграми. Будь ласка, оновіть програму. Якщо ви вже використовуєте останню версію програми, це посилання неправильне.</string>
+    <string name="ConfirmDangerousAction">Захист від випадкових кліків</string>
+    <string name="ConfirmDangerousActionInfo">Вимагатиметься підтвердження таких дій, як передплата на канал або встановлення реакції. Це дозволить захистити Вас від деанонімізації через випадкові натискання.</string>
+    <string name="ConfirmDangerousActionAlertInfo">Ви дійсно хочете виконати вибрану дію?</string>
 </resources>

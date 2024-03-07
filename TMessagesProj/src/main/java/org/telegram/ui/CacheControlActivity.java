@@ -2365,7 +2365,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
                     view = slideChooseView;
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     slideChooseView.setCallback(index -> {
-                        if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+                        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                             if (index == 0) {
                                 index = 4;
                             } else {
@@ -2391,7 +2391,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
                     } else {
                         index = keepMedia + 1;
                     }
-                    if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+                    if (!FakePasscodeUtils.isFakePasscodeActivated()) {
                         if (keepMedia == 4) {
                             index = 0;
                         } else {

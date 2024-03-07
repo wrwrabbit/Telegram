@@ -4,17 +4,18 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.android.exoplayer2.util.Consumer;
+import com.google.zxing.common.StringUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.DialogObject;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -92,7 +93,7 @@ public class RemoveAfterReadingMessages {
                 }
                 isLoaded = true;
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
         }
     }
@@ -108,7 +109,7 @@ public class RemoveAfterReadingMessages {
                 editor.putString("delays", delaysString);
                 editor.commit();
             } catch (Exception e) {
-                Utils.handleException(e);
+                PartisanLog.handleException(e);
             }
         }
     }

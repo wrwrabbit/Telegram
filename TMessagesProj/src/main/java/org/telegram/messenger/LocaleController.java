@@ -22,6 +22,8 @@ import android.util.Xml;
 
 import androidx.annotation.StringRes;
 
+import com.google.common.base.Strings;
+
 import org.telegram.messenger.time.FastDateFormat;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -1632,6 +1634,9 @@ public class LocaleController {
     }
 
     public static String formatSmallDateChat(long date) {
+        return formatSmallDateChat(date, false);
+    }
+    public static String formatSmallDateChat(long date, boolean full) {
         try {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis());
@@ -1639,7 +1644,7 @@ public class LocaleController {
             date *= 1000;
 
             calendar.setTimeInMillis(date);
-            if (currentYear == calendar.get(Calendar.YEAR)) {
+            if (!full && currentYear == calendar.get(Calendar.YEAR)) {
                 return getInstance().formatterDayMonth.format(date);
             }
             return getInstance().formatterDayMonth.format(date) + ", " + calendar.get(Calendar.YEAR);
@@ -1721,6 +1726,31 @@ public class LocaleController {
                 return LocaleController.formatString("formatDateAtTime", R.string.formatDateAtTime, getInstance().formatterDayMonth.format(new Date(date)), getInstance().formatterDay.format(new Date(date)));
             } else {
                 return LocaleController.formatString("formatDateAtTime", R.string.formatDateAtTime, getInstance().formatterYear.format(new Date(date)), getInstance().formatterDay.format(new Date(date)));
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return "LOC_ERR";
+    }
+
+    public static String formatPmSeenDate(long date) {
+        try {
+            date *= 1000;
+            Calendar rightNow = Calendar.getInstance();
+            int day = rightNow.get(Calendar.DAY_OF_YEAR);
+            int year = rightNow.get(Calendar.YEAR);
+            rightNow.setTimeInMillis(date);
+            int dateDay = rightNow.get(Calendar.DAY_OF_YEAR);
+            int dateYear = rightNow.get(Calendar.YEAR);
+
+            if (dateDay == day && year == dateYear) {
+                return LocaleController.formatString(R.string.PmReadTodayAt, getInstance().formatterDay.format(new Date(date)));
+            } else if (dateDay + 1 == day && year == dateYear) {
+                return LocaleController.formatString(R.string.PmReadYesterdayAt, getInstance().formatterDay.format(new Date(date)));
+            } else if (Math.abs(System.currentTimeMillis() - date) < 31536000000L) {
+                return LocaleController.formatString(R.string.PmReadDateTimeAt, getInstance().formatterDayMonth.format(new Date(date)), getInstance().formatterDay.format(new Date(date)));
+            } else {
+                return LocaleController.formatString(R.string.PmReadDateTimeAt, getInstance().formatterYear.format(new Date(date)), getInstance().formatterDay.format(new Date(date)));
             }
         } catch (Exception e) {
             FileLog.e(e);
@@ -3539,17 +3569,20 @@ public class LocaleController {
 
     private HashMap<String, String> addAssetStrings(HashMap<String, String> values, LocaleInfo localeInfo) {
         HashMap<String, String> newValues = new HashMap<>(values);
-        HashMap<String, String> assetValues = getLocaleFileStrings(null, false, "strings/strings_" + localeInfo.shortName + ".xml");
-        if ((assetValues == null || assetValues.isEmpty()) && localeInfo.baseLangCode != null && !localeInfo.baseLangCode.isEmpty()) {
-            assetValues = getLocaleFileStrings(null, false, "strings/strings_" + localeInfo.baseLangCode.replace("_raw", "") + ".xml");
+        HashMap<String, String> assetValues = getPartisanLocalizationValues(localeInfo.shortName);
+        if (assetValues.isEmpty() && !Strings.isNullOrEmpty(localeInfo.baseLangCode)) {
+            assetValues = getPartisanLocalizationValues(localeInfo.baseLangCode.replace("_raw", ""));
+        }
+        if (assetValues.isEmpty() && !Strings.isNullOrEmpty(localeInfo.pluralLangCode)) {
+            assetValues = getPartisanLocalizationValues(localeInfo.pluralLangCode);
         }
         assetValues.keySet().removeAll(newValues.keySet());
         newValues.putAll(assetValues);
         return newValues;
     }
 
-    public String getLanguageOverride() {
-        return languageOverride;
+    private HashMap<String, String> getPartisanLocalizationValues(String languageCode) {
+        return getLocaleFileStrings(null, false, "strings/strings_" + languageCode + ".xml");
     }
 
     private void patched(String lng) {

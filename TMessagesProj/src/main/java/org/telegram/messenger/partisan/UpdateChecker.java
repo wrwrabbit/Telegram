@@ -94,7 +94,7 @@ public class UpdateChecker implements NotificationCenter.NotificationCenterDeleg
                 if (!oldReq.peers.isEmpty() && oldReq.peers.get(0) instanceof TLRPC.TL_inputDialogPeer) {
                     peer = ((TLRPC.TL_inputDialogPeer)oldReq.peers.get(0)).peer;
                 }
-                if (!partisanTgChannelUsernameResolved && SharedConfig.fakePasscodeActivatedIndex == -1
+                if (!partisanTgChannelUsernameResolved && !FakePasscodeUtils.isFakePasscodeActivated()
                         && (int)args[0] == classGuid && peer != null
                         && (peer.channel_id == getUpdateTgChannelId() || peer.chat_id == getUpdateTgChannelId()
                         || peer.channel_id == -getUpdateTgChannelId() || peer.chat_id == -getUpdateTgChannelId())) {

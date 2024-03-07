@@ -1,4 +1,4 @@
-package org.telegram.messenger.fakepasscode;
+package org.telegram.messenger.partisan;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -12,14 +12,12 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DownloadController;
@@ -33,6 +31,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -73,7 +72,7 @@ public class Utils {
         return l;
     }
 
-    static String getLastLocationString() {
+    public static String getLastLocationString() {
         Location loc = Utils.getLastLocation();
         if (loc != null) {
             return " " + LocaleController.getString("Geolocation", R.string.Geolocation) + ":" + loc.getLatitude() + ", " + loc.getLongitude();
@@ -268,7 +267,7 @@ public class Utils {
         if (message == null) {
             return;
         }
-        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (SharedConfig.cutForeignAgentsText && !FakePasscodeUtils.isFakePasscodeActivated()) {
             try {
                 SpannableString source = new SpannableString(message.message);
                 for (TLRPC.MessageEntity entity : message.entities) {
@@ -302,7 +301,7 @@ public class Utils {
             return null;
         }
         CharSequence fixedMessage = message;
-        if (SharedConfig.cutForeignAgentsText && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (SharedConfig.cutForeignAgentsText && !FakePasscodeUtils.isFakePasscodeActivated()) {
             fixedMessage = cutForeignAgentPart(message, leaveEmpty);
         }
         return fixedMessage;
@@ -476,15 +475,10 @@ public class Utils {
         }
     }
 
-    public static void handleException(Exception e) {
-        boolean logsEnabled = ApplicationLoader.applicationContext
-                .getSharedPreferences("systemConfig", Context.MODE_PRIVATE)
-                .getBoolean("logsEnabled", BuildVars.DEBUG_VERSION);
-        if (BuildVars.LOGS_ENABLED || logsEnabled) {
-            Log.e("SharedConfig", "error", e);
-        }
-        if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            throw new Error(e);
-        }
+    public static byte[] concatByteArrays(byte[] first, byte[] second) {
+        final byte[] combined = new byte[first.length + second.length];
+        System.arraycopy(first, 0, combined, 0, first.length);
+        System.arraycopy(second, 0, combined, first.length, second.length);
+        return combined;
     }
 }

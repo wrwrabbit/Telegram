@@ -228,8 +228,16 @@ public class NotificationCenter {
     public static final int savedMessagesDialogsUpdate = totalEvents++;
     public static final int savedReactionTagsUpdate = totalEvents++;
     public static final int userIsPremiumBlockedUpadted = totalEvents++;
+    public static final int savedMessagesForwarded = totalEvents++;
+    public static final int emojiKeywordsLoaded = totalEvents++;
+    public static final int smsJobStatusUpdate = totalEvents++;
+    public static final int storyQualityUpdate = totalEvents++;
+    public static final int openBoostForUsersDialog = totalEvents++;
+    public static final int groupRestrictionsUnlockedByBoosts = totalEvents++;
+    public static final int chatWasBoostedByUser = totalEvents++;
+    public static final int groupPackUpdated = totalEvents++;
 
-    //fake passcode
+    //partisan
     public static final int dialogDeletedByAction = totalEvents++;
     public static final int dialogCleared = totalEvents++;
     public static final int appDidLogoutByAction = totalEvents++;
@@ -244,6 +252,7 @@ public class NotificationCenter {
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
+    public static final int unknownPartisanActionLinkOpened = totalEvents++;
 
 
     //global
@@ -526,7 +535,7 @@ public class NotificationCenter {
     }
 
     public void postNotificationName(int id, Object... args) {
-        boolean allowDuringAnimation = id == startAllHeavyOperations || id == stopAllHeavyOperations || id == didReplacedPhotoInMemCache || id == closeChats || id == invalidateMotionBackground;
+        boolean allowDuringAnimation = id == startAllHeavyOperations || id == stopAllHeavyOperations || id == didReplacedPhotoInMemCache || id == closeChats || id == invalidateMotionBackground || id == needCheckSystemBarColors;
         ArrayList<Integer> expiredIndices = null;
         if (!allowDuringAnimation && allowedNotifications.size() > 0) {
             int size = allowedNotifications.size();
