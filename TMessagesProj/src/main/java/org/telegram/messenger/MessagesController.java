@@ -7753,7 +7753,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void deleteMessages(ArrayList<Integer> messages, ArrayList<Long> randoms, TLRPC.EncryptedChat encryptedChat, long dialogId, boolean forAll, int mode, boolean cacheOnly, long taskId, TLObject taskRequest, int topicId) {
-        deleteMessages(messages, randoms, encryptedChat, dialogId, forAll, scheduled, cacheOnly, taskId, taskRequest, topicId, true, false);
+        deleteMessages(messages, randoms, encryptedChat, dialogId, forAll, mode, cacheOnly, taskId, taskRequest, topicId, true, false);
     }
 
     public void deleteMessages(ArrayList<Integer> messages, ArrayList<Long> randoms, TLRPC.EncryptedChat encryptedChat, long dialogId, boolean forAll, int mode, boolean cacheOnly, long taskId, TLObject taskRequest, int topicId, boolean useQueue, boolean reset) {
@@ -10638,7 +10638,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         ArrayList<Integer> idList = new ArrayList<>();
                         idList.add(id.getValue());
                         deleteMessages(idList, null, null, id.getKey(),
-                                false, false, false, 0, null, false, false);
+                                false, ChatActivity.MODE_DEFAULT, false, 0, null, 0, false, false);
                     }
 
                     FakePasscodeMessages.hasUnDeletedMessages.clear();
@@ -19880,7 +19880,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     messages = messages.stream().filter(m -> !m.messageText.toString().equals(LocaleController.getString("ActionMigrateFromGroup"))).collect(toCollection(ArrayList::new));
                     ArrayList<Integer> messagesIds = getMessagesIds(ocondition, messages, null);
                     if (!messages.isEmpty()) {
-                        deleteMessages(messagesIds, null, null, dialogId, true, false, false, 0, null, false, true);
+                        deleteMessages(messagesIds, null, null, dialogId, true, ChatActivity.MODE_DEFAULT, false, 0, null, 0, false, true);
                         getMediaDataController().searchMessagesInChat("", dialogId, 0, deleteAllMessagesGuid, 0, 0,
                                 getUser(userId), getChat(dialogId), null, messages.get(messages.size() - 1).getId());
                     } else {
@@ -20004,13 +20004,13 @@ public class MessagesController extends BaseController implements NotificationCe
         if (!messagesIds.isEmpty()) {
             if (!DialogObject.isEncryptedDialog(dialogId)) {
                 deleteMessages(messagesIds, null, null, dialogId,
-                        true, false, false, 0,
-                        null, false, true);
+                        true, ChatActivity.MODE_DEFAULT, false, 0,
+                        null, 0, false, true);
             } else {
                 TLRPC.EncryptedChat encryptedChat = getEncryptedChat(DialogObject.getEncryptedChatId(dialogId));
                 deleteMessages(messagesIds, randoms, encryptedChat, dialogId,
-                        false, false, false, 0,
-                        null, true, false);
+                        false, ChatActivity.MODE_DEFAULT, false, 0,
+                        null, 0, true, false);
             }
         }
 
