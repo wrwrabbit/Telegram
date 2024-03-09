@@ -879,6 +879,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
         File dir = new File(fileName);
         if (dir.exists()) {
             File[] entries = dir.listFiles();
+            if (entries == null) return count;
             for (int i = 0; i < entries.length; ++i) {
                 File entry = entries[i];
                 String name = entry.getName();
@@ -922,6 +923,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
         File dir = new File(fileName);
         if (dir.exists()) {
             File[] entries = dir.listFiles();
+            if (entries == null) return;
             for (int i = 0; i < entries.length; ++i) {
                 File entry = entries[i];
                 String name = entry.getName();

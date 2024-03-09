@@ -639,7 +639,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    void onDestroy() {
+    public void onDestroy() {
         try {
             if (receiverRegistered) {
                 ApplicationLoader.applicationContext.unregisterReceiver(receiver);
@@ -654,7 +654,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    void onMenuItemClick(int id) {
+    public void onMenuItemClick(int id) {
         if (id == sort_button) {
             SharedConfig.toggleSortFilesByName();
             sortByName = SharedConfig.sortFilesByName;
@@ -666,12 +666,12 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    int needsActionBar() {
+    public int needsActionBar() {
         return 1;
     }
 
     @Override
-    int getCurrentItemTop() {
+    public int getCurrentItemTop() {
         if (listView.getChildCount() <= 0) {
             return Integer.MAX_VALUE;
         }
@@ -692,17 +692,17 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    int getListTopPadding() {
+    public int getListTopPadding() {
         return listView.getPaddingTop();
     }
 
     @Override
-    int getFirstOffset() {
+    public int getFirstOffset() {
         return getListTopPadding() + AndroidUtilities.dp(5);
     }
 
     @Override
-    void onPreMeasure(int availableWidth, int availableHeight) {
+    public void onPreMeasure(int availableWidth, int availableHeight) {
         int padding;
         if (parentAlert.actionBar.isSearchFieldVisible() || parentAlert.sizeNotifierFrameLayout.measureKeyboardHeight() > AndroidUtilities.dp(20)) {
             padding = AndroidUtilities.dp(56);
@@ -729,7 +729,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    int getButtonsHideOffset() {
+    public int getButtonsHideOffset() {
         return AndroidUtilities.dp(62);
     }
 
@@ -742,17 +742,17 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    void scrollToTop() {
+    public void scrollToTop() {
         listView.smoothScrollToPosition(0);
     }
 
     @Override
-    int getSelectedItemsCount() {
+    public int getSelectedItemsCount() {
         return selectedFiles.size() + selectedMessages.size();
     }
 
     @Override
-    void sendSelectedItems(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
+    public void sendSelectedItems(boolean notify, int scheduleDate, Integer autoDeleteDelay) {
         if (selectedFiles.size() == 0 && selectedMessages.size() == 0 || delegate == null || sendPressed) {
             return;
         }
@@ -1041,7 +1041,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    void onShow(ChatAttachAlert.AttachAlertLayout previousLayout) {
+    public void onShow(ChatAttachAlert.AttachAlertLayout previousLayout) {
         selectedFiles.clear();
         selectedMessages.clear();
         searchAdapter.currentSearchFilters.clear();
@@ -1056,7 +1056,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    void onHide() {
+    public void onHide() {
         sortItem.setVisibility(GONE);
         searchItem.setVisibility(GONE);
     }
@@ -2255,7 +2255,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
     }
 
     @Override
-    ArrayList<ThemeDescription> getThemeDescriptions() {
+    public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
         themeDescriptions.add(new ThemeDescription(searchItem.getSearchField(), ThemeDescription.FLAG_CURSORCOLOR, null, null, null, null, Theme.key_dialogTextBlack));
 
