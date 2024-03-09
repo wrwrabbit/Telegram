@@ -31259,6 +31259,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (Browser.urlMustNotHaveConfirmation(urlFinal)) {
                     forceAlert = false;
                 }
+                if (SharedConfig.confirmDangerousActions) {
+                    forceAlert = true;
+                }
                 processExternalUrl(2, urlFinal, url, cell, forceAlert);
             }
         }
