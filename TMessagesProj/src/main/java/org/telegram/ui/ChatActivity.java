@@ -31259,7 +31259,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (Browser.urlMustNotHaveConfirmation(urlFinal)) {
                     forceAlert = false;
                 }
-                if (SharedConfig.confirmDangerousActions) {
+                if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated()) {
                     forceAlert = true;
                 }
                 processExternalUrl(2, urlFinal, url, cell, forceAlert);
