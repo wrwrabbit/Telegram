@@ -7617,7 +7617,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else if (UserObject.isReplyUser(currentUser)) {
                 toggleMute(true);
             } else if (currentUser != null && currentUser.bot && botUser != null) {
-                AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, true, () -> {
+                AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, () -> {
                     if (botUser.length() != 0) {
                         getMessagesController().sendBotStart(currentUser, botUser);
                     } else {
@@ -7629,7 +7629,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else {
                 if (ChatObject.isChannel(currentChat) && !(currentChat instanceof TLRPC.TL_channelForbidden)) {
                     if (ChatObject.isNotInChat(currentChat)) {
-                        AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, true, () -> {
+                        AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, () -> {
                             if (currentChat.join_request) {
 //                            showDialog(new JoinGroupAlert(context, currentChat, null, this));
                                 showBottomOverlayProgress(true, true);
