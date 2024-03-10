@@ -31065,10 +31065,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             String str = ((URLSpanNoUnderline) url).getURL();
             if (messageObject != null && str.startsWith("/")) {
                 if (URLSpanBotCommand.enabled) {
-                    chatActivityEnterView.setCommand(messageObject, str, longPress, currentChat != null && currentChat.megagroup);
-                    if (!longPress && chatActivityEnterView.getFieldText() == null) {
-                        hideFieldPanel(false);
-                    }
+                    MessageObject finalMessageObject = messageObject;
+                    AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, !longPress && !messageObject.isOut(), () -> {
+                        chatActivityEnterView.setCommand(finalMessageObject, str, longPress, currentChat != null && currentChat.megagroup);
+                        if (!longPress && chatActivityEnterView.getFieldText() == null) {
+                            hideFieldPanel(false);
+                        }
+                    });
                 }
                 if (longPress && cell != null) {
                     cell.resetPressedLink(-1);
