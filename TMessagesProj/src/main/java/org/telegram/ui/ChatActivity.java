@@ -7597,14 +7597,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 chatActivityDelegate.onUnpin(true, bottomOverlayChatText.getTag() == null);
             } else if (currentUser != null && userBlocked) {
                 if (currentUser.bot) {
-                    String botUserLast = botUser;
-                    botUser = null;
-                    getMessagesController().unblockPeer(currentUser.id, () -> {
-                        if (botUserLast != null && botUserLast.length() != 0) {
-                            getMessagesController().sendBotStart(currentUser, botUserLast);
-                        } else {
-                            getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
-                        }
+                    AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, () -> {
+                        String botUserLast = botUser;
+                        botUser = null;
+                        getMessagesController().unblockPeer(currentUser.id, () -> {
+                            if (botUserLast != null && botUserLast.length() != 0) {
+                                getMessagesController().sendBotStart(currentUser, botUserLast);
+                            } else {
+                                getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
+                            }
+                        });
                     });
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
