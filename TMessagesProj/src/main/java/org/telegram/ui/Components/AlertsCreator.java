@@ -6964,7 +6964,7 @@ public class AlertsCreator {
     }
 
     public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, Runnable onAccepted) {
-        showConfirmDangerousActionDialogIfNeed(fragment, onAccepted);
+        showConfirmDangerousActionDialogIfNeed(fragment, true, onAccepted);
     }
 
     public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, boolean dialogShowingAllowed, Runnable onAccepted) {
