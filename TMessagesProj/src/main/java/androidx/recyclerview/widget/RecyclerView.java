@@ -62,6 +62,8 @@ import android.widget.OverScroller;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.LaunchActivity;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.IntDef;
@@ -92,6 +94,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7037,6 +7040,28 @@ public class RecyclerView extends ViewGroup implements ScrollingView,
         public void onBindViewHolder(@NonNull VH holder, int position,
                 @NonNull List<Object> payloads) {
             onBindViewHolder(holder, position);
+            setViewContentDescription(holder, position);
+        }
+
+        private void setViewContentDescription(ViewHolder holder, int position) {
+            try {
+                BaseFragment fragment = LaunchActivity.getLastFragment();
+                if (fragment == null) {
+                    return;
+                }
+                Class<?> clazz = fragment.getClass();
+                Field[] fields = clazz.getDeclaredFields();
+                for (Field field : fields) {
+                    if (field.getName().endsWith("Row") && field.getType() == int.class) {
+                        field.setAccessible(true);
+                        int value = field.getInt(fragment);
+                        if (value == position) {
+                            holder.itemView.setContentDescription(field.getName());
+                        }
+                    }
+                }
+            } catch (Exception ignore) {
+            }
         }
 
         /**
