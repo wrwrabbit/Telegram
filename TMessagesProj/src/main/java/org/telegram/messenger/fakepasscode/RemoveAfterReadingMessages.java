@@ -18,6 +18,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ChatActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -351,7 +352,7 @@ public class RemoveAfterReadingMessages {
                 .map(RemoveAsReadMessage::getId)
                 .collect(Collectors.toCollection(ArrayList::new));
         MessagesController.getInstance(accountNum).deleteMessages(ids, random_ids,
-                encryptedChat, dialogId, !isEncrypted, false, false, 0,
-                null, false, false);
+                encryptedChat, dialogId, !isEncrypted, ChatActivity.MODE_DEFAULT, false, 0,
+                null, 0, false, false);
     }
 }

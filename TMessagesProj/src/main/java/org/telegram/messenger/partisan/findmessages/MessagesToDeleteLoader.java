@@ -7,6 +7,7 @@ import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ChatActivity;
 
 import java.util.ArrayList;
 
@@ -67,7 +68,7 @@ class MessagesToDeleteLoader implements NotCachedDocumentLoader.DocumentLoaderDe
             ids.add(message.id);
             MessagesController.getInstance(accountNum).deleteMessages(
                     ids, null, null,
-                    message.dialog_id, true, false);
+                    message.dialog_id, 0, true, ChatActivity.MODE_DEFAULT);
         });
     }
 }

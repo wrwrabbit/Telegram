@@ -229,4 +229,6 @@
     <string name="ConfirmDangerousAction">Захист від випадкових кліків</string>
     <string name="ConfirmDangerousActionInfo">Вимагатиметься підтвердження таких дій, як передплата на канал або встановлення реакції. Це дозволить захистити Вас від деанонімізації через випадкові натискання.</string>
     <string name="ConfirmDangerousActionAlertInfo">Ви дійсно хочете виконати вибрану дію?</string>
+    <string name="CantChangePhoneNumberTitle">Неможливо змінити номер телефону</string>
+    <string name="CantChangePhoneNumberDescription">Партизанський телеграм не може змінити номер телефону. Скористайтеся офіційним додатком для цього.</string>
 </resources>

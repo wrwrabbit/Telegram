@@ -9,6 +9,7 @@ import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ChatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,7 +133,7 @@ class ChatMessagesDeleter {
                         " for " + messagesChunk.size() + " messages");
         getMessagesController().deleteMessages(
                 new ArrayList<>(messagesChunk), null, null,
-                chatData.chatId, true, false);
+                chatData.chatId, 0, true, ChatActivity.MODE_DEFAULT);
     }
 
     private void fail() {
