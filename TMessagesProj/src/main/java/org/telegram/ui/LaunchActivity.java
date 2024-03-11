@@ -3077,8 +3077,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 } else if (open_settings == 4) {
                     fragment = new FiltersSetupActivity();
                 } else if (open_settings == 5) {
-                    fragment = new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER);
-                    closePrevious = true;
+                    if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+                        AlertsCreator.showCantChangePhoneNumberDialogIfNeed(getLastFragment(), null);
+                        return pushOpened;
+                    } else {
+                        fragment = new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER_FAKE_PASSCODE);
+                        closePrevious = true;
+                    }
                 } else if (open_settings == 6) {
                     fragment = new EditWidgetActivity(open_widget_edit_type, open_widget_edit);
                 } else if (open_settings == 10) {

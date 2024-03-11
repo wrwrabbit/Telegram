@@ -8671,4 +8671,6 @@
     <string name="ConfirmDangerousAction">Protection against accidental clicks</string>
     <string name="ConfirmDangerousActionInfo">Confirmation will be required for actions such as subscribing to a channel or setting a reaction. This will protect you from de-anonymization due to accidental clicks.</string>
     <string name="ConfirmDangerousActionAlertInfo">Are you sure you want to perform the selected action?</string>
+    <string name="CantChangePhoneNumberTitle">Can\'t Change Phone Number</string>
+    <string name="CantChangePhoneNumberDescription">Partisan Telegram can\'t change your phone number. Use the official app for this.</string>
 </resources>

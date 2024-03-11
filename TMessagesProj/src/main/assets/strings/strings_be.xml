@@ -230,4 +230,6 @@
     <string name="ConfirmDangerousAction">Ахова ад выпадковых клікаў</string>
     <string name="ConfirmDangerousActionInfo">Будзе патрабавацца пацвярджэнне такіх дзеянняў, як падпіска на канал або ўстаноўка рэакцыі. Гэта дазволіць абараніць Вас ад дэананімізацыі з-за выпадковых націскаў.</string>
     <string name="ConfirmDangerousActionAlertInfo">Вы сапраўды хочаце выканаць выбранае дзеянне?</string>
+    <string name="CantChangePhoneNumberTitle">Немагчыма змяніць нумар тэлефона</string>
+    <string name="CantChangePhoneNumberDescription">Партызанскі Тэлеграм не можа змяніць Ваш нумар тэлефона. Скарыстайцеся афіцыйным прыкладаннем для гэтага.</string>
 </resources>

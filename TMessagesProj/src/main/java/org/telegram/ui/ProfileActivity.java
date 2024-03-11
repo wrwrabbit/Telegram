@@ -3733,7 +3733,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     presentFragment(new ChangeBioActivity());
                 }
             } else if (position == numberRow) {
-                presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER));
+                AlertsCreator.showCantChangePhoneNumberDialogIfNeed(this, () -> {
+                    presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER_FAKE_PASSCODE));
+                });
             } else if (position == setAvatarRow) {
                 onWriteButtonClick();
             } else if (position == premiumRow) {
@@ -10515,7 +10517,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         @Override
                         protected void onNoClick(int type) {
                             if (type == SettingsSuggestionCell.TYPE_PHONE) {
-                                presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER));
+                                AlertsCreator.showCantChangePhoneNumberDialogIfNeed(ProfileActivity.this, () -> {
+                                    presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER_FAKE_PASSCODE));
+                                });
                             } else {
                                 presentFragment(new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_VERIFY, null));
                             }
@@ -11336,7 +11340,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         private SearchResult[] onCreateSearchArray() {
             return new SearchResult[]{
                 new SearchResult(500, LocaleController.getString("EditName", R.string.EditName), 0, () -> presentFragment(new ChangeNameActivity(resourcesProvider))),
-                new SearchResult(501, LocaleController.getString("ChangePhoneNumber", R.string.ChangePhoneNumber), 0, () -> presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER))),
+                new SearchResult(501, LocaleController.getString("ChangePhoneNumber", R.string.ChangePhoneNumber), 0, () -> AlertsCreator.showCantChangePhoneNumberDialogIfNeed(ProfileActivity.this, () -> presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER_FAKE_PASSCODE)))),
                 new SearchResult(502, LocaleController.getString("AddAnotherAccount", R.string.AddAnotherAccount), 0, () -> {
                     int freeAccount = -1;
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {

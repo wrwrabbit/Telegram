@@ -6963,22 +6963,37 @@ public class AlertsCreator {
         return dialog;
     }
 
-    public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, Runnable onAcceped) {
-        showConfirmDangerousActionDialogIfNeed(fragment, onAcceped);
+    public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, Runnable onAccepted) {
+        showConfirmDangerousActionDialogIfNeed(fragment, onAccepted);
     }
 
-    public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, boolean dialogShowingAllowed, Runnable onAcceped) {
+    public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, boolean dialogShowingAllowed, Runnable onAccepted) {
         // This approach may seem strange, but it allows us not to move or duplicate the original code,
         // but to wrap it in a positive runnable. The showDialog flag serves the same purpose.
         if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated() && dialogShowingAllowed) {
             AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
             builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
             builder.setMessage(LocaleController.getString(R.string.ConfirmDangerousActionAlertInfo));
-            builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog2, which) -> onAcceped.run());
+            builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog2, which) -> onAccepted.run());
             builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
             fragment.showDialog(builder.create());
-        } else if (onAcceped != null) {
-            onAcceped.run();
+        } else if (onAccepted != null) {
+            onAccepted.run();
+        }
+    }
+
+    public static void showCantChangePhoneNumberDialogIfNeed(BaseFragment fragment, Runnable defaultAction) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+            if (fragment == null) {
+                return;
+            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
+            builder.setTitle(LocaleController.getString(R.string.CantChangePhoneNumberTitle));
+            builder.setMessage(LocaleController.getString(R.string.CantChangePhoneNumberDescription));
+            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+            fragment.showDialog(builder.create());
+        } else if (defaultAction != null) {
+            defaultAction.run();
         }
     }
 

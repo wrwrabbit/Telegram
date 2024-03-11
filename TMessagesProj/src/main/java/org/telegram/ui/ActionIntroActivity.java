@@ -93,7 +93,9 @@ public class ActionIntroActivity extends BaseFragment implements LocationControl
     public static final int ACTION_TYPE_CHANNEL_CREATE = 0;
     public static final int ACTION_TYPE_NEARBY_LOCATION_ACCESS = 1;
     public static final int ACTION_TYPE_NEARBY_GROUP_CREATE = 2;
-    public static final int ACTION_TYPE_CHANGE_PHONE_NUMBER = 3;
+    /*public*/ private static final int ACTION_TYPE_CHANGE_PHONE_NUMBER = 3; // Number change is not allowed
+    // Any new use of ACTION_TYPE_CHANGE_PHONE_NUMBER in the original code must be replaced with ACTION_TYPE_CHANGE_PHONE_NUMBER_FAKE_PASSCODE
+    public static final int ACTION_TYPE_CHANGE_PHONE_NUMBER_FAKE_PASSCODE = ACTION_TYPE_CHANGE_PHONE_NUMBER;
     public static final int ACTION_TYPE_NEARBY_LOCATION_ENABLED = 4;
     public static final int ACTION_TYPE_QR_LOGIN = 5;
     public static final int ACTION_TYPE_SET_PASSCODE = 6;
