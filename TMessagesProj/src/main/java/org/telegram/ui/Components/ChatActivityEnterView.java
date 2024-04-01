@@ -3282,7 +3282,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             if ((sendPopupWindow != null && sendPopupWindow.isShowing()) || (runningAnimationAudio != null && runningAnimationAudio.isRunning()) || moveToSendStateRunnable != null) {
                 return;
             }
-            AlertsCreator.showConfirmDangerousActionDialogIfNeed(parentFragment, parentFragment.isReplyChatComment(), () -> {
+            AlertsCreator.showConfirmDangerousActionDialogIfNeed(parentFragment, parentFragment != null && parentFragment.isReplyChatComment(), () -> {
                 sendMessage();
             });
         });

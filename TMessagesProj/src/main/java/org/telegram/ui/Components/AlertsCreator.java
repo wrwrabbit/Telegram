@@ -7192,7 +7192,7 @@ public class AlertsCreator {
     public static void showConfirmDangerousActionDialogIfNeed(BaseFragment fragment, boolean dialogShowingAllowed, Runnable onAccepted) {
         // This approach may seem strange, but it allows us not to move or duplicate the original code,
         // but to wrap it in a positive runnable. The showDialog flag serves the same purpose.
-        if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated() && dialogShowingAllowed) {
+        if (SharedConfig.confirmDangerousActions && !FakePasscodeUtils.isFakePasscodeActivated() && fragment != null && dialogShowingAllowed) {
             AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
             builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
             builder.setMessage(LocaleController.getString(R.string.ConfirmDangerousActionAlertInfo));
