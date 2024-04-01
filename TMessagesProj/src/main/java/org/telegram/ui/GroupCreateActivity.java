@@ -172,7 +172,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
             return;
         }
         if (premium && selectedPremium == null) {
-            selectedPremium = new GroupCreateSpan(getContext(), "premium");
+            selectedPremium = new GroupCreateSpan(getContext(), "premium", currentAccount);
             spansContainer.addSpan(selectedPremium);
             selectedPremium.setOnClickListener(GroupCreateActivity.this);
         } else if (!premium && selectedPremium != null) {
@@ -187,7 +187,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 obj = getMessagesController().getUser(id);
             }
             if (obj == null) continue;
-            GroupCreateSpan span = new GroupCreateSpan(getContext(), obj);
+            GroupCreateSpan span = new GroupCreateSpan(getContext(), obj, currentAccount);
             spansContainer.addSpan(span);
             span.setOnClickListener(this);
         }
@@ -806,7 +806,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 GroupCreateUserCell cell = (GroupCreateUserCell) view;
                 if (cell.currentPremium) {
                     if (selectedPremium == null) {
-                        selectedPremium = new GroupCreateSpan(editText.getContext(), "premium");
+                        selectedPremium = new GroupCreateSpan(editText.getContext(), "premium", currentAccount);
                         spansContainer.addSpan(selectedPremium);
                         selectedPremium.setOnClickListener(GroupCreateActivity.this);
                     } else {
@@ -1311,7 +1311,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 return ContactsController.formatName(user.first_name, user.last_name);
             } else if (object instanceof TLRPC.Chat) {
                 TLRPC.Chat chat = (TLRPC.Chat) object;
-                return getUserConfig().getChatTitleOverride(chat);;
+                return UserConfig.getInstance(UserConfig.selectedAccount).getChatTitleOverride(chat);
             }
             return "";
         }

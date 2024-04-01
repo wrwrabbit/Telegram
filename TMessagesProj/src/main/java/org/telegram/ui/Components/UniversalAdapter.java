@@ -300,7 +300,7 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
                 view = userCell2;
                 break;
             case VIEW_TYPE_RADIO_USER:
-                StoryPrivacyBottomSheet.UserCell userCell3 = new StoryPrivacyBottomSheet.UserCell(context, resourcesProvider);
+                StoryPrivacyBottomSheet.UserCell userCell3 = new StoryPrivacyBottomSheet.UserCell(context, resourcesProvider, currentAccount);
                 userCell3.setIsSendAs(false, false);
                 userCell3.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                 view = userCell3;
