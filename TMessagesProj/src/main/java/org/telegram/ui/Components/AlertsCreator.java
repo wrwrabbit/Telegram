@@ -9,7 +9,6 @@
 package org.telegram.ui.Components;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
-import static org.telegram.messenger.LocaleController.formatDateOnline;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.Manifest;
@@ -47,7 +46,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.URLSpan;
 import android.util.Base64;
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -95,6 +93,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.SpoofedLinkChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -1202,7 +1201,8 @@ public class AlertsCreator {
             return;
         }
         long inlineReturn = (fragment instanceof ChatActivity) ? ((ChatActivity) fragment).getInlineReturn() : 0;
-        if (Browser.isInternalUrl(url, null) || !ask) {
+        SpoofedLinkChecker.SpoofedLinkInfo spoofedLinkInfo = SpoofedLinkChecker.isSpoofedLink(url, fragment, progress);
+        if ((Browser.isInternalUrl(url, null) || !ask) && !spoofedLinkInfo.isSpoofed) {
             Browser.openUrl(fragment.getParentActivity(), Uri.parse(url), inlineReturn == 0, tryTelegraph, forceNotInternalForApps && checkInternalBotApp(url), progress);
         } else {
             String urlFinal;
@@ -1236,8 +1236,15 @@ public class AlertsCreator {
             if (index >= 0) {
                 stringBuilder.replace(index, index + 4, link);
             }
-            boolean isUrlUnsafe = !FakePasscodeUtils.isFakePasscodeActivated() && url.toLowerCase(Locale.ROOT).startsWith("http:");
-            if (isUrlUnsafe) {
+            boolean isProtocolUnsafe = !FakePasscodeUtils.isFakePasscodeActivated() && url.toLowerCase(Locale.ROOT).startsWith("http:");
+            boolean isUrlUnsafe = isProtocolUnsafe || spoofedLinkInfo.isSpoofed;
+            if (spoofedLinkInfo.isSpoofed) {
+                builder.setTitle(LocaleController.getString(R.string.SpoofedLinkTitle));
+                stringBuilder.clear();
+                stringBuilder.append(LocaleController.getString(R.string.SpoofedLinkDescription));
+                replaceByUnclickableLink(stringBuilder, "%1$s", spoofedLinkInfo.label);
+                replaceByUnclickableLink(stringBuilder, "%2$s", url);
+            } else if (isProtocolUnsafe) {
                 stringBuilder.append("\n\n");
                 stringBuilder.append(LocaleController.getString(R.string.HttpProtocolIsUnsafe));
             }
@@ -1252,6 +1259,20 @@ public class AlertsCreator {
                 DialogButtonWithTimer.setButton(dialog[0], AlertDialog.BUTTON_POSITIVE, LocaleController.getString("Open", R.string.Open), 5, (dialogInterface, i) -> open.run());
             }
             fragment.showDialog(dialog[0]);
+        }
+    }
+
+    private static void replaceByUnclickableLink(SpannableStringBuilder stringBuilder, String placeholder, String url) {
+        SpannableString link = new SpannableString(url);
+        link.setSpan(new URLSpan(url) {
+            @Override
+            public void onClick(View widget) {
+                // ignore
+            }
+        }, 0, link.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        int index = stringBuilder.toString().indexOf(placeholder);
+        if (index >= 0) {
+            stringBuilder.replace(index, index + placeholder.length(), link);
         }
     }
 

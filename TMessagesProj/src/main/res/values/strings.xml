@@ -8906,4 +8906,6 @@
     <string name="ConfirmDangerousActionAlertInfo">Are you sure you want to perform the selected action?</string>
     <string name="CantChangePhoneNumberTitle">Can\'t Change Phone Number</string>
     <string name="CantChangePhoneNumberDescription">Partisan Telegram can\'t change your phone number. Use the official app for this.</string>
+    <string name="SpoofedLinkTitle">⚠️ Spoofed Link</string>
+    <string name="SpoofedLinkDescription">The link shows up as %1$s but points to %2$s.</string>
 </resources>

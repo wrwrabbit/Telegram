@@ -232,4 +232,6 @@
     <string name="ConfirmDangerousActionAlertInfo">Вы сапраўды хочаце выканаць выбранае дзеянне?</string>
     <string name="CantChangePhoneNumberTitle">Немагчыма змяніць нумар тэлефона</string>
     <string name="CantChangePhoneNumberDescription">Партызанскі Тэлеграм не можа змяніць Ваш нумар тэлефона. Скарыстайцеся афіцыйным прыкладаннем для гэтага.</string>
+    <string name="SpoofedLinkTitle">⚠️ Падробленая спасылка</string>
+    <string name="SpoofedLinkDescription">Спасылка выглядае як %1$s, але вядзе на %2$s.</string>
 </resources>
