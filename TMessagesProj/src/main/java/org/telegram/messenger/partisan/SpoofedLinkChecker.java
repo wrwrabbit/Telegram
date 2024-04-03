@@ -83,14 +83,20 @@ public class SpoofedLinkChecker {
     }
 
     private MessageObject getLinkMessageObjectFromProgress() {
+        if (progress == null) {
+            return null;
+        }
         ChatMessageCell cell = tryGetObjectFieldBySuffix(progress, "cell", ChatMessageCell.class);
         return cell != null ? cell.getMessageObject() : null;
     }
 
     private static <T> T tryGetObjectFieldBySuffix(Object object, String suffix, Class<T> kind) {
-        Class<?> progressClass = object.getClass();
+        if (object == null) {
+            return null;
+        }
+        Class<?> clazz = object.getClass();
         try {
-            Field[] fields = progressClass.getDeclaredFields();
+            Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 if (!field.getName().endsWith(suffix)) {
                     continue;
