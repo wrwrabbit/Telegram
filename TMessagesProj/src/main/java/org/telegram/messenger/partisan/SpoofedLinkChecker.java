@@ -3,16 +3,17 @@ package org.telegram.messenger.partisan;
 import android.net.Uri;
 import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.URLSpan;
 import android.util.Patterns;
 
 import com.google.common.base.Strings;
 
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Cells.ChatMessageCell;
-import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.LaunchActivity;
 
 import java.lang.reflect.Field;
@@ -43,30 +44,42 @@ public class SpoofedLinkChecker {
     }
 
     private SpoofedLinkInfo isSpoofedLinkInternal() {
-        SpoofedLinkInfo result = new SpoofedLinkInfo();
+        try {
+            SpoofedLinkInfo result = new SpoofedLinkInfo();
 
-        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                return result;
+            }
+
+            MessageObject messageObject = getLinkMessageObjectFromProgress();
+            if (messageObject == null) {
+                return result;
+            }
+            CharSequence text = messageObject.caption != null ? messageObject.caption : messageObject.messageText;
+            if (!(text instanceof SpannableString)) {
+                return result;
+            }
+            SpannableString spannableText = (SpannableString) text;
+
+            URLSpan spoofedSpan = getSpans(spannableText).stream()
+                    .filter(span -> isSpoofSpan(spannableText, span))
+                    .findAny()
+                    .orElse(null);
+
+            if (spoofedSpan == null) {
+                return result;
+            }
+
+            result.label = getSpanText(spannableText, spoofedSpan).toString();
+            result.isSpoofed = true;
             return result;
+        } catch (Exception e) {
+            if (BuildVars.LOGS_ENABLED) {
+                throw e;
+            } else {
+                return new SpoofedLinkInfo();
+            }
         }
-
-        MessageObject messageObject = getLinkMessageObjectFromProgress();
-        if (messageObject == null || !(messageObject.messageText instanceof SpannableString)) {
-            return result;
-        }
-        SpannableString spannableText = (SpannableString) messageObject.messageText;
-
-        URLSpanReplacement spoofedSpan = getSpans(spannableText).stream()
-                .filter(span -> isSpoofSpan(spannableText, span))
-                .findAny()
-                .orElse(null);
-
-        if (spoofedSpan == null) {
-            return result;
-        }
-
-        result.label = getSpanText(spannableText, spoofedSpan).toString();
-        result.isSpoofed = true;
-        return result;
     }
 
     private MessageObject getLinkMessageObjectFromProgress() {
@@ -94,9 +107,9 @@ public class SpoofedLinkChecker {
         }
     }
 
-    private List<URLSpanReplacement> getSpans(SpannableString spannableText) {
-        List<URLSpanReplacement> targetSpans;
-        URLSpanReplacement progressSpan = tryGetObjectFieldBySuffix(progress, "span", URLSpanReplacement.class);
+    private List<URLSpan> getSpans(SpannableString spannableText) {
+        List<URLSpan> targetSpans;
+        URLSpan progressSpan = tryGetObjectFieldBySuffix(progress, "span", URLSpan.class);
         if (progressSpan != null) {
             targetSpans = Collections.singletonList(progressSpan);
         } else {
@@ -105,10 +118,10 @@ public class SpoofedLinkChecker {
         return targetSpans;
     }
 
-    private List<URLSpanReplacement> getSpansByUrl(SpannableString spannableText) {
-        URLSpanReplacement[] spans = spannableText.getSpans(0, spannableText.length(), URLSpanReplacement.class);
-        List<URLSpanReplacement> matchedSpans = new ArrayList<>();
-        for (URLSpanReplacement span : spans) {
+    private List<URLSpan> getSpansByUrl(SpannableString spannableText) {
+        URLSpan[] spans = spannableText.getSpans(0, spannableText.length(), URLSpan.class);
+        List<URLSpan> matchedSpans = new ArrayList<>();
+        for (URLSpan span : spans) {
             String spanUrl = span.getURL();
             if (Objects.equals(spanUrl, url)) {
                 matchedSpans.add(span);
@@ -117,7 +130,7 @@ public class SpoofedLinkChecker {
         return matchedSpans;
     }
 
-    private static boolean isSpoofSpan(SpannableString spannableText, URLSpanReplacement span) {
+    private static boolean isSpoofSpan(SpannableString spannableText, URLSpan span) {
         String label = getSpanText(spannableText, span).toString();
 
         // avoid ' @username' workaround
@@ -143,7 +156,7 @@ public class SpoofedLinkChecker {
         }
     }
 
-    private static CharSequence getSpanText(SpannableString spannableText, URLSpanReplacement span) {
+    private static CharSequence getSpanText(SpannableString spannableText, URLSpan span) {
         int start = spannableText.getSpanStart(span);
         int end = spannableText.getSpanEnd(span);
         return spannableText.subSequence(start, end);
