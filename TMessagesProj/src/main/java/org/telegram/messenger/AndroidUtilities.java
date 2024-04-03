@@ -4834,8 +4834,10 @@ public class AndroidUtilities {
 
     public static boolean shouldShowUrlInAlert(String url) {
         try {
-            if (url.toLowerCase(Locale.ROOT).startsWith("http:")) {
-                return true;
+            if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+                if (url.toLowerCase(Locale.ROOT).startsWith("http:") || SharedConfig.confirmDangerousActions) {
+                    return true;
+                }
             }
             Uri uri = Uri.parse(url);
             url = uri.getHost();
