@@ -127,6 +127,7 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
             if (controller.getPrivacyRules(PRIVACY_RULES_TYPE_PHONE) == null
                     || controller.getPrivacyRules(PRIVACY_RULES_TYPE_LASTSEEN) == null
                     || controller.getPrivacyRules(PRIVACY_RULES_TYPE_CALLS) == null) {
+                notificationDelegateLocked.set(false);
                 return;
             }
             NotificationCenter.getInstance(accountNum).removeObserver(this, NotificationCenter.privacyRulesUpdated);
