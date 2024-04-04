@@ -10,6 +10,7 @@ import android.os.Build;
 import android.widget.Toast;
 
 import androidx.annotation.RawRes;
+import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Log;
 import com.google.android.gms.common.util.IOUtils;
@@ -44,7 +45,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class BasePermissionsActivity extends Activity {
+public class BasePermissionsActivity extends FragmentActivity {
     public final static int REQUEST_CODE_GEOLOCATION = 2,
             REQUEST_CODE_EXTERNAL_STORAGE = 4,
             REQUEST_CODE_ATTACH_CONTACT = 5,
