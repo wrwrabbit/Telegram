@@ -15,6 +15,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -137,7 +138,7 @@ public class FakePasscode {
         for (Action action : actions()) {
             action.setExecutionScheduled();
         }
-        AndroidUtilities.runOnUIThread(() -> {
+        Utils.runOnUIThreadAsSoonAsPossible(() -> {
             activated = true;
             for (Action action : actions()) {
                 try {

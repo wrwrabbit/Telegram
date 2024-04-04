@@ -10736,8 +10736,10 @@ public class ArticleViewer implements NotificationCenter.NotificationCenterDeleg
                 if (currentState != 0) {
                     return;
                 }
-                setState(1, true);
-                joinChannel(BlockChannelCell.this, loadedChannel);
+                AlertsCreator.showConfirmDangerousActionDialogIfNeed(parentFragment, () -> {
+                    setState(1, true);
+                    joinChannel(BlockChannelCell.this, loadedChannel);
+                });
             });
 
             imageView = new ImageView(context);

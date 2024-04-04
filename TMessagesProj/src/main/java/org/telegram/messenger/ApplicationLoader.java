@@ -348,9 +348,12 @@ public class ApplicationLoader extends Application {
             logcatFile.delete();
         }
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(logcatFile));
+            FileWriter fileWriter = new FileWriter(logcatFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             String logcat = Utilities.readLogcat();
-            writer.write(logcat);
+            bufferedWriter.write(logcat);
+            bufferedWriter.close();
+            fileWriter.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

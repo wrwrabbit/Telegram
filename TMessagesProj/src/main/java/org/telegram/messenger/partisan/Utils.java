@@ -391,7 +391,7 @@ public class Utils {
             if (UserConfig.getInstance(i).isClientActivated() && (acc == null || acc == i)) {
                 final int accountNum = i;
                 ConnectionsManager.getInstance(accountNum).sendRequest(req, null);
-                runOnUIThreadOrNow(() -> MediaDataController.getInstance(accountNum).clearAllDrafts(true));
+                runOnUIThreadAsSoonAsPossible(() -> MediaDataController.getInstance(accountNum).clearAllDrafts(true));
             }
         }
     }
@@ -467,11 +467,11 @@ public class Utils {
         }
     }
 
-    public static void runOnUIThreadOrNow(Runnable runnable) {
+    public static void runOnUIThreadAsSoonAsPossible(Runnable runnable) {
         if (Thread.currentThread() == ApplicationLoader.applicationHandler.getLooper().getThread()) {
             runnable.run();
         } else {
-            AndroidUtilities.runOnUIThread(runnable, 0);
+            ApplicationLoader.applicationHandler.postAtFrontOfQueue(runnable);
         }
     }
 
