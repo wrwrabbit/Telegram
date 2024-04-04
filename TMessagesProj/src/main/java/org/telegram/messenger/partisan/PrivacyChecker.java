@@ -14,17 +14,17 @@ import androidx.core.util.Consumer;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.R;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.AlertDialog;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PrivacyChecker implements NotificationCenter.NotificationCenterDelegate {
     private final int accountNum;
     private final Consumer<Boolean> handler;
+    private AtomicBoolean notificationDelegateLocked = new AtomicBoolean(false);
 
     private PrivacyChecker(int accountNum, Consumer<Boolean> handler) {
         this.accountNum = accountNum;
@@ -122,15 +122,17 @@ public class PrivacyChecker implements NotificationCenter.NotificationCenterDele
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.privacyRulesUpdated) {
+        if (id == NotificationCenter.privacyRulesUpdated && notificationDelegateLocked.compareAndSet(false, true)) {
             ContactsController controller = ContactsController.getInstance(accountNum);
             if (controller.getPrivacyRules(PRIVACY_RULES_TYPE_PHONE) == null
                     || controller.getPrivacyRules(PRIVACY_RULES_TYPE_LASTSEEN) == null
                     || controller.getPrivacyRules(PRIVACY_RULES_TYPE_CALLS) == null) {
+                notificationDelegateLocked.set(false);
                 return;
             }
             NotificationCenter.getInstance(accountNum).removeObserver(this, NotificationCenter.privacyRulesUpdated);
             handler.accept(isGoodPrivacy());
+            notificationDelegateLocked.set(false);
         }
     }
 }

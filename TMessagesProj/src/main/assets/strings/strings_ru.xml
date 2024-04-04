@@ -232,4 +232,6 @@
     <string name="ConfirmDangerousActionAlertInfo">Вы действительно хотите выполнить выбранное действие?</string>
     <string name="CantChangePhoneNumberTitle">Невозможно изменить номер телефона</string>
     <string name="CantChangePhoneNumberDescription">Партизанский Телеграм не может изменить Ваш номер телефона. Воспользуйтесь официальным приложением для этого.</string>
+    <string name="SpoofedLinkTitle">⚠️ Поддельная ссылка</string>
+    <string name="SpoofedLinkDescription">Ссылка выглядит как %1$s, но ведёт на %2$s.</string>
 </resources>
