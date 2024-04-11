@@ -4,6 +4,7 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.results.HideAccountResult;
 
     @FakePasscodeSerializer.ToggleSerialization
 public class LogOutAction extends AccountAction {
@@ -33,7 +34,7 @@ public class LogOutAction extends AccountAction {
     }
 
     public void hideAccount(FakePasscode fakePasscode) {
-        fakePasscode.actionsResult.hiddenAccountEntries.add(new ActionsResult.HiddenAccountEntry(accountNum, true));
+        fakePasscode.actionsResult.hiddenAccountEntries.add(new HideAccountResult(accountNum, true));
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.accountHidingChanged);
         AccountInstance.getInstance(accountNum).getNotificationsController().removeAllNotifications();
     }

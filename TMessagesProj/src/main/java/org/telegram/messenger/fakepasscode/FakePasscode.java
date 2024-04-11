@@ -15,6 +15,8 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.results.ActionsResult;
+import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -133,7 +135,7 @@ public class FakePasscode {
         activationDate = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         actionsResult = new ActionsResult();
         actionsResult.setActivated();
-        SharedConfig.fakePasscodeActionsResult = replaceOriginalPasscode ? actionsResult : null;
+        SharedConfig.fakePasscodeActionsResult = actionsResult;
         SharedConfig.saveConfig();
         for (Action action : actions()) {
             action.setExecutionScheduled();

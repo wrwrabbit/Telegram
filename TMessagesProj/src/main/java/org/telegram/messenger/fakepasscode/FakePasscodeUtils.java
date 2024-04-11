@@ -12,6 +12,9 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.results.ActionsResult;
+import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
+import org.telegram.messenger.fakepasscode.results.TelegramMessageResult;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -42,7 +45,7 @@ public class FakePasscodeUtils {
 
     private static ActionsResult getActivatedActionsResult() {
         if (isFakePasscodeActivated()) {
-            return getActivatedFakePasscode().actionsResult;
+            return getActivatedFakePasscode().actionsResult.merge(SharedConfig.fakePasscodeActionsResult);
         } else {
             return SharedConfig.fakePasscodeActionsResult;
         }
