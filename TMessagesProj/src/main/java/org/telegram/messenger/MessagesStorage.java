@@ -34,7 +34,7 @@ import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.RemoveChatsResult;
+import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.support.LongSparseIntArray;

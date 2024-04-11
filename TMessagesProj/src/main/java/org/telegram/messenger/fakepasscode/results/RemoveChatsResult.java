@@ -1,14 +1,17 @@
-package org.telegram.messenger.fakepasscode;
+package org.telegram.messenger.fakepasscode.results;
+
+import org.telegram.messenger.fakepasscode.ChatFilter;
+import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 
 import java.util.ArrayList;
 
 public class RemoveChatsResult implements ChatFilter {
-    ArrayList<Long> removeNewMessagesChats = new ArrayList<>();
-    ArrayList<Long> removedChats = new ArrayList<>();
+    public ArrayList<Long> removeNewMessagesChats = new ArrayList<>();
+    public ArrayList<Long> removedChats = new ArrayList<>();
     @Deprecated
-    ArrayList<Long> hiddenChats = new ArrayList<>();
-    ArrayList<RemoveChatsAction.HiddenChatEntry> hiddenChatEntries = new ArrayList<>();
-    ArrayList<Integer> hiddenFolders = new ArrayList<>();
+    public ArrayList<Long> hiddenChats = new ArrayList<>();
+    public ArrayList<RemoveChatsAction.HiddenChatEntry> hiddenChatEntries = new ArrayList<>();
+    public ArrayList<Integer> hiddenFolders = new ArrayList<>();
 
     @Override
     public boolean isRemoveNewMessagesFromChat(long chatId) {
