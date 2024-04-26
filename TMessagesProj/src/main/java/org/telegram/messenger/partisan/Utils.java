@@ -4,15 +4,19 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AccountInstance;
@@ -36,6 +40,8 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -471,6 +477,44 @@ public class Utils {
             runnable.run();
         } else {
             AndroidUtilities.runOnUIThread(runnable, 0);
+        }
+    }
+
+    public static boolean isOldTelegramInstalled(Context context) {
+        PackageInfo packageInfo = getOldTelegramPackageInfo(context);
+        if (packageInfo != null) {
+            Signature[] signatures;
+            if (Build.VERSION.SDK_INT >= 28) {
+                signatures = packageInfo.signingInfo.getApkContentsSigners();
+            } else {
+                signatures = packageInfo.signatures;
+            }
+            if (signatures != null) {
+                for (final Signature sig : signatures) {
+                    try {
+                        MessageDigest hash = MessageDigest.getInstance("SHA-1");
+                        String thumbprint = Utilities.bytesToHex(hash.digest(sig.toByteArray()));
+                        return thumbprint.equalsIgnoreCase("B134DF916190F59F832BE4E1DE8354DC23444059");
+                    } catch (NoSuchAlgorithmException ignored) {
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static PackageInfo getOldTelegramPackageInfo(Context context) {
+        int flags;
+        if (Build.VERSION.SDK_INT >= 28) {
+            flags = PackageManager.GET_SIGNING_CERTIFICATES;
+        } else {
+            flags = PackageManager.GET_SIGNATURES;
+        }
+        try {
+            PackageManager pm = context.getPackageManager();
+            return pm.getPackageInfo("org.telegram.messenger.web", flags);
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return null;
         }
     }
 }
