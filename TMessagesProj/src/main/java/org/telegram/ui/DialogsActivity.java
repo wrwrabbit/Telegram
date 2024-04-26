@@ -7120,7 +7120,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private void checkOtherPtg() {
         if (SharedConfig.filesCopiedFromOldTelegram && !SharedConfig.oldTelegramRemoved) {
 
-            if (getParentActivity() != null && Utils.isOldTelegramInstalled(getParentActivity())) {
+            if (getParentActivity() != null && !Utils.isOldTelegramInstalled(getParentActivity())) {
                 SharedConfig.oldTelegramRemoved = true;
                 SharedConfig.saveConfig();
             } else if (!FakePasscodeUtils.isFakePasscodeActivated()) {
