@@ -28,6 +28,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.camera.CameraController;
 import org.telegram.messenger.camera.CameraSession;
+import org.telegram.messenger.camera.CameraSessionWrapper;
 import org.telegram.messenger.camera.CameraView;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -36,13 +37,12 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class DualCameraView extends CameraView implements CameraController.ErrorCallback {
+public class DualCameraView extends CameraView {
 
     private boolean dualAvailable;
 
     public DualCameraView(Context context, boolean frontface, boolean lazy) {
         super(context, frontface, lazy);
-        CameraController.getInstance().addOnErrorListener(this);
         dualAvailable = dualAvailableStatic(context);
     }
 
@@ -56,7 +56,6 @@ public class DualCameraView extends CameraView implements CameraController.Error
     public void destroy(boolean async, Runnable beforeDestroyRunnable) {
         saveDual();
         super.destroy(async, beforeDestroyRunnable);
-        CameraController.getInstance().removeOnErrorListener(this);
     }
 
     private final PointF lastTouch = new PointF();
@@ -322,10 +321,7 @@ public class DualCameraView extends CameraView implements CameraController.Error
                             allowRotation = Math.round(angle / 90f) * 90f - angle > 20f;
                         }
                         if (!snappedRotation) {
-                            try {
-                                performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                            } catch (Exception ignore) {
-                            }
+                            AndroidUtilities.vibrateCursor(this);
                             snappedRotation = true;
                         }
                     }
@@ -341,10 +337,7 @@ public class DualCameraView extends CameraView implements CameraController.Error
                     if (Math.abs(rotDiff) < 5f) {
                         finalMatrix.postRotate(rotDiff, cx, cy);
                         if (!snappedRotation) {
-                            try {
-                                performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                            } catch (Exception ignore) {
-                            }
+                            AndroidUtilities.vibrateCursor(this);
                             snappedRotation = true;
                         }
                     } else {
@@ -484,7 +477,7 @@ public class DualCameraView extends CameraView implements CameraController.Error
     }
 
     @Override
-    public void onError(int error, Camera camera, CameraSession session) {
+    public void onError(int error, Camera camera, CameraSessionWrapper session) {
         if (isDual()) {
             if (!dualAvailableDefault(getContext(), false)) {
                 MessagesController.getGlobalMainSettings().edit().putBoolean("dual_available", dualAvailable = false).apply();
@@ -497,7 +490,7 @@ public class DualCameraView extends CameraView implements CameraController.Error
             log(false);
             toggleDual();
         }
-        if (getCameraSession(0) == session) {
+        if (getCameraSession(0) != null && getCameraSession(0).equals(session)) {
             resetCamera();
         }
         onCameraError();
@@ -584,6 +577,19 @@ public class DualCameraView extends CameraView implements CameraController.Error
 
     public static boolean dualAvailableStatic(Context context) {
         return MessagesController.getGlobalMainSettings().getBoolean("dual_available", dualAvailableDefault(context, true));
+    }
+
+    public static boolean roundDualAvailableStatic(Context context) {
+        return MessagesController.getGlobalMainSettings().getBoolean("rounddual_available", roundDualAvailableDefault(context));
+    }
+
+    public static boolean roundDualAvailableDefault(Context context) {
+        return (
+            SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH &&
+            Camera.getNumberOfCameras() > 1 &&
+            SharedConfig.allowPreparingHevcPlayers() &&
+            context != null && context.getPackageManager().hasSystemFeature("android.hardware.camera.concurrent")
+        );
     }
 
 

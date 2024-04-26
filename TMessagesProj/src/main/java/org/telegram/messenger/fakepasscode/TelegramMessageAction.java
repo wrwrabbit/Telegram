@@ -11,8 +11,10 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ChatActivity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -142,7 +144,7 @@ public class TelegramMessageAction extends AccountAction implements Notification
             // messages in channels are always deleted for everyone
         } else {
             controller.deleteMessages(messages, null, null, chatId,
-                    false, false, false, 0, null, false, true);
+                    false, ChatActivity.MODE_DEFAULT, false, 0, null, 0, false, true);
         }
     }
 

@@ -64,11 +64,9 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.drawable.IconCompat;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -992,7 +990,7 @@ public class NotificationsController extends BaseController {
                         messageObject.messageOwner.silent && (messageObject.messageOwner.action instanceof TLRPC.TL_messageActionContactSignUp || messageObject.messageOwner.action instanceof TLRPC.TL_messageActionUserJoined)) ||
                         MessageObject.isTopicActionMessage(messageObject) ||
                         messageObject.messageOwner.silent && (messageObject.messageOwner.action instanceof TLRPC.TL_messageActionContactSignUp || messageObject.messageOwner.action instanceof TLRPC.TL_messageActionUserJoined) ||
-                        !FakePasscodeUtils.checkMessage(currentAccount, messageObject.messageOwner) ||
+                        PartisanMessagesInterceptionController.intercept(currentAccount, messageObject.messageOwner).isPreventMessageSaving() ||
                         FakePasscodeUtils.isHideMessage(currentAccount, messageObject.getDialogId(), messageObject.getId())
                 ) {
                     continue;
@@ -5843,10 +5841,10 @@ public class NotificationsController extends BaseController {
                 minChangeTime = Math.min(minChangeTime, d.second);
             }
         }
-        AndroidUtilities.cancelRunOnUIThread(checkStoryPushesRunnable);
+        notificationsQueue.cancelRunnable(checkStoryPushesRunnable);
         long delay = minChangeTime - System.currentTimeMillis();
         if (minChangeTime != Long.MAX_VALUE) {
-            AndroidUtilities.runOnUIThread(checkStoryPushesRunnable, Math.max(0, delay));
+            notificationsQueue.postRunnable(checkStoryPushesRunnable, Math.max(0, delay));
         }
     }
 

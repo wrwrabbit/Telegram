@@ -1313,9 +1313,7 @@ public class PreviewView extends FrameLayout {
                         allowRotation = Math.round(angle / 90f) * 90f - angle > 20f;
                     }
                     if (!snappedRotation) {
-                        try {
-                            performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                        } catch (Exception ignore) {}
+                        AndroidUtilities.vibrateCursor(this);
                         snappedRotation = true;
                     }
                 }
@@ -1335,9 +1333,7 @@ public class PreviewView extends FrameLayout {
                 if (Math.abs(rotDiff) < 3.5f) {
                     finalMatrix.postRotate(rotDiff, cx, cy);
                     if (!snappedRotation) {
-                        try {
-                            performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                        } catch (Exception ignore) {}
+                        AndroidUtilities.vibrateCursor(this);
                         snappedRotation = true;
                     }
                 } else {
@@ -1613,7 +1609,7 @@ public class PreviewView extends FrameLayout {
 
     public static Drawable getBackgroundDrawableFromTheme(int currentAccount, EmojiThemes chatTheme, int prevPhase, boolean isDark, boolean preview) {
         Drawable drawable;
-        if (chatTheme.showAsDefaultStub) {
+        if (chatTheme.isAnyStub()) {
             Theme.ThemeInfo themeInfo = EmojiThemes.getDefaultThemeInfo(isDark);
             SparseIntArray currentColors = chatTheme.getPreviewColors(currentAccount, isDark ? 1 : 0);
             String wallpaperLink = chatTheme.getWallpaperLink(isDark ? 1 : 0);

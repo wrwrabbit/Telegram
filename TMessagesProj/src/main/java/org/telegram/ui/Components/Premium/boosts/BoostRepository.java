@@ -19,7 +19,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
@@ -28,7 +27,7 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.Components.BotWebViewSheet;
+import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PaymentFormActivity;
 
@@ -95,7 +94,7 @@ public class BoostRepository {
             TLRPC.Dialog dialog = dialogs.get(i);
             if (DialogObject.isChatDialog(dialog.id)) {
                 TLRPC.Chat chat = messagesController.getChat(-dialog.id);
-                if (ChatObject.isChannelAndNotMegaGroup(chat) && -dialog.id != currentChatId) {
+                if (ChatObject.isBoostSupported(chat) && -dialog.id != currentChatId) {
                     peers.add(messagesController.getInputPeer(dialog.id));
                 }
             }
@@ -512,7 +511,7 @@ public class BoostRepository {
         });
     }
 
-    public static void loadGiftOptions(TLRPC.Chat chat, Utilities.Callback<List<TLRPC.TL_premiumGiftCodeOption>> onDone) {
+    public static int loadGiftOptions(TLRPC.Chat chat, Utilities.Callback<List<TLRPC.TL_premiumGiftCodeOption>> onDone) {
         MessagesController controller = MessagesController.getInstance(UserConfig.selectedAccount);
         ConnectionsManager connection = ConnectionsManager.getInstance(UserConfig.selectedAccount);
         TLRPC.TL_payments_getPremiumGiftCodeOptions req = new TLRPC.TL_payments_getPremiumGiftCodeOptions();
@@ -521,7 +520,7 @@ public class BoostRepository {
             req.boost_peer = controller.getInputPeer(-chat.id);
         }
 
-        int reqId = connection.sendRequest(req, (response, error) -> {
+        return connection.sendRequest(req, (response, error) -> {
             if (response != null) {
                 TLRPC.Vector vector = (TLRPC.Vector) response;
                 List<TLRPC.TL_premiumGiftCodeOption> result = new ArrayList<>();
@@ -602,7 +601,7 @@ public class BoostRepository {
                 for (int a = 0; a < res.chats.size(); a++) {
                     TLRPC.Chat chat = res.chats.get(a);
                     TLRPC.InputPeer inputPeer = MessagesController.getInputPeer(chat);
-                    if (chat.id != currentChatId && ChatObject.isChannelAndNotMegaGroup(chat)) {
+                    if (chat.id != currentChatId && ChatObject.isBoostSupported(chat)) {
                         result.add(inputPeer);
                     }
                 }
@@ -676,9 +675,8 @@ public class BoostRepository {
         ConnectionsManager connection = ConnectionsManager.getInstance(UserConfig.selectedAccount);
         MessagesController controller = MessagesController.getInstance(UserConfig.selectedAccount);
         TLRPC.TL_payments_getGiveawayInfo req = new TLRPC.TL_payments_getGiveawayInfo();
-        long selfId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
         req.msg_id = messageObject.getId();
-        req.peer = controller.getInputPeer(messageObject.getFromChatId());
+        req.peer = controller.getInputPeer(MessageObject.getPeerId(messageObject.messageOwner.peer_id));
         int reqId = connection.sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (error != null) {
                 onError.run(error);
@@ -726,6 +724,6 @@ public class BoostRepository {
                 controller.putChats(myBoosts.chats, false);
                 onDone.run(myBoosts);
             }
-        }), ConnectionsManager.RequestFlagDoNotWaitFloodWait);
+        }), ConnectionsManager.RequestFlagInvokeAfter | ConnectionsManager.RequestFlagFailOnServerErrors);
     }
 }

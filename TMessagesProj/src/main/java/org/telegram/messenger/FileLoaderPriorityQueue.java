@@ -97,7 +97,7 @@ public class FileLoaderPriorityQueue {
             FileLoadOperation operation = allOperations.get(i);
             if (i > 0 && !pauseAllNextOperations) {
                 if (type == TYPE_LARGE) {
-                    if (prevOperation != null && prevOperation.isStory && prevOperation.getPriority() >= PRIORITY_VALUE_MAX) {
+                    if (prevOperation != null && prevOperation.isStory && prevOperation.getPriority() >= PRIORITY_VALUE_MAX && operation.getPriority() <= PRIORITY_VALUE_LOW) {
                         pauseAllNextOperations = true;
                     }
                 }
@@ -109,11 +109,17 @@ public class FileLoaderPriorityQueue {
                 //operation will not use connections
                 //just skip
                 max++;
+                if (BuildVars.DEBUG_PRIVATE_VERSION)
+                    FileLog.d("{"+name+"}.checkLoadingOperationInternal: #" + i + " "+operation.getFileName()+" priority="+operation.getPriority()+" isStory="+operation.isStory+" preFinished="+ operation.preFinished+" pauseAllNextOperations=" + pauseAllNextOperations + " max=" + max + " => skip");
                 continue;
             } else if (!pauseAllNextOperations && i < max) {
+                if (BuildVars.DEBUG_PRIVATE_VERSION)
+                    FileLog.d("{"+name+"}.checkLoadingOperationInternal: #" + i + " " +operation.getFileName()+" priority="+operation.getPriority()+" isStory="+operation.isStory+" preFinished="+ operation.preFinished+" pauseAllNextOperations=" + pauseAllNextOperations + " max=" + max + " => start");
                 tmpListOperations.add(operation);
                 activeCount++;
             } else {
+                if (BuildVars.DEBUG_PRIVATE_VERSION)
+                    FileLog.d("{"+name+"}.checkLoadingOperationInternal: #" + i + " " +operation.getFileName()+" priority="+operation.getPriority()+" isStory="+operation.isStory+" preFinished="+ operation.preFinished+" pauseAllNextOperations=" + pauseAllNextOperations + " max=" + max + " => pause");
                 if (operation.wasStarted()) {
                     operation.pause();
                 }

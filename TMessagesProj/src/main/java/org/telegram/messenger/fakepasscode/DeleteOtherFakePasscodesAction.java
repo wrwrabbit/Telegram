@@ -2,6 +2,7 @@ package org.telegram.messenger.fakepasscode;
 
 import static java.util.stream.Collectors.toCollection;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.SharedConfig;
 
 import java.util.ArrayList;
@@ -49,6 +50,10 @@ public class DeleteOtherFakePasscodesAction implements Action {
 
     @Override
     public void execute(FakePasscode fakePasscode) {
+        if (selected.isEmpty() && mode == SelectionMode.SELECTED) {
+            return;
+        }
+
         List<FakePasscode> newFakePasscodes = new ArrayList<>();
         int current = -1;
         for (int i = 0; i < SharedConfig.fakePasscodes.size(); i++) {
@@ -69,8 +74,11 @@ public class DeleteOtherFakePasscodesAction implements Action {
         if (mode == SelectionMode.SELECTED) {
             selected.clear();
         }
-        SharedConfig.fakePasscodeActivatedIndex = current;
-        SharedConfig.fakePasscodes = newFakePasscodes;
-        SharedConfig.saveConfig();
+        int currentFinal = current;
+        AndroidUtilities.runOnUIThread(() -> {
+            SharedConfig.fakePasscodeActivatedIndex = currentFinal;
+            SharedConfig.fakePasscodes = newFakePasscodes;
+            SharedConfig.saveConfig();
+        });
     }
 }

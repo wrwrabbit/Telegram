@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -99,6 +100,9 @@ public class BillingController implements PurchasesUpdatedListener, BillingClien
         if (currency == null || currency.isEmpty()) {
             return String.valueOf(amount);
         }
+        if ("TON".equalsIgnoreCase(currency)) {
+            return "TON " + (amount / 1_000_000_000.0);
+        }
         Currency cur = Currency.getInstance(currency);
         if (cur != null) {
             NumberFormat numberFormat = NumberFormat.getCurrencyInstance();
@@ -132,6 +136,14 @@ public class BillingController implements PurchasesUpdatedListener, BillingClien
             return;
         }
         billingClientEmpty = true;
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.billingProductDetailsUpdated);
+    }
+
+    private void switchBackFromInvoice() {
+        if (!billingClientEmpty) {
+            return;
+        }
+        billingClientEmpty = false;
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.billingProductDetailsUpdated);
     }
 
@@ -328,33 +340,59 @@ public class BillingController implements PurchasesUpdatedListener, BillingClien
         AndroidUtilities.runOnUIThread(() -> startConnection(), delay);
     }
 
+    private int triesLeft = 0;
+
     @Override
     public void onBillingSetupFinished(@NonNull BillingResult setupBillingResult) {
         FileLog.d("Billing: Setup finished with result " + setupBillingResult);
         if (setupBillingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             isDisconnected = false;
-            queryProductDetails(Collections.singletonList(PREMIUM_PRODUCT), (billingResult, list) -> {
-                FileLog.d("Billing: Query product details finished " + billingResult + ", " + list);
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    for (ProductDetails details : list) {
-                        if (details.getProductId().equals(PREMIUM_PRODUCT_ID)) {
-                            PREMIUM_PRODUCT_DETAILS = details;
-                        }
-                    }
-                    if (PREMIUM_PRODUCT_DETAILS == null) {
-                        switchToInvoice();
-                    } else {
-                        NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.billingProductDetailsUpdated);
-                    }
-                } else {
-                    switchToInvoice();
-                }
-            });
+            triesLeft = 3;
+            try {
+                queryProductDetails(Collections.singletonList(PREMIUM_PRODUCT), this::onQueriedPremiumProductDetails);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
             queryPurchases(BillingClient.ProductType.INAPP, this::onPurchasesUpdated);
             queryPurchases(BillingClient.ProductType.SUBS, this::onPurchasesUpdated);
         } else {
             if (!isDisconnected) {
                 switchToInvoice();
+            }
+        }
+    }
+
+    private void onQueriedPremiumProductDetails(BillingResult billingResult, List<ProductDetails> list) {
+        FileLog.d("Billing: Query product details finished " + billingResult + ", " + list);
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+            for (ProductDetails details : list) {
+                if (details.getProductId().equals(PREMIUM_PRODUCT_ID)) {
+                    PREMIUM_PRODUCT_DETAILS = details;
+                }
+            }
+            if (PREMIUM_PRODUCT_DETAILS == null) {
+                switchToInvoice();
+            } else {
+                switchBackFromInvoice();
+                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.billingProductDetailsUpdated);
+            }
+        } else {
+            switchToInvoice();
+            triesLeft--;
+            if (triesLeft > 0) {
+                long delay;
+                if (triesLeft == 2) {
+                    delay = 1000;
+                } else {
+                    delay = 10000;
+                }
+                AndroidUtilities.runOnUIThread(() -> {
+                    try {
+                        queryProductDetails(Collections.singletonList(PREMIUM_PRODUCT), this::onQueriedPremiumProductDetails);
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                }, delay);
             }
         }
     }

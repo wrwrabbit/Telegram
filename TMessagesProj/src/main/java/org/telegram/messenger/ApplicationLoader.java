@@ -38,12 +38,15 @@ import androidx.multidex.MultiDex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
+import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.ui.Components.Premium.boosts.BoostRepository;
 import org.telegram.ui.IUpdateLayout;
@@ -51,6 +54,7 @@ import org.telegram.ui.LauncherIconController;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.util.ArrayList;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -238,7 +242,7 @@ public class ApplicationLoader extends Application {
             SharedConfig.saveConfig();
             SharedConfig.reloadConfig();
         }
-        if (BuildVars.LOGS_ENABLED && SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (BuildVars.LOGS_ENABLED && !FakePasscodeUtils.isFakePasscodeActivated()) {
             saveLogcatFile();
         }
         RemoveAfterReadingMessages.runChecker();
@@ -344,9 +348,12 @@ public class ApplicationLoader extends Application {
             logcatFile.delete();
         }
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(logcatFile));
+            FileWriter fileWriter = new FileWriter(logcatFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             String logcat = Utilities.readLogcat();
-            writer.write(logcat);
+            bufferedWriter.write(logcat);
+            bufferedWriter.close();
+            fileWriter.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -676,6 +683,46 @@ public class ApplicationLoader extends Application {
     }
 
     public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
+        return null;
+    }
+
+    public TLRPC.Update parseTLUpdate(int constructor) {
+        return null;
+    }
+
+    public void processUpdate(int currentAccount, TLRPC.Update update) {
+
+    }
+
+    public boolean onSuggestionFill(String suggestion, CharSequence[] output, boolean[] closeable) {
+        return false;
+    }
+
+    public boolean onSuggestionClick(String suggestion) {
+        return false;
+    }
+
+    public boolean extendDrawer(ArrayList<DrawerLayoutAdapter.Item> items) {
+        return false;
+    }
+
+    public boolean checkRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) {
+        return false;
+    }
+
+    public boolean consumePush(int account, JSONObject json) {
+        return false;
+    }
+
+    public void onResume() {
+
+    }
+
+    public boolean onPause() {
+        return false;
+    }
+
+    public BaseFragment openSettings(int n) {
         return null;
     }
 

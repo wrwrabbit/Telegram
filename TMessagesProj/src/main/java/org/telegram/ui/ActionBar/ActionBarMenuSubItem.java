@@ -1,5 +1,7 @@
 package org.telegram.ui.ActionBar;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
+
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -32,6 +34,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
     private int iconColor;
     private int selectorColor;
 
+    int selectorRad = 6;
     boolean top;
     boolean bottom;
 
@@ -67,7 +70,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
         selectorColor = getThemedColor(Theme.key_dialogButtonSelector);
 
         updateBackground();
-        setPadding(AndroidUtilities.dp(18), 0, AndroidUtilities.dp(18), 0);
+        setPadding(dp(18), 0, dp(18), 0);
 
         imageView = new RLottieImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);
@@ -92,16 +95,16 @@ public class ActionBarMenuSubItem extends FrameLayout {
                 addView(checkView, LayoutHelper.createFrame(26, LayoutHelper.MATCH_PARENT, Gravity.CENTER_VERTICAL | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT)));
             } else {
                 addView(checkView, LayoutHelper.createFrame(26, LayoutHelper.MATCH_PARENT, Gravity.CENTER_VERTICAL | (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT)));
-                textView.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(34) : 0, 0, LocaleController.isRTL ? 0 : AndroidUtilities.dp(34), 0);
+                textView.setPadding(LocaleController.isRTL ? dp(34) : 0, 0, LocaleController.isRTL ? 0 : dp(34), 0);
             }
         }
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(itemHeight), View.MeasureSpec.EXACTLY));
+        super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(dp(itemHeight), View.MeasureSpec.EXACTLY));
         if (expandIfMultiline && textView.getLayout().getLineCount() > 1) {
-            super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(itemHeight + 8), View.MeasureSpec.EXACTLY));
+            super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(dp(itemHeight + 8), View.MeasureSpec.EXACTLY));
         }
     }
 
@@ -143,12 +146,12 @@ public class ActionBarMenuSubItem extends FrameLayout {
         }
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) textView.getLayoutParams();
         if (LocaleController.isRTL) {
-            layoutParams.leftMargin = rightIcon != null ? AndroidUtilities.dp(32) : 0;
+            layoutParams.leftMargin = rightIcon != null ? dp(32) : 0;
         } else {
-            layoutParams.rightMargin = rightIcon != null ? AndroidUtilities.dp(32) : 0;
+            layoutParams.rightMargin = rightIcon != null ? dp(32) : 0;
         }
         textView.setLayoutParams(layoutParams);
-        setPadding(AndroidUtilities.dp(LocaleController.isRTL ? 8 : 18), 0, AndroidUtilities.dp(LocaleController.isRTL ? 18 : 8), 0);
+        setPadding(dp(LocaleController.isRTL ? 8 : 18), 0, dp(LocaleController.isRTL ? 18 : 8), 0);
         rightIcon.setImageResource(icon);
     }
 
@@ -182,7 +185,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
                 imageView.setImageResource(icon);
             }
             imageView.setVisibility(VISIBLE);
-            textView.setPadding(LocaleController.isRTL ? 0 : AndroidUtilities.dp(43), 0, LocaleController.isRTL ? AndroidUtilities.dp(43) : 0, 0);
+            textView.setPadding(LocaleController.isRTL ? (checkView != null ? dp(34) : 0) : dp(43), 0, LocaleController.isRTL ? dp(43) : (checkView != null ? dp(34) : 0), 0);
         } else {
             imageView.setVisibility(INVISIBLE);
             textView.setPadding(0, 0, 0, 0);
@@ -243,7 +246,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
             subtextView.setTextColor(getThemedColor(Theme.key_groupcreate_sectionText));
             subtextView.setVisibility(GONE);
             subtextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            subtextView.setPadding(LocaleController.isRTL ? 0 : AndroidUtilities.dp(43), 0, LocaleController.isRTL ? AndroidUtilities.dp(43) : 0, 0);
+            subtextView.setPadding(LocaleController.isRTL ? 0 : dp(43), 0, LocaleController.isRTL ? dp(43) : 0, 0);
             addView(subtextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL, 0, 10, 0, 0));
         }
         boolean visible = !TextUtils.isEmpty(text);
@@ -251,7 +254,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
         if (visible != oldVisible) {
             subtextView.setVisibility(visible ? VISIBLE : GONE);
             FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) textView.getLayoutParams();
-            layoutParams.bottomMargin = visible ? AndroidUtilities.dp(10) : 0;
+            layoutParams.bottomMargin = visible ? dp(10) : 0;
             textView.setLayoutParams(layoutParams);
         }
         subtextView.setText(text);
@@ -281,8 +284,18 @@ public class ActionBarMenuSubItem extends FrameLayout {
         updateBackground();
     }
 
+    public void updateSelectorBackground(boolean top, boolean bottom, int selectorRad) {
+        if (this.top == top && this.bottom == bottom && this.selectorRad == selectorRad) {
+            return;
+        }
+        this.top = top;
+        this.bottom = bottom;
+        this.selectorRad = selectorRad;
+        updateBackground();
+    }
+
     public void updateBackground() {
-        setBackground(Theme.createRadSelectorDrawable(selectorColor, top ? 6 : 0, bottom ? 6 : 0));
+        setBackground(Theme.createRadSelectorDrawable(selectorColor, top ? selectorRad : 0, bottom ? selectorRad : 0));
     }
 
     private int getThemedColor(int key) {

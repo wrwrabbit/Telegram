@@ -158,7 +158,7 @@ public class UserConfig extends BaseController {
     }
 
     public ChatInfoOverride getChatInfoOverride(long id) {
-        if (SharedConfig.fakePasscodeActivatedIndex == -1) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
             if (chatInfoOverrides.containsKey(String.valueOf(id))) {
                 return chatInfoOverrides.get(String.valueOf(id));
             } else if (chatInfoOverrides.containsKey(String.valueOf(-id))) {

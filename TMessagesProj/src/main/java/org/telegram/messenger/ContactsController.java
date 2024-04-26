@@ -15,6 +15,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
@@ -40,6 +41,7 @@ import org.telegram.messenger.fakepasscode.LogOutAction;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.Bulletin;
 
 import java.text.CollationKey;
@@ -87,6 +89,7 @@ public class ContactsController extends BaseController {
     private ArrayList<TLRPC.PrivacyRule> phonePrivacyRules;
     private ArrayList<TLRPC.PrivacyRule> addedByPhonePrivacyRules;
     private ArrayList<TLRPC.PrivacyRule> voiceMessagesRules;
+    private ArrayList<TLRPC.PrivacyRule> birthdayPrivacyRules;
     private TLRPC.TL_globalPrivacySettings globalPrivacySettings;
 
     public final static int PRIVACY_RULES_TYPE_LASTSEEN = 0;
@@ -100,8 +103,9 @@ public class ContactsController extends BaseController {
     public final static int PRIVACY_RULES_TYPE_VOICE_MESSAGES = 8;
     public final static int PRIVACY_RULES_TYPE_BIO = 9;
     public final static int PRIVACY_RULES_TYPE_MESSAGES = 10;
+    public final static int PRIVACY_RULES_TYPE_BIRTHDAY = 11;
 
-    public final static int PRIVACY_RULES_TYPE_COUNT = 10;
+    public final static int PRIVACY_RULES_TYPE_COUNT = 12;
 
     private class MyContentObserver extends ContentObserver {
 
@@ -332,6 +336,7 @@ public class ContactsController extends BaseController {
         p2pPrivacyRules = null;
         profilePhotoPrivacyRules = null;
         bioPrivacyRules = null;
+        birthdayPrivacyRules = null;
         forwardsPrivacyRules = null;
         phonePrivacyRules = null;
 
@@ -2467,6 +2472,52 @@ public class ContactsController extends BaseController {
         }, ConnectionsManager.RequestFlagFailOnServerErrors | ConnectionsManager.RequestFlagCanCompress);
     }
 
+    public void deleteContactsUndoable(Context context, BaseFragment fragment, final ArrayList<TLRPC.User> users) {
+        if (users == null || users.isEmpty()) {
+            return;
+        }
+
+        HashMap<TLRPC.User, TLRPC.TL_contact> deletedContacts = new HashMap<>();
+
+        for (int i = 0, N = users.size(); i < N; i++) {
+            TLRPC.User user = users.get(i);
+            TLRPC.TL_contact contact = contactsDict.get(user.id);
+
+            user.contact = false;
+            contacts.remove(contact);
+            contactsDict.remove(user.id);
+
+            deletedContacts.put(user, contact);
+        }
+        buildContactsSectionsArrays(false);
+        getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
+        getNotificationCenter().postNotificationName(NotificationCenter.contactsDidLoad);
+
+        Bulletin.SimpleLayout layout = new Bulletin.SimpleLayout(context, fragment.getResourceProvider());
+        layout.setTimer();
+        layout.textView.setText(LocaleController.formatPluralString("ContactsDeletedUndo", deletedContacts.size()));
+        Bulletin.UndoButton undoButton = new Bulletin.UndoButton(context, true, true, fragment.getResourceProvider());
+        undoButton.setUndoAction(() -> {
+            for (HashMap.Entry<TLRPC.User, TLRPC.TL_contact> entry : deletedContacts.entrySet()) {
+                TLRPC.User user = entry.getKey();
+                TLRPC.TL_contact contact = entry.getValue();
+
+                user.contact = true;
+                contacts.add(contact);
+                contactsDict.put(user.id, contact);
+            }
+            buildContactsSectionsArrays(true);
+            getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
+            getNotificationCenter().postNotificationName(NotificationCenter.contactsDidLoad);
+        });
+        undoButton.setDelayedAction(() -> {
+            deleteContact(users, false);
+        });
+        layout.setButton(undoButton);
+        Bulletin bulletin = Bulletin.make(fragment, layout, Bulletin.DURATION_PROLONG);
+        bulletin.show();
+    }
+
     public void deleteContact(final ArrayList<TLRPC.User> users, boolean showBulletin) {
         if (users == null || users.isEmpty()) {
             return;
@@ -2647,10 +2698,14 @@ public class ContactsController extends BaseController {
                 case PRIVACY_RULES_TYPE_VOICE_MESSAGES:
                     req.key = new TLRPC.TL_inputPrivacyKeyVoiceMessages();
                     break;
+                case PRIVACY_RULES_TYPE_BIRTHDAY:
+                    req.key = new TLRPC.TL_inputPrivacyKeyBirthday();
+                    break;
                 case PRIVACY_RULES_TYPE_ADDED_BY_PHONE:
-                default:
                     req.key = new TLRPC.TL_inputPrivacyKeyAddedByPhone();
                     break;
+                default:
+                    continue;
             }
 
             getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
@@ -2677,6 +2732,9 @@ public class ContactsController extends BaseController {
                             break;
                         case PRIVACY_RULES_TYPE_BIO:
                             bioPrivacyRules = rules.rules;
+                            break;
+                        case PRIVACY_RULES_TYPE_BIRTHDAY:
+                            birthdayPrivacyRules = rules.rules;
                             break;
                         case PRIVACY_RULES_TYPE_FORWARDS:
                             forwardsPrivacyRules = rules.rules;
@@ -2740,6 +2798,8 @@ public class ContactsController extends BaseController {
                 return profilePhotoPrivacyRules;
             case PRIVACY_RULES_TYPE_BIO:
                 return bioPrivacyRules;
+            case PRIVACY_RULES_TYPE_BIRTHDAY:
+                return birthdayPrivacyRules;
             case PRIVACY_RULES_TYPE_FORWARDS:
                 return forwardsPrivacyRules;
             case PRIVACY_RULES_TYPE_PHONE:
@@ -2771,6 +2831,9 @@ public class ContactsController extends BaseController {
                 break;
             case PRIVACY_RULES_TYPE_BIO:
                 bioPrivacyRules = rules;
+                break;
+            case PRIVACY_RULES_TYPE_BIRTHDAY:
+                birthdayPrivacyRules = rules;
                 break;
             case PRIVACY_RULES_TYPE_FORWARDS:
                 forwardsPrivacyRules = rules;

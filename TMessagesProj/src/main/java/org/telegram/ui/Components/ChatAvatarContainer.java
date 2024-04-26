@@ -41,7 +41,6 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -54,6 +53,7 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Business.BusinessLinksController;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
@@ -205,7 +205,15 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     if (storiesForceState != null) {
                         params.forceState = storiesForceState;
                     }
-                    StoriesUtilities.drawAvatarWithStory(parentFragment != null ? parentFragment.getDialogId() : 0, canvas, imageReceiver, params);
+
+                    long dialogId = 0;
+                    if (parentFragment != null) {
+                        dialogId = parentFragment.getDialogId();
+                    } else if (baseFragment instanceof TopicsFragment) {
+                        dialogId = ((TopicsFragment) baseFragment).getDialogId();
+                    }
+
+                    StoriesUtilities.drawAvatarWithStory(dialogId, canvas, imageReceiver, params);
                 } else {
                     super.onDraw(canvas);
                 }
@@ -222,8 +230,10 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             }
         };
         if (baseFragment instanceof ChatActivity || baseFragment instanceof TopicsFragment) {
-            sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
-            if (parentFragment != null && (parentFragment.isThreadChat() || parentFragment.getChatMode() == 2)) {
+            if (parentFragment == null || (parentFragment.getChatMode() != ChatActivity.MODE_QUICK_REPLIES && parentFragment.getChatMode() != ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
+                sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
+            }
+            if (parentFragment != null && (parentFragment.isThreadChat() || parentFragment.getChatMode() == ChatActivity.MODE_PINNED || parentFragment.getChatMode() == ChatActivity.MODE_QUICK_REPLIES || parentFragment.getChatMode() == ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
                 avatarImageView.setVisibility(GONE);
             }
         }
@@ -243,7 +253,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         titleTextView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
         titleTextView.setTextSize(18);
         titleTextView.setGravity(Gravity.LEFT);
-        titleTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
         titleTextView.setLeftDrawableTopPadding(-AndroidUtilities.dp(1.3f));
         titleTextView.setCanHideRightDrawable(false);
         titleTextView.setRightDrawableOutside(true);
@@ -316,14 +326,6 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
 
         emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, AndroidUtilities.dp(24));
-
-        setOnLongClickListener(v -> {
-            if (canSearch()) {
-                openSearch();
-                return true;
-            }
-            return false;
-        });
     }
 
     private ButtonBounce bounce = new ButtonBounce(this);
@@ -513,7 +515,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 args.putBoolean("reportSpam", parentFragment.hasReportSpam());
                 args.putInt("actionBarColor", getThemedColor(Theme.key_actionBarDefault));
                 ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader);
-                fragment.setUserInfo(parentFragment.getCurrentUserInfo());
+                fragment.setUserInfo(parentFragment.getCurrentUserInfo(), parentFragment.profileChannelMessageFetcher, parentFragment.birthdayAssetsFetcher);
                 if (fromChatAnimation) {
                     fragment.setPlayProfileAnimation(byAvatar ? 2 : 1);
                 }
@@ -879,6 +881,10 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (parentFragment == null) {
             return;
         }
+        if (parentFragment.getChatMode() == ChatActivity.MODE_EDIT_BUSINESS_LINK) {
+            setSubtitle(BusinessLinksController.stripHttps(parentFragment.businessLink.link));
+            return;
+        }
         TLRPC.User user = parentFragment.getCurrentUser();
         if ((UserObject.isUserSelf(user) || UserObject.isReplyUser(user) || parentFragment.getChatMode() != 0) && parentFragment.getChatMode() != ChatActivity.MODE_SAVED) {
             if (getSubtitleTextView().getVisibility() != GONE) {
@@ -1102,7 +1108,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         avatarDrawable.setInfo(currentAccount, chat);
         if (avatarImageView != null) {
             avatarImageView.setForUserOrChat(chat, avatarDrawable);
-            avatarImageView.setRoundRadius(chat != null && chat.forum ? AndroidUtilities.dp(16) : AndroidUtilities.dp(21));
+            avatarImageView.setRoundRadius(ChatObject.isForum(chat) ? AndroidUtilities.dp(ChatObject.hasStories(chat) ? 11 : 16) : AndroidUtilities.dp(21));
         }
     }
 
@@ -1191,7 +1197,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             if (avatarImageView != null) {
                 avatarImageView.setForUserOrChat(chat, avatarDrawable);
             }
-            avatarImageView.setRoundRadius(chat.forum ? AndroidUtilities.dp(16) : AndroidUtilities.dp(21));
+            avatarImageView.setRoundRadius(chat.forum ? AndroidUtilities.dp(ChatObject.hasStories(chat) ? 11 : 16) : AndroidUtilities.dp(21));
         }
     }
 

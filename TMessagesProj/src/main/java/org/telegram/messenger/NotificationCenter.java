@@ -9,7 +9,6 @@
 package org.telegram.messenger;
 
 import android.os.SystemClock;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
@@ -139,6 +138,13 @@ public class NotificationCenter {
     public static final int recentEmojiStatusesUpdate = totalEvents++;
     public static final int updateSearchSettings = totalEvents++;
     public static final int updateTranscriptionLock = totalEvents++;
+    public static final int businessMessagesUpdated = totalEvents++;
+    public static final int quickRepliesUpdated = totalEvents++;
+    public static final int quickRepliesDeleted = totalEvents++;
+
+    public static final int businessLinksUpdated = totalEvents++;
+    public static final int businessLinkCreated = totalEvents++;
+    public static final int needDeleteBusinessLink = totalEvents++;
 
     public static final int messageTranslated = totalEvents++;
     public static final int messageTranslating = totalEvents++;
@@ -231,9 +237,17 @@ public class NotificationCenter {
     public static final int userIsPremiumBlockedUpadted = totalEvents++;
     public static final int savedMessagesForwarded = totalEvents++;
     public static final int emojiKeywordsLoaded = totalEvents++;
+    public static final int smsJobStatusUpdate = totalEvents++;
     public static final int storyQualityUpdate = totalEvents++;
+    public static final int openBoostForUsersDialog = totalEvents++;
+    public static final int groupRestrictionsUnlockedByBoosts = totalEvents++;
+    public static final int chatWasBoostedByUser = totalEvents++;
+    public static final int groupPackUpdated = totalEvents++;
+    public static final int timezonesUpdated = totalEvents++;
+    public static final int customStickerCreated = totalEvents++;
+    public static final int premiumFloodWaitReceived = totalEvents++;
 
-    //fake passcode
+    //partisan
     public static final int dialogDeletedByAction = totalEvents++;
     public static final int dialogCleared = totalEvents++;
     public static final int appDidLogoutByAction = totalEvents++;
@@ -248,8 +262,7 @@ public class NotificationCenter {
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
-    public static final int findMessagesJsonReceived = totalEvents++;
-    public static final int findMessagesJsonParsed = totalEvents++;
+    public static final int unknownPartisanActionLinkOpened = totalEvents++;
 
 
     //global
@@ -766,7 +779,7 @@ public class NotificationCenter {
         }
     }
 
-    public Runnable listen(View view, final int id, final Utilities.Callback<Object[]> callback) {
+    public Runnable listenGlobal(View view, final int id, final Utilities.Callback<Object[]> callback) {
         if (view == null || callback == null) {
             return () -> {};
         }
@@ -793,8 +806,35 @@ public class NotificationCenter {
         };
     }
 
+    public Runnable listen(View view, final int id, final Utilities.Callback<Object[]> callback) {
+        if (view == null || callback == null) {
+            return () -> {};
+        }
+        final NotificationCenterDelegate delegate = (_id, account, args) -> {
+            if (_id == id) {
+                callback.run(args);
+            }
+        };
+        final View.OnAttachStateChangeListener viewListener = new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+                addObserver(delegate, id);
+            }
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                removeObserver(delegate, id);
+            }
+        };
+        view.addOnAttachStateChangeListener(viewListener);
+
+        return () -> {
+            view.removeOnAttachStateChangeListener(viewListener);
+            removeObserver(delegate, id);
+        };
+    }
+
     public static void listenEmojiLoading(View view) {
-        getGlobalInstance().listen(view, NotificationCenter.emojiLoaded, args -> view.invalidate());
+        getGlobalInstance().listenGlobal(view, NotificationCenter.emojiLoaded, args -> view.invalidate());
     }
 
     public void listenOnce(int id, Runnable callback) {

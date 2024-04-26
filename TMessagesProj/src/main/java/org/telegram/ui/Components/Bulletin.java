@@ -105,6 +105,13 @@ public class Bulletin {
         return new Bulletin(null, containerLayout, contentLayout, duration);
     }
 
+    public Bulletin setOnClickListener(View.OnClickListener onClickListener) {
+        if (layout != null) {
+            layout.setOnClickListener(onClickListener);
+        }
+        return this;
+    }
+
     @SuppressLint("RtlHardcoded")
     public static Bulletin make(@NonNull BaseFragment fragment, @NonNull Layout contentLayout, int duration) {
         if (fragment instanceof ChatActivity) {
@@ -662,7 +669,7 @@ public class Bulletin {
 
         protected Bulletin bulletin;
         Drawable background;
-        private boolean top;
+        public boolean top;
 
         public boolean isTransitionRunning() {
             return transitionRunningEnter || transitionRunningExit;
@@ -682,6 +689,12 @@ public class Bulletin {
             updateSize();
             setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(8), AndroidUtilities.dp(8), AndroidUtilities.dp(8));
             setWillNotDraw(false);
+            ScaleStateListAnimator.apply(this, .02f, 1.5f);
+        }
+
+        @Override
+        protected boolean verifyDrawable(@NonNull Drawable who) {
+            return background == who || super.verifyDrawable(who);
         }
 
         protected void setBackground(int color) {
@@ -723,7 +736,7 @@ public class Bulletin {
             updateSize();
         }
 
-        private void setTop(boolean top) {
+        public void setTop(boolean top) {
             this.top = top;
             updateSize();
         }
@@ -1741,6 +1754,10 @@ public class Bulletin {
         }
 
         public UndoButton(@NonNull Context context, boolean text, Theme.ResourcesProvider resourcesProvider) {
+            this(context, text, !text, resourcesProvider);
+        }
+
+        public UndoButton(@NonNull Context context, boolean text, boolean icon, Theme.ResourcesProvider resourcesProvider) {
             super(context);
             this.resourcesProvider = resourcesProvider;
 
@@ -1748,24 +1765,28 @@ public class Bulletin {
 
             if (text) {
                 undoTextView = new TextView(context);
-                undoTextView.setOnClickListener(v -> undo());
                 undoTextView.setBackground(Theme.createSelectorDrawable((undoCancelColor & 0x00ffffff) | 0x19000000, Theme.RIPPLE_MASK_ROUNDRECT_6DP));
                 undoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
                 undoTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
                 undoTextView.setTextColor(undoCancelColor);
                 undoTextView.setText(LocaleController.getString("Undo", R.string.Undo));
                 undoTextView.setGravity(Gravity.CENTER_VERTICAL);
-                ViewHelper.setPaddingRelative(undoTextView, 12, 8, 12, 8);
+                ViewHelper.setPaddingRelative(undoTextView, icon ? 34 : 12, 8, 12, 8);
                 addView(undoTextView, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 8, 0, 8, 0));
-            } else {
+            }
+
+            if (icon) {
                 final ImageView undoImageView = new ImageView(getContext());
-                undoImageView.setOnClickListener(v -> undo());
                 undoImageView.setImageResource(R.drawable.chats_undo);
                 undoImageView.setColorFilter(new PorterDuffColorFilter(undoCancelColor, PorterDuff.Mode.MULTIPLY));
-                undoImageView.setBackground(Theme.createSelectorDrawable((undoCancelColor & 0x00ffffff) | 0x19000000));
+                if (!text) {
+                    undoImageView.setBackground(Theme.createSelectorDrawable((undoCancelColor & 0x00ffffff) | 0x19000000));
+                }
                 ViewHelper.setPaddingRelative(undoImageView, 0, 12, 0, 12);
                 addView(undoImageView, LayoutHelper.createFrameRelatively(56, 48, Gravity.CENTER_VERTICAL));
             }
+
+            setOnClickListener(v -> undo());
         }
 
         public UndoButton setText(CharSequence text) {

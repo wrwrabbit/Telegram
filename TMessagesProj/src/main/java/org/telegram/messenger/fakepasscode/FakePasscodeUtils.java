@@ -12,8 +12,10 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.fakepasscode.results.ActionsResult;
+import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
+import org.telegram.messenger.fakepasscode.results.TelegramMessageResult;
 import org.telegram.messenger.partisan.Utils;
-import org.telegram.messenger.partisan.findmessages.FindMessagesHelper;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.NotificationsSettingsActivity;
@@ -41,52 +43,9 @@ public class FakePasscodeUtils {
                 && SharedConfig.fakePasscodeActivatedIndex < SharedConfig.fakePasscodes.size();
     }
 
-    public static boolean checkMessage(int accountNum, TLRPC.Message message) {
-        if (FindMessagesHelper.checkIsUserMessagesJson(accountNum, message)) {
-            return false;
-        }
-        return checkMessage(accountNum, message.dialog_id, message.from_id != null ? message.from_id.user_id : null, message.message, message.date);
-    }
-
-    public static boolean checkMessage(int accountNum, long dialogId, Long senderId, String message) {
-        return checkMessage(accountNum, dialogId, senderId, message, null);
-    }
-
-    public static boolean checkMessage(int accountNum, long dialogId, Long senderId, String message, Integer date) {
-        if (message != null) {
-            tryToActivatePasscodeByMessage(accountNum, senderId, message, date);
-        }
-        FakePasscode passcode = getActivatedFakePasscode();
-        if (passcode == null) {
-            return true;
-        }
-        return !passcode.needDeleteMessage(accountNum, dialogId);
-    }
-
-    private synchronized static void tryToActivatePasscodeByMessage(int accountNum, Long senderId, String message, Integer date) {
-        if (message.isEmpty() || senderId != null && UserConfig.getInstance(accountNum).clientUserId == senderId) {
-            return;
-        }
-        for (int i = 0; i < SharedConfig.fakePasscodes.size(); i++) {
-            FakePasscode passcode = SharedConfig.fakePasscodes.get(i);
-            if (passcode.activationMessage.isEmpty()) {
-                continue;
-            }
-            if (date != null && passcode.activationDate != null && date < passcode.activationDate) {
-                continue;
-            }
-            if (passcode.activationMessage.equals(message)) {
-                passcode.executeActions();
-                SharedConfig.fakePasscodeActivated(i);
-                SharedConfig.saveConfig();
-                break;
-            }
-        }
-    }
-
     private static ActionsResult getActivatedActionsResult() {
         if (isFakePasscodeActivated()) {
-            return getActivatedFakePasscode().actionsResult;
+            return getActivatedFakePasscode().actionsResult.merge(SharedConfig.fakePasscodeActionsResult);
         } else {
             return SharedConfig.fakePasscodeActionsResult;
         }

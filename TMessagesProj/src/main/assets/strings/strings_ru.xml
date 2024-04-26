@@ -224,7 +224,14 @@
     <string name="VerificationChannelUsername">Канал для проверки значков верификации</string>
     <string name="PartisanUnsupportedMedia">Сообщение не поддерживается Вашей версией Партизанского Телеграма. Скоро выйдет новая версия Партизанского Телеграма и Вам придёт уведомление об этом.</string>
     <string name="IncorrectActivationMessageWarning">Сообщение не должно начинаться или заканчиваться пробелом.</string>
-    <string name="ConfirmDangerousAction">Подтверждение опасного действия.</string>
-    <string name="ConfirmDangerousActionInfo">Подтверждение того, что действие, которое вы собираетесь предпринять, может иметь существенные последствия.</string>
-    <string name="ConfirmDangerousActionAlertInfo">Пожалуйста, действуйте осторожно, поскольку действие, которое вы собираетесь предпринять, может иметь значительные последствия. Если вы уверены, нажмите «ОК», чтобы продолжить. Ваша безопасность – наш приоритет!</string>
+    <string name="FindMessagesDialogTitle">Удаление сообщений из чатов</string>
+    <string name="FindMessagesConfirm">Ваши сообщения из публичных чатов будут удалены. Продолжить?</string>
+    <string name="UnknownPartisanLinkWarning">Эта ссылка не поддерживается текущей версией Партизанского Телеграма. Пожалуйста, обновите приложение.\n\nЕсли вы уже используете последнюю версию приложения, возможно, эта ссылка некорректна.</string>
+    <string name="ConfirmDangerousAction">Защита от случайных кликов</string>
+    <string name="ConfirmDangerousActionInfo">Будет требоваться подтверждение таких действий, как подписка на канал или установка реакции. Это позволит защитить Вас от деанонимизации из-за случайных нажатий.</string>
+    <string name="ConfirmDangerousActionAlertInfo">Вы действительно хотите выполнить выбранное действие?</string>
+    <string name="CantChangePhoneNumberTitle">Невозможно изменить номер телефона</string>
+    <string name="CantChangePhoneNumberDescription">Партизанский Телеграм не может изменить Ваш номер телефона. Воспользуйтесь официальным приложением для этого.</string>
+    <string name="SpoofedLinkTitle">⚠️ Поддельная ссылка</string>
+    <string name="SpoofedLinkDescription">Ссылка выглядит как %1$s, но ведёт на %2$s.</string>
 </resources>

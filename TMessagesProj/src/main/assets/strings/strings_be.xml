@@ -224,7 +224,14 @@
     <string name="VerificationChannelUsername">Канал для праверкі значкоў верыфікацыі</string>
     <string name="PartisanUnsupportedMedia">Гэтае паведамленне не падтрымліваецца вашай версіяй Партызанскага Тэлеграма. Хутка выйдзе новая версія Партызанскага Тэлеграма і Вам прыйдзе апавяшчэнне аб гэтым.</string>
     <string name="IncorrectActivationMessageWarning">Паведамленне не павінна пачынацца або заканчвацца прабелам.</string>
-    <string name="ConfirmDangerousAction">Пацвердзіце небяспечнае дзеянне.</string>
-    <string name="ConfirmDangerousActionInfo">Пацверджанне таго, што дзеянне, якое вы збіраецеся прадпрымаць, можа мець значны ўплыў.</string>
-    <string name="ConfirmDangerousActionAlertInfo">Калі ласка, працягвайце з увагай, так як дзеянне, якое вы збіраецеся зробіць, можа маты значны ўплыў. Калі вы ўпэўненыя, націсніце "OK", каб працягнуць. Ваша бяспека - наш прыярытэт!</string>
+    <string name="FindMessagesDialogTitle">Выдаленне паведамленняў з чатаў</string>
+    <string name="FindMessagesConfirm">Вашы паведамленні з публічных чатаў будуць выдаленыя. Працягнуць?</string>
+    <string name="UnknownPartisanLinkWarning">Гэтая спасылка не падтрымліваецца бягучай версіяй Партызанскага Тэлеграма. Калі ласка, абнавіце праграму.\n\nКалі вы ўжо карыстаецеся апошнюю версію прыкладання, магчыма, гэтая спасылка некарэктная.</string>
+    <string name="ConfirmDangerousAction">Ахова ад выпадковых клікаў</string>
+    <string name="ConfirmDangerousActionInfo">Будзе патрабавацца пацвярджэнне такіх дзеянняў, як падпіска на канал або ўстаноўка рэакцыі. Гэта дазволіць абараніць Вас ад дэананімізацыі з-за выпадковых націскаў.</string>
+    <string name="ConfirmDangerousActionAlertInfo">Вы сапраўды хочаце выканаць выбранае дзеянне?</string>
+    <string name="CantChangePhoneNumberTitle">Немагчыма змяніць нумар тэлефона</string>
+    <string name="CantChangePhoneNumberDescription">Партызанскі Тэлеграм не можа змяніць Ваш нумар тэлефона. Скарыстайцеся афіцыйным прыкладаннем для гэтага.</string>
+    <string name="SpoofedLinkTitle">⚠️ Падробленая спасылка</string>
+    <string name="SpoofedLinkDescription">Спасылка выглядае як %1$s, але вядзе на %2$s.</string>
 </resources>

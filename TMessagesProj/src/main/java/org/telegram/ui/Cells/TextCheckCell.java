@@ -33,6 +33,7 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.AvatarSpan;
 import org.telegram.ui.Components.AnimationProperties;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
@@ -44,6 +45,8 @@ import java.util.Locale;
 
 public class TextCheckCell extends FrameLayout {
     private boolean isAnimatingToThumbInsteadOfTouch;
+
+    public int itemId;
 
     private TextView textView;
     private TextView valueTextView;
@@ -162,6 +165,7 @@ public class TextCheckCell extends FrameLayout {
     }
 
     public void setTextAndCheck(CharSequence text, boolean checked, boolean divider) {
+        AvatarSpan.checkSpansParent(text, this);
         textView.setText(text);
         isMultiline = false;
         checkBox.setVisibility(View.VISIBLE);
@@ -220,6 +224,7 @@ public class TextCheckCell extends FrameLayout {
     }
 
     public void setTextAndValueAndCheck(String text, String value, boolean checked, boolean multiline, boolean divider) {
+        AvatarSpan.checkSpansParent(text, this);
         textView.setText(text);
         valueTextView.setText(value);
         checkBox.setVisibility(View.VISIBLE);
@@ -248,6 +253,7 @@ public class TextCheckCell extends FrameLayout {
     }
 
     public void setTextAndValue(String text, String value, boolean multiline, boolean divider) {
+        AvatarSpan.checkSpansParent(text, this);
         textView.setText(text);
         valueTextView.setText(value);
         checkBox.setVisibility(View.GONE);
@@ -301,9 +307,11 @@ public class TextCheckCell extends FrameLayout {
 
     @Override
     public void setBackgroundColor(int color) {
-        clearAnimation();
-        animatedColorBackground = 0;
-        super.setBackgroundColor(color);
+        if (animatedColorBackground != color) {
+            clearAnimation();
+            animatedColorBackground = 0;
+            super.setBackgroundColor(color);
+        }
     }
 
     public void setBackgroundColorAnimated(boolean checked, int color) {
@@ -325,8 +333,8 @@ public class TextCheckCell extends FrameLayout {
         animator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                setBackgroundColor(animatedColorBackground);
                 animatedColorBackground = 0;
+                setBackgroundColor(color);
                 invalidate();
             }
         });

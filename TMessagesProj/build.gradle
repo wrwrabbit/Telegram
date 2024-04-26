@@ -26,6 +26,7 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "androidx.sharetarget:sharetarget:1.2.0"
     implementation 'androidx.interpolator:interpolator:1.0.0'
+    implementation 'androidx.biometric:biometric:1.1.0'
 
     compileOnly 'org.checkerframework:checker-qual:2.5.2'
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.0'
@@ -47,7 +48,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10'
     implementation 'com.google.guava:guava:31.1-android'
 
-    //implementation 'com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1'
+    implementation 'com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1'
     constraints {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
             because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")

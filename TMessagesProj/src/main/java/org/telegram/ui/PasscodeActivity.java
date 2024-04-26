@@ -53,6 +53,7 @@ import android.widget.Toast;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
+import androidx.biometric.BiometricManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -70,7 +71,6 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -1071,8 +1071,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
         try {
             if (Build.VERSION.SDK_INT >= 23) {
-                FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(ApplicationLoader.applicationContext);
-                if (fingerprintManager.isHardwareDetected() && AndroidUtilities.isKeyguardSecure()) {
+                if (
+                    BiometricManager.from(getContext()).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS &&
+                    AndroidUtilities.isKeyguardSecure()
+                ) {
                     fingerprintRow = rowCount++;
                 } else {
                     fingerprintRow = -1;
@@ -1313,7 +1315,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     SharedConfig.saveConfig();
                     badAttempt.takePhoto(getParentActivity());
                 }
-                if (!result.allowLogin() || result.isRealPasscodeSuccess && SharedConfig.fakePasscodeActivatedIndex != -1
+                if (!result.allowLogin() || result.isRealPasscodeSuccess && FakePasscodeUtils.isFakePasscodeActivated()
                     || result.fakePasscode != null && FakePasscodeUtils.getActivatedFakePasscode() != result.fakePasscode) {
                     SharedConfig.increaseBadPasscodeTries();
                     passwordEditText.setText("");

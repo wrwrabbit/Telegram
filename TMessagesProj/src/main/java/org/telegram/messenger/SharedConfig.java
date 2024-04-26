@@ -39,7 +39,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import org.json.JSONObject;
-import org.telegram.messenger.fakepasscode.ActionsResult;
+import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanLog;
@@ -283,6 +283,7 @@ public class SharedConfig {
     public static boolean forceDisableTabletMode;
     public static boolean updateStickersOrderOnSend = true;
     public static boolean bigCameraForRound;
+    public static boolean useCamera2;
     public static boolean useSurfaceInStories;
     public static boolean photoViewerBlur = true;
     public static boolean payByInvoice;
@@ -899,6 +900,7 @@ public class SharedConfig {
             confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", false);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
+            useCamera2 = preferences.getBoolean("useCamera2", BuildVars.DEBUG_VERSION);
             useSurfaceInStories = preferences.getBoolean("useSurfaceInStories", Build.VERSION.SDK_INT >= 30);
             payByInvoice = preferences.getBoolean("payByInvoice", false);
             photoViewerBlur = preferences.getBoolean("photoViewerBlur", true);
@@ -2151,6 +2153,13 @@ public class SharedConfig {
         ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
                 .edit()
                 .putBoolean("bigCameraForRound", bigCameraForRound)
+                .apply();
+    }
+
+    public static void toggleUseCamera2() {
+        ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
+                .edit()
+                .putBoolean("useCamera2", useCamera2 = !useCamera2)
                 .apply();
     }
 
