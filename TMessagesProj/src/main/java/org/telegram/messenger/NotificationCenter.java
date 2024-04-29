@@ -263,6 +263,7 @@ public class NotificationCenter {
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
     public static final int unknownPartisanActionLinkOpened = totalEvents++;
+    public static final int update30MessageLoaded = totalEvents++;
 
 
     //global

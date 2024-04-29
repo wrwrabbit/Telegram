@@ -3604,6 +3604,10 @@ public class LocaleController {
         return getLocaleFileStrings(null, false, "strings/strings_" + languageCode + ".xml");
     }
 
+    public String getLanguageOverride() {
+        return languageOverride;
+    }
+
     private void patched(String lng) {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("set as patched " + lng + " langpack");

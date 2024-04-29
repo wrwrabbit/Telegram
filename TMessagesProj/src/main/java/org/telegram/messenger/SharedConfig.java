@@ -428,6 +428,7 @@ public class SharedConfig {
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
     public static boolean forceAllowScreenshots = false;
     public static boolean confirmDangerousActions;
+    public static String update30Step;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -650,6 +651,7 @@ public class SharedConfig {
                 editor.putBoolean("forceAllowScreenshots", forceAllowScreenshots);
                 String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                 editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
+                editor.putString("update30Step", update30Step);
 
                 if (pendingPtgAppUpdate != null) {
                     try {
@@ -795,6 +797,7 @@ public class SharedConfig {
             forceAllowScreenshots = preferences.getBoolean("forceAllowScreenshots", false);
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
+            update30Step = preferences.getString("update30Step", null);
 
             String authKeyString = preferences.getString("pushAuthKey", null);
             if (!TextUtils.isEmpty(authKeyString)) {

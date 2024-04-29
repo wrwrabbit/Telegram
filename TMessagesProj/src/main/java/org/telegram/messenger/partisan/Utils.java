@@ -16,7 +16,6 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AccountInstance;
@@ -486,43 +485,5 @@ public class Utils {
         System.arraycopy(first, 0, combined, 0, first.length);
         System.arraycopy(second, 0, combined, first.length, second.length);
         return combined;
-    }
-
-    public static boolean isOldTelegramInstalled(Context context) {
-        PackageInfo packageInfo = getOldTelegramPackageInfo(context);
-        if (packageInfo != null) {
-            Signature[] signatures;
-            if (Build.VERSION.SDK_INT >= 28) {
-                signatures = packageInfo.signingInfo.getApkContentsSigners();
-            } else {
-                signatures = packageInfo.signatures;
-            }
-            if (signatures != null) {
-                for (final Signature sig : signatures) {
-                    try {
-                        MessageDigest hash = MessageDigest.getInstance("SHA-1");
-                        String thumbprint = Utilities.bytesToHex(hash.digest(sig.toByteArray()));
-                        return thumbprint.equalsIgnoreCase("B134DF916190F59F832BE4E1DE8354DC23444059");
-                    } catch (NoSuchAlgorithmException ignored) {
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    private static PackageInfo getOldTelegramPackageInfo(Context context) {
-        int flags;
-        if (Build.VERSION.SDK_INT >= 28) {
-            flags = PackageManager.GET_SIGNING_CERTIFICATES;
-        } else {
-            flags = PackageManager.GET_SIGNATURES;
-        }
-        try {
-            PackageManager pm = context.getPackageManager();
-            return pm.getPackageInfo("org.telegram.messenger.web", flags);
-        } catch (PackageManager.NameNotFoundException ignored) {
-            return null;
-        }
     }
 }
