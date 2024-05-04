@@ -217,8 +217,13 @@ public class SpoofedLinkChecker {
         String labelQuery = labelUri.getQuery();
 
         if (labelHost == null && labelPath != null) {
-            labelHost = labelPath;
-            labelPath = null;
+            String[] parts = labelPath.split("/");
+            labelHost = parts[0];
+            if (parts.length == 1) {
+                labelPath = null;
+            } else {
+                labelPath = labelPath.substring(labelHost.length() + 1);
+            }
         }
 
         if (labelPath != null && linkPath == null) {
