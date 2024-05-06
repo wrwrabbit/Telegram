@@ -67,6 +67,8 @@ import androidx.annotation.RawRes;
 import androidx.annotation.RequiresApi;
 import androidx.core.util.Consumer;
 
+import com.google.common.base.Strings;
+
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -1240,7 +1242,7 @@ public class AlertsCreator {
             if (index >= 0) {
                 stringBuilder.replace(index, index + 4, link);
             }
-            boolean isProtocolUnsafe = !FakePasscodeUtils.isFakePasscodeActivated() && url.toLowerCase(Locale.ROOT).startsWith("http:");
+            boolean isProtocolUnsafe = isNeedWarnAboutUnsafeProtocol(url);
             boolean isUrlUnsafe = isProtocolUnsafe || spoofedLinkInfo.isSpoofed;
             if (spoofedLinkInfo.isSpoofed) {
                 builder.setTitle(LocaleController.getString(R.string.SpoofedLinkTitle));
@@ -1264,6 +1266,21 @@ public class AlertsCreator {
             }
             fragment.showDialog(dialog[0]);
         }
+    }
+
+    private static boolean isNeedWarnAboutUnsafeProtocol(String url) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            return false;
+        }
+        Uri uri = Uri.parse(url);
+        if (!uri.getScheme().toLowerCase(Locale.ROOT).equals("http")) {
+            return false;
+        }
+        // "Empty" http links are safe
+        return !Strings.isNullOrEmpty(uri.getUserInfo())
+                || !Strings.isNullOrEmpty(uri.getPath()) && !uri.getPath().equals("/")
+                || !Strings.isNullOrEmpty(uri.getQuery())
+                || !Strings.isNullOrEmpty(uri.getFragment());
     }
 
     private static void replaceByUnclickableLink(SpannableStringBuilder stringBuilder, String placeholder, String url) {
