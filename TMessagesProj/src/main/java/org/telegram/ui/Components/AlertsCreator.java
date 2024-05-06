@@ -1260,7 +1260,7 @@ public class AlertsCreator {
             }
             dialog[0] = builder.create();
             if (isUrlUnsafe) {
-                DialogButtonWithTimer.setButton(dialog[0], AlertDialog.BUTTON_POSITIVE, LocaleController.getString("Open", R.string.Open), 5, (dialogInterface, i) -> open.run());
+                DialogButtonWithTimer.setButton(dialog[0], AlertDialog.BUTTON_POSITIVE, LocaleController.getString("Open", R.string.Open), 3, (dialogInterface, i) -> open.run());
             }
             fragment.showDialog(dialog[0]);
         }
