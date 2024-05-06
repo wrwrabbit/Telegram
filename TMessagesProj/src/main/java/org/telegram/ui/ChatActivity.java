@@ -1676,6 +1676,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public void onMessageSend(CharSequence message, boolean notify, int scheduleDate) {
+            onMessageSend(message, notify, scheduleDate, null);
+        }
+
+        @Override
+        public void onMessageSend(CharSequence message, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
             if (chatListItemAnimator != null) {
                 chatActivityEnterViewAnimateFromTop = chatActivityEnterView.getBackgroundTop();
                 if (chatActivityEnterViewAnimateFromTop != 0) {
@@ -1730,7 +1735,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
 
-            hideFieldPanel(notify, scheduleDate, true);
+            hideFieldPanel(notify, scheduleDate, true, autoDeleteDelay);
             if (chatActivityEnterView != null && chatActivityEnterView.getEmojiView() != null) {
                 chatActivityEnterView.getEmojiView().onMessageSend();
             }
@@ -13036,7 +13041,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getConnectionsManager().bindRequestToGuid(linkSearchRequestId, classGuid);
     }
 
-    private void forwardMessages(ArrayList<MessageObject> arrayList, boolean fromMyName, boolean hideCaption, boolean notify, int scheduleDate) {
+    private void forwardMessages(ArrayList<MessageObject> arrayList, boolean fromMyName, boolean hideCaption, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
         if (arrayList == null || arrayList.isEmpty()) {
             return;
         }
@@ -13046,7 +13051,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if ((scheduleDate != 0) == (chatMode == MODE_SCHEDULED)) {
             waitingForSendingMessageLoad = true;
         }
-        int result = getSendMessagesHelper().sendMessage(arrayList, dialog_id, fromMyName, hideCaption, notify, scheduleDate, getThreadMessage());
+        int result = getSendMessagesHelper().sendMessage(arrayList, dialog_id, fromMyName, hideCaption, notify, scheduleDate, getThreadMessage(), autoDeleteDelay);
         AlertsCreator.showSendMediaAlert(result, this, themeDelegate);
         if (result != 0) {
             AndroidUtilities.runOnUIThread(() -> {
@@ -13254,8 +13259,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         showFieldPanel(false, null, null, null, null, true, 0, null, false, animated);
     }
 
-    public void hideFieldPanel(boolean notify, int scheduleDate, boolean animated) {
-        showFieldPanel(false, null, null, null, null, notify, scheduleDate, null, false, animated);
+    public void hideFieldPanel(boolean notify, int scheduleDate, boolean animated, Integer autoDeleteDelay) {
+        showFieldPanel(false, null, null, null, null, notify, scheduleDate, null, false, animated, autoDeleteDelay);
     }
 
     public void showFieldPanelForWebPage(boolean show, TLRPC.WebPage webPage, boolean cancel) {
@@ -13281,6 +13286,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private int fieldPanelShown;
 
     public void showFieldPanel(boolean show, MessageObject messageObjectToReply, MessageObject messageObjectToEdit, ArrayList<MessageObject> messageObjectsToForward, TLRPC.WebPage webPage, boolean notify, int scheduleDate, ReplyQuote quote, boolean cancel, boolean animated) {
+        showFieldPanel(show, messageObjectToReply, messageObjectToEdit, messageObjectsToForward, webPage, notify, scheduleDate, quote, cancel, animated, null);
+    }
+
+    public void showFieldPanel(boolean show, MessageObject messageObjectToReply, MessageObject messageObjectToEdit, ArrayList<MessageObject> messageObjectsToForward, TLRPC.WebPage webPage, boolean notify, int scheduleDate, ReplyQuote quote, boolean cancel, boolean animated, Integer autoDeleteDelay) {
         if (chatActivityEnterView == null) {
             return;
         }
@@ -13847,7 +13856,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (messagePreviewParams.forwardMessages != null) {
                         messagePreviewParams.forwardMessages.getSelectedMessages(messagesToForward);
                     }
-                    forwardMessages(messagesToForward, messagePreviewParams.hideForwardSendersName, messagePreviewParams.hideCaption, notify, scheduleDate != 0 && scheduleDate != 0x7ffffffe ? scheduleDate + 1 : scheduleDate);
+                    forwardMessages(messagesToForward, messagePreviewParams.hideForwardSendersName, messagePreviewParams.hideCaption, notify, scheduleDate != 0 && scheduleDate != 0x7ffffffe ? scheduleDate + 1 : scheduleDate, autoDeleteDelay);
 //                }
             }
             if (forwardingPreviewView == null) {

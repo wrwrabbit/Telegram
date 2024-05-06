@@ -240,6 +240,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         default void onContextMenuClose() {};
 
         void onMessageSend(CharSequence message, boolean notify, int scheduleDate);
+        default void onMessageSend(CharSequence message, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
+            onMessageSend(message, notify, scheduleDate);
+        }
 
         void needSendTyping();
 
@@ -6479,7 +6482,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             applyStoryToSendMessageParams(params);
             SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
             if (delegate != null) {
-                delegate.onMessageSend(null, notify, scheduleDate);
+                delegate.onMessageSend(null, notify, scheduleDate, autoDeleteDelay);
             }
             hideRecordedAudioPanel(true);
             checkSendButton(true);
@@ -6513,7 +6516,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     messageEditText.setText("");
                 }
                 if (delegate != null) {
-                    delegate.onMessageSend(message, notify, scheduleDate);
+                    delegate.onMessageSend(message, notify, scheduleDate, autoDeleteDelay);
                 }
             } else {
                 messageTransitionIsRunning = false;
@@ -6524,14 +6527,14 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         messageEditText.setText("");
                     }
                     if (delegate != null) {
-                        delegate.onMessageSend(message, notify, scheduleDate);
+                        delegate.onMessageSend(message, notify, scheduleDate, autoDeleteDelay);
                     }
                 }, 200);
             }
             lastTypingTimeSend = 0;
         } else if (forceShowSendButton) {
             if (delegate != null) {
-                delegate.onMessageSend(null, notify, scheduleDate);
+                delegate.onMessageSend(null, notify, scheduleDate, autoDeleteDelay);
             }
         }
     }

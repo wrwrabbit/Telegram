@@ -1782,6 +1782,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+        return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg, null);
+    }
+
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, MessageObject replyToTopMsg, Integer autoDeleteDelay) {
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
@@ -2295,6 +2299,16 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                         int existFlags = msgObj1.getMediaExistanceFlags();
                                         newMsgObj1.id = message.id;
                                         sentCount++;
+                                        if (autoDeleteDelay != null) {
+                                            RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(
+                                                    newMsgObj1.id,
+                                                    MessageObject.getTopicId(currentAccount, newMsgObj1, false),
+                                                    -1,
+                                                    newMsgObj1.date,
+                                                    autoDeleteDelay
+                                            );
+                                            RemoveAfterReadingMessages.addMessageToRemove(currentAccount, peer, messageToRemove);
+                                        }
 
                                         if (scheduleDate != 0 && !currentSchedule) {
                                             AndroidUtilities.runOnUIThread(() -> {
