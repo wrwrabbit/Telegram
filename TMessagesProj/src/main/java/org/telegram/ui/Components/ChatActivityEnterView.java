@@ -189,7 +189,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-public class ChatActivityEnterView extends BlurredFrameLayout implements NotificationCenter.NotificationCenterDelegate, SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate, StickersAlert.StickersAlertDelegate {
+public class ChatActivityEnterView extends BlurredFrameLayout implements NotificationCenter.NotificationCenterDelegate, SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate, StickersAlert.StickersAlertDelegate, SuggestEmojiView.AnchorViewDelegate {
 
     private int commonInputType;
     private boolean stickersEnabled;
@@ -240,6 +240,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         default void onContextMenuClose() {};
 
         void onMessageSend(CharSequence message, boolean notify, int scheduleDate);
+        default void onMessageSend(CharSequence message, boolean notify, int scheduleDate, Integer autoDeleteDelay) {
+            onMessageSend(message, notify, scheduleDate);
+        }
 
         void needSendTyping();
 
@@ -2470,7 +2473,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messagePlayingDidReset);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.featuredStickersDidLoad);
-        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer2);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.sendingMessagesChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.audioRecordTooShort);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateBotMenuButton);
@@ -5651,6 +5654,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         return topView != null && topView.getVisibility() == VISIBLE;
     }
 
+    public float topViewVisible() {
+        return topViewEnterProgress;
+    }
+
     public void onAdjustPanTransitionUpdate(float y, float progress, boolean keyboardVisible) {
         if (botWebViewMenuContainer != null) {
             botWebViewMenuContainer.setTranslationY(y);
@@ -5751,7 +5758,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingDidReset);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.featuredStickersDidLoad);
-        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer2);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.sendingMessagesChanged);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.audioRecordTooShort);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateBotMenuButton);
@@ -5918,7 +5925,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingDidReset);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.featuredStickersDidLoad);
-            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer);
+            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer2);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.sendingMessagesChanged);
             currentAccount = account;
             accountInstance = AccountInstance.getInstance(currentAccount);
@@ -5934,7 +5941,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messagePlayingDidReset);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.featuredStickersDidLoad);
-            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer2);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.sendingMessagesChanged);
         }
 
@@ -6469,13 +6476,13 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
             MediaController.getInstance().cleanRecording(false);
             MediaDataController.getInstance(currentAccount).pushDraftVoiceMessage(dialog_id, parentFragment != null && parentFragment.isTopic ? parentFragment.getTopicId() : 0, null);
-            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, audioToSendPath, dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, scheduleDate, voiceOnce ? 0x7FFFFFFF : 0, null, null, false, autoDeleteDelay);
+            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, audioToSendPath, dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, scheduleDate, voiceOnce ? 0x7FFFFFFF : 0, null, null, false).addAutoDeleteDelay(autoDeleteDelay);
             params.quick_reply_shortcut = parentFragment != null ? parentFragment.quickReplyShortcut : null;
             params.quick_reply_shortcut_id = parentFragment != null ? parentFragment.getQuickReplyId() : 0;
             applyStoryToSendMessageParams(params);
             SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
             if (delegate != null) {
-                delegate.onMessageSend(null, notify, scheduleDate);
+                delegate.onMessageSend(null, notify, scheduleDate, autoDeleteDelay);
             }
             hideRecordedAudioPanel(true);
             checkSendButton(true);
@@ -6509,7 +6516,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     messageEditText.setText("");
                 }
                 if (delegate != null) {
-                    delegate.onMessageSend(message, notify, scheduleDate);
+                    delegate.onMessageSend(message, notify, scheduleDate, autoDeleteDelay);
                 }
             } else {
                 messageTransitionIsRunning = false;
@@ -6520,14 +6527,14 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         messageEditText.setText("");
                     }
                     if (delegate != null) {
-                        delegate.onMessageSend(message, notify, scheduleDate);
+                        delegate.onMessageSend(message, notify, scheduleDate, autoDeleteDelay);
                     }
                 }, 200);
             }
             lastTypingTimeSend = 0;
         } else if (forceShowSendButton) {
             if (delegate != null) {
-                delegate.onMessageSend(null, notify, scheduleDate);
+                delegate.onMessageSend(null, notify, scheduleDate, autoDeleteDelay);
             }
         }
     }
@@ -6764,7 +6771,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             editingMessageObject.editingMessage = message[0];
             editingMessageObject.editingMessageEntities = entities;
             editingMessageObject.editingMessageSearchWebPage = messageWebPageSearch;
-            if (parentFragment != null && parentFragment.getCurrentChat() != null && !ChatObject.canSendEmbed(parentFragment.getCurrentChat())) {
+            if (parentFragment != null && parentFragment.getCurrentChat() != null && (editingMessageObject.type == MessageObject.TYPE_TEXT || editingMessageObject.type == MessageObject.TYPE_EMOJIS) && !ChatObject.canSendEmbed(parentFragment.getCurrentChat())) {
                 editingMessageObject.editingMessageSearchWebPage = false;
                 editingMessageObject.messageOwner.flags &=~ 512;
                 editingMessageObject.messageOwner.media = null;
@@ -6887,7 +6894,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 if (replyToTopMsg == null && replyingTopMessage != null) {
                     replyToTopMsg = replyingTopMessage;
                 }
-                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message[0].toString(), dialog_id, replyingMessageObject, replyToTopMsg, messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, sendAnimationData, updateStickersOrder, autoDeleteDelay);
+                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message[0].toString(), dialog_id, replyingMessageObject, replyToTopMsg, messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, sendAnimationData, updateStickersOrder).addAutoDeleteDelay(autoDeleteDelay);
                 params.quick_reply_shortcut = parentFragment != null ? parentFragment.quickReplyShortcut : null;
                 params.quick_reply_shortcut_id = parentFragment != null ? parentFragment.getQuickReplyId() : 0;
                 applyStoryToSendMessageParams(params);
@@ -10196,7 +10203,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
 
             @Override
-            public void onShowStickerSet(TLRPC.StickerSet stickerSet, TLRPC.InputStickerSet inputStickerSet) {
+            public void onShowStickerSet(TLRPC.StickerSet stickerSet, TLRPC.InputStickerSet inputStickerSet, boolean edit) {
                 if (trendingStickersAlert != null && !trendingStickersAlert.isDismissed()) {
                     trendingStickersAlert.getLayout().showStickerSet(stickerSet, inputStickerSet);
                     return;
@@ -10213,7 +10220,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     inputStickerSet.access_hash = stickerSet.access_hash;
                     inputStickerSet.id = stickerSet.id;
                 }
-                fragment.showDialog(new StickersAlert(parentActivity, fragment, inputStickerSet, null, ChatActivityEnterView.this, resourcesProvider));
+                StickersAlert alert = new StickersAlert(parentActivity, fragment, inputStickerSet, null, ChatActivityEnterView.this, resourcesProvider);
+                fragment.showDialog(alert);
+                if (edit) {
+                    alert.enableEditMode();
+                }
             }
 
             @Override
@@ -11300,7 +11311,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             if (emojiButton != null) {
                 emojiButton.invalidate();
             }
-        } else if (id == NotificationCenter.messageReceivedByServer) {
+        } else if (id == NotificationCenter.messageReceivedByServer2) {
             Boolean scheduled = (Boolean) args[6];
             if (scheduled) {
                 return;
