@@ -8546,6 +8546,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         secretSettingsSectionRow = -1;
         securitySuggestionRow = -1;
         passwordSuggestionSectionRow = -1;
+        securitySuggestionSectionRow = -1;
         graceSuggestionRow = -1;
         graceSuggestionSectionRow = -1;
         passwordSuggestionRow = -1;
