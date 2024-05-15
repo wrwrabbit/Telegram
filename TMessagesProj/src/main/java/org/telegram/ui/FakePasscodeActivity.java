@@ -43,7 +43,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.IntDef;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -112,6 +111,11 @@ public class FakePasscodeActivity extends BaseFragment {
     })
     public @interface FakePasscodeActivityType {}
 
+    private enum ErrorType {
+        PASSCODES_DO_NOT_MATCH,
+        PASSCODE_IN_USE
+    }
+
     private RLottieImageView lockImageView;
 
     private TextSettingsCell changeNameCell;
@@ -123,7 +127,7 @@ public class FakePasscodeActivity extends BaseFragment {
     private OutlineTextContainerView outlinePasswordView;
     private EditTextBoldCursor passwordEditText;
     private CodeFieldContainer codeFieldContainer;
-    private TextView passcodesDoNotMatchTextView;
+    private TextView passcodesErrorTextView;
 
     private ImageView passwordButton;
 
@@ -186,7 +190,7 @@ public class FakePasscodeActivity extends BaseFragment {
     private boolean postedHidePasscodesDoNotMatch;
     private Runnable hidePasscodesDoNotMatch = () -> {
         postedHidePasscodesDoNotMatch = false;
-        AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, false);
+        AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, false);
     };
 
     private Runnable onShowKeyboardCallback;
@@ -601,13 +605,13 @@ public class FakePasscodeActivity extends BaseFragment {
                 descriptionTextSwitcher.setOutAnimation(context, R.anim.alpha_out);
                 innerLinearLayout.addView(descriptionTextSwitcher, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 8, 20, 0));
 
-                passcodesDoNotMatchTextView = new TextView(context);
-                passcodesDoNotMatchTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                passcodesDoNotMatchTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
-                passcodesDoNotMatchTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
-                passcodesDoNotMatchTextView.setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12));
-                AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, false, 1f, false);
-                frameLayout.addView(passcodesDoNotMatchTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
+                passcodesErrorTextView = new TextView(context);
+                passcodesErrorTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+                passcodesErrorTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
+                passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
+                passcodesErrorTextView.setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12));
+                AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, false, 1f, false);
+                frameLayout.addView(passcodesErrorTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
 
                 outlinePasswordView = new OutlineTextContainerView(context);
                 outlinePasswordView.setText(LocaleController.getString(R.string.EnterPassword));
@@ -1136,8 +1140,7 @@ public class FakePasscodeActivity extends BaseFragment {
         }
         SharedConfig.PasscodeCheckResult passcodeCheckResult = SharedConfig.checkPasscode(code);
         if (passcodeCheckResult.isRealPasscodeSuccess || passcodeCheckResult.fakePasscode != null) {
-            invalidPasscodeEntered();
-            Toast.makeText(getParentActivity(), LocaleController.getString("PasscodeInUse", R.string.PasscodeInUse), Toast.LENGTH_SHORT).show();
+            showPasscodeError(ErrorType.PASSCODE_IN_USE);
             return;
         }
 
@@ -1167,7 +1170,7 @@ public class FakePasscodeActivity extends BaseFragment {
         String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_FAKE_PASSCODE) {
             if (!firstPassword.equals(password)) {
-                invalidPasscodeEntered();
+                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
                 return;
             }
 
@@ -1199,7 +1202,7 @@ public class FakePasscodeActivity extends BaseFragment {
             if (Objects.equals(FakePasscodeSerializer.calculateHash(passcodeString, SharedConfig.passcodeSalt), fakePasscode.passcodeHash)) {
                 presentFragment(new FakePasscodeBackupActivity(fakePasscode, passcodeString), true);
             } else {
-                invalidPasscodeEntered();
+                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
             }
         } else if (type == TYPE_ENTER_RESTORE_CODE) {
             AccountActions.Companion.setUpdateIdHashEnabled(false);
@@ -1216,7 +1219,7 @@ public class FakePasscodeActivity extends BaseFragment {
                 }
                 presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, passcode, false), true);
             } else {
-                invalidPasscodeEntered();
+                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
             }
             AccountActions.Companion.setUpdateIdHashEnabled(true);
             if (passcode != null) {
@@ -1226,8 +1229,13 @@ public class FakePasscodeActivity extends BaseFragment {
         }
     }
 
-    private void invalidPasscodeEntered() {
-        AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, true);
+    private void showPasscodeError(ErrorType errorType) {
+        if (errorType == ErrorType.PASSCODES_DO_NOT_MATCH) {
+            passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
+        } else if (errorType == ErrorType.PASSCODE_IN_USE) {
+            passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodeInUse));
+        }
+        AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, true);
         for (CodeNumberField f : codeFieldContainer.codeField) {
             f.setText("");
         }
