@@ -4317,16 +4317,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
             boolean scheduleButtonValue = parentFragment != null && parentFragment.canScheduleMessage();
             boolean sendWithoutSoundButtonValue = !(self || slowModeTimer > 0 && !isInScheduleMode());
-            boolean scheduleDeleteButtonValue = !(self || slowModeTimer > 0 && !isInScheduleMode())
-                    && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showDeleteAfterRead;
-            if (scheduleDeleteButtonValue) {
-                TLRPC.Chat chat = accountInstance.getMessagesController().getChat(-dialog_id);
-                if (chat != null) {
-                    if (ChatObject.isChannel(chat) && !chat.megagroup || ChatObject.isNotInChat(chat)) {
-                        scheduleDeleteButtonValue = false;
-                    }
-                }
-            }
+            TLRPC.Chat chat = accountInstance.getMessagesController().getChat(-dialog_id);
+            TLRPC.User user = accountInstance.getMessagesController().getUser(dialog_id);
+            boolean deleteAfterReadButtonValue = RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat);
             if (scheduleButtonValue) {
                 actionScheduleButton = new ActionBarMenuSubItem(getContext(), true, !sendWithoutSoundButtonValue, resourcesProvider);
                 if (self) {
@@ -4373,7 +4366,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 });
                 sendPopupLayout.addView(sendWithoutSoundButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
             }
-            if (scheduleDeleteButtonValue) {
+            if (deleteAfterReadButtonValue) {
                 ActionBarMenuSubItem scheduleDeleteButton = new ActionBarMenuSubItem(getContext(), !scheduleButtonValue && !sendWithoutSoundButtonValue, true, resourcesProvider);
                 scheduleDeleteButton.setTextAndIcon(LocaleController.getString("DeleteAsRead", R.string.DeleteAsRead), R.drawable.msg_delete_auto);
                 scheduleDeleteButton.setMinimumWidth(AndroidUtilities.dp(196));
