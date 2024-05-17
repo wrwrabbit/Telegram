@@ -23,6 +23,7 @@ import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLObject;
@@ -771,11 +772,11 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
                             s = membersString;
                         }
                     }
-                    title = chat.title;
+                    title = UserConfig.getChatTitleOverride(currentAccount, chat);
                 } else if (object instanceof TLRPC.User) {
                     TLRPC.User user = (TLRPC.User) object;
                     // add status text
-                    title = UserObject.getUserName(user);
+                    title = UserObject.getUserName(user, currentAccount);
                 }
                 profileCell.setData(object, null, title, s, false, false);
                 profileCell.useSeparator = divider;
