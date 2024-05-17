@@ -1167,65 +1167,79 @@ public class FakePasscodeActivity extends BaseFragment {
             onPasscodeError();
             return;
         }
-        String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_FAKE_PASSCODE) {
-            if (!firstPassword.equals(password)) {
-                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
-                return;
-            }
-
-            fakePasscode.passcodeHash = FakePasscodeSerializer.calculateHash(firstPassword, SharedConfig.passcodeSalt);
-            SharedConfig.saveConfig();
-
-            passwordEditText.clearFocus();
-            AndroidUtilities.hideKeyboard(passwordEditText);
-            for (CodeNumberField f : codeFieldContainer.codeField) {
-                f.clearFocus();
-                AndroidUtilities.hideKeyboard(f);
-            }
-            keyboardView.setEditText(null);
-
-            animateSuccessAnimation(() -> {
-                getMediaDataController().buildShortcuts();
-                if (creating) {
-                    SharedConfig.fakePasscodes.add(fakePasscode);
-                    SharedConfig.fakePasscodeIndex++;
-                    SharedConfig.saveConfig();
-                    presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, fakePasscode, false), true);
-                } else {
-                    finishFragment();
-                }
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
-            });
+            processDoneSetup();
         } else if (type == TYPE_ENTER_BACKUP_CODE) {
-            String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
-            if (Objects.equals(FakePasscodeSerializer.calculateHash(passcodeString, SharedConfig.passcodeSalt), fakePasscode.passcodeHash)) {
-                presentFragment(new FakePasscodeBackupActivity(fakePasscode, passcodeString), true);
-            } else {
-                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
-            }
+            processDoneBackup();
         } else if (type == TYPE_ENTER_RESTORE_CODE) {
-            AccountActions.Companion.setUpdateIdHashEnabled(false);
-            String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
-            FakePasscode passcode = FakePasscodeSerializer.deserializeEncrypted(encryptedPasscode, passcodeString);
-            if (passcode != null) {
-                SharedConfig.fakePasscodes.add(passcode);
-                passcode.accountActions.stream().forEach(a -> a.setAccountNum(null));
-                passcode.accountActions.stream().forEach(a -> a.checkAccountNum());
-                passcode.autoAddAccountHidings();
+            processDoneRestore();
+        }
+    }
+
+    private void processDoneSetup() {
+        String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
+        if (!firstPassword.equals(password)) {
+            showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+            return;
+        }
+
+        fakePasscode.passcodeHash = FakePasscodeSerializer.calculateHash(firstPassword, SharedConfig.passcodeSalt);
+        SharedConfig.saveConfig();
+
+        passwordEditText.clearFocus();
+        AndroidUtilities.hideKeyboard(passwordEditText);
+        for (CodeNumberField f : codeFieldContainer.codeField) {
+            f.clearFocus();
+            AndroidUtilities.hideKeyboard(f);
+        }
+        keyboardView.setEditText(null);
+
+        animateSuccessAnimation(() -> {
+            getMediaDataController().buildShortcuts();
+            if (creating) {
+                SharedConfig.fakePasscodes.add(fakePasscode);
+                SharedConfig.fakePasscodeIndex++;
                 SharedConfig.saveConfig();
-                if (parentLayout.getFragmentStack().size() >= 2) {
-                    parentLayout.removeFragmentFromStack(parentLayout.getFragmentStack().size() - 2);
-                }
-                presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, passcode, false), true);
+                presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, fakePasscode, false), true);
             } else {
-                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+                finishFragment();
             }
-            AccountActions.Companion.setUpdateIdHashEnabled(true);
-            if (passcode != null) {
-                passcode.accountActions.stream().forEach(a ->
-                        Utilities.globalQueue.postRunnable(new UpdateIdHashRunnable(a), 1000));
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
+        });
+    }
+
+    private void processDoneBackup() {
+        String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
+        if (Objects.equals(FakePasscodeSerializer.calculateHash(passcodeString, SharedConfig.passcodeSalt), fakePasscode.passcodeHash)) {
+            presentFragment(new FakePasscodeBackupActivity(fakePasscode, passcodeString), true);
+        } else {
+            showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+        }
+    }
+
+    private void processDoneRestore() {
+        AccountActions.Companion.setUpdateIdHashEnabled(false);
+        String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
+        FakePasscode passcode = FakePasscodeSerializer.deserializeEncrypted(encryptedPasscode, passcodeString);
+        if (passcode == null) {
+            showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+        } else if (SharedConfig.fakePasscodes.stream().anyMatch(p -> p.passcodeHash.equals(passcode.passcodeHash))) {
+            showPasscodeError(ErrorType.PASSCODE_IN_USE);
+        } else {
+            SharedConfig.fakePasscodes.add(passcode);
+            passcode.accountActions.stream().forEach(a -> a.setAccountNum(null));
+            passcode.accountActions.stream().forEach(a -> a.checkAccountNum());
+            passcode.autoAddAccountHidings();
+            SharedConfig.saveConfig();
+            if (parentLayout.getFragmentStack().size() >= 2) {
+                parentLayout.removeFragmentFromStack(parentLayout.getFragmentStack().size() - 2);
             }
+            presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, passcode, false), true);
+        }
+        AccountActions.Companion.setUpdateIdHashEnabled(true);
+        if (passcode != null) {
+            passcode.accountActions.stream().forEach(a ->
+                    Utilities.globalQueue.postRunnable(new UpdateIdHashRunnable(a), 1000));
         }
     }
 
