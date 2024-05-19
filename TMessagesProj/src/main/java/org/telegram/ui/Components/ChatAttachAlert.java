@@ -2799,17 +2799,19 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 return false;
             }
             ChatActivity chatActivity = null;
+            TLRPC.Chat chat = null;
             TLRPC.User user = null;
             long dialogId = this.dialogId;
             if (baseFragment instanceof ChatActivity) {
                 chatActivity = (ChatActivity) baseFragment;
-                TLRPC.Chat chat = chatActivity.getCurrentChat();
+                chat = chatActivity.getCurrentChat();
                 user = chatActivity.getCurrentUser();
                 if (chatActivity.isInScheduleMode() || chatActivity.getChatMode() == ChatActivity.MODE_QUICK_REPLIES) {
                     return false;
                 }
                 dialogId = chatActivity.getDialogId();
             } else {
+                chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
                 user = MessagesController.getInstance(currentAccount).getUser(dialogId);
             }
 
@@ -2848,8 +2850,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     }
                 } else if (a == 1 && UserObject.isUserSelf(user)) {
                     continue;
-                } else if (a == 2 && (FakePasscodeUtils.isFakePasscodeActivated()
-                        || UserObject.isUserSelf(user) || !SharedConfig.showDeleteAfterRead)) {
+                } else if (a == 2 && !RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat)) {
                     continue;
                 }
 

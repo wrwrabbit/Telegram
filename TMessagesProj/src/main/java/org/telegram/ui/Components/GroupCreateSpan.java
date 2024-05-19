@@ -73,14 +73,14 @@ public class GroupCreateSpan extends View {
     }
 
     public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, int currentAccount) {
-        this(context, object, contact, null);
+        this(context, object, contact, null, currentAccount);
     }
 
-    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, Theme.ResourcesProvider resourcesProvider) {
-        this(context, object, contact, false, resourcesProvider);
+    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, Theme.ResourcesProvider resourcesProvider, int currentAccount) {
+        this(context, object, contact, false, resourcesProvider, currentAccount);
     }
 
-    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, boolean small, Theme.ResourcesProvider resourcesProvider) {
+    public GroupCreateSpan(Context context, Object object, ContactsController.Contact contact, boolean small, Theme.ResourcesProvider resourcesProvider, int currentAccount) {
         super(context);
         this.resourcesProvider = resourcesProvider;
         this.small = small;

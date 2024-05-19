@@ -740,7 +740,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
                     if (obj == null) {
                         continue;
                     }
-                    GroupCreateSpan span = new GroupCreateSpan(getContext(), obj, null, true, resourcesProvider);
+                    GroupCreateSpan span = new GroupCreateSpan(getContext(), obj, null, true, resourcesProvider, currentAccount);
                     span.setOnClickListener(this);
                     toAdd.add(span);
                 }
