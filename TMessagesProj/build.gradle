@@ -132,9 +132,10 @@ android {
 
     buildTypes {
         alpha {
-            debuggable false
-            jniDebuggable false
-            minifyEnabled true
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
+            shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             ndk.debugSymbolLevel = 'FULL'

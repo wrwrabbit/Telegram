@@ -46,6 +46,7 @@ public class UpdateLayout extends IUpdateLayout {
     private ViewGroup sideMenuContainer;
 
     private Runnable onUpdateLayoutClicked;
+    private volatile boolean isUpdateChecking = false;
 
     public UpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
         super(activity, sideMenu, sideMenuContainer);
@@ -118,6 +119,7 @@ public class UpdateLayout extends IUpdateLayout {
             }
             if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_DOWNLOAD) {
                 startUpdateDownloading(currentAccount);
+                updateAppUpdateViews(currentAccount,  true);
             } else if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL) {
                 FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
                 updateAppUpdateViews(currentAccount, true);
@@ -165,7 +167,7 @@ public class UpdateLayout extends IUpdateLayout {
                 updateTextView.setText(LocaleController.getString("AppUpdateNow", R.string.AppUpdateNow));
                 showSize = false;
             } else {
-                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
+                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, false);
                     updateLayoutIcon.setProgress(0, false);
                     Float p = ImageLoader.getInstance().getFileProgress(fileName);
@@ -258,7 +260,9 @@ public class UpdateLayout extends IUpdateLayout {
 
     private void startUpdateDownloading(int currentAccount) {
         if (LaunchActivity.getUpdateAccountNum() != currentAccount || SharedConfig.pendingPtgAppUpdate.message == null) {
+            isUpdateChecking = true;
             UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
+                isUpdateChecking = false;
                 if (updateFounded) {
                     SharedConfig.pendingPtgAppUpdate = data;
                     SharedConfig.saveConfig();

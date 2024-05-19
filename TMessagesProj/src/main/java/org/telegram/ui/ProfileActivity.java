@@ -6191,7 +6191,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         case PHONE_OPTION_COPY:
                             try {
                                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) ApplicationLoader.applicationContext.getSystemService(Context.CLIPBOARD_SERVICE);
-                                android.content.ClipData clip = android.content.ClipData.newPlainText("label", "+" + FakePasscodeUtils.getFakePhoneNumber(currentAccount, user.phone));
+                                String phoneNumber = user.id == getUserConfig().clientUserId ? FakePasscodeUtils.getFakePhoneNumber(currentAccount, user.phone) : user.phone;
+                                android.content.ClipData clip = android.content.ClipData.newPlainText("label", "+" + phoneNumber);
                                 clipboard.setPrimaryClip(clip);
                                 if (AndroidUtilities.shouldShowClipboardToast()) {
                                     BulletinFactory.of(this).createCopyBulletin(LocaleController.getString("PhoneCopied", R.string.PhoneCopied)).show();
@@ -8545,6 +8546,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         secretSettingsSectionRow = -1;
         securitySuggestionRow = -1;
         passwordSuggestionSectionRow = -1;
+        securitySuggestionSectionRow = -1;
         graceSuggestionRow = -1;
         graceSuggestionSectionRow = -1;
         passwordSuggestionRow = -1;

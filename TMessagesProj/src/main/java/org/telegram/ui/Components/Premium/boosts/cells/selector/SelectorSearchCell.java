@@ -202,7 +202,7 @@ public class SelectorSearchCell extends ScrollView {
                 if (obj == null) {
                     continue;
                 }
-                GroupCreateSpan span = new GroupCreateSpan(getContext(), obj, null, true, resourcesProvider);
+                GroupCreateSpan span = new GroupCreateSpan(getContext(), obj, null, true, resourcesProvider, UserConfig.selectedAccount);
                 span.setOnClickListener(v -> {
                     onDeleteSpanClicked(v, selectedIds, afterDelete);
                 });
