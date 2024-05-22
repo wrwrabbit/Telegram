@@ -11512,7 +11512,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 SharedConfig.setAppLocked(false);
                 SharedConfig.saveConfig();
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
-                Toast.makeText(getParentActivity(), LocaleController.getString(R.string.PasscodeActivatedFromPasswordless), Toast.LENGTH_LONG).show();
+                if (getParentActivity() != null) {
+                    Toast.makeText(getParentActivity(), LocaleController.getString(R.string.PasscodeActivatedFromPasswordless), Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
