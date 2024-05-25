@@ -25,7 +25,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.UpdateChecker;
+import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
@@ -261,9 +261,9 @@ public class UpdateLayout extends IUpdateLayout {
     private void startUpdateDownloading(int currentAccount) {
         if (LaunchActivity.getUpdateAccountNum() != currentAccount || SharedConfig.pendingPtgAppUpdate.message == null) {
             isUpdateChecking = true;
-            UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
+            UpdateChecker.checkUpdate(currentAccount, data -> {
                 isUpdateChecking = false;
-                if (updateFounded) {
+                if (data != null) {
                     SharedConfig.pendingPtgAppUpdate = data;
                     SharedConfig.saveConfig();
                     AndroidUtilities.runOnUIThread(() -> startUpdateDownloading(currentAccount));

@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan;
+package org.telegram.messenger.partisan.update;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

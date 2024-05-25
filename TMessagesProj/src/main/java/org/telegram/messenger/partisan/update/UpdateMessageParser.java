@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan;
+package org.telegram.messenger.partisan.update;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
@@ -14,13 +14,10 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 class UpdateMessageParser {
-    private Pattern VERSION_REGEX = Pattern.compile("(\\d+).(\\d+).(\\d+)");
-    private String TARGET_FILE_NAME = "PTelegram.apk";
+    private final Pattern VERSION_REGEX = Pattern.compile("(\\d+).(\\d+).(\\d+)");
+    private final String TARGET_FILE_NAME = "PTelegram.apk";
     private UpdateData currentUpdate;
     private MessageObject currentMessage;
-    private boolean newLine = true;
-    private boolean controlLine = true;
-    private int blockStart = 0;
     private String lang = "en";
     private int langInaccuracy = 0;
 
@@ -31,72 +28,44 @@ class UpdateMessageParser {
         this.currentAccount = currentAccount;
     }
 
-    public UpdateData parseMessage(MessageObject message) {
-        if (message.getGroupId() != 0) {
-            if (!messagesByGroupId.containsKey(message.getGroupId())) {
-                messagesByGroupId.put(message.getGroupId(), new ArrayList<>());
-            }
-            List<MessageObject> messages = messagesByGroupId.get(message.getGroupId());
-            if (messages != null) {
-                messages.add(message);
-            }
-        }
-        if (!message.isReply() || message.replyMessageObject.getDocument() == null
-                || message.messageText == null) {
-            return null;
-        }
-
-        currentUpdate = new UpdateData();
-        currentUpdate.accountNum = currentAccount;
-        MessageObject targetMessage = findTargetFileMessage(message);
-        if (targetMessage == null) {
-            return null;
-        }
-        currentUpdate.message = targetMessage.messageOwner;
-        currentUpdate.document = targetMessage.getDocument();
-        currentMessage = message;
-        try {
-            CharSequence text = message.messageText;
-            newLine = true;
-            controlLine = true;
-            blockStart = 0;
-            lang = "en";
-            langInaccuracy = Integer.MAX_VALUE;
-            for (int pos = 0; pos <= text.length(); pos++) {
-                if (newLine && pos < text.length() && text.charAt(pos) == '#') {
-                    if (blockStart < pos - 1) {
-                        processDescription(text, blockStart, pos);
-                    }
-                    controlLine = true;
-                    blockStart = pos + 1;
-                }
-                if (pos < text.length() && text.charAt(pos) == '\n') {
-                    newLine = true;
-                    if (controlLine) {
-                        processControlLine(text.subSequence(blockStart, pos).toString());
-                        controlLine = false;
-                        blockStart = pos + 1;
-                    }
-                }
-                if (pos == text.length()) {
-                    if (controlLine) {
-                        processControlLine(text.subSequence(blockStart, pos).toString());
-                        controlLine = false;
-                        blockStart = pos + 1;
-                    } else {
-                        if (blockStart < pos) {
-                            processDescription(text, blockStart, pos);
-                        }
-                    }
-                }
-            }
-            return currentUpdate;
-        } catch (Exception ignore) {
-        }
-        return null;
+    public UpdateData processMessage(MessageObject message) {
+        saveMessageByGroupId(message);
+        return parseUpdateData(message);
     }
 
-    private MessageObject findTargetFileMessage(MessageObject descriptionMessage) {
+    private void saveMessageByGroupId(MessageObject message) {
+        if (message.getGroupId() == 0) {
+            return;
+        }
+        if (!messagesByGroupId.containsKey(message.getGroupId())) {
+            messagesByGroupId.put(message.getGroupId(), new ArrayList<>());
+        }
+        List<MessageObject> messages = messagesByGroupId.get(message.getGroupId());
+        if (messages != null) {
+            messages.add(message);
+        }
+    }
+
+    private UpdateData parseUpdateData(MessageObject message) {
+        if (!isUpdateSpecificationMessage(message)) {
+            return null;
+        }
+        MessageObject fileMessage = findFileMessage(message);
+        if (fileMessage != null) {
+            createUpdateData(message, fileMessage);
+            return tryParseText(message.messageText);
+        } else {
+            return null;
+        }
+    }
+
+    private static boolean isUpdateSpecificationMessage(MessageObject message) {
+        return message.isReply()
+                && message.replyMessageObject.getDocument() != null
+                && message.messageText != null;
+    }
+
+    private MessageObject findFileMessage(MessageObject descriptionMessage) {
         MessageObject replyMessage = descriptionMessage.replyMessageObject;
         if (replyMessage == null) {
             return null;
@@ -118,10 +87,54 @@ class UpdateMessageParser {
         }
     }
 
+    private void createUpdateData(MessageObject message, MessageObject fileMessage) {
+        currentUpdate = new UpdateData();
+        currentUpdate.accountNum = currentAccount;
+        currentUpdate.message = fileMessage.messageOwner;
+        currentUpdate.document = fileMessage.getDocument();
+        currentMessage = message;
+    }
+
     private boolean isTargetDocument(TLRPC.Document document) {
         return document != null
                 && document.file_name_fixed != null
                 && document.file_name_fixed.equals(TARGET_FILE_NAME);
+    }
+
+    private UpdateData tryParseText(CharSequence text) {
+        try {
+            return parseText(text);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
+    private UpdateData parseText(CharSequence text) {
+        boolean isFirstCharInNewLine = true;
+        boolean controlLine = true;
+        int blockStart = 0;
+        lang = "en";
+        langInaccuracy = Integer.MAX_VALUE;
+        for (int pos = 0; pos <= text.length(); pos++) {
+            boolean textEnd = pos == text.length();
+            char currentChar = !textEnd ? text.charAt(pos) : '\0';
+            boolean lineEnd = currentChar == '\n';
+            boolean controlLineBeginning = isFirstCharInNewLine && currentChar == '#';
+            boolean controlLineEnding = (lineEnd || textEnd) && controlLine;
+            boolean descriptionEnding = (controlLineBeginning || textEnd && !controlLine) && blockStart < pos;
+            if (descriptionEnding) {
+                processDescription(text, blockStart, pos);
+            }
+            if (controlLineEnding) {
+                processControlLine(text.subSequence(blockStart, pos).toString());
+            }
+            if (controlLineBeginning || controlLineEnding) {
+                controlLine = controlLineBeginning;
+                blockStart = pos + 1;
+            }
+            isFirstCharInNewLine = lineEnd;
+        }
+        return currentUpdate;
     }
 
     private void processDescription(CharSequence text, int start, int end) {
@@ -144,6 +157,11 @@ class UpdateMessageParser {
         } else {
             return 3;
         }
+    }
+
+    private static boolean isRu(String lang) {
+        List<String> ruLangList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
+        return new HashSet<>(ruLangList).contains(lang);
     }
 
     private void addMessageEntities(int start, int end) {
@@ -173,11 +191,6 @@ class UpdateMessageParser {
         } catch (Exception ignore) {
             return null;
         }
-    }
-
-    private static boolean isRu(String lang) {
-        List<String> ruLangList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
-        return new HashSet<>(ruLangList).contains(lang);
     }
 
     private void processControlLine(String command) {
