@@ -89,6 +89,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int resetSecurityIssuesRow;
     private int activateAllSecurityIssuesRow;
     private int editSavedChannelsRow;
+    private int resetUpdateRow;
     private int checkVerificationUpdatesRow;
     private int resetVerificationLastCheckTimeRow;
     private int forceAllowScreenshotsRow;
@@ -268,6 +269,10 @@ public class TesterSettingsActivity extends BaseFragment {
                 };
                 AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
                 showDialog(dialog);
+            } else if (position == resetUpdateRow) {
+                SharedConfig.pendingPtgAppUpdate = null;
+                SharedConfig.saveConfig();
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             } else if (position == checkVerificationUpdatesRow) {
                 VerificationUpdatesChecker.checkUpdate(currentAccount, true);
                 Toast.makeText(getParentActivity(), "Check started", Toast.LENGTH_SHORT).show();
@@ -309,6 +314,7 @@ public class TesterSettingsActivity extends BaseFragment {
         resetSecurityIssuesRow = rowCount++;
         activateAllSecurityIssuesRow = rowCount++;
         editSavedChannelsRow = rowCount++;
+        resetUpdateRow = rowCount++;
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
         forceAllowScreenshotsRow = rowCount++;
@@ -442,6 +448,8 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setText("Activate All Security Issues", true);
                     } else if (position == editSavedChannelsRow) {
                         textCell.setTextAndValue("Saved Channels", Integer.toString(getUserConfig().savedChannels.size()), true);
+                    } else if (position == resetUpdateRow) {
+                        textCell.setText("Reset Update", true);
                     } else if (position == checkVerificationUpdatesRow) {
                         textCell.setText("Check Verification Updates", true);
                     } else if (position == resetVerificationLastCheckTimeRow) {
@@ -462,7 +470,8 @@ public class TesterSettingsActivity extends BaseFragment {
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
                     || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
-                    || position == checkVerificationUpdatesRow || position == resetVerificationLastCheckTimeRow) {
+                    || position == resetUpdateRow || position == checkVerificationUpdatesRow
+                    || position == resetVerificationLastCheckTimeRow) {
                 return 1;
             }
             return 0;
