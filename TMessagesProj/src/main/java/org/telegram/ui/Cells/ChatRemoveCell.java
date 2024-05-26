@@ -279,12 +279,20 @@ public class ChatRemoveCell extends FrameLayout {
                 }
             }
         } else if (currentStatus.toString().equals("")) {
-            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == getDialogId())){
-                currentStatus = LocaleController.getString("ChatRemoved", R.string.ChatRemoved);
+            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == getDialogId())) {
+                if (isBlockedUser()) {
+                    currentStatus = LocaleController.getString(R.string.BlockedUsers);
+                } else {
+                    currentStatus = LocaleController.getString("ChatRemoved", R.string.ChatRemoved);
+                }
             }
         }
 
         avatarImageView.setForUserOrChat(currentUser, avatarDrawable);
+    }
+
+    private boolean isBlockedUser() {
+        return getMessagesController().getUnfilteredBlockedPeers().get(getDialogId()) == 1;
     }
 
     private void updateEncryptedChat(int mask) {

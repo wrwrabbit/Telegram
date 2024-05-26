@@ -45,6 +45,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
@@ -71,6 +72,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FakePasscodeRemoveChatsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private ScrollView scrollView;
@@ -776,7 +779,6 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
 
         public void fillContacts() {
             boolean hasSelf = false;
-            ArrayList<TLRPC.Dialog> dialogs = getMessagesController().getAllDialogs();
 
             contacts.clear();
             Set<Long> selectedIds = action.getIds();
@@ -809,6 +811,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                 }
             }
 
+            ArrayList<TLRPC.Dialog> dialogs = getMessagesController().getAllDialogs();
             for (int a = 0, N = dialogs.size(); a < N; a++) {
                 TLRPC.Dialog dialog = dialogs.get(a);
                 if (dialog.id == 0 || selectedIds.contains(dialog.id)) {
@@ -837,6 +840,17 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
             if (!hasSelf) {
                 TLRPC.User user = getMessagesController().getUser(getUserConfig().clientUserId);
                 contacts.add(0, user);
+            }
+
+            Set<Long> contactsSet = Stream.concat(selectedIds.stream(),
+                            dialogs.stream().map(d -> d.id)
+                    ).collect(Collectors.toSet());
+            for (int i = 0; i < getMessagesController().getUnfilteredBlockedPeers().size(); i++) {
+                long blockedId = getMessagesController().getUnfilteredBlockedPeers().keyAt(i);
+                if (!contactsSet.contains(blockedId)) {
+                    TLRPC.User user = getMessagesController().getUser(blockedId);
+                    contacts.add(user);
+                }
             }
         }
 
