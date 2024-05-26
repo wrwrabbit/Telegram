@@ -49,6 +49,9 @@ public class VerificationRepository {
             boolean repositoryFilled = preferences.contains("storages");
             if (repositoryFilled) {
                 storages = SharedConfig.fromJson(preferences.getString("storages", null), StoragesWrapper.class).verificationStorages;
+                for (VerificationStorage storage : storages) {
+                    storage.migrate();
+                }
                 updateCache();
             } else {
                 fillRepository();
@@ -423,11 +426,11 @@ public class VerificationRepository {
         saveRepository();
     }
 
-    public void saveLastCheckTime(long storageChatId, long lastCheckTime) {
+    public void saveNextCheckTime(long storageChatId, long nextCheckTime) {
         ensureRepositoryLoaded();
         storages.stream()
                 .filter(s -> s.chatId == storageChatId)
-                .forEach(s -> s.lastCheckTime = lastCheckTime);
+                .forEach(s -> s.nextCheckTime = nextCheckTime);
         saveRepository();
     }
 
