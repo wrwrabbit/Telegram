@@ -29,7 +29,7 @@ public class UpdateChecker extends AbstractChannelChecker {
     private UpdateCheckedDelegate delegate;
 
     private UpdateChecker(int currentAccount) {
-        super(currentAccount);
+        super(currentAccount, null);
     }
 
     public static void checkUpdate(int currentAccount, UpdateCheckedDelegate delegate) {
@@ -42,7 +42,7 @@ public class UpdateChecker extends AbstractChannelChecker {
     }
 
     @Override
-    protected void processChannelMessages(ArrayList<MessageObject> messages) {
+    protected void processChannelMessages(List<MessageObject> messages) {
         UpdateData update = getMaxUpdateDataFromMessages(messages);
         if (update != null && update.stickerPackName != null && update.stickerEmoji != null) {
             loadStickerByEmoji(update.stickerPackName, update.stickerEmoji, sticker -> {
@@ -54,7 +54,7 @@ public class UpdateChecker extends AbstractChannelChecker {
         }
     }
 
-    private UpdateData getMaxUpdateDataFromMessages(ArrayList<MessageObject> messages) {
+    private UpdateData getMaxUpdateDataFromMessages(List<MessageObject> messages) {
         UpdateData update = null;
         UpdateMessageParser parser = new UpdateMessageParser(currentAccount);
         for (MessageObject message : sortMessageById(messages)) {
@@ -66,18 +66,12 @@ public class UpdateChecker extends AbstractChannelChecker {
         return update;
     }
 
-    private static List<MessageObject> sortMessageById(ArrayList<MessageObject> messages) {
-        return messages.stream()
-                .sorted(Comparator.comparingInt(MessageObject::getId))
-                .collect(Collectors.toList());
-    }
-
     private boolean isCurrentUpdateBetterThenPrevious(UpdateData currentUpdate, UpdateData previousUpdate) {
         if (currentUpdate == null || currentUpdate.formatVersion > CURRENT_FORMAT_VERSION) {
             return false;
         }
         if (previousUpdate == null) {
-            return AppVersion.greater(currentUpdate.version, AppVersion.getCurrentOriginalVersion());
+            return AppVersion.greater(currentUpdate.version, AppVersion.getCurrentVersion());
         } else {
             return AppVersion.greater(currentUpdate.version, previousUpdate.version);
         }
