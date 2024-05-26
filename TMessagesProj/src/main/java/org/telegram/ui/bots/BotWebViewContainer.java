@@ -1566,7 +1566,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
                 } else {
                     message.append(AndroidUtilities.replaceTags(LocaleController.getString(R.string.AreYouSureShareMyContactInfoBot)));
                 }
-                final boolean blocked = MessagesController.getInstance(currentAccount).blockePeers.indexOfKey(botUser.id) >= 0;
+                final boolean blocked = MessagesController.getInstance(currentAccount).getFilteredBlockedPeers().indexOfKey(botUser.id) >= 0;
                 if (blocked) {
                     message.append("\n\n");
                     message.append(LocaleController.getString(R.string.AreYouSureShareMyContactInfoBotUnblock));
