@@ -37737,7 +37737,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(dialog_id, currentAccount)
+        return !FakePasscodeUtils.isHideChat(arguments.getLong("chat_id", 0), currentAccount)
+                && !FakePasscodeUtils.isHideChat(arguments.getLong("user_id", 0), currentAccount)
                 && !(FakePasscodeUtils.isFakePasscodeActivated() && isSavedChannel);
     }
 

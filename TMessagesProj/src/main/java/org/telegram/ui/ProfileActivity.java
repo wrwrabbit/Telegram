@@ -13311,9 +13311,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(dialogId, currentAccount)
-                && !FakePasscodeUtils.isHideChat(chatId, currentAccount)
-                && !FakePasscodeUtils.isHideChat(userId, currentAccount);
+        return !FakePasscodeUtils.isHideChat(arguments.getLong("dialog_id", 0), currentAccount)
+                && !FakePasscodeUtils.isHideChat(arguments.getLong("chat_id", 0), currentAccount)
+                && !FakePasscodeUtils.isHideChat(arguments.getLong("user_id", 0), currentAccount);
     }
 
     @Override
