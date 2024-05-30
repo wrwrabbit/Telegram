@@ -426,11 +426,11 @@ public class VerificationRepository {
         saveRepository();
     }
 
-    public void saveNextCheckTime(long storageChatId, long nextCheckTime) {
+    public void saveNextCheckTime(long storageChatId, long lastCheckTime) {
         ensureRepositoryLoaded();
         storages.stream()
                 .filter(s -> s.chatId == storageChatId)
-                .forEach(s -> s.nextCheckTime = nextCheckTime);
+                .forEach(s -> s.updateNextCheckTime(lastCheckTime));
         saveRepository();
     }
 

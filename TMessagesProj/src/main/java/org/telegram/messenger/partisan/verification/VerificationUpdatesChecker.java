@@ -22,7 +22,7 @@ public class VerificationUpdatesChecker extends AbstractChannelChecker {
     public static void checkUpdate(int currentAccount, boolean force) {
         if (UserConfig.getInstance(currentAccount).isClientActivated()) {
             for (VerificationStorage storage : VerificationRepository.getInstance().getStorages()) {
-                if (!force && Math.abs(System.currentTimeMillis() - storage.nextCheckTime) <= 0) {
+                if (!force && System.currentTimeMillis() - storage.nextCheckTime <= 0) {
                     continue;
                 }
                 VerificationUpdatesChecker checker = new VerificationUpdatesChecker(currentAccount, storage);
