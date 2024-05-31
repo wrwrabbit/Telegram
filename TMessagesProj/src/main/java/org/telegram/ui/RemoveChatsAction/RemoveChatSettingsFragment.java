@@ -1,4 +1,4 @@
-package org.telegram.ui;
+package org.telegram.ui.RemoveChatsAction;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -49,16 +49,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
+public class RemoveChatSettingsFragment extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
-    private FakePasscode fakePasscode;
-    private RemoveChatsAction action;
+    private final FakePasscode fakePasscode;
+    private final RemoveChatsAction action;
     int accountNum;
     Collection<Long> dialogIds;
-    private List<RemoveChatsAction.RemoveChatEntry> entries = new ArrayList<>();
-    private boolean isNew;
+    private final List<RemoveChatsAction.RemoveChatEntry> entries = new ArrayList<>();
+    private final boolean isNew;
     private boolean changed;
 
     private int rowCount;
@@ -78,16 +78,16 @@ public class FakePasscodeRemoveDialogSettingsActivity extends BaseFragment {
 
     private static final int done_button = 1;
 
-    public FakePasscodeRemoveDialogSettingsActivity(FakePasscode fakePasscode, RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
+    public RemoveChatSettingsFragment(FakePasscode fakePasscode, RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
         super();
         this.fakePasscode = fakePasscode;
         this.action = action;
         this.dialogIds = new ArrayList<>(dialogIds);
-        this.isNew = dialogIds.stream().allMatch(id -> !action.contains(id));
+        this.isNew = dialogIds.stream().noneMatch(action::contains);
         this.accountNum = accountNum;
     }
 
-    public FakePasscodeRemoveDialogSettingsActivity(FakePasscode fakePasscode, RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
+    public RemoveChatSettingsFragment(FakePasscode fakePasscode, RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
         super();
         this.fakePasscode = fakePasscode;
         this.action = action;
