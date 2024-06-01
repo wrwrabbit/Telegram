@@ -13,7 +13,7 @@ class ChatItem extends Item {
     }
 
     @Override
-    public TLObject getTLObject() {
+    public TLObject getProfileObject() {
         return chat;
     }
 

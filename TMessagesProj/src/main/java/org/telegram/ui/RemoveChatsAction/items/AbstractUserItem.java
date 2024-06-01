@@ -15,11 +15,6 @@ abstract class AbstractUserItem extends Item {
     }
 
     @Override
-    public TLObject getTLObject() {
-        return user;
-    }
-
-    @Override
     protected String getName() {
         return ContactsController.formatName(user.first_name, user.last_name);
     }

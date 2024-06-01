@@ -13,7 +13,7 @@ public class RemoveChatEntryItem extends Item {
     }
 
     @Override
-    public TLObject getTLObject() {
+    public TLObject getProfileObject() {
         return null;
     }
 

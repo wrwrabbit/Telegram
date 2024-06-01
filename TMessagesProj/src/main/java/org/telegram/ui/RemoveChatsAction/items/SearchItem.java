@@ -15,8 +15,8 @@ public class SearchItem extends Item {
     }
 
     @Override
-    public TLObject getTLObject() {
-        return innerItem.getTLObject();
+    public TLObject getProfileObject() {
+        return innerItem.getProfileObject();
     }
 
     @Override
@@ -49,6 +49,11 @@ public class SearchItem extends Item {
     @Override
     public boolean isSelf() {
         return innerItem.isSelf();
+    }
+
+    @Override
+    public boolean shouldBeEditedToo(Item selectedItem) {
+        return innerItem.shouldBeEditedToo(selectedItem);
     }
 
     @Override

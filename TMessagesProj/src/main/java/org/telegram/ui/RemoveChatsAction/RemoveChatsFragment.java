@@ -77,8 +77,6 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
     private EmptyTextProgressView emptyView;
     private RemoveChatsAdapter adapter;
     private boolean ignoreScrollEvent;
-    private final Set<Long> selectedDialogs = new HashSet<>();
-
     private int containerHeight;
 
     private final FakePasscode fakePasscode;
@@ -244,24 +242,20 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
-                    if (selectedDialogs.isEmpty()) {
-                        finishFragment();
-                    } else {
-                        selectedDialogs.clear();
+                    if (adapter.isInSelectionMode()) {
+                        adapter.clearSelection();
                         hideActionMode(true);
+                    } else {
+                        finishFragment();
                     }
                 } else if (id == delete) {
-                    for (Long dialogId : selectedDialogs) {
-                        action.remove(dialogId);
-                    }
+                    adapter.deleteSelectedDialogs();
                     hideActionMode(true);
                     updateHint();
                 } else if (id == add || id == edit) {
-                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, selectedDialogs, accountNum));
-                    selectedDialogs.clear();
-                    if (listView != null) {
-                        listView.getAdapter().notifyDataSetChanged();
-                    }
+                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, adapter.getSelectedDialogs(), accountNum));
+                    adapter.clearSelection();
+                    adapter.notifyDataSetChanged();
                     hideActionMode(true);
                     updateHint();
                 }
@@ -455,7 +449,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
         frameLayout.addView(listView);
         listView.setOnItemClickListener(this::onItemClick);
         listView.setOnItemLongClickListener((view, position, x, y) -> {
-            select((ChatRemoveCell)view);
+            select(position);
             return true;
         });
         listView.setOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -473,8 +467,8 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
     private void onItemClick(View view, int position) {
         if (view instanceof ChatRemoveCell) {
             ChatRemoveCell cell = (ChatRemoveCell) view;
-            if (!selectedDialogs.isEmpty()) {
-                select(cell);
+            if (adapter.isInSelectionMode()) {
+                select(position);
             } else {
                 if (action.contains(cell.getItem().getId())) {
                     showRemoveDialog(() -> {
@@ -489,7 +483,8 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                     if (editText.length() > 0) {
                         editText.setText(null);
                     }
-                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, Collections.singletonList(cell.getItem().getId()), accountNum));
+                    Set<Long> ids = adapter.getDialogIdsForItem(position);
+                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, ids, accountNum));
                 }
             }
         }
@@ -557,7 +552,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                     emptyView.showTextView();
                 }
                 if (adapter != null) {
-                    adapter.fillContacts();
+                    adapter.fillItems();
                     adapter.notifyDataSetChanged();
                 }
                 getNotificationCenter().removeObserver(this, NotificationCenter.dialogsNeedReload);
@@ -625,27 +620,18 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
         actionBar.setSubtitle(LocaleController.formatPluralString("Chats", action.getChatEntriesToRemove().size()));
     }
 
-    private void select(ChatRemoveCell cell) {
-        long id = cell.getItem().getId();
-
-        if (selectedDialogs.contains(id)) {
-            selectedDialogs.remove(id);
-            cell.setItemSelected(false);
-        } else {
-            selectedDialogs.add(id);
-            cell.setItemSelected(true);
+    private void select(int position) {
+        if (adapter == null) {
+            return;
         }
-        if (selectedDialogs.isEmpty()) {
-            hideActionMode(true);
-        } else {
-            showOrUpdateActionMode();
-        }
+        adapter.select(position);
+        showOrUpdateActionMode();
     }
 
     private void showOrUpdateActionMode() {
         boolean updateAnimated = false;
         if (actionBar.isActionModeShowed()) {
-            if (selectedDialogs.isEmpty()) {
+            if (!adapter.isInSelectionMode()) {
                 hideActionMode(true);
                 return;
             }
@@ -676,11 +662,11 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                 backDrawable.setRotation(1, true);
             }
         }
-        selectedDialogsCountTextView.setNumber(selectedDialogs.size(), updateAnimated);
+        selectedDialogsCountTextView.setNumber(adapter.getSelectedDialogsCount(), updateAnimated);
     }
 
     private void updateMenuItemsVisibility() {
-        boolean isEdit = selectedDialogs.stream().anyMatch(id -> action.contains(id));
+        boolean isEdit = adapter.isSelectedConfiguredDialog();
         addItem.setVisibility(isEdit ? View.GONE : View.VISIBLE);
         editItem.setVisibility(isEdit ? View.VISIBLE : View.GONE);
         deleteItem.setVisibility(isEdit ? View.VISIBLE : View.GONE);
@@ -738,7 +724,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
 
     private void hideActionMode(boolean animateCheck) {
         actionBar.hideActionMode();
-        selectedDialogs.clear();
+        adapter.selectedDialogs.clear();
         if (backDrawable != null) {
             backDrawable.setRotation(0, true);
         }
@@ -750,16 +736,17 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
 
         private final Context context;
         private List<SearchItem> searchResult = new ArrayList<>();
+        private final Set<Long> selectedDialogs = new HashSet<>();
         private Runnable searchRunnable;
         private boolean searching;
         private final List<Item> items = new ArrayList<>();
 
         public RemoveChatsAdapter(Context ctx) {
             context = ctx;
-            fillContacts();
+            fillItems();
         }
 
-        public void fillContacts() {
+        public void fillItems() {
             items.clear();
             for (Long id: getChatIds()) {
                 Item item = Item.tryCreateItemById(accountNum, action, id);
@@ -830,15 +817,21 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                         return;
                     }
                     ChatRemoveCell cell = (ChatRemoveCell) holder.itemView;
-                    Item item = searching ? searchResult.get(position) : items.get(position);
+                    Item item = getItem(position);
                     cell.setItemSelected(selectedDialogs.contains(item.getId()));
-                    cell.setOnSettingsClick(this::setupChatToRemove);
+                    cell.setOnSettingsClick(this::editChatToRemove);
                     cell.setItem(item);
                     cell.setChecked(action.contains(item.getId()), false);
                     cell.setCheckBoxEnabled(true);
                     break;
                 }
             }
+        }
+
+        private Item getItem(int position) {
+            return searching
+                    ? searchResult.get(position)
+                    : items.get(position);
         }
 
         @Override
@@ -909,8 +902,8 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
             });
         }
 
-        private void setupChatToRemove(RemoveChatsAction.RemoveChatEntry entry) {
-            if (entry == null) {
+        private void editChatToRemove(long id) {
+            if (!action.contains(id)) {
                 return;
             }
             selectedDialogs.clear();
@@ -919,7 +912,62 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
             }
             hideActionMode(true);
             updateHint();
-            presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, entry, accountNum));
+            presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, action.get(id), accountNum));
+        }
+
+        public void select(int position) {
+            Item item = getItem(position);
+            long id = item.getId();
+            if (selectedDialogs.contains(id)) {
+                selectedDialogs.remove(id);
+                notifyItemChanged(position);
+            } else {
+                selectedDialogs.add(id);
+                notifyItemChanged(position);
+                items.stream()
+                        .filter(i -> i.shouldBeEditedToo(item))
+                        .map(Item::getId)
+                        .forEach(selectedDialogs::add);
+                for (int otherPosition = 0; otherPosition < getItemCount(); otherPosition++) {
+                    if (getItem(otherPosition).shouldBeEditedToo(item)) {
+                        notifyItemChanged(otherPosition);
+                    }
+                }
+            }
+        }
+
+        public boolean isInSelectionMode() {
+            return !selectedDialogs.isEmpty();
+        }
+
+        public void clearSelection() {
+            selectedDialogs.clear();
+        }
+
+        public int getSelectedDialogsCount() {
+            return selectedDialogs.size();
+        }
+
+        public boolean isSelectedConfiguredDialog() {
+            return selectedDialogs.stream().anyMatch(action::contains);
+        }
+
+        public void deleteSelectedDialogs() {
+            for (Long dialogId : selectedDialogs) {
+                action.remove(dialogId);
+            }
+        }
+
+        public Set<Long> getSelectedDialogs() {
+            return selectedDialogs;
+        }
+
+        public Set<Long> getDialogIdsForItem(int position) {
+            Item targetItem = getItem(position);
+            return items.stream()
+                    .filter(item -> item == targetItem || item.shouldBeEditedToo(targetItem))
+                    .map(Item::getId)
+                    .collect(Collectors.toSet());
         }
     }
 

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public abstract class Item {
     protected final int accountNum;
 
-    public abstract TLObject getTLObject();
+    public abstract TLObject getProfileObject();
     public abstract Long getId();
     protected abstract String getName();
     protected String getAlternativeName() {
@@ -27,6 +27,9 @@ public abstract class Item {
     public abstract String getUsername();
     protected abstract CharSequence generateSearchName(String q);
     public boolean isSelf() {
+        return false;
+    }
+    public boolean shouldBeEditedToo(Item selectedItem) {
         return false;
     }
 

@@ -3,11 +3,17 @@ package org.telegram.ui.RemoveChatsAction.items;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
 class UserItem extends AbstractUserItem {
     UserItem(int accountNum, TLRPC.User user) {
         super(accountNum, user);
+    }
+
+    @Override
+    public TLObject getProfileObject() {
+        return user;
     }
 
     @Override

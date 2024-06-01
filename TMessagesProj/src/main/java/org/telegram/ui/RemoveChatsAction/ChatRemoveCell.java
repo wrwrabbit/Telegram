@@ -50,7 +50,7 @@ public class ChatRemoveCell extends FrameLayout {
 
     private final int currentAccount;
 
-    Consumer<RemoveChatsAction.RemoveChatEntry> onSettingsClick;
+    Consumer<Long> onSettingsClick;
 
     public ChatRemoveCell(Context context, int account) {
         super(context);
@@ -96,9 +96,8 @@ public class ChatRemoveCell extends FrameLayout {
         settingsButton.setPadding(AndroidUtilities.dp(1), 0, 0, 0);
         addView(settingsButton, LayoutHelper.createFrame(46, 46, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, LocaleController.isRTL ? 13 : 0, 6, LocaleController.isRTL ? 0 : 13, 0));
         settingsButton.setOnClickListener(v -> {
-            if (onSettingsClick != null && item instanceof RemoveChatEntryItem) {
-                RemoveChatsAction.RemoveChatEntry entry = ((RemoveChatEntryItem)item).getRemoveChatEntry();
-                onSettingsClick.accept(entry);
+            if (onSettingsClick != null) {
+                onSettingsClick.accept(item.getId());
             }
         });
 
@@ -133,7 +132,7 @@ public class ChatRemoveCell extends FrameLayout {
         return checkBox.isChecked();
     }
 
-    public void setOnSettingsClick(Consumer<RemoveChatsAction.RemoveChatEntry> onSettingsClick) {
+    public void setOnSettingsClick(Consumer<Long> onSettingsClick) {
         this.onSettingsClick = onSettingsClick;
     }
 
@@ -171,10 +170,10 @@ public class ChatRemoveCell extends FrameLayout {
     private void updateAvatar() {
         if (item.isSelf()) {
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_SAVED);
-            avatarImageView.setImage(null, "50_50", avatarDrawable, item.getTLObject());
+            avatarImageView.setImage(null, "50_50", avatarDrawable, item.getProfileObject());
         } else {
-            avatarDrawable.setInfo(currentAccount, item.getTLObject());
-            avatarImageView.setForUserOrChat(item.getTLObject(), avatarDrawable);
+            avatarDrawable.setInfo(currentAccount, item.getProfileObject());
+            avatarImageView.setForUserOrChat(item.getProfileObject(), avatarDrawable);
         }
     }
 
