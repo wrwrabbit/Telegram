@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 public class VerificationUpdatesChecker extends AbstractChannelChecker {
     private final VerificationStorage storage;
@@ -50,7 +51,7 @@ public class VerificationUpdatesChecker extends AbstractChannelChecker {
     @Override
     protected void processChannelMessages(List<MessageObject> messages) {
         List<VerificationChatInfo> chatsToAdd = new ArrayList<>();
-        Set<Long> chatsToRemove = new HashSet<>();
+        List<VerificationChatInfo> chatsToRemove = new ArrayList<>();
         VerificationMessageParser parser = new VerificationMessageParser();
         List<MessageObject> sortedMessages = sortMessageById(messages);
         for (MessageObject message : sortedMessages) {
@@ -59,8 +60,8 @@ public class VerificationUpdatesChecker extends AbstractChannelChecker {
             }
             VerificationMessageParser.ParsingResult result = parser.parseMessage(message);
             if (result != null) {
-                chatsToAdd.removeIf(c -> result.chatsToRemove.contains(c.chatId));
-                chatsToRemove.removeIf(id -> result.chatsToAdd.stream().anyMatch(c -> c.chatId == id));
+                chatsToAdd.removeIf(c -> listContains(result.chatsToRemove, c));
+                chatsToRemove.removeIf(c -> listContains(result.chatsToAdd, c));
                 chatsToAdd.addAll(result.chatsToAdd);
                 chatsToRemove.addAll(result.chatsToRemove);
             }
@@ -70,6 +71,10 @@ public class VerificationUpdatesChecker extends AbstractChannelChecker {
 
         int lastMessageId = Math.max(getMaxMessageId(messages), storage.lastCheckedMessageId);
         VerificationRepository.getInstance().saveLastCheckedMessageId(storage.chatId, lastMessageId);
+    }
+
+    private boolean listContains(List<VerificationChatInfo> list, VerificationChatInfo chatInfo) {
+        return list.stream().anyMatch(c -> c.chatId == chatInfo.chatId);
     }
 
     @Override
