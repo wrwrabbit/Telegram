@@ -41,18 +41,23 @@ public abstract class Item {
         MessagesController messagesController = MessagesController.getInstance(accountNum);
         if (DialogObject.isUserDialog(id)) {
             TLRPC.User user = messagesController.getUser(id);
-            return user != null ? new UserItem(accountNum, user) : null;
+            if (user != null) {
+                return new UserItem(accountNum, user);
+            }
         } else if (DialogObject.isChatDialog(id)) {
             TLRPC.Chat chat = messagesController.getChat(-id);
-            return chat != null ? new ChatItem(accountNum, chat) : null;
+            if (chat != null) {
+                return new ChatItem(accountNum, chat);
+            }
         } else if (DialogObject.isEncryptedDialog(id)) {
             int encryptedChatId = DialogObject.getEncryptedChatId(id);
             TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedChatId);
-            return encryptedChat != null ? new EncryptedChatItem(accountNum, encryptedChat) : null;
-        } else {
-            RemoveChatsAction.RemoveChatEntry removeChatEntry = action.get(id);
-            return removeChatEntry != null ? new RemoveChatEntryItem(accountNum, removeChatEntry) : null;
+            if (encryptedChat != null) {
+                return new EncryptedChatItem(accountNum, encryptedChat);
+            }
         }
+        RemoveChatsAction.RemoveChatEntry removeChatEntry = action.get(id);
+        return removeChatEntry != null ? new RemoveChatEntryItem(accountNum, removeChatEntry) : null;
     }
 
     public CharSequence getStatus() {
