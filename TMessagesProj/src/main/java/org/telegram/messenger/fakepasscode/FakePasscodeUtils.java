@@ -32,15 +32,16 @@ public class FakePasscodeUtils {
     public static FakePasscode getActivatedFakePasscode() {
         if (SharedConfig.fakePasscodeActivatedIndex > -1
                 && SharedConfig.fakePasscodeActivatedIndex < SharedConfig.fakePasscodes.size()) {
-            return SharedConfig.fakePasscodes.get(SharedConfig.fakePasscodeActivatedIndex);
-        } else {
-            return null;
+            FakePasscode fakePasscode = SharedConfig.fakePasscodes.get(SharedConfig.fakePasscodeActivatedIndex);
+            if (fakePasscode.activated) {
+                return fakePasscode;
+            }
         }
+        return null;
     }
 
     public static boolean isFakePasscodeActivated() {
-        return SharedConfig.fakePasscodeActivatedIndex > -1
-                && SharedConfig.fakePasscodeActivatedIndex < SharedConfig.fakePasscodes.size();
+        return getActivatedFakePasscode() != null;
     }
 
     private static ActionsResult getActivatedActionsResult() {
