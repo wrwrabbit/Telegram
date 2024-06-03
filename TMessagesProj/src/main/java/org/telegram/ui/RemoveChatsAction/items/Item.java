@@ -17,7 +17,7 @@ public abstract class Item {
     protected final int accountNum;
 
     public abstract TLObject getProfileObject();
-    public abstract Long getId();
+    public abstract long getId();
     protected abstract String getName();
     protected String getAlternativeName() {
         return null;

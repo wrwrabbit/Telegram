@@ -18,7 +18,7 @@ public class RemoveChatEntryItem extends Item {
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         return removeChatEntry.chatId;
     }
 

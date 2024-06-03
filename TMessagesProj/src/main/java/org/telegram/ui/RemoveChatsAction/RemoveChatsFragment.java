@@ -480,10 +480,10 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                         }
                     });
                 } else {
+                    Set<Long> ids = adapter.getDialogIdsForItem(position); // editText.setText(null); set searching = false. Therefore why ids must be obtained before
                     if (editText.length() > 0) {
                         editText.setText(null);
                     }
-                    Set<Long> ids = adapter.getDialogIdsForItem(position);
                     presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, ids, accountNum));
                 }
             }
@@ -965,7 +965,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
         public Set<Long> getDialogIdsForItem(int position) {
             Item targetItem = getItem(position);
             return items.stream()
-                    .filter(item -> item == targetItem || item.shouldBeEditedToo(targetItem))
+                    .filter(item -> item.getId() == targetItem.getId() || item.shouldBeEditedToo(targetItem))
                     .map(Item::getId)
                     .collect(Collectors.toSet());
         }

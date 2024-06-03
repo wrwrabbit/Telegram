@@ -20,7 +20,7 @@ public class SearchItem extends Item {
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         return innerItem.getId();
     }
 

@@ -17,7 +17,7 @@ class UserItem extends AbstractUserItem {
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         return user.id;
     }
 

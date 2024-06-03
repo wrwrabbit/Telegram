@@ -19,7 +19,7 @@ public class EncryptedChatItem extends AbstractUserItem {
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         return DialogObject.makeEncryptedDialogId(encryptedChat.id);
     }
 
