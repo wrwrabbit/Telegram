@@ -5,6 +5,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.tgnet.TLObject;
@@ -61,11 +62,17 @@ public abstract class Item {
     }
 
     public CharSequence getStatus() {
-        return getMessagesController().dialogFilters
+        String status = getMessagesController().dialogFilters
                 .stream()
                 .filter(f -> f.includesDialog(getAccountInstance(), getId()))
                 .map(f -> f.name)
                 .collect(Collectors.joining(", "));
+        if ("".contentEquals(status)) {
+            if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == getId())) {
+                status = LocaleController.getString(R.string.ChatRemoved);
+            }
+        }
+        return status;
     }
 
     private String getSearchName() {

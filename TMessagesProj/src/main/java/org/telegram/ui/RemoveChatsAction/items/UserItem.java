@@ -41,18 +41,10 @@ class UserItem extends AbstractUserItem {
     public CharSequence getStatus() {
         if (isSelf()) {
             return LocaleController.getString(R.string.SavedMessages);
+        } else if (isBlocked()) {
+            return LocaleController.getString(R.string.BlockedUsers);
         } else {
-            CharSequence status = super.getStatus();
-            if ("".contentEquals(status)) {
-                if (getMessagesController().getAllDialogs().stream().noneMatch(d -> d.id == getId())) {
-                    if (isBlocked()) {
-                        status = LocaleController.getString(R.string.BlockedUsers);
-                    } else {
-                        status = LocaleController.getString(R.string.ChatRemoved);
-                    }
-                }
-            }
-            return status;
+            return super.getStatus();
         }
     }
 

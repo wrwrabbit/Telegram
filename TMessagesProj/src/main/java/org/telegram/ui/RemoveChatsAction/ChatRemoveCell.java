@@ -26,7 +26,6 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -34,7 +33,6 @@ import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.RemoveChatsAction.items.Item;
-import org.telegram.ui.RemoveChatsAction.items.RemoveChatEntryItem;
 
 public class ChatRemoveCell extends FrameLayout {
 
@@ -171,9 +169,12 @@ public class ChatRemoveCell extends FrameLayout {
         if (item.isSelf()) {
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_SAVED);
             avatarImageView.setImage(null, "50_50", avatarDrawable, item.getProfileObject());
-        } else {
+        } else if (item.getProfileObject() != null) {
             avatarDrawable.setInfo(currentAccount, item.getProfileObject());
             avatarImageView.setForUserOrChat(item.getProfileObject(), avatarDrawable);
+        } else {
+            avatarDrawable.setInfo(item.getId(), item.getDisplayName().toString(), "");
+            avatarImageView.setForUserOrChat(null, avatarDrawable);
         }
     }
 
