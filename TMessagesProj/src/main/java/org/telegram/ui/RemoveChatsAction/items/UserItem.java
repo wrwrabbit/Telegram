@@ -33,15 +33,22 @@ class UserItem extends AbstractUserItem {
     }
 
     @Override
+    public String getDisplayName() {
+        if (isSelf()) {
+            return LocaleController.getString(R.string.SavedMessages);
+        } else {
+            return super.getDisplayName();
+        }
+    }
+
+    @Override
     public boolean isSelf() {
         return UserObject.isUserSelf(user);
     }
 
     @Override
     public CharSequence getStatus() {
-        if (isSelf()) {
-            return LocaleController.getString(R.string.SavedMessages);
-        } else if (isBlocked()) {
+        if (isBlocked()) {
             return LocaleController.getString(R.string.BlockedUsers);
         } else {
             return super.getStatus();
