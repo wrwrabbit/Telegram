@@ -11842,7 +11842,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatAttachAlert.setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
                 @Override
                 public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, long effectId, boolean invertMedia, boolean forceDocument) {
-                    didPressedButton(button, arg, notify, scheduleDate, forceDocument, null);
+                    didPressedButton(button, arg, notify, scheduleDate, effectId, invertMedia, forceDocument, null);
                 }
 
                 @Override
@@ -13100,7 +13100,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public void didSelectFiles(ArrayList<String> files, String caption, ArrayList<MessageObject> fmessages, boolean notify, int scheduleDate, long effectId, boolean invertMedia) {
-        didSelectFiles(files, caption, fmessages, notify, scheduleDate, null);
+        didSelectFiles(files, caption, fmessages, notify, scheduleDate, effectId, invertMedia, null);
     }
 
     @Override

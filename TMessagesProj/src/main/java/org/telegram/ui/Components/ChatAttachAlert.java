@@ -3790,7 +3790,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     } else if (baseFragment instanceof ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate) {
                         ((ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate) baseFragment).didSelectFiles(files, caption, fmessages, notify, scheduleDate, effectId, invertMedia, autoDeleteDelay);
                     } else if (baseFragment instanceof PassportActivity) {
-                        ((PassportActivity) baseFragment).didSelectFiles(files, caption, notify, scheduleDate, effectId, invertMedia, autoDeleteDelay);
+                        ((PassportActivity) baseFragment).didSelectFiles(files, caption, notify, scheduleDate, effectId, invertMedia);
                     }
                 }
 
