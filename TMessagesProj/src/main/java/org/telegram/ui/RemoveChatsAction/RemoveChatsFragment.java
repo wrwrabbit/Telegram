@@ -882,7 +882,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
         }
 
         private List<String> makeQueryVariants(String query) {
-            String rawQuery = query.trim().toLowerCase();
+            String rawQuery = query.trim();
             String translitQuery = LocaleController.getInstance().getTranslitString(rawQuery);
             return Stream.of(rawQuery, translitQuery)
                     .filter(q -> !q.isEmpty())

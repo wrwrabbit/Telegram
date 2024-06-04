@@ -3574,7 +3574,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 		updateServerConfig();
 		NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.appDidLogout);
 		NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.dialogsHidingChanged);
-		NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.accountHidingChanged);
+		NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.accountHidingChanged);
 		ConnectionsManager.getInstance(currentAccount).setAppPaused(false, false);
 	}
 

@@ -3,7 +3,6 @@ package org.telegram.ui.RemoveChatsAction.items;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.UserObject;
-import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
 abstract class AbstractUserItem extends Item {
