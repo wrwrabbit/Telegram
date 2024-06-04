@@ -94,11 +94,10 @@ public abstract class Item {
     }
 
     private boolean matchesQueryByName(String query) {
-        String name = getSearchName().toLowerCase();
-        if (nameMatches(name, query)) {
+        if (nameMatches(getSearchName(), query)) {
             return true;
         }
-        String translitName = LocaleController.getInstance().getTranslitString(name);
+        String translitName = LocaleController.getInstance().getTranslitString(getSearchName());
         if (nameMatches(translitName, query)) {
             return true;
         }
@@ -107,14 +106,17 @@ public abstract class Item {
 
     private boolean matchesQueryByUsername(String query) {
         String username = getUsername();
-        return username != null && username.toLowerCase().startsWith(query);
+        return username != null && username.toLowerCase().startsWith(query.toLowerCase());
     }
 
     private boolean nameMatches(String name, String query) {
-        if (name == null) {
+        if (name == null || query == null) {
             return false;
         }
-        return name.startsWith(query) || name.contains(" " + query);
+        String lowercaseName = name.toLowerCase();
+        String lowercaseQuery = query.toLowerCase();
+        return lowercaseName.startsWith(lowercaseQuery)
+                || lowercaseName.contains(" " + lowercaseQuery);
     }
 
     private AccountInstance getAccountInstance() {

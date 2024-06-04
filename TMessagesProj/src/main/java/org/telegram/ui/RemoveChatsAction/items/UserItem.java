@@ -1,5 +1,6 @@
 package org.telegram.ui.RemoveChatsAction.items;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
@@ -34,10 +35,19 @@ class UserItem extends AbstractUserItem {
 
     @Override
     public String getDisplayName() {
-        if (isSelf()) {
-            return LocaleController.getString(R.string.SavedMessages);
+        if (getAlternativeName() != null) {
+            return getAlternativeName();
         } else {
             return super.getDisplayName();
+        }
+    }
+
+    @Override
+    protected CharSequence generateSearchName(String query) {
+        if (getAlternativeName() != null) {
+            return AndroidUtilities.generateSearchName(getAlternativeName(), null, query);
+        } else {
+            return super.generateSearchName(query);
         }
     }
 
