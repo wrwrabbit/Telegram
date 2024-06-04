@@ -8,12 +8,14 @@ import com.google.zxing.common.StringUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
@@ -354,5 +356,25 @@ public class RemoveAfterReadingMessages {
         MessagesController.getInstance(accountNum).deleteMessages(ids, random_ids,
                 encryptedChat, dialogId, !isEncrypted, ChatActivity.MODE_DEFAULT, false, 0,
                 null, 0, false, false);
+    }
+
+    public static boolean isShowDeleteAfterReadButton(TLRPC.User user, TLRPC.Chat chat) {
+        if (FakePasscodeUtils.isFakePasscodeActivated() || !SharedConfig.showDeleteAfterRead) {
+            return false;
+        }
+        if (user != null) {
+            if (UserObject.isUserSelf(user)) {
+                return false;
+            }
+        }
+        if (chat != null) {
+            if ((ChatObject.isChannel(chat) && !chat.megagroup)) {
+                return false;
+            }
+            if (ChatObject.isNotInChat(chat)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

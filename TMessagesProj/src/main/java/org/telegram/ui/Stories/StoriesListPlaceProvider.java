@@ -38,6 +38,12 @@ public class StoriesListPlaceProvider implements StoryViewer.PlaceProvider {
     public boolean onlyUnreadStories;
     public boolean onlySelfStories;
     public boolean hasPaginationParams;
+    public int addBottomClip;
+
+    public StoriesListPlaceProvider addBottomClip(int x) {
+        addBottomClip += x;
+        return this;
+    }
 
 
     public static StoriesListPlaceProvider of(RecyclerListView recyclerListView) {
@@ -194,6 +200,7 @@ public class StoriesListPlaceProvider implements StoryViewer.PlaceProvider {
                     holder.drawAbove = (canvas, bounds, alpha, opening) -> {
                         cell.drawDuration(canvas, bounds, alpha);
                         cell.drawViews(canvas, bounds, alpha);
+                        cell.drawPrivacy(canvas, bounds, alpha);
                         if (fastScroll != null && fastScroll.isVisible && fastScroll.getVisibility() == View.VISIBLE) {
                             canvas.saveLayerAlpha(0, 0, canvas.getWidth(), canvas.getHeight(), (int) (0xFF * alpha), Canvas.ALL_SAVE_FLAG);
                             canvas.translate(loc[0], loc[1]);
@@ -291,13 +298,13 @@ public class StoriesListPlaceProvider implements StoryViewer.PlaceProvider {
         if (holder.clipParent instanceof ClippedView) {
             ((ClippedView) holder.clipParent).updateClip(clipPoint);
             holder.clipTop = clipPoint[0];
-            holder.clipBottom = clipPoint[1];
+            holder.clipBottom = clipPoint[1] - addBottomClip;
         } else if (holder.clipParent instanceof BlurredRecyclerView) {
             holder.clipTop = ((BlurredRecyclerView) holder.clipParent).blurTopPadding;
-            holder.clipBottom = holder.clipParent.getMeasuredHeight() - holder.clipParent.getPaddingBottom();
+            holder.clipBottom = holder.clipParent.getMeasuredHeight() - holder.clipParent.getPaddingBottom() - addBottomClip;
         } else {
             holder.clipTop = holder.clipParent.getPaddingTop();
-            holder.clipBottom = holder.clipParent.getMeasuredHeight() - holder.clipParent.getPaddingBottom();
+            holder.clipBottom = holder.clipParent.getMeasuredHeight() - holder.clipParent.getPaddingBottom() - addBottomClip;
         }
     }
 

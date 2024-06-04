@@ -23,6 +23,7 @@ public interface INavigationLayout {
     int REBUILD_FLAG_REBUILD_LAST = 1, REBUILD_FLAG_REBUILD_ONLY_LAST = 2;
 
     int FORCE_NOT_ATTACH_VIEW = -2;
+    int FORCE_ATTACH_VIEW_AS_FIRST = -3;
 
     boolean presentFragment(NavigationParams params);
     boolean checkTransitionAnimation();
@@ -149,6 +150,17 @@ public interface INavigationLayout {
 
     default BaseFragment getLastFragment() {
         return getFragmentStack().isEmpty() ? null : getFragmentStack().get(getFragmentStack().size() - 1);
+    }
+
+    default BaseFragment getSafeLastFragment() {
+        if (getFragmentStack().isEmpty()) return null;
+        for (int i = getFragmentStack().size() - 1; i >= 0; --i) {
+            BaseFragment fragment = getFragmentStack().get(i);
+            if (fragment == null || fragment.isFinishing() || fragment.isRemovingFromStack())
+                continue;
+            return fragment;
+        }
+        return null;
     }
 
     default void animateThemedValues(Theme.ThemeInfo theme, int accentId, boolean nightTheme, boolean instant) {

@@ -16,21 +16,16 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
-import android.text.Editable;
-import android.text.InputType;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.text.style.DynamicDrawableSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Base64;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -38,16 +33,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BillingController;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
-import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
@@ -61,8 +53,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.AlertsCreator;
-import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -71,17 +61,14 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CircularProgressDrawable;
 import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.CubicBezierInterpolator;
-import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
-import org.telegram.ui.Components.OutlineTextContainerView;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
-import org.telegram.ui.Stories.recorder.HintView2;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -92,10 +79,12 @@ import java.util.Locale;
 
 public class ChannelMonetizationLayout extends FrameLayout {
 
+    public static ChannelMonetizationLayout instance;
+
     private final BaseFragment fragment;
     private final Theme.ResourcesProvider resourcesProvider;
     private final int currentAccount;
-    private final long dialogId;
+    public final long dialogId;
     private TL_stories.TL_premium_boostsStatus boostsStatus;
     private int currentBoostLevel;
 
@@ -144,7 +133,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
             showLearnSheet();
         }, resourcesProvider), true);
         balanceInfo = AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(MessagesController.getInstance(currentAccount).channelRevenueWithdrawalEnabled ? R.string.MonetizationBalanceInfo : R.string.MonetizationBalanceInfoNotAvailable), -1, REPLACING_TAG_TYPE_LINK_NBSP, () -> {
-            showLearnSheet();
+            Browser.openUrl(getContext(), getString(R.string.MonetizationBalanceInfoLink));
         }), true);
 
         setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
@@ -163,7 +152,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
         balanceLayout.setPadding(0, 0, 0, dp(17));
 
         balanceTitle = new AnimatedTextView(context, false, true, true);
-        balanceTitle.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        balanceTitle.setTypeface(AndroidUtilities.bold());
         balanceTitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         balanceTitle.setTextSize(dp(32));
         balanceTitle.setGravity(Gravity.CENTER);
@@ -225,7 +214,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
 
         TextView loadingTitle = new TextView(context);
         loadingTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
-        loadingTitle.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        loadingTitle.setTypeface(AndroidUtilities.bold());
         loadingTitle.setTextColor(Theme.getColor(Theme.key_player_actionBarTitle));
         loadingTitle.setTag(Theme.key_player_actionBarTitle);
         loadingTitle.setText(getString("LoadingStats", R.string.LoadingStats));
@@ -383,6 +372,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
         balanceSubtitle.setText("~" + BillingController.getInstance().formatCurrency(amount, "USD"));
     }
 
+    private double usd_rate;
     private void initLevel() {
         TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
         if (chat != null) {
@@ -427,23 +417,8 @@ public class ChannelMonetizationLayout extends FrameLayout {
                     impressionsChart.useHourFormat = true;
                 }
 
-                availableValue.crypto_amount = stats.available_balance;
-                availableValue.amount = (long) (availableValue.crypto_amount / 1_000_000_000.0 * stats.usd_rate * 100.0);
-                setBalance(availableValue.crypto_amount, availableValue.amount);
-                availableValue.currency = "USD";
-                lastWithdrawalValue.crypto_amount = stats.current_balance;
-                lastWithdrawalValue.amount = (long) (lastWithdrawalValue.crypto_amount / 1_000_000_000.0 * stats.usd_rate * 100.0);
-                lastWithdrawalValue.currency = "USD";
-                lifetimeValue.crypto_amount = stats.overall_revenue;
-                lifetimeValue.amount = (long) (lifetimeValue.crypto_amount / 1_000_000_000.0 * stats.usd_rate * 100.0);
-                lifetimeValue.currency = "USD";
-                proceedsAvailable = true;
-
-                balanceButton.setVisibility(stats.available_balance > 0 || BuildVars.DEBUG_PRIVATE_VERSION ? View.VISIBLE : View.GONE);
-
-                if (listView != null && listView.adapter != null) {
-                    listView.adapter.update(true);
-                }
+                usd_rate = stats.usd_rate;
+                setupBalances(stats.balances);
 
                 progress.animate().alpha(0).setDuration(380).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).withEndAction(() -> {
                     progress.setVisibility(View.GONE);
@@ -453,11 +428,39 @@ public class ChannelMonetizationLayout extends FrameLayout {
             }
         }), null, null, 0, stats_dc, ConnectionsManager.ConnectionTypeGeneric, true);
     }
+    public void setupBalances(TLRPC.TL_broadcastRevenueBalances balances) {
+        if (usd_rate == 0) {
+            return;
+        }
+        availableValue.crypto_amount = balances.available_balance;
+        availableValue.amount = (long) (availableValue.crypto_amount / 1_000_000_000.0 * usd_rate * 100.0);
+        setBalance(availableValue.crypto_amount, availableValue.amount);
+        availableValue.currency = "USD";
+        lastWithdrawalValue.crypto_amount = balances.current_balance;
+        lastWithdrawalValue.amount = (long) (lastWithdrawalValue.crypto_amount / 1_000_000_000.0 * usd_rate * 100.0);
+        lastWithdrawalValue.currency = "USD";
+        lifetimeValue.crypto_amount = balances.overall_revenue;
+        lifetimeValue.amount = (long) (lifetimeValue.crypto_amount / 1_000_000_000.0 * usd_rate * 100.0);
+        lifetimeValue.currency = "USD";
+        proceedsAvailable = true;
+        balanceButton.setVisibility(balances.available_balance > 0 || BuildVars.DEBUG_PRIVATE_VERSION ? View.VISIBLE : View.GONE);
+
+        if (listView != null && listView.adapter != null) {
+            listView.adapter.update(true);
+        }
+    }
 
     @Override
     protected void onAttachedToWindow() {
+        instance = this;
         super.onAttachedToWindow();
         checkLearnSheet();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        instance = null;
+        super.onDetachedFromWindow();
     }
 
     private void checkLearnSheet() {
@@ -553,14 +556,22 @@ public class ChannelMonetizationLayout extends FrameLayout {
         }
     }
 
+    public void reloadTransactions() {
+        if (loadingTransactions) return;
+        transactions.clear();
+        transactionsTotalCount = 0;
+        loadingTransactions = false;
+        loadTransactions();
+    }
+
     private boolean loadingTransactions = false;
     private void loadTransactions() {
         if (loadingTransactions) return;
         if (transactions.size() >= transactionsTotalCount && transactionsTotalCount != 0) return;
-//        TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
-//        if (chat == null || !chat.creator) {
-//            return;
-//        }
+        TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
+        if (chat == null || !chat.creator) {
+            return;
+        }
 
         loadingTransactions = true;
         TL_stats.TL_getBroadcastRevenueTransactions req = new TL_stats.TL_getBroadcastRevenueTransactions();
@@ -620,7 +631,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
         if (ChannelMonetizationLayout.tonString == null) {
             ChannelMonetizationLayout.tonString = new HashMap<>();
         }
-        final int key = textPaint.getFontMetricsInt().bottom * (large ? 1 : -1) * (int) (100 * scale);
+        final int key = textPaint.getFontMetricsInt().bottom * (large ? 1 : -1) * (int) (100 * scale) - (int) (100 * translateY);
         SpannableString tonString = ChannelMonetizationLayout.tonString.get(key);
         if (tonString == null) {
             tonString = new SpannableString("T");
@@ -666,7 +677,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
             addView(layout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, 22, 9, 22, 0));
 
             cryptoAmountView = new AnimatedEmojiSpan.TextViewEmojis(context);
-            cryptoAmountView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+            cryptoAmountView.setTypeface(AndroidUtilities.bold());
             cryptoAmountView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             cryptoAmountView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             layout.addView(cryptoAmountView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 0, 0, 5, 0));
@@ -758,7 +769,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
             layout.addView(dateView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
 
             valueText = new AnimatedEmojiSpan.TextViewEmojis(context);
-            valueText.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+            valueText.setTypeface(AndroidUtilities.bold());
             valueText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             addView(valueText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.RIGHT, 0, 0, 18, 0));
 
@@ -807,13 +818,13 @@ public class ChannelMonetizationLayout extends FrameLayout {
 
             SpannableStringBuilder value = new SpannableStringBuilder();
             value.append(type < 0 ? "-" : "+");
+            value.append("TON ");
             value.append(formatter.format((Math.abs(amount) / 1_000_000_000.0)));
-            value.append(" TON");
             int index = TextUtils.indexOf(value, ".");
             if (index >= 0) {
                 value.setSpan(new RelativeSizeSpan(1.15f), 0, index + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
-            valueText.setText(value);
+            valueText.setText(replaceTON(value, valueText.getPaint(), 1.1f, dp(.33f), false));
             valueText.setTextColor(Theme.getColor(type < 0 ? Theme.key_text_RedBold : Theme.key_avatar_nameInMessageGreen, resourcesProvider));
 
             setWillNotDraw(!(needDivider = divider));
@@ -938,7 +949,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
 
         TextView textView = new TextView(getContext());
         textView.setGravity(Gravity.CENTER);
-        textView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        textView.setTypeface(AndroidUtilities.bold());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         textView.setTextColor(Theme.getColor(type < 0 ? Theme.key_text_RedBold : Theme.key_avatar_nameInMessageGreen));
         SpannableStringBuilder amountText = new SpannableStringBuilder();
@@ -973,7 +984,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
 
         textView = new TextView(getContext());
         textView.setGravity(Gravity.CENTER);
-        textView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        textView.setTypeface(AndroidUtilities.bold());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setText(title);
@@ -1066,7 +1077,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
         TextView textView = new TextView(getContext());
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
-        textView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        textView.setTypeface(AndroidUtilities.bold());
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setText(getString(R.string.MonetizationInfoTitle));
         layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 8, 0, 8, 25));
@@ -1093,7 +1104,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
         textView = new AnimatedEmojiSpan.TextViewEmojis(getContext());
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
-        textView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        textView.setTypeface(AndroidUtilities.bold());
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         SpannableString animatedDiamond = new SpannableString("💎");
         ColoredImageSpan span = new ColoredImageSpan(R.drawable.ton);
@@ -1140,7 +1151,7 @@ public class ChannelMonetizationLayout extends FrameLayout {
             addView(layout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.FILL_HORIZONTAL, 42, 0, 0, 0));
 
             TextView textView = new TextView(context);
-            textView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+            textView.setTypeface(AndroidUtilities.bold());
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             textView.setText(header);

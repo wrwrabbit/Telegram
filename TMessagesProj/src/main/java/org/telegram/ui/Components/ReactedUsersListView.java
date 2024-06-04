@@ -182,7 +182,7 @@ public class ReactedUsersListView extends FrameLayout {
         addView(loadingView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         if (!addPadding && filter != null && filter instanceof TLRPC.TL_reactionCustomEmoji && !MessagesController.getInstance(currentAccount).premiumFeaturesBlocked()) {
             customReactionsEmoji.clear();
-            customReactionsEmoji.add(ReactionsLayoutInBubble.VisibleReaction.fromTLReaction(filter));
+            customReactionsEmoji.add(ReactionsLayoutInBubble.VisibleReaction.fromTL(filter));
             updateCustomReactionsButton();
         }
         loadingView.setViewType(customReactionsEmoji.isEmpty() ? FlickerLoadingView.REACTED_TYPE : FlickerLoadingView.REACTED_TYPE_WITH_EMOJI_HINT);
@@ -265,10 +265,8 @@ public class ReactedUsersListView extends FrameLayout {
             AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).doOnIdle(() -> {
                 if (response instanceof TLRPC.TL_messages_messageReactionsList) {
                     TLRPC.TL_messages_messageReactionsList res = (TLRPC.TL_messages_messageReactionsList) response;
-
-                    for (TLRPC.User u : res.users) {
-                        MessagesController.getInstance(currentAccount).putUser(u, false);
-                    }
+                    MessagesController.getInstance(currentAccount).putUsers(res.users, false);
+                    MessagesController.getInstance(currentAccount).putChats(res.chats, false);
 
                     HashSet<ReactionsLayoutInBubble.VisibleReaction> visibleCustomEmojiReactions = new HashSet<>();
                     for (int i = 0; i < res.reactions.size(); i++) {
@@ -286,7 +284,7 @@ public class ReactedUsersListView extends FrameLayout {
                         }
 
 
-                        ReactionsLayoutInBubble.VisibleReaction visibleReaction = ReactionsLayoutInBubble.VisibleReaction.fromTLReaction(res.reactions.get(i).reaction);
+                        ReactionsLayoutInBubble.VisibleReaction visibleReaction = ReactionsLayoutInBubble.VisibleReaction.fromTL(res.reactions.get(i).reaction);
                         if (visibleReaction.documentId != 0) {
                             visibleCustomEmojiReactions.add(visibleReaction);
                         }

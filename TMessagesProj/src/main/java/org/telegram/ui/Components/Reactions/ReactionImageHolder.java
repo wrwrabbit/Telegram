@@ -11,6 +11,7 @@ import android.view.View;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DocumentObject;
+import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.MediaDataController;
@@ -19,6 +20,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import org.telegram.ui.Components.RLottieDrawable;
 
 import java.util.Objects;
 
@@ -80,6 +82,18 @@ public class ReactionImageHolder {
         }
     }
 
+    public static void preload(int currentAccount, ReactionsLayoutInBubble.VisibleReaction reaction) {
+        if (reaction == null) return;
+        if (reaction.emojicon != null) {
+            TLRPC.TL_availableReaction defaultReaction = MediaDataController.getInstance(currentAccount).getReactionsMap().get(reaction.emojicon);
+            if (defaultReaction != null) {
+                FileLoader.getInstance(currentAccount).loadFile(defaultReaction.select_animation, reaction, FileLoader.PRIORITY_LOW, 0);
+            }
+        } else {
+            new AnimatedEmojiDrawable(AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES_LARGE, currentAccount, reaction.documentId);
+        }
+    }
+
     public void draw(Canvas canvas) {
         if (animatedEmojiDrawable != null) {
             if (animatedEmojiDrawable.getImageReceiver() != null) {
@@ -94,6 +108,25 @@ public class ReactionImageHolder {
             imageReceiver.setAlpha(alpha);
             imageReceiver.draw(canvas);
         }
+    }
+
+    public boolean isLoaded() {
+        ImageReceiver imageReceiver;
+        if (animatedEmojiDrawable != null) {
+            imageReceiver = animatedEmojiDrawable.getImageReceiver();
+        } else {
+            imageReceiver = this.imageReceiver;
+        }
+        if (imageReceiver == null) return false;
+        if (!imageReceiver.hasImageSet()) return false;
+        if (!imageReceiver.hasImageLoaded()) return false;
+        RLottieDrawable rLottieDrawable = imageReceiver.getLottieAnimation();
+        if (rLottieDrawable != null) {
+            if (rLottieDrawable.isGeneratingCache()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void setBounds(Rect bounds) {

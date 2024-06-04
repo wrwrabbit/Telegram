@@ -25,7 +25,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.UpdateChecker;
+import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
@@ -46,6 +46,7 @@ public class UpdateLayout extends IUpdateLayout {
     private ViewGroup sideMenuContainer;
 
     private Runnable onUpdateLayoutClicked;
+    private volatile boolean isUpdateChecking = false;
 
     public UpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
         super(activity, sideMenu, sideMenuContainer);
@@ -118,6 +119,7 @@ public class UpdateLayout extends IUpdateLayout {
             }
             if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_DOWNLOAD) {
                 startUpdateDownloading(currentAccount);
+                updateAppUpdateViews(currentAccount,  true);
             } else if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL) {
                 FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
                 updateAppUpdateViews(currentAccount, true);
@@ -135,7 +137,7 @@ public class UpdateLayout extends IUpdateLayout {
 
         updateTextView = new SimpleTextView(activity);
         updateTextView.setTextSize(15);
-        updateTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        updateTextView.setTypeface(AndroidUtilities.bold());
         updateTextView.setText(LocaleController.getString("AppUpdate", R.string.AppUpdate));
         updateTextView.setTextColor(0xffffffff);
         updateTextView.setGravity(Gravity.LEFT);
@@ -143,7 +145,7 @@ public class UpdateLayout extends IUpdateLayout {
 
         updateSizeTextView = new TextView(activity);
         updateSizeTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        updateSizeTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        updateSizeTextView.setTypeface(AndroidUtilities.bold());
         updateSizeTextView.setGravity(Gravity.RIGHT);
         updateSizeTextView.setTextColor(0xffffffff);
         updateLayout.addView(updateSizeTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.RIGHT, 0, 0, 17, 0));
@@ -165,7 +167,7 @@ public class UpdateLayout extends IUpdateLayout {
                 updateTextView.setText(LocaleController.getString("AppUpdateNow", R.string.AppUpdateNow));
                 showSize = false;
             } else {
-                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
+                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, false);
                     updateLayoutIcon.setProgress(0, false);
                     Float p = ImageLoader.getInstance().getFileProgress(fileName);
@@ -258,8 +260,10 @@ public class UpdateLayout extends IUpdateLayout {
 
     private void startUpdateDownloading(int currentAccount) {
         if (LaunchActivity.getUpdateAccountNum() != currentAccount || SharedConfig.pendingPtgAppUpdate.message == null) {
-            UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
-                if (updateFounded) {
+            isUpdateChecking = true;
+            UpdateChecker.checkUpdate(currentAccount, data -> {
+                isUpdateChecking = false;
+                if (data != null) {
                     SharedConfig.pendingPtgAppUpdate = data;
                     SharedConfig.saveConfig();
                     AndroidUtilities.runOnUIThread(() -> startUpdateDownloading(currentAccount));

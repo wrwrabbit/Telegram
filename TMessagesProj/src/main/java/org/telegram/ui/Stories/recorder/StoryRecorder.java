@@ -103,8 +103,6 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.camera.CameraController;
-import org.telegram.messenger.camera.CameraSession;
-import org.telegram.messenger.camera.CameraSessionWrapper;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -122,7 +120,6 @@ import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
-import org.telegram.ui.Components.Easings;
 import org.telegram.ui.Components.EmojiView;
 import org.telegram.ui.Components.FilterShaders;
 import org.telegram.ui.Components.GestureDetectorFixDoubleTap;
@@ -186,6 +183,7 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
     private boolean wasSend;
     private long wasSendPeer = 0;
     private ClosingViewProvider closingSourceProvider;
+    private Runnable closeListener;
 
     public static StoryRecorder getInstance(Activity activity, int currentAccount) {
         if (instance != null && (instance.activity != activity || instance.currentAccount != currentAccount)) {
@@ -431,6 +429,11 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
             src.rounding = Math.max(src.screenRect.width(), src.screenRect.height()) / 2f;
             return src;
         }
+    }
+
+    public StoryRecorder whenSent(Runnable listener) {
+        closeListener = listener;
+        return this;
     }
 
     public StoryRecorder closeToWhenSent(ClosingViewProvider closingSourceProvider) {
@@ -2286,7 +2289,7 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
         titleTextView.setTextSize(20);
         titleTextView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         titleTextView.setTextColor(0xffffffff);
-        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        titleTextView.setTypeface(AndroidUtilities.bold());
         titleTextView.setText(LocaleController.getString("RecorderNewStory", R.string.RecorderNewStory));
         titleTextView.getPaint().setShadowLayer(dpf2(1), 0, 1, 0x40000000);
         titleTextView.setAlpha(0f);
@@ -2709,9 +2712,12 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
         }
         destroyPhotoFilterView();
         prepareThumb(outputEntry, false);
-        CharSequence caption = captionEdit.getText();
-        outputEntry.editedCaption = !TextUtils.equals(outputEntry.caption, caption);
-        outputEntry.caption = caption;
+        CharSequence[] caption = new CharSequence[] { captionEdit.getText() };
+        ArrayList<TLRPC.MessageEntity> captionEntities = MessagesController.getInstance(currentAccount).storyEntitiesAllowed() ? MediaDataController.getInstance(currentAccount).getEntities(caption, true) : new ArrayList<>();
+        CharSequence[] pastCaption = new CharSequence[] { outputEntry.caption };
+        ArrayList<TLRPC.MessageEntity> pastEntities = MessagesController.getInstance(currentAccount).storyEntitiesAllowed() ? MediaDataController.getInstance(currentAccount).getEntities(pastCaption, true) : new ArrayList<>();
+        outputEntry.editedCaption = !TextUtils.equals(outputEntry.caption, caption[0]) || !MediaDataController.entitiesEqual(captionEntities, pastEntities);
+        outputEntry.caption = new SpannableString(captionEdit.getText());
         MessagesController.getInstance(currentAccount).getStoriesController().uploadStory(outputEntry, asStory);
         if (outputEntry.isDraft && !outputEntry.isEdit) {
             MessagesController.getInstance(currentAccount).getStoriesController().getDraftsController().delete(outputEntry);
@@ -2735,6 +2741,10 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
                 if (fromSourceView != null) {
                     fromSourceView.show();
                     fromSourceView = null;
+                }
+                if (closeListener != null) {
+                    closeListener.run();
+                    closeListener = null;
                 }
                 fromSourceView = closingSourceProvider != null ? closingSourceProvider.getView(finalSendAsDialogId) : null;
                 if (fromSourceView != null) {
@@ -3044,6 +3054,9 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
         }
 
         private void startRecording(boolean byLongPress, Runnable whenStarted) {
+            if (cameraView == null) {
+                return;
+            }
             CameraController.getInstance().recordVideo(cameraView.getCameraSessionObject(), outputFile, false, (thumbPath, duration) -> {
                 if (recordControl != null) {
                     recordControl.stopRecordingLoading(true);

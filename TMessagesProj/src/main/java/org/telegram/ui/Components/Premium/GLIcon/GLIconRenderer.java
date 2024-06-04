@@ -43,14 +43,13 @@ public class GLIconRenderer implements GLSurfaceView.Renderer {
     int color1;
     int color2;
 
-    public int colorKey1 = Theme.key_premiumStartGradient1;
-    public int colorKey2 = Theme.key_premiumStartGradient2;
+    public int colorKey1 = Theme.key_premiumStarGradient1;
+    public int colorKey2 = Theme.key_premiumStarGradient2;
 
     private final int style;
     private final int type;
     public final static int FRAGMENT_STYLE = 0;
     public final static int DIALOG_STYLE = 1;
-    public final static int BUSINESS_STYLE = 2;
     public boolean isDarkBackground;
 
     public GLIconRenderer(Context context, int style, int type) {

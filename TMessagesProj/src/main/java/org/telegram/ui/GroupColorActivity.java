@@ -15,7 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChannelBoostsController;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -90,6 +92,14 @@ public class GroupColorActivity extends ChannelColorActivity {
         packEmojiHintRow = rowsCount++;
         statusEmojiRow = rowsCount++;
         statusHintRow = rowsCount++;
+        TLRPC.ChatFull chatFull = getMessagesController().getChatFull(-dialogId);
+        if (chatFull != null && chatFull.can_set_stickers) {
+            packStickerRow = rowsCount++;
+            packStickerHintRow = rowsCount++;
+        } else {
+            packStickerRow = -1;
+            packStickerHintRow = -1;
+        }
         messagesPreviewRow = rowsCount++;
         wallpaperThemesRow = rowsCount++;
         wallpaperRow = rowsCount++;
@@ -112,6 +122,16 @@ public class GroupColorActivity extends ChannelColorActivity {
     @Override
     protected int getEmojiPackInfoStrRes() {
         return R.string.GroupEmojiPackInfo;
+    }
+
+    @Override
+    protected int getStickerPackStrRes() {
+        return R.string.GroupStickerPack;
+    }
+
+    @Override
+    protected int getStickerPackInfoStrRes() {
+        return R.string.GroupStickerPackInfo;
     }
 
     @Override
@@ -312,5 +332,10 @@ public class GroupColorActivity extends ChannelColorActivity {
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.chatInfoDidLoad);
+    }
+
+    @Override
+    protected boolean isForum() {
+        return ChatObject.isForum(getMessagesController().getChat(-dialogId));
     }
 }

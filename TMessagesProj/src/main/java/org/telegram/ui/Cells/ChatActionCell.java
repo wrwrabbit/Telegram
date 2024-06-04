@@ -76,6 +76,7 @@ import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ChannelAdminLogActivity;
 import org.telegram.ui.ChatBackgroundDrawable;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
@@ -89,11 +90,13 @@ import org.telegram.ui.Components.Premium.StarParticlesView;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RadialProgress2;
 import org.telegram.ui.Components.RadialProgressView;
+import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
+import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.UploadingDotsSpannable;
 import org.telegram.ui.Stories.recorder.HintView2;
@@ -458,6 +461,17 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         imageReceiver.clearDecorators();
         if (messageObject.type != MessageObject.TYPE_ACTION_WALLPAPER) {
             wallpaperPreviewDrawable = null;
+        }
+        if (messageObject.actionDeleteGroupEventId != -1) {
+            ScaleStateListAnimator.apply(this, .02f, 1.2f);
+            overriddenMaxWidth = Math.max(dp(250), HintView2.cutInFancyHalf(messageObject.messageText, (TextPaint) getThemedPaint(Theme.key_paint_chatActionText)));
+            ProfileActivity.ShowDrawable showDrawable = ChannelAdminLogActivity.findDrawable(messageObject.messageText);
+            if (showDrawable != null) {
+                showDrawable.setView(this);
+            }
+        } else {
+            ScaleStateListAnimator.reset(this);
+            overriddenMaxWidth = 0;
         }
         if (messageObject.isStoryMention()) {
             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(messageObject.messageOwner.media.user_id);
@@ -1345,13 +1359,13 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         String btnText = LocaleController.getString("BoostingReceivedGiftOpenBtn", R.string.BoostingReceivedGiftOpenBtn);
 
         SpannableStringBuilder titleBuilder = SpannableStringBuilder.valueOf(title);
-        titleBuilder.setSpan(new TypefaceSpan(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM)), 0, titleBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        titleBuilder.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, titleBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         giftPremiumTitleLayout = new StaticLayout(titleBuilder, giftTitlePaint, width, Layout.Alignment.ALIGN_CENTER, 1.1f, 0.0f, false);
 
         giftPremiumSubtitleWidth = width;
         giftPremiumSubtitleLayout = new StaticLayout(subtitle, giftSubtitlePaint, width, Layout.Alignment.ALIGN_CENTER, 1.1f, 0.0f, false);
         SpannableStringBuilder buttonBuilder = SpannableStringBuilder.valueOf(btnText);
-        buttonBuilder.setSpan(new TypefaceSpan(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM)), 0, buttonBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        buttonBuilder.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, buttonBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         giftPremiumButtonLayout = new StaticLayout(buttonBuilder, (TextPaint) getThemedPaint(Theme.key_paint_chatActionText), width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
         buttonClickableAsImage = true;
@@ -1363,7 +1377,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         if (title != null) {
             giftTitlePaint.setTextSize(dp(16));
             SpannableStringBuilder titleBuilder = SpannableStringBuilder.valueOf(title);
-            titleBuilder.setSpan(new TypefaceSpan(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM)), 0, titleBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            titleBuilder.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, titleBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             giftPremiumTitleLayout = new StaticLayout(titleBuilder, giftTitlePaint, width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
         } else {
             giftPremiumTitleLayout = null;
@@ -1386,7 +1400,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         giftPremiumSubtitleLayout = new StaticLayout(subtitle, giftSubtitlePaint, subtitleWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, dp(1.66f), false);
         if (button != null) {
             SpannableStringBuilder buttonBuilder = SpannableStringBuilder.valueOf(button);
-            buttonBuilder.setSpan(new TypefaceSpan(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM)), 0, buttonBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            buttonBuilder.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, buttonBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             giftPremiumButtonLayout = new StaticLayout(buttonBuilder, (TextPaint) getThemedPaint(Theme.key_paint_chatActionText), width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
             this.buttonClickableAsImage = buttonClickableAsImage;
             giftPremiumButtonWidth = measureLayoutWidth(giftPremiumButtonLayout);
@@ -1520,7 +1534,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             }
             canvas.save();
             SpoilerEffect.clipOutCanvas(canvas, spoilers);
-            textLayout.draw(canvas);
+            SpoilerEffect.layoutDrawMaybe(textLayout, canvas);
             if (delegate == null || delegate.canDrawOutboundsContent()) {
                 AnimatedEmojiSpan.drawAnimatedEmojis(canvas, textLayout, animatedEmojiStack, 0, spoilers, 0, 0, 0, 1f, textLayout == null ? null : getAdaptiveEmojiColorFilter(textLayout.getPaint().getColor()));
             }
@@ -1603,7 +1617,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                         canvas.save();
                         canvas.scale(s, s, giftPremiumSubtitleWidth / 2f, giftPremiumSubtitleLayout.getHeight() / 2f);
                         canvas.translate((giftPremiumSubtitleWidth -giftPremiumSubtitleLayout.getWidth()) / 2f, 0);
-                        giftPremiumSubtitleLayout.draw(canvas);
+                        SpoilerEffect.layoutDrawMaybe(giftPremiumSubtitleLayout, canvas);
                         canvas.restore();
 
                         giftSubtitlePaint.setAlpha((int) (Color.alpha(oldColor) * (1f - p)));
@@ -1611,13 +1625,13 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                         s = 0.8f + 0.2f * (1f - p);
                         canvas.save();
                         canvas.scale(s, s, settingWallpaperLayout.getWidth() / 2f, settingWallpaperLayout.getHeight() / 2f);
-                        settingWallpaperLayout.draw(canvas);
+                        SpoilerEffect.layoutDrawMaybe(settingWallpaperLayout, canvas);
                         canvas.restore();
 
                         canvas.save();
                         canvas.translate(0, settingWallpaperLayout.getHeight() + dp(4));
                         canvas.scale(s, s, settingWallpaperProgressTextLayout.getWidth() / 2f, settingWallpaperProgressTextLayout.getHeight() / 2f);
-                        settingWallpaperProgressTextLayout.draw(canvas);
+                        SpoilerEffect.layoutDrawMaybe(settingWallpaperProgressTextLayout, canvas);
                         canvas.restore();
 
 
@@ -1627,19 +1641,19 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                         settingWallpaperLayout.draw(canvas);
                         canvas.save();
                         canvas.translate(0, settingWallpaperLayout.getHeight() + dp(4));
-                        settingWallpaperProgressTextLayout.draw(canvas);
+                        SpoilerEffect.layoutDrawMaybe(settingWallpaperProgressTextLayout, canvas);
                         canvas.restore();
                     }
                 } else {
                     canvas.save();
                     canvas.translate((giftPremiumSubtitleWidth - giftPremiumSubtitleLayout.getWidth()) / 2f, 0);
-                    giftPremiumSubtitleLayout.draw(canvas);
+                    SpoilerEffect.layoutDrawMaybe(giftPremiumSubtitleLayout, canvas);
                     canvas.restore();
                 }
             } else if (giftPremiumSubtitleLayout != null) {
                 canvas.save();
                 canvas.translate((giftPremiumSubtitleWidth - giftPremiumSubtitleLayout.getWidth()) / 2f, 0);
-                giftPremiumSubtitleLayout.draw(canvas);
+                SpoilerEffect.layoutDrawMaybe(giftPremiumSubtitleLayout, canvas);
                 canvas.restore();
             }
             canvas.restore();
@@ -1783,7 +1797,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                 overrideBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
                 overrideBackgroundPaint.setColor(color);
                 overrideTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-                overrideTextPaint.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+                overrideTextPaint.setTypeface(AndroidUtilities.bold());
                 overrideTextPaint.setTextSize(dp(Math.max(16, SharedConfig.fontSize) - 2));
                 overrideTextPaint.setColor(getThemedColor(overrideText));
             }
@@ -1804,7 +1818,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                 int lineWidth = (int) Math.ceil(textLayout.getLineWidth(a));
                 if (a != 0) {
                     int diff = prevLineWidth - lineWidth;
-                    if (diff > 0 && diff <= corner + cornerIn) {
+                    if (diff > 0 && diff <= 1.5f * corner + cornerIn) {
                         lineWidth = prevLineWidth;
                     }
                 }
@@ -1814,7 +1828,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             for (int a = count - 2; a >= 0; a--) {
                 int lineWidth = lineWidths.get(a);
                 int diff = prevLineWidth - lineWidth;
-                if (diff > 0 && diff <= corner + cornerIn) {
+                if (diff > 0 && diff <= 1.5f * corner + cornerIn) {
                     lineWidth = prevLineWidth;
                 }
                 lineWidths.set(a, lineWidth);

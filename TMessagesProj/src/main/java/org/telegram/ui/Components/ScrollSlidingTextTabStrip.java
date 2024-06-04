@@ -8,6 +8,8 @@
 
 package org.telegram.ui.Components;
 
+import static org.telegram.messenger.AndroidUtilities.lerp;
+
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -295,7 +297,7 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
             tab.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f), 3));
             tab.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             tab.setSingleLine(true);
-            tab.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+            tab.setTypeface(AndroidUtilities.bold());
             tab.setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
             tab.setOnClickListener(v -> {
                 int position1 = tabsContainer.indexOfChild(v);
@@ -441,8 +443,8 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
                     layoutParams.weight = 0.0f;
                     layoutParams.width = LayoutHelper.WRAP_CONTENT;
                 } else {
-                    layoutParams.weight = 1.0f / allTextWidth * positionToWidth.get(a);
-                    layoutParams.width = 0;
+                    layoutParams.weight = AndroidUtilities.lerp(1.0f / count, 1.0f / allTextWidth * positionToWidth.get(a), .5f);
+                    layoutParams.width = LayoutHelper.WRAP_CONTENT;
                 }
             }
         }

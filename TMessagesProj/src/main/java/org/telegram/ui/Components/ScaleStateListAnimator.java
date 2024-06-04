@@ -42,4 +42,11 @@ public class ScaleStateListAnimator {
 
         view.setStateListAnimator(scaleStateListAnimator);
     }
+
+    public static void reset(View view) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            view.setStateListAnimator(null);
+        }
+    }
+
 }

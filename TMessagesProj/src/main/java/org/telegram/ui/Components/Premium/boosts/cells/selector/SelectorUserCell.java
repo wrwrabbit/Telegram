@@ -4,8 +4,11 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.ImageView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
@@ -30,6 +33,7 @@ public class SelectorUserCell extends BaseCell {
 
     private final boolean[] isOnline = new boolean[1];
     private final CheckBox2 checkBox;
+    private final ImageView optionsView;
     private TLRPC.User user;
     private TLRPC.Chat chat;
     private TL_stories.TL_myBoost boost;
@@ -38,7 +42,7 @@ public class SelectorUserCell extends BaseCell {
     public SelectorUserCell(Context context, Theme.ResourcesProvider resourcesProvider, boolean isGreen) {
         super(context, resourcesProvider);
         statusBadgeComponent = new StatusBadgeComponent(this);
-        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+        titleTextView.setTypeface(AndroidUtilities.bold());
         radioButton.setVisibility(View.GONE);
         checkBox = new CheckBox2(context, 21, resourcesProvider);
         if (isGreen) {
@@ -51,6 +55,21 @@ public class SelectorUserCell extends BaseCell {
         addView(checkBox);
         checkBox.setChecked(false, false);
         checkBox.setLayoutParams(LayoutHelper.createFrame(24, 24, Gravity.CENTER_VERTICAL | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT), 13, 0, 14, 0));
+
+        optionsView = new ImageView(context);
+        optionsView.setScaleType(ImageView.ScaleType.CENTER);
+        optionsView.setImageResource(R.drawable.ic_ab_other);
+        optionsView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_inMenu, resourcesProvider), PorterDuff.Mode.SRC_IN));
+        addView(optionsView, LayoutHelper.createFrame(32, 32, Gravity.CENTER_VERTICAL | (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT), 12, 0, 12, 0));
+    }
+
+    public void setOptions(View.OnClickListener listener) {
+        if (listener != null) {
+            optionsView.setVisibility(View.VISIBLE);
+            optionsView.setOnClickListener(listener);
+        } else {
+            optionsView.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -96,6 +115,7 @@ public class SelectorUserCell extends BaseCell {
     }
 
     public void setUser(TLRPC.User user) {
+        optionsView.setVisibility(View.GONE);
         this.user = user;
         this.chat = null;
         avatarDrawable.setInfo(user);
@@ -110,6 +130,8 @@ public class SelectorUserCell extends BaseCell {
     }
 
     public void setChat(TLRPC.Chat chat, int participants_count) {
+        optionsView.setVisibility(View.GONE);
+
         this.chat = chat;
         this.user = null;
         avatarDrawable.setInfo(chat);
@@ -134,6 +156,8 @@ public class SelectorUserCell extends BaseCell {
     }
 
     public void setBoost(TL_stories.TL_myBoost boost) {
+        optionsView.setVisibility(View.GONE);
+
         this.boost = boost;
         this.chat = MessagesController.getInstance(UserConfig.selectedAccount).getChat(-DialogObject.getPeerDialogId(boost.peer));
 

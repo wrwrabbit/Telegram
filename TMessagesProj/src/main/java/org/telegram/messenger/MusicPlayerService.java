@@ -643,7 +643,7 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
 
     private float getPlaybackSpeed(boolean isPlaying, MessageObject messageObject) {
         if (isPlaying) {
-            if (messageObject.isVoice() || messageObject.isRoundVideo()) {
+            if (messageObject != null && (messageObject.isVoice() || messageObject.isRoundVideo())) {
                 return MediaController.getInstance().getPlaybackSpeed(false);
             }
             return 1;
@@ -706,6 +706,9 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
             }
         } else if (id == NotificationCenter.messagePlayingDidSeek) {
             MessageObject messageObject = MediaController.getInstance().getPlayingMessageObject();
+            if (messageObject == null) {
+                return;
+            }
             long progress = Math.round(messageObject.audioPlayerDuration * (float) args[1]) * 1000L;
             updatePlaybackState(progress);
             if (remoteControlClient != null && Build.VERSION.SDK_INT >= 18) {

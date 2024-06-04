@@ -3,7 +3,6 @@ package org.telegram.ui.ActionBar;
 import static org.telegram.ui.ActionBar.Theme.*;
 
 import android.graphics.Color;
-import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.core.graphics.ColorUtils;
@@ -196,8 +195,10 @@ public class ThemeColors {
         defaultColors[key_actionBarTabUnactiveText] = 0xffd5e8f7;
         defaultColors[key_actionBarTabLine] = 0xffffffff;
         defaultColors[key_actionBarTabSelector] = 0xff406d94;
-
         defaultColors[key_actionBarBrowser] = 0xffffffff;
+
+        defaultColors[key_table_background] = 0xfff7f7f7;
+        defaultColors[key_table_border] = 0xffE0E0E0;
 
         defaultColors[key_actionBarDefaultArchived] = 0xff6f7a87;
         defaultColors[key_actionBarDefaultArchivedSelector] = 0xff5e6772;
@@ -758,8 +759,10 @@ public class ThemeColors {
         defaultColors[key_premiumGradientBackground3] = 0xffDB5C9D;
         defaultColors[key_premiumGradientBackground4] = 0xffF38926;
         defaultColors[key_premiumGradientBackgroundOverlay] = Color.WHITE;
-        defaultColors[key_premiumStartGradient1] = 0xffFFFFFF;
-        defaultColors[key_premiumStartGradient2] = 0xffE3ECFA;
+        defaultColors[key_premiumStarGradient1] = 0xffFFFFFF;
+        defaultColors[key_premiumStarGradient2] = 0xffE3ECFA;
+        defaultColors[key_premiumCoinGradient1] = -15436801;
+        defaultColors[key_premiumCoinGradient2] = -4167942;
         defaultColors[key_premiumStartSmallStarsColor] = ColorUtils.setAlphaComponent(Color.WHITE, 90);
         defaultColors[key_premiumStartSmallStarsColor2] = ColorUtils.setAlphaComponent(Color.WHITE, 90);
         defaultColors[key_premiumGradientBottomSheet1] = 0xff5B9DE7;
@@ -767,6 +770,8 @@ public class ThemeColors {
         defaultColors[key_premiumGradientBottomSheet3] = 0xffE794BE;
         defaultColors[key_topics_unreadCounter] = 0xff4ecc5e;
         defaultColors[key_topics_unreadCounterMuted] = 0xff8b8d8f;
+        defaultColors[key_starsGradient1] = 0xffFEC846;
+        defaultColors[key_starsGradient2] = 0xffEC920A;
 
         defaultColors[key_stories_circle1] = 0xFF39DF3C;
         defaultColors[key_stories_circle2] = 0xFF4DBBFF;
@@ -973,6 +978,8 @@ public class ThemeColors {
         colorKeysMap.put(key_actionBarTabUnactiveText, "actionBarTabUnactiveText");
         colorKeysMap.put(key_actionBarTabLine, "actionBarTabLine");
         colorKeysMap.put(key_actionBarTabSelector, "actionBarTabSelector");
+        colorKeysMap.put(key_table_background, "table_background");
+        colorKeysMap.put(key_table_border, "table_border");
         colorKeysMap.put(key_actionBarDefaultArchived, "actionBarDefaultArchived");
         colorKeysMap.put(key_actionBarDefaultArchivedSelector, "actionBarDefaultArchivedSelector");
         colorKeysMap.put(key_actionBarDefaultArchivedIcon, "actionBarDefaultArchivedIcon");
@@ -1315,6 +1322,7 @@ public class ThemeColors {
         colorKeysMap.put(key_chat_inBubbleLocationPlaceholder, "chat_inBubbleLocationPlaceholder");
         colorKeysMap.put(key_chat_outBubbleLocationPlaceholder, "chat_outBubbleLocationPlaceholder");
         colorKeysMap.put(key_chat_BlurAlpha, "chat_BlurAlpha");
+        colorKeysMap.put(key_chat_BlurAlphaSlow, "chat_BlurAlphaSlow");
         colorKeysMap.put(key_chat_editMediaButton, "chat_editMediaButton");
 
         colorKeysMap.put(key_voipgroup_listSelector, "voipgroup_listSelector");
@@ -1505,8 +1513,10 @@ public class ThemeColors {
         colorKeysMap.put(key_premiumGradientBackground4, "premiumGradientBackground4");
         colorKeysMap.put(key_premiumGradientBackgroundOverlay, "premiumGradientBackgroundOverlay");
         colorKeysMap.put(key_premiumStartSmallStarsColor, "premiumStartSmallStarsColor");
-        colorKeysMap.put(key_premiumStartGradient1, "premiumStarGradient1");
-        colorKeysMap.put(key_premiumStartGradient2, "premiumStarGradient2");
+        colorKeysMap.put(key_premiumStarGradient1, "premiumStarGradient1");
+        colorKeysMap.put(key_premiumStarGradient2, "premiumStarGradient2");
+        colorKeysMap.put(key_premiumCoinGradient1, "premiumCoinGradient1");
+        colorKeysMap.put(key_premiumCoinGradient2, "premiumCoinGradient2");
         colorKeysMap.put(key_premiumStartSmallStarsColor2, "premiumStartSmallStarsColor2");
         colorKeysMap.put(key_premiumGradientBottomSheet1, "premiumGradientBottomSheet1");
         colorKeysMap.put(key_premiumGradientBottomSheet2, "premiumGradientBottomSheet2");
