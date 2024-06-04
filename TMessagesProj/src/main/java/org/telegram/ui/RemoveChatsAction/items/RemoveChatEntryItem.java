@@ -36,8 +36,4 @@ public class RemoveChatEntryItem extends Item {
     protected CharSequence generateSearchName(String query) {
         return AndroidUtilities.generateSearchName(removeChatEntry.title, null, query);
     }
-
-    public RemoveChatsAction.RemoveChatEntry getRemoveChatEntry() {
-        return removeChatEntry;
-    }
 }
