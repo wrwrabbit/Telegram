@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan;
+package org.telegram.messenger.partisan.update;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -50,8 +50,15 @@ public class AppVersion {
     }
 
     public boolean greater(AppVersion other) {
+        if (other == null) {
+            return true;
+        }
         return major > other.major || major == other.major && minor > other.minor
                 || major == other.major && minor == other.minor && patch > other.patch;
+    }
+
+    public static boolean greater(AppVersion version, AppVersion other) {
+        return version != null && version.greater(other);
     }
 
     public boolean greaterOrEquals(AppVersion other) {

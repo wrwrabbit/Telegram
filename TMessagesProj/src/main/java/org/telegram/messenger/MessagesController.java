@@ -109,6 +109,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -239,8 +240,8 @@ public class MessagesController extends BaseController implements NotificationCe
     private LongSparseArray<TLRPC.Dialog> clearingHistoryDialogs = new LongSparseArray<>();
 
     public boolean loadingBlockedPeers = false;
-    public LongSparseIntArray blockePeers = new LongSparseIntArray();
-    public int totalBlockedCount = -1;
+    private LongSparseIntArray blockePeers = new LongSparseIntArray(); // use getFilteredBlockedPeers of getUnfilteredBlockedPeers
+    private int totalBlockedCount = -1; // use getTotalBlockedCount instead
     public boolean blockedEndReached;
 
     private LongSparseArray<ArrayList<Integer>> channelViewsToSend = new LongSparseArray<>();
@@ -403,6 +404,30 @@ public class MessagesController extends BaseController implements NotificationCe
             currentFilteredIndex++;
         }
         return -1;
+    }
+
+    public int getTotalBlockedCount() {
+        if (!FakePasscodeUtils.isFakePasscodeActivated() || totalBlockedCount == -1 || blockePeers.size() == 0) {
+            return totalBlockedCount;
+        }
+        return Math.min(totalBlockedCount, getFilteredBlockedPeers().size());
+    }
+
+    public LongSparseIntArray getFilteredBlockedPeers() {
+        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+            return blockePeers;
+        }
+        LongSparseIntArray filteredPeers = new LongSparseIntArray();
+        for (int i = 0; i < blockePeers.size(); i++) {
+            if (!FakePasscodeUtils.isHideChat(blockePeers.keyAt(i), currentAccount)) {
+                filteredPeers.put(blockePeers.keyAt(i), 1);
+            }
+        }
+        return filteredPeers;
+    }
+
+    public LongSparseIntArray getUnfilteredBlockedPeers() {
+        return blockePeers;
     }
 
     private final CacheFetcher<Integer, TLRPC.TL_help_appConfig> appConfigFetcher = new CacheFetcher<Integer, TLRPC.TL_help_appConfig>() {
@@ -7659,7 +7684,12 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (reset) {
                     blockePeers.clear();
                 }
-                totalBlockedCount = Math.max(res.count, res.blocked.size());
+                List<TLRPC.TL_peerBlocked> filteredBlocked = FakePasscodeUtils.filterItems(
+                        res.blocked,
+                        Optional.of(currentAccount),
+                        (peer, filter) -> !filter.isHidePeer(peer.peer_id)
+                );
+                totalBlockedCount = Math.max(res.count, filteredBlocked.size());
                 blockedEndReached = res.blocked.size() < req.limit;
                 for (int a = 0, N = res.blocked.size(); a < N; a++) {
                     TLRPC.TL_peerBlocked blocked = res.blocked.get(a);

@@ -1811,7 +1811,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             getNotificationCenter().addObserver(this, NotificationCenter.privacyRulesUpdated);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.reloadInterface);
 
-            userBlocked = getMessagesController().blockePeers.indexOfKey(userId) >= 0;
+            userBlocked = getMessagesController().getFilteredBlockedPeers().indexOfKey(userId) >= 0;
             if (user.bot) {
                 isBot = true;
                 getMediaDataController().loadBotInfo(user.id, user.id, true, classGuid);
@@ -7555,7 +7555,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.blockedUsersDidLoad) {
             boolean oldValue = userBlocked;
-            userBlocked = getMessagesController().blockePeers.indexOfKey(userId) >= 0;
+            userBlocked = getMessagesController().getFilteredBlockedPeers().indexOfKey(userId) >= 0;
             if (oldValue != userBlocked) {
                 createActionBarMenu(true);
                 updateListAnimated(false);
@@ -13311,9 +13311,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(dialogId, currentAccount)
-                && !FakePasscodeUtils.isHideChat(chatId, currentAccount)
-                && !FakePasscodeUtils.isHideChat(userId, currentAccount);
+        return !FakePasscodeUtils.isHideChat(arguments.getLong("dialog_id", 0), currentAccount)
+                && !FakePasscodeUtils.isHideChat(arguments.getLong("chat_id", 0), currentAccount)
+                && !FakePasscodeUtils.isHideChat(arguments.getLong("user_id", 0), currentAccount);
     }
 
     @Override

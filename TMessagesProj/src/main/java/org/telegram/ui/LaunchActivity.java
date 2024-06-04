@@ -125,8 +125,8 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.SecurityChecker;
-import org.telegram.messenger.partisan.UpdateChecker;
-import org.telegram.messenger.partisan.UpdateData;
+import org.telegram.messenger.partisan.update.UpdateChecker;
+import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.messenger.voip.VoIPPendingCall;
@@ -5460,10 +5460,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return;
         }
         final int accountNum = currentAccount;
-        UpdateChecker.checkUpdate(currentAccount, (updateFounded, data) -> {
+        UpdateChecker.checkUpdate(currentAccount, data -> {
             SharedConfig.lastUpdateCheckTime = System.currentTimeMillis();
             SharedConfig.saveConfig();
-            if (updateFounded) {
+            if (data != null) {
                 AndroidUtilities.runOnUIThread(() -> {
                     if (SharedConfig.pendingPtgAppUpdate != null &&
                             (FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.pendingPtgAppUpdate.originalVersion.equals(data.originalVersion)

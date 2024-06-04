@@ -43,12 +43,12 @@ import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanLog;
-import org.telegram.messenger.partisan.UpdateApkRemoveRunnable;
-import org.telegram.messenger.partisan.AppVersion;
+import org.telegram.messenger.partisan.update.UpdateApkRemoveRunnable;
+import org.telegram.messenger.partisan.update.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
 import org.telegram.messenger.partisan.TlrpcJsonDeserializer;
 import org.telegram.messenger.partisan.TlrpcJsonSerializer;
-import org.telegram.messenger.partisan.UpdateData;
+import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -821,7 +821,9 @@ public class SharedConfig {
                 PartisanLog.handleException(e);
             }
 
-            Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(preferences.getString("ptgAppUpdate", null) != null), 1000);
+            if (preferences.getString("ptgAppUpdate", null) != null) {
+                Utilities.cacheClearQueue.postRunnable(new UpdateApkRemoveRunnable(), 1000);
+            }
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
             SaveToGallerySettingsHelper.load(preferences);

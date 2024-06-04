@@ -73,7 +73,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.voip.VoIPService;
 import org.telegram.tgnet.ConnectionsManager;
@@ -956,9 +955,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 show = LocationController.getInstance(fragment.getCurrentAccount()).isSharingLocation(chatActivity.getDialogId());
             }
         } else {
-            if (VoIPService.getSharedInstance() != null && !VoIPService.getSharedInstance().isHangingUp() && VoIPService.getSharedInstance().getCallState() != VoIPService.STATE_WAITING_INCOMING &&
-                    (VoIPService.getSharedInstance().groupCall == null || !FakePasscodeUtils.isHideChat(VoIPService.getSharedInstance().groupCall.chatId, account)) &&
-                    (VoIPService.getSharedInstance().privateCall == null || !FakePasscodeUtils.isHideChat(VoIPService.getSharedInstance().privateCall.participant_id, account))) {
+            if (VoIPService.getSharedInstance() != null && !VoIPService.getSharedInstance().isHangingUp() && VoIPService.getSharedInstance().getCallState() != VoIPService.STATE_WAITING_INCOMING && !isCallHiddenByPasscode()) {
                 show = true;
                 startJoinFlickerAnimation();
             } else if (chatActivity != null && fragment.getSendMessagesHelper().getImportingHistory(chatActivity.getDialogId()) != null && !isPlayingVoice()) {
@@ -977,6 +974,31 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             checkCreateView();
         }
         setVisibility(show ? VISIBLE : GONE);
+    }
+
+    private boolean isCallHiddenByPasscode() {
+        VoIPService service = VoIPService.getSharedInstance();
+        if (service == null) {
+            return false;
+        }
+        if (service.groupCall != null) {
+            ChatObject.Call call = service.groupCall;
+            if (isChatOrAccountHidden(call.chatId, call.currentAccount.getCurrentAccount())) {
+                return true;
+            }
+        }
+        if (service.privateCall != null) {
+            TLRPC.PhoneCall call = service.privateCall;
+            if (isChatOrAccountHidden(call.participant_id, account)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isChatOrAccountHidden(long dialogId, int accountNum) {
+        return FakePasscodeUtils.isHideChat(dialogId, accountNum)
+                || FakePasscodeUtils.isHideAccount(accountNum);
     }
 
     @Keep
@@ -2160,7 +2182,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     updateStyle(STYLE_CONNECTING_GROUP_CALL);
                 }
             }
-            if (!visible) {
+            if (!visible && !isCallHiddenByPasscode()) {
                 if (!create) {
                     if (animatorSet != null) {
                         animatorSet.cancel();

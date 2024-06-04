@@ -2748,7 +2748,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
 
             if (currentUser != null && !UserObject.isReplyUser(currentUser)) {
-                userBlocked = getMessagesController().blockePeers.indexOfKey(currentUser.id) >= 0;
+                userBlocked = getMessagesController().getFilteredBlockedPeers().indexOfKey(currentUser.id) >= 0;
             }
 
             if (currentEncryptedChat != null && AndroidUtilities.getMyLayerVersion(currentEncryptedChat.layer) != SecretChatHelper.CURRENT_SECRET_CHAT_LAYER) {
@@ -20178,7 +20178,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (id == NotificationCenter.blockedUsersDidLoad) {
             if (currentUser != null && !UserObject.isReplyUser(currentUser)) {
                 boolean oldValue = userBlocked;
-                userBlocked = getMessagesController().blockePeers.indexOfKey(currentUser.id) >= 0;
+                userBlocked = getMessagesController().getFilteredBlockedPeers().indexOfKey(currentUser.id) >= 0;
                 if (oldValue != userBlocked) {
                     updateBottomOverlay();
                 }
@@ -37737,7 +37737,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(dialog_id, currentAccount)
+        return !FakePasscodeUtils.isHideChat(arguments.getLong("chat_id", 0), currentAccount)
+                && !FakePasscodeUtils.isHideChat(arguments.getLong("user_id", 0), currentAccount)
                 && !(FakePasscodeUtils.isFakePasscodeActivated() && isSavedChannel);
     }
 

@@ -1,4 +1,4 @@
-package org.telegram.ui;
+package org.telegram.ui.RemoveChatsAction;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -10,11 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.InputType;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.Gravity;
@@ -35,19 +31,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ContactsController;
-import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.messenger.partisan.Utils;
-import org.telegram.tgnet.TLRPC;
+import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -56,8 +49,6 @@ import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
-import org.telegram.ui.Adapters.SearchAdapterHelper;
-import org.telegram.ui.Cells.ChatRemoveCell;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EditTextBoldCursor;
@@ -66,13 +57,19 @@ import org.telegram.ui.Components.GroupCreateSpan;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.RemoveChatsAction.items.Item;
+import org.telegram.ui.RemoveChatsAction.items.SearchItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-public class FakePasscodeRemoveChatsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
+public class RemoveChatsFragment extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private ScrollView scrollView;
     private SpansContainer spansContainer;
     private EditTextBoldCursor editText;
@@ -80,12 +77,10 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
     private EmptyTextProgressView emptyView;
     private RemoveChatsAdapter adapter;
     private boolean ignoreScrollEvent;
-    private Set<Long> selectedDialogs = new HashSet<>();
-
     private int containerHeight;
 
-    private FakePasscode fakePasscode;
-    private RemoveChatsAction action;
+    private final FakePasscode fakePasscode;
+    private final RemoveChatsAction action;
     protected int accountNum;
 
     private boolean searchWas;
@@ -99,7 +94,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
     private float progressToActionMode;
     private ValueAnimator actionBarColorAnimator;
     private BackDrawable backDrawable;
-    private ArrayList<View> actionModeViews = new ArrayList<>();
+    private final ArrayList<View> actionModeViews = new ArrayList<>();
     private ActionBarMenuItem deleteItem;
     private ActionBarMenuItem addItem;
     private ActionBarMenuItem editItem;
@@ -207,7 +202,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         }
     }
 
-    public FakePasscodeRemoveChatsActivity(FakePasscode fakePasscode, RemoveChatsAction action, int accountNum) {
+    public RemoveChatsFragment(FakePasscode fakePasscode, RemoveChatsAction action, int accountNum) {
         super();
         this.fakePasscode = fakePasscode;
         this.action = action;
@@ -247,24 +242,20 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
-                    if (selectedDialogs.isEmpty()) {
-                        finishFragment();
-                    } else {
-                        selectedDialogs.clear();
+                    if (adapter.isInSelectionMode()) {
+                        adapter.clearSelection();
                         hideActionMode(true);
+                    } else {
+                        finishFragment();
                     }
                 } else if (id == delete) {
-                    for (Long dialogId : selectedDialogs) {
-                        action.remove(dialogId);
-                    }
+                    adapter.deleteSelectedDialogs();
                     hideActionMode(true);
                     updateHint();
                 } else if (id == add || id == edit) {
-                    presentFragment(new FakePasscodeRemoveDialogSettingsActivity(fakePasscode, action, selectedDialogs, accountNum));
-                    selectedDialogs.clear();
-                    if (listView != null) {
-                        listView.getAdapter().notifyDataSetChanged();
-                    }
+                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, adapter.getSelectedDialogs(), accountNum));
+                    adapter.clearSelection();
+                    adapter.notifyDataSetChanged();
                     hideActionMode(true);
                     updateHint();
                 }
@@ -456,66 +447,10 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         listView.setVerticalScrollbarPosition(LocaleController.isRTL ? View.SCROLLBAR_POSITION_LEFT : View.SCROLLBAR_POSITION_RIGHT);
         listView.addItemDecoration(new ItemDecoration());
         frameLayout.addView(listView);
-        listView.setOnItemClickListener((view, position) -> {
-            if (view instanceof ChatRemoveCell) {
-                ChatRemoveCell cell = (ChatRemoveCell) view;
-                if (!selectedDialogs.isEmpty()) {
-                    select(cell);
-                } else {
-                    long id = cell.getDialogId();
-                    if (id == 0) {
-                        return;
-                    }
-                    boolean exists;
-                    if (exists = action.contains(id)) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                        String buttonText;
-                        builder.setMessage(LocaleController.getString("RemoveDialogFromListAlert", R.string.RemoveDialogFromListAlert));
-                        builder.setTitle(LocaleController.getString("RemoveDialogFromListTitle", R.string.RemoveDialogFromListTitle));
-                        buttonText = LocaleController.getString("ClearSearchRemove", R.string.ClearSearchRemove);
-                        builder.setPositiveButton(buttonText, (dialogInterface, i) -> {
-                            action.remove(id);
-                            SharedConfig.saveConfig();
-                            updateHint();
-                            if (searching || searchWas) {
-                                AndroidUtilities.showKeyboard(editText);
-                            } else {
-                                cell.setChecked(!exists, true);
-                            }
-                            if (editText.length() > 0) {
-                                editText.setText(null);
-                            }
-                        });
-                        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                        AlertDialog alertDialog = builder.create();
-                        showDialog(alertDialog);
-                        TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
-                        if (button != null) {
-                            button.setTextColor(Theme.getColor(Theme.key_color_red));
-                        }
-                    } else {
-                        if (editText.length() > 0) {
-                            editText.setText(null);
-                        }
-                        presentFragment(new FakePasscodeRemoveDialogSettingsActivity(fakePasscode, action, Collections.singletonList(cell.getDialogId()), accountNum));
-                    }
-                }
-            }
-        });
-        listView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListenerExtended() {
-            @Override
-            public boolean onItemClick(View view, int position, float x, float y) {
-                select((ChatRemoveCell)view);
-                return true;
-            }
-
-            @Override
-            public void onLongClickRelease() {
-            }
-
-            @Override
-            public void onMove(float dx, float dy) {
-            }
+        listView.setOnItemClickListener(this::onItemClick);
+        listView.setOnItemLongClickListener((view, position, x, y) -> {
+            select(position);
+            return true;
         });
         listView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -527,6 +462,57 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         });
         updateHint();
         return fragmentView;
+    }
+
+    private void onItemClick(View view, int position) {
+        if (view instanceof ChatRemoveCell) {
+            ChatRemoveCell cell = (ChatRemoveCell) view;
+            if (adapter.isInSelectionMode()) {
+                select(position);
+            } else {
+                if (action.contains(cell.getItem().getId())) {
+                    showRemoveDialog(() -> {
+                        removeEntry(cell.getItem().getId());
+                        if (searching || searchWas) {
+                            AndroidUtilities.showKeyboard(editText);
+                        } else {
+                            cell.setChecked(false, true);
+                        }
+                    });
+                } else {
+                    Set<Long> ids = adapter.getDialogIdsForItem(position); // editText.setText(null); set searching = false. Therefore why ids must be obtained before
+                    if (editText.length() > 0) {
+                        editText.setText(null);
+                    }
+                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, ids, accountNum));
+                }
+            }
+        }
+    }
+
+    private void showRemoveDialog(Runnable onAccepted) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        String buttonText;
+        builder.setMessage(LocaleController.getString(R.string.RemoveDialogFromListAlert));
+        builder.setTitle(LocaleController.getString(R.string.RemoveDialogFromListTitle));
+        buttonText = LocaleController.getString(R.string.ClearSearchRemove);
+        builder.setPositiveButton(buttonText, (dialogInterface, i) -> onAccepted.run());
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        AlertDialog alertDialog = builder.create();
+        showDialog(alertDialog);
+        TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        if (button != null) {
+            button.setTextColor(Theme.getColor(Theme.key_color_red));
+        }
+    }
+
+    private void removeEntry(long dialogId) {
+        action.remove(dialogId);
+        SharedConfig.saveConfig();
+        updateHint();
+        if (editText.length() > 0) {
+            editText.setText(null);
+        }
     }
 
     @Override
@@ -554,14 +540,8 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         } else if (id == NotificationCenter.updateInterfaces) {
             if (listView != null) {
                 int mask = (Integer) args[0];
-                int count = listView.getChildCount();
                 if ((mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_NAME) != 0 || (mask & MessagesController.UPDATE_MASK_STATUS) != 0) {
-                    for (int a = 0; a < count; a++) {
-                        View child = listView.getChildAt(a);
-                        if (child instanceof ChatRemoveCell) {
-                            ((ChatRemoveCell) child).update(mask);
-                        }
-                    }
+                    updateAllCells();
                 }
             }
         } else if (id == NotificationCenter.chatDidCreated) {
@@ -572,10 +552,23 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                     emptyView.showTextView();
                 }
                 if (adapter != null) {
-                    adapter.fillContacts();
+                    adapter.fillItems();
                     adapter.notifyDataSetChanged();
                 }
                 getNotificationCenter().removeObserver(this, NotificationCenter.dialogsNeedReload);
+            }
+        }
+    }
+
+    private void updateAllCells() {
+        if (listView == null) {
+            return;
+        }
+        int count = listView.getChildCount();
+        for (int i = 0; i < count; i++) {
+            View child = listView.getChildAt(i);
+            if (child instanceof ChatRemoveCell) {
+                ((ChatRemoveCell) child).update();
             }
         }
     }
@@ -604,7 +597,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
             View child = listView.getChildAt(a);
             if (child instanceof ChatRemoveCell) {
                 ChatRemoveCell cell = (ChatRemoveCell) child;
-                long id = cell.getDialogId();
+                long id = cell.getItem().getId();
                 if (id != 0) {
                     cell.setChecked(action.contains(id), true);
                     cell.setCheckBoxEnabled(true);
@@ -627,27 +620,18 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         actionBar.setSubtitle(LocaleController.formatPluralString("Chats", action.getChatEntriesToRemove().size()));
     }
 
-    private void select(ChatRemoveCell cell) {
-        long id = cell.getDialogId();
-
-        if (selectedDialogs.contains(id)) {
-            selectedDialogs.remove(id);
-            cell.setSelected(false);
-        } else {
-            selectedDialogs.add(id);
-            cell.setSelected(true);
+    private void select(int position) {
+        if (adapter == null) {
+            return;
         }
-        if (selectedDialogs.isEmpty()) {
-            hideActionMode(true);
-        } else {
-            showOrUpdateActionMode();
-        }
+        adapter.select(position);
+        showOrUpdateActionMode();
     }
 
     private void showOrUpdateActionMode() {
         boolean updateAnimated = false;
         if (actionBar.isActionModeShowed()) {
-            if (selectedDialogs.isEmpty()) {
+            if (!adapter.isInSelectionMode()) {
                 hideActionMode(true);
                 return;
             }
@@ -678,11 +662,11 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                 backDrawable.setRotation(1, true);
             }
         }
-        selectedDialogsCountTextView.setNumber(selectedDialogs.size(), updateAnimated);
+        selectedDialogsCountTextView.setNumber(adapter.getSelectedDialogsCount(), updateAnimated);
     }
 
     private void updateMenuItemsVisibility() {
-        boolean isEdit = selectedDialogs.stream().anyMatch(id -> action.contains(id));
+        boolean isEdit = adapter.isSelectedConfiguredDialog();
         addItem.setVisibility(isEdit ? View.GONE : View.VISIBLE);
         editItem.setVisibility(isEdit ? View.VISIBLE : View.GONE);
         deleteItem.setVisibility(isEdit ? View.VISIBLE : View.GONE);
@@ -740,7 +724,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
 
     private void hideActionMode(boolean animateCheck) {
         actionBar.hideActionMode();
-        selectedDialogs.clear();
+        adapter.selectedDialogs.clear();
         if (backDrawable != null) {
             backDrawable.setRotation(0, true);
         }
@@ -748,96 +732,47 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         adapter.notifyDataSetChanged();
     }
 
-    public class RemoveChatsAdapter extends RecyclerListView.FastScrollAdapter {
+    private class RemoveChatsAdapter extends RecyclerListView.FastScrollAdapter {
 
-        private Context context;
-        private ArrayList<Object> searchResult = new ArrayList<>();
-        private ArrayList<CharSequence> searchResultNames = new ArrayList<>();
-        private SearchAdapterHelper searchAdapterHelper;
+        private final Context context;
+        private List<SearchItem> searchResult = new ArrayList<>();
+        private final Set<Long> selectedDialogs = new HashSet<>();
         private Runnable searchRunnable;
         private boolean searching;
-        private ArrayList<Object> contacts = new ArrayList<>();
-        private final int usersStartRow = 0;
+        private final List<Item> items = new ArrayList<>();
 
         public RemoveChatsAdapter(Context ctx) {
             context = ctx;
-
-            fillContacts();
-
-            searchAdapterHelper = new SearchAdapterHelper(false);
-            searchAdapterHelper.setAllowGlobalResults(false);
-            searchAdapterHelper.setDelegate((searchId) -> {
-                if (searchRunnable == null && !searchAdapterHelper.isSearchInProgress()) {
-                    emptyView.showTextView();
-                }
-                notifyDataSetChanged();
-            });
+            fillItems();
         }
 
-        public void fillContacts() {
-            boolean hasSelf = false;
-            ArrayList<TLRPC.Dialog> dialogs = getMessagesController().getAllDialogs();
+        public void fillItems() {
+            items.clear();
+            for (Long id: getChatIds()) {
+                Item item = Item.tryCreateItemById(accountNum, action, id);
+                if (item != null) {
+                    items.add(item);
+                }
+            }
+        }
 
-            contacts.clear();
-            Set<Long> selectedIds = action.getIds();
-            for (Long id: selectedIds) {
-                boolean added = false;
-                if (DialogObject.isUserDialog(id)) {
-                    TLRPC.User user = getMessagesController().getUser(id);
-                    if (user != null) {
-                        added = true;
-                        contacts.add(user);
-                        if (UserObject.isUserSelf(user)) {
-                            hasSelf = true;
-                        }
-                    }
-                } else if (DialogObject.isEncryptedDialog(id)) {
-                    TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(id));
-                    if (encryptedChat != null) {
-                        added = true;
-                        contacts.add(encryptedChat);
-                    }
-                } else if (DialogObject.isChatDialog(id)) {
-                    TLRPC.Chat chat = getMessagesController().getChat(-id);
-                    if (chat != null) {
-                        added = true;
-                        contacts.add(chat);
-                    }
-                }
-                if (!added) {
-                    contacts.add(action.get(id));
-                }
-            }
+        private List<Long> getChatIds() {
+            LongSparseIntArray blockedPeers = getMessagesController().getUnfilteredBlockedPeers();
+            return concatStreams(
+                    action.getIds().stream(),
+                    getMessagesController().getAllDialogs().stream().map(d -> d.id),
+                    IntStream.range(0, blockedPeers.size()).boxed().map(blockedPeers::keyAt),
+                    Stream.of(getUserConfig().clientUserId)
+            ).distinct().collect(Collectors.toList());
+        }
 
-            for (int a = 0, N = dialogs.size(); a < N; a++) {
-                TLRPC.Dialog dialog = dialogs.get(a);
-                if (dialog.id == 0 || selectedIds.contains(dialog.id)) {
-                    continue;
-                }
-                if (DialogObject.isUserDialog(dialog.id)) {
-                    TLRPC.User user = getMessagesController().getUser(dialog.id);
-                    if (user != null) {
-                        contacts.add(user);
-                        if (UserObject.isUserSelf(user)) {
-                            hasSelf = true;
-                        }
-                    }
-                } else if (DialogObject.isEncryptedDialog(dialog.id)) {
-                    TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(dialog.id));
-                    if (encryptedChat != null) {
-                        contacts.add(encryptedChat);
-                    }
-                } else if (DialogObject.isChatDialog(dialog.id)) {
-                    TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
-                    if (chat != null) {
-                        contacts.add(chat);
-                    }
-                }
+        @SafeVarargs
+        private final <T> Stream<T> concatStreams(Stream<T> stream, Stream<T>... otherStreams) {
+            Stream<T> resultStream = stream;
+            for (Stream<T> otherStream : otherStreams) {
+                resultStream = Stream.concat(resultStream, otherStream);
             }
-            if (!hasSelf) {
-                TLRPC.User user = getMessagesController().getUser(getUserConfig().clientUserId);
-                contacts.add(0, user);
-            }
+            return resultStream;
         }
 
         public void setSearching(boolean value) {
@@ -855,17 +790,11 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
 
         @Override
         public int getItemCount() {
-            int count;
             if (searching) {
-                count = searchResult.size();
-                int localServerCount = searchAdapterHelper.getLocalServerSearch().size();
-                int globalCount = searchAdapterHelper.getGlobalSearch().size();
-                count += localServerCount + globalCount;
-                return count;
+                return searchResult.size();
             } else {
-                count = contacts.size();
+                return items.size();
             }
-            return count;
         }
 
         @Override
@@ -884,113 +813,25 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
                 case 1: {
+                    if (position < 0) {
+                        return;
+                    }
                     ChatRemoveCell cell = (ChatRemoveCell) holder.itemView;
-                    Object object;
-                    CharSequence username = null;
-                    CharSequence name = null;
-                    if (searching) {
-                        int localCount = searchResult.size();
-                        int globalCount = searchAdapterHelper.getGlobalSearch().size();
-                        int localServerCount = searchAdapterHelper.getLocalServerSearch().size();
-
-                        if (position >= 0 && position < localCount) {
-                            object = searchResult.get(position);
-                        } else if (position >= localCount && position < localServerCount + localCount) {
-                            object = searchAdapterHelper.getLocalServerSearch().get(position - localCount);
-                        } else if (position > localCount + localServerCount && position < globalCount + localCount + localServerCount) {
-                            object = searchAdapterHelper.getGlobalSearch().get(position - localCount - localServerCount);
-                        } else {
-                            object = null;
-                        }
-                        if (object != null) {
-
-                            String objectUserName;
-                            if (object instanceof TLRPC.User) {
-                                objectUserName = ((TLRPC.User) object).username;
-                            } else if (object instanceof TLRPC.EncryptedChat){
-                                objectUserName = getMessagesController().getUser(((TLRPC.EncryptedChat) object).user_id).username;
-                            } else if (object instanceof TLRPC.Chat){
-                                objectUserName = ((TLRPC.Chat) object).username;
-                            } else {
-                                objectUserName = null;
-                            }
-                            if (position < localCount) {
-                                name = searchResultNames.get(position);
-                                if (name != null && !TextUtils.isEmpty(objectUserName)) {
-                                    if (name.toString().startsWith("@" + objectUserName)) {
-                                        username = name;
-                                        name = null;
-                                    }
-                                }
-                            } else if (position > localCount && !TextUtils.isEmpty(objectUserName)) {
-                                String foundUserName = searchAdapterHelper.getLastFoundUsername();
-                                if (foundUserName.startsWith("@")) {
-                                    foundUserName = foundUserName.substring(1);
-                                }
-                                try {
-                                    int index;
-                                    SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder();
-                                    spannableStringBuilder.append("@");
-                                    spannableStringBuilder.append(objectUserName);
-                                    if ((index = AndroidUtilities.indexOfIgnoreCase(objectUserName, foundUserName)) != -1) {
-                                        int len = foundUserName.length();
-                                        if (index == 0) {
-                                            len++;
-                                        } else {
-                                            index++;
-                                        }
-                                        spannableStringBuilder.setSpan(new ForegroundColorSpan(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4)), index, index + len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                    }
-                                    username = spannableStringBuilder;
-                                } catch (Exception e) {
-                                    username = objectUserName;
-                                }
-                            }
-                        }
-                    } else {
-                        if (position < usersStartRow) {
-                            return;
-                        }
-                        object = contacts.get(position - usersStartRow);
-                    }
-                    Long id;
-                    if (object instanceof TLRPC.User) {
-                        id = ((TLRPC.User) object).id;
-                    } else if (object instanceof TLRPC.EncryptedChat) {
-                        id = DialogObject.makeEncryptedDialogId(((TLRPC.EncryptedChat) object).id);
-                    } else if (object instanceof TLRPC.Chat) {
-                        id = -((TLRPC.Chat) object).id;
-                    } else if (object instanceof RemoveChatsAction.RemoveChatEntry) {
-                        id = ((RemoveChatsAction.RemoveChatEntry)object).chatId;
-                    } else {
-                        id = 0L;
-                    }
-                    cell.setSelected(selectedDialogs.contains(id));
-                    cell.setOnSettingsClick(() -> setupChatToRemove(cell, action.get(id)));
-                    if (!searching) {
-                        StringBuilder builder = new StringBuilder();
-                        ArrayList<MessagesController.DialogFilter> filters = getMessagesController().dialogFilters;
-                        for (int a = 0, N = filters.size(); a < N; a++) {
-                            MessagesController.DialogFilter filter = filters.get(a);
-                            if (filter.includesDialog(getAccountInstance(), id)) {
-                                if (builder.length() > 0) {
-                                    builder.append(", ");
-                                }
-                                builder.append(filter.name);
-                            }
-                        }
-                        if (object != null) {
-                            username = builder;
-                        }
-                    }
-                    cell.setObject(object, name, username);
-                    if (id != 0) {
-                        cell.setChecked(action.contains(id), false);
-                        cell.setCheckBoxEnabled(true);
-                    }
+                    Item item = getItem(position);
+                    cell.setItemSelected(selectedDialogs.contains(item.getId()));
+                    cell.setOnSettingsClick(this::editChatToRemove);
+                    cell.setItem(item);
+                    cell.setChecked(action.contains(item.getId()), false);
+                    cell.setCheckBoxEnabled(true);
                     break;
                 }
             }
+        }
+
+        private Item getItem(int position) {
+            return searching
+                    ? searchResult.get(position)
+                    : items.get(position);
         }
 
         @Override
@@ -1022,128 +863,47 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
                 searchRunnable = null;
             }
             if (query == null) {
-                searchResult.clear();
-                searchResultNames.clear();
-                searchAdapterHelper.mergeResults(null);
-                searchAdapterHelper.queryServerSearch(null, true, true, false, false, false, 0, false, 0, 0);
-                notifyDataSetChanged();
-            } else {
-                Utilities.searchQueue.postRunnable(searchRunnable = () -> AndroidUtilities.runOnUIThread(() -> {
-                    searchAdapterHelper.queryServerSearch(query, true, true, true, true, false, 0, false, 0, 0);
-                    Utilities.searchQueue.postRunnable(searchRunnable = () -> {
-                        String search1 = query.trim().toLowerCase();
-                        if (search1.length() == 0) {
-                            updateSearchResults(new ArrayList<>(), new ArrayList<>());
-                            return;
-                        }
-                        String search2 = LocaleController.getInstance().getTranslitString(search1);
-                        if (search1.equals(search2) || search2.length() == 0) {
-                            search2 = null;
-                        }
-                        String[] search = new String[1 + (search2 != null ? 1 : 0)];
-                        search[0] = search1;
-                        if (search2 != null) {
-                            search[1] = search2;
-                        }
-
-                        ArrayList<Object> resultArray = new ArrayList<>();
-                        ArrayList<CharSequence> resultArrayNames = new ArrayList<>();
-
-                        for (int a = 0; a < contacts.size(); a++) {
-                            Object object = contacts.get(a);
-
-                            String username;
-                            final String[] names = new String[3];
-
-                            if (object instanceof TLRPC.User) {
-                                TLRPC.User user = (TLRPC.User) object;
-                                names[0] = ContactsController.formatName(user.first_name, user.last_name).toLowerCase();
-                                username = user.username;
-                                if (UserObject.isReplyUser(user)) {
-                                    names[2] = LocaleController.getString("RepliesTitle", R.string.RepliesTitle).toLowerCase();
-                                } else if (user.self) {
-                                    names[2] = LocaleController.getString("SavedMessages", R.string.SavedMessages).toLowerCase();
-                                }
-                            } else if (object instanceof TLRPC.EncryptedChat) {
-                                TLRPC.EncryptedChat encryptedChat = (TLRPC.EncryptedChat) object;
-                                TLRPC.User user = getMessagesController().getUser(encryptedChat.user_id);
-                                names[0] = ContactsController.formatName(user.first_name, user.last_name).toLowerCase();
-                                username = user.username;
-                            } else if (object instanceof  TLRPC.Chat) {
-                                TLRPC.Chat chat = (TLRPC.Chat) object;
-                                names[0] = chat.title.toLowerCase();
-                                username = chat.username;
-                            } else {
-                                RemoveChatsAction.RemoveChatEntry entry = (RemoveChatsAction.RemoveChatEntry) object;
-                                names[0] = entry.title.toLowerCase();
-                                username = null;
-                            }
-                            names[1] = LocaleController.getInstance().getTranslitString(names[0]);
-                            if (names[0].equals(names[1])) {
-                                names[1] = null;
-                            }
-
-                            int found = 0;
-                            for (String q : search) {
-                                for (int i = 0; i < names.length; i++) {
-                                    final String name = names[i];
-                                    if (name != null && (name.startsWith(q) || name.contains(" " + q))) {
-                                        found = 1;
-                                        break;
-                                    }
-                                }
-                                if (found == 0 && username != null && username.toLowerCase().startsWith(q)) {
-                                    found = 2;
-                                }
-
-                                if (found != 0) {
-                                    if (found == 1) {
-                                        if (object instanceof TLRPC.User) {
-                                            TLRPC.User user = (TLRPC.User) object;
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
-                                        } else if (object instanceof TLRPC.EncryptedChat){
-                                            TLRPC.EncryptedChat encryptedChat = (TLRPC.EncryptedChat) object;
-                                            TLRPC.User user = getMessagesController().getUser(encryptedChat.user_id);
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
-                                        } else if (object instanceof TLRPC.Chat){
-                                            TLRPC.Chat chat = (TLRPC.Chat) object;
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(getUserConfig().getChatTitleOverride(chat), null, q));
-                                        } else {
-                                            RemoveChatsAction.RemoveChatEntry entry = (RemoveChatsAction.RemoveChatEntry) object;
-                                            resultArrayNames.add(AndroidUtilities.generateSearchName(entry.title, null, q));
-                                        }
-                                    } else {
-                                        resultArrayNames.add(AndroidUtilities.generateSearchName("@" + username, null, "@" + q));
-                                    }
-                                    resultArray.add(object);
-                                    break;
-                                }
-                            }
-                        }
-                        updateSearchResults(resultArray, resultArrayNames);
-                    });
-                }), 300);
+                updateSearchResults(Collections.emptyList());
+                return;
             }
+            Utilities.searchQueue.postRunnable(searchRunnable = () -> {
+                List<SearchItem> resultItems = new ArrayList<>();
+                for (Item item : items) {
+                    for (String queryVariant : makeQueryVariants(query)) {
+                        SearchItem searchItem = item.search(queryVariant);
+                        if (searchItem != null) {
+                            resultItems.add(searchItem);
+                            break;
+                        }
+                    }
+                }
+                updateSearchResults(resultItems);
+            }, 300);
         }
 
-        private void updateSearchResults(final ArrayList<Object> users, final ArrayList<CharSequence> names) {
+        private List<String> makeQueryVariants(String query) {
+            String rawQuery = query.trim();
+            String translitQuery = LocaleController.getInstance().getTranslitString(rawQuery);
+            return Stream.of(rawQuery, translitQuery)
+                    .filter(q -> !q.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+        }
+
+        private void updateSearchResults(final List<SearchItem> users) {
             AndroidUtilities.runOnUIThread(() -> {
                 if (!searching) {
                     return;
                 }
                 searchRunnable = null;
                 searchResult = users;
-                searchResultNames = names;
-                searchAdapterHelper.mergeResults(searchResult);
-                if (searching && !searchAdapterHelper.isSearchInProgress()) {
-                    emptyView.showTextView();
-                }
+                emptyView.showTextView();
                 notifyDataSetChanged();
             });
         }
 
-        private void setupChatToRemove(ChatRemoveCell cell, RemoveChatsAction.RemoveChatEntry entry) {
-            if (entry == null) {
+        private void editChatToRemove(long id) {
+            if (!action.contains(id)) {
                 return;
             }
             selectedDialogs.clear();
@@ -1152,7 +912,62 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
             }
             hideActionMode(true);
             updateHint();
-            presentFragment(new FakePasscodeRemoveDialogSettingsActivity(fakePasscode, action, entry, accountNum));
+            presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, action.get(id), accountNum));
+        }
+
+        public void select(int position) {
+            Item item = getItem(position);
+            long id = item.getId();
+            if (selectedDialogs.contains(id)) {
+                selectedDialogs.remove(id);
+                notifyItemChanged(position);
+            } else {
+                selectedDialogs.add(id);
+                notifyItemChanged(position);
+                items.stream()
+                        .filter(i -> i.shouldBeEditedToo(item))
+                        .map(Item::getId)
+                        .forEach(selectedDialogs::add);
+                for (int otherPosition = 0; otherPosition < getItemCount(); otherPosition++) {
+                    if (getItem(otherPosition).shouldBeEditedToo(item)) {
+                        notifyItemChanged(otherPosition);
+                    }
+                }
+            }
+        }
+
+        public boolean isInSelectionMode() {
+            return !selectedDialogs.isEmpty();
+        }
+
+        public void clearSelection() {
+            selectedDialogs.clear();
+        }
+
+        public int getSelectedDialogsCount() {
+            return selectedDialogs.size();
+        }
+
+        public boolean isSelectedConfiguredDialog() {
+            return selectedDialogs.stream().anyMatch(action::contains);
+        }
+
+        public void deleteSelectedDialogs() {
+            for (Long dialogId : selectedDialogs) {
+                action.remove(dialogId);
+            }
+        }
+
+        public Set<Long> getSelectedDialogs() {
+            return selectedDialogs;
+        }
+
+        public Set<Long> getDialogIdsForItem(int position) {
+            Item targetItem = getItem(position);
+            return items.stream()
+                    .filter(item -> item.getId() == targetItem.getId() || item.shouldBeEditedToo(targetItem))
+                    .map(Item::getId)
+                    .collect(Collectors.toSet());
         }
     }
 
@@ -1160,17 +975,7 @@ public class FakePasscodeRemoveChatsActivity extends BaseFragment implements Not
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-        ThemeDescription.ThemeDescriptionDelegate cellDelegate = () -> {
-            if (listView != null) {
-                int count = listView.getChildCount();
-                for (int a = 0; a < count; a++) {
-                    View child = listView.getChildAt(a);
-                    if (child instanceof ChatRemoveCell) {
-                        ((ChatRemoveCell) child).update(0);
-                    }
-                }
-            }
-        };
+        ThemeDescription.ThemeDescriptionDelegate cellDelegate = this::updateAllCells;
 
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundWhite));
 
