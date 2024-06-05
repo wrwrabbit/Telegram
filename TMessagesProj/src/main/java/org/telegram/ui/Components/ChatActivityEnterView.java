@@ -4191,9 +4191,6 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
                 boolean scheduleButtonValue = parentFragment != null && parentFragment.canScheduleMessage();
                 boolean sendWithoutSoundButtonValue = !(self || slowModeTimer > 0 && !isInScheduleMode());
-                TLRPC.Chat chat = accountInstance.getMessagesController().getChat(-dialog_id);
-                TLRPC.User user = accountInstance.getMessagesController().getUser(dialog_id);
-                boolean deleteAfterReadButtonValue = RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat);
                 if (scheduleButtonValue) {
                     actionScheduleButton = new ActionBarMenuSubItem(getContext(), true, !sendWithoutSoundButtonValue, resourcesProvider);
                     if (self) {
@@ -4240,7 +4237,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     });
                     sendPopupLayout.addView(sendWithoutSoundButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                 }
-                if (deleteAfterReadButtonValue) {
+                if (isShowDeleteAfterReadButton()) {
                     ActionBarMenuSubItem scheduleDeleteButton = new ActionBarMenuSubItem(getContext(), !scheduleButtonValue && !sendWithoutSoundButtonValue, true, resourcesProvider);
                     scheduleDeleteButton.setTextAndIcon(LocaleController.getString("DeleteAsRead", R.string.DeleteAsRead), R.drawable.msg_delete_auto);
                     scheduleDeleteButton.setMinimumWidth(AndroidUtilities.dp(196));
@@ -4480,6 +4477,22 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             });
         }
+        if (isShowDeleteAfterReadButton()) {
+            options.add(R.drawable.msg_delete_auto, getString(R.string.DeleteAsRead), () -> {
+                RemoveAfterReadingMessages.load();
+                RemoveAfterReadingMessages.delays.putIfAbsent("" + currentAccount, 5 * 1000);
+                AlertsCreator.createScheduleDeleteTimePickerDialog(parentActivity, RemoveAfterReadingMessages.delays.get("" + currentAccount),
+                        (notify, delay) -> {
+                            sendMessageInternal(notify, 0, false, delay);
+                            RemoveAfterReadingMessages.delays.put("" + currentAccount, delay);
+                            RemoveAfterReadingMessages.save();
+                            if (messageSendPreview != null) {
+                                messageSendPreview.dismiss(true);
+                                messageSendPreview = null;
+                            }
+                        });
+            });
+        }
         options.setupSelectors();
         if (sendWhenOnlineButton != null) {
             TLRPC.User user = parentFragment == null ? null : parentFragment.getCurrentUser();
@@ -4498,6 +4511,13 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         } catch (Exception ignore) {}
 
         return false;
+    }
+
+    private boolean isShowDeleteAfterReadButton() {
+        MessagesController messagesController = accountInstance.getMessagesController();
+        TLRPC.Chat chat = messagesController.getChat(-dialog_id);
+        TLRPC.User user = messagesController.getUser(dialog_id);
+        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat);
     }
 
     private void createBotCommandsMenuContainer() {
