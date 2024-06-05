@@ -46,6 +46,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AppMigrator {
     private static final String PTG_30_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
+    private static final String PTG_30_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
 
     public interface MakeZipDelegate {
         void makeZipCompleted(File zipFile, byte[] passwordBytes);
@@ -294,7 +295,7 @@ public class AppMigrator {
     }
 
     private static List<PackageInfo> getOtherPartisanTelegramPackages(Context context) {
-        String[] packageNames = {"org.telegram.messenger.alpha", "org.telegram.messenger.web", "org.telegram.messenger"};
+        String[] packageNames = {"org.telegram.messenger.alpha", "org.telegram.messenger.beta", "org.telegram.messenger.web", "org.telegram.messenger"};
         List<PackageInfo> result = new ArrayList<>();
         for (String packageName : packageNames) {
             PackageInfo packageInfo = getPackageInfoWithCertificates(context, packageName);
@@ -317,7 +318,7 @@ public class AppMigrator {
             try {
                 MessageDigest hash = MessageDigest.getInstance("SHA-1");
                 String thumbprint = Utilities.bytesToHex(hash.digest(sig.toByteArray()));
-                if (thumbprint.equalsIgnoreCase(PTG_30_SIGNATURE)) {
+                if (thumbprint.equalsIgnoreCase(PTG_30_SIGNATURE) || thumbprint.equalsIgnoreCase(PTG_30_DEBUG_SIGNATURE)) {
                     return true;
                 }
             } catch (NoSuchAlgorithmException ignored) {
