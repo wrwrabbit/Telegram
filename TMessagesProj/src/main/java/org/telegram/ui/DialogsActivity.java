@@ -129,6 +129,7 @@ import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
@@ -653,7 +654,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     public BaseFragment passwordFragment = null;
 
-    private AlertDialog oldPtgNotRemovedDialog;
     private static boolean olderPtgChecked;
     private static boolean ptgPermissionsChecked;
 
@@ -7305,24 +7305,31 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.OldAppNotRemovedTitle));
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.OldAppNotRemovedMessage)));
-        oldPtgNotRemovedDialog = builder.create();
-        oldPtgNotRemovedDialog.setCanCancel(false);
-        oldPtgNotRemovedDialog.setCancelable(false);
-        DialogButtonWithTimer.setButton(oldPtgNotRemovedDialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.Cancel), 10,
+        AlertDialog dialog = builder.create();
+        dialog.setCanCancel(false);
+        dialog.setCancelable(false);
+        DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.Cancel), 10,
                 (dlg, which) -> dlg.dismiss());
-        oldPtgNotRemovedDialog.show();
+        dialog.show();
     }
 
     private void checkNewerOtherPtg() {
         boolean isNewerPtgInstalled = getParentActivity() != null
                 && AppMigrator.isNewerPtgInstalled(getParentActivity());
         if (isNewerPtgInstalled) {
-            showNewerPthInstalledDialog();
+            showNewerPtgInstalledDialog();
         }
     }
 
-    private void showNewerPthInstalledDialog() {
-        // TODO
+    private void showNewerPtgInstalledDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString(R.string.NewVersion30AlertTitle));
+        builder.setMessage(LocaleController.getString(R.string.NewVersion30Alert));
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->
+                presentFragment(new AppMigrationActivity()));
+        AlertDialog dialog = builder.create();
+        showDialog(dialog);
     }
 
     private void checkPtgPermissions() {
