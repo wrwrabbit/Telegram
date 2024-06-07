@@ -215,9 +215,10 @@ public class Utils {
     }
 
     public static boolean isDialogsLeft(int accountNum, Set<Long> ids) {
-        return AccountInstance.getInstance(accountNum)
+        ArrayList<TLRPC.Dialog> dialogs = AccountInstance.getInstance(accountNum)
                 .getMessagesController()
-                .getDialogs(0)
+                .getDialogs(0);
+        return new ArrayList<>(dialogs) // Workaround for ConcurrentModificationException
                 .stream()
                 .anyMatch(e -> ids.contains(e.id));
     }
