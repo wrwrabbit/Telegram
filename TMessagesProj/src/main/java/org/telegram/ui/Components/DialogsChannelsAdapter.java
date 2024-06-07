@@ -20,6 +20,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -32,6 +33,7 @@ import org.telegram.ui.UserInfoActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 
 public class DialogsChannelsAdapter extends UniversalAdapter {
 
@@ -61,7 +63,7 @@ public class DialogsChannelsAdapter extends UniversalAdapter {
 
     public void updateMyChannels() {
         ArrayList<TLRPC.Chat> channels = new ArrayList<>();
-        ArrayList<TLRPC.Dialog> dialogs = MessagesController.getInstance(currentAccount).getAllDialogs();
+        ArrayList<TLRPC.Dialog> dialogs = (ArrayList<TLRPC.Dialog>) FakePasscodeUtils.filterDialogs(MessagesController.getInstance(currentAccount).getAllDialogs(), Optional.of(currentAccount));
         for (TLRPC.Dialog d : dialogs) {
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-d.id);
             if (chat == null || !ChatObject.isChannelAndNotMegaGroup(chat) || !ChatObject.isPublic(chat) || ChatObject.isNotInChat(chat)) continue;
