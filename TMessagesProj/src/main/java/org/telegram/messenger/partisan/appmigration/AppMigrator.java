@@ -193,8 +193,9 @@ public class AppMigrator {
         Intent searchIntent = new Intent(Intent.ACTION_MAIN);
         searchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> infoList = activity.getPackageManager().queryIntentActivities(searchIntent, 0);
+        PackageInfo newestPackage = AppMigrator.getNewestOtherPtgPackage(activity);
         for (ResolveInfo info : infoList) {
-            if (info.activityInfo.packageName.equals("org.telegram.messenger.web")) {
+            if (info.activityInfo.packageName.equals(newestPackage.packageName)) {
                 disableConnection();
 
                 Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -204,7 +205,7 @@ public class AppMigrator {
                     intent.putExtra("zipPassword", passwordBytes);
                     intent.putExtra("packageName", activity.getPackageName());
                     intent.putExtra("language", LocaleController.getInstance().getLanguageOverride());
-                    intent.putExtra("fromOldPtg", true);
+                    intent.putExtra("fromOtherPtg", true);
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
