@@ -48,7 +48,7 @@ public class ChatRemoveCell extends FrameLayout {
 
     private final int currentAccount;
 
-    Consumer<Long> onSettingsClick;
+    Consumer<Item> onSettingsClick;
 
     public ChatRemoveCell(Context context, int account) {
         super(context);
@@ -95,7 +95,7 @@ public class ChatRemoveCell extends FrameLayout {
         addView(settingsButton, LayoutHelper.createFrame(46, 46, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, LocaleController.isRTL ? 13 : 0, 6, LocaleController.isRTL ? 0 : 13, 0));
         settingsButton.setOnClickListener(v -> {
             if (onSettingsClick != null) {
-                onSettingsClick.accept(item.getId());
+                onSettingsClick.accept(item);
             }
         });
 
@@ -130,7 +130,7 @@ public class ChatRemoveCell extends FrameLayout {
         return checkBox.isChecked();
     }
 
-    public void setOnSettingsClick(Consumer<Long> onSettingsClick) {
+    public void setOnSettingsClick(Consumer<Item> onSettingsClick) {
         this.onSettingsClick = onSettingsClick;
     }
 
