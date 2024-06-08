@@ -710,7 +710,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     }
                 } else if (DialogObject.isEncryptedDialog(dialog.id)) {
                     TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(dialog.id));
-                    if (encryptedChat != null) {
+                    if (encryptedChat != null && !(encryptedChat instanceof TLRPC.TL_encryptedChatDiscarded)) {
                         contacts.add(encryptedChat);
                     }
                 } else if (DialogObject.isChatDialog(dialog.id)) {
