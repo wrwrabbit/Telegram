@@ -261,7 +261,8 @@ public class SharedConfig {
     public static int lastPauseTime;
     public static long lastPauseFakePasscodeTime;
     public static boolean isWaitingForPasscodeEnter;
-    public static boolean useFingerprint = true;
+    public static boolean useFingerprintLock = true;
+    public static boolean useFaceLock = true;
     public static int suggestStickers;
     public static boolean suggestAnimatedEmoji;
     public static int keepMedia = CacheByChatsController.KEEP_MEDIA_ONE_MONTH; //deprecated
@@ -284,6 +285,7 @@ public class SharedConfig {
     public static boolean updateStickersOrderOnSend = true;
     public static boolean bigCameraForRound;
     public static Boolean useCamera2Force;
+    public static boolean useNewBlur;
     public static boolean useSurfaceInStories;
     public static boolean photoViewerBlur = true;
     public static boolean payByInvoice;
@@ -593,7 +595,7 @@ public class SharedConfig {
                 editor.putInt("autoLockIn", autoLockIn);
                 editor.putInt("lastPauseTime", lastPauseTime);
                 editor.putLong("lastPauseFakePasscodeTime", lastPauseFakePasscodeTime);
-                editor.putBoolean("useFingerprint", useFingerprint);
+                editor.putBoolean("useFingerprint", useFingerprintLock);
                 editor.putBoolean("allowScreenCapture", allowScreenCapture);
                 editor.putString("pushString2", pushString);
                 editor.putInt("pushType", pushType);
@@ -730,7 +732,7 @@ public class SharedConfig {
             autoLockIn = preferences.getInt("autoLockIn", 60 * 60);
             lastPauseTime = preferences.getInt("lastPauseTime", 0);
             lastPauseFakePasscodeTime = preferences.getLong("lastPauseFakePasscodeTime", 0);
-            useFingerprint = preferences.getBoolean("useFingerprint", false);
+            useFingerprintLock = preferences.getBoolean("useFingerprint", false);
             allowScreenCapture = preferences.getBoolean("allowScreenCapture", false);
             lastLocalId = preferences.getInt("lastLocalId", -210000);
             pushString = preferences.getString("pushString2", "");
@@ -902,7 +904,8 @@ public class SharedConfig {
             confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", false);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
-            useCamera2Force = !preferences.contains("useCamera2") ? null : preferences.getBoolean("useCamera2", false);
+            useNewBlur = preferences.getBoolean("useNewBlur", true);
+            useCamera2Force = !preferences.contains("useCamera2Force") ? null : preferences.getBoolean("useCamera2Force", false);
             useSurfaceInStories = preferences.getBoolean("useSurfaceInStories", Build.VERSION.SDK_INT >= 30);
             payByInvoice = preferences.getBoolean("payByInvoice", false);
             photoViewerBlur = preferences.getBoolean("photoViewerBlur", true);
@@ -1223,7 +1226,7 @@ public class SharedConfig {
         passcodeSalt = new byte[0];
         autoLockIn = 60 * 60;
         lastPauseTime = 0;
-        useFingerprint = false;
+        useFingerprintLock = false;
         isWaitingForPasscodeEnter = false;
         allowScreenCapture = false;
         textSelectionHintShows = 0;
@@ -2057,7 +2060,7 @@ public class SharedConfig {
     }
 
     public static boolean canBlurChat() {
-        return getDevicePerformanceClass() == PERFORMANCE_CLASS_HIGH;
+        return getDevicePerformanceClass() >= (Build.VERSION.SDK_INT >= 31 ? PERFORMANCE_CLASS_AVERAGE : PERFORMANCE_CLASS_HIGH) || BuildVars.DEBUG_PRIVATE_VERSION;
     }
 
     public static boolean chatBlurEnabled() {
@@ -2155,6 +2158,14 @@ public class SharedConfig {
         ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
                 .edit()
                 .putBoolean("bigCameraForRound", bigCameraForRound)
+                .apply();
+    }
+
+    public static void toggleUseNewBlur() {
+        useNewBlur = !useNewBlur;
+        ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
+                .edit()
+                .putBoolean("useNewBlur", useNewBlur)
                 .apply();
     }
 
