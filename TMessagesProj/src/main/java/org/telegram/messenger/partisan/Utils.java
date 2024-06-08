@@ -323,7 +323,11 @@ public class Utils {
             }
         }
         if (lastEnd != -1) {
-            builder.append(message.subSequence(lastEnd, message.length()));
+            CharSequence endCharSequence = message.subSequence(lastEnd, message.length());
+            if (builder.length() != 0 && endCharSequence.length() != 0) {
+                builder.append("\n\n");
+                builder.append(endCharSequence);
+            }
             if (builder.length() != 0) {
                 int end = builder.length() - 1;
                 while (end > 0 && Character.isWhitespace(builder.charAt(end))) {
