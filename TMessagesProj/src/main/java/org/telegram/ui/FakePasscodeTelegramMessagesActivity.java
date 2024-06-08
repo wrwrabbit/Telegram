@@ -44,6 +44,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -202,6 +203,9 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         getNotificationCenter().addObserver(this, NotificationCenter.contactsDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.updateInterfaces);
         getNotificationCenter().addObserver(this, NotificationCenter.chatDidCreated);
+        if (Utils.loadAllDialogs(accountNum)) {
+            getNotificationCenter().addObserver(this, NotificationCenter.dialogsNeedReload);
+        }
         return super.onFragmentCreate();
     }
 
@@ -211,6 +215,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         getNotificationCenter().removeObserver(this, NotificationCenter.contactsDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.updateInterfaces);
         getNotificationCenter().removeObserver(this, NotificationCenter.chatDidCreated);
+        getNotificationCenter().removeObserver(this, NotificationCenter.dialogsNeedReload);
     }
 
     @Override
@@ -559,6 +564,16 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
             }
         } else if (id == NotificationCenter.chatDidCreated) {
             removeSelfFromStack();
+        } else if (id == NotificationCenter.dialogsNeedReload) {
+            if (!Utils.loadAllDialogs(accountNum)) {
+                if (emptyView != null) {
+                    emptyView.showTextView();
+                }
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+                getNotificationCenter().removeObserver(this, NotificationCenter.dialogsNeedReload);
+            }
         }
     }
 
