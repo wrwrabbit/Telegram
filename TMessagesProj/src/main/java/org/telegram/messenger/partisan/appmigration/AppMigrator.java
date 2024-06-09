@@ -220,6 +220,18 @@ public class AppMigrator {
         }
     }
 
+    public static void enableConnection() {
+        for (SharedConfig.ProxyInfo proxyInfo : SharedConfig.proxyList) {
+            if (isProxyForDisablingConnection(proxyInfo)) {
+                SharedConfig.deleteProxy(proxyInfo);
+            }
+        }
+    }
+
+    private static boolean isProxyForDisablingConnection(SharedConfig.ProxyInfo proxyInfo) {
+        return "127.0.0.1".equals(proxyInfo.address) && proxyInfo.port == 1080;
+    }
+
     public static void disableConnection() {
         SharedConfig.ProxyInfo proxyInfo = new SharedConfig.ProxyInfo("127.0.0.1", 1080, "", "", "");
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();

@@ -332,7 +332,10 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             return;
         }
         setStep(Step.MAKE_ZIP);
-        new Thread(() -> AppMigrator.makeZip(getParentActivity(), this)).start();
+        new Thread(() -> {
+            AppMigrator.enableConnection();
+            AppMigrator.makeZip(getParentActivity(), this);
+        }).start();
     }
 
     @Override
