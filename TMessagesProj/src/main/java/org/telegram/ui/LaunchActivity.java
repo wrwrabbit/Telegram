@@ -8040,11 +8040,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (getIntent().getBooleanExtra("fromOtherPtg", false)) {
             byte[] password = getIntent().getByteArrayExtra("zipPassword");
             if (password != null) {
-                if (ContextCompat.checkSelfPermission( this, android.Manifest.permission.READ_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED ) {
-                    ActivityCompat.requestPermissions( this, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, 1001);
-                } else {
-                    receiveZip();
-                }
+                receiveZip();
             }
         }
     }

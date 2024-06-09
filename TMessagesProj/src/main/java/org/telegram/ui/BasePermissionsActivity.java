@@ -154,7 +154,9 @@ public class BasePermissionsActivity extends FragmentActivity {
         new Thread(() -> {
             synchronized (BasePermissionsActivity.class) {
                 try {
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.telegramDataReceived);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.telegramDataReceived);
+                    });
                     File zipFile = new File(getFilesDir(), "data.zip");
                     if (zipFile.exists()) {
                         zipFile.delete();
@@ -233,8 +235,8 @@ public class BasePermissionsActivity extends FragmentActivity {
                     });
                 } catch (Exception ex) {
                     Log.e("BasePermissionActivity", "Error", ex);
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.telegramDataReceivingError);
                     AndroidUtilities.runOnUIThread(() -> {
+                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.telegramDataReceivingError);
                         Toast.makeText(this, "Error: " + ex.getMessage(), Toast.LENGTH_LONG).show();
                     });
                 }
