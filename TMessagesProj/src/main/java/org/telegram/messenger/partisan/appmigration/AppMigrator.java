@@ -256,34 +256,6 @@ class AppMigrator {
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 
-    public static void waitForTelegramInstallation(Activity activity, Runnable onInstalled) {
-        Utilities.globalQueue.postRunnable(new NewStandaloneTelegramInstallationWaiter(activity, onInstalled), 100);
-    }
-
-    private static class NewStandaloneTelegramInstallationWaiter implements Runnable {
-        private int iteration;
-        private final Activity activity;
-        private final Runnable onInstalled;
-
-        public NewStandaloneTelegramInstallationWaiter(Activity activity, Runnable onInstalled) {
-            super();
-            this.activity = activity;
-            this.onInstalled = onInstalled;
-        }
-
-        @Override
-        public void run() {
-            iteration++;
-            if (iteration >= 100) {
-                Toast.makeText(activity, "Telegram was not installed", Toast.LENGTH_LONG).show();
-            } else if (isNewerPtgInstalled(activity)) {
-                onInstalled.run();
-            } else {
-                Utilities.globalQueue.postRunnable(this, 100);
-            }
-        }
-    }
-
     public static boolean isNewerPtgInstalled(Context context) {
         return getNewestOtherPtgPackage(context) != null;
     }
