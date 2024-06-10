@@ -142,7 +142,7 @@ public class SpoofedLinkChecker {
         // avoid ' @username' workaround
         label = label.trim();
         String url = span.getURL();
-        if (label.equals(url) && false) {
+        if (label.equals(url)) {
             return true;
         }
 
