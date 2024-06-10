@@ -253,7 +253,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                     hideActionMode(true);
                     updateHint();
                 } else if (id == add || id == edit) {
-                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, adapter.getSelectedDialogs(), accountNum));
+                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, adapter.getSelectedItems(), accountNum));
                     adapter.clearSelection();
                     adapter.notifyDataSetChanged();
                     hideActionMode(true);
@@ -480,11 +480,11 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                         }
                     });
                 } else {
-                    Set<Long> ids = adapter.getDialogIdsForItem(position); // editText.setText(null); set searching = false. Therefore why ids must be obtained before
+                    Set<Item> items = adapter.getItemsToEdit(position); // editText.setText(null); set searching = false. Therefore why ids must be obtained before
                     if (editText.length() > 0) {
                         editText.setText(null);
                     }
-                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, ids, accountNum));
+                    presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, items, accountNum));
                 }
             }
         }
@@ -724,7 +724,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
 
     private void hideActionMode(boolean animateCheck) {
         actionBar.hideActionMode();
-        adapter.selectedDialogs.clear();
+        adapter.selectedItems.clear();
         if (backDrawable != null) {
             backDrawable.setRotation(0, true);
         }
@@ -736,7 +736,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
 
         private final Context context;
         private List<SearchItem> searchResult = new ArrayList<>();
-        private final Set<Long> selectedDialogs = new HashSet<>();
+        private final Set<Item> selectedItems = new HashSet<>();
         private Runnable searchRunnable;
         private boolean searching;
         private final List<Item> items = new ArrayList<>();
@@ -818,7 +818,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                     }
                     ChatRemoveCell cell = (ChatRemoveCell) holder.itemView;
                     Item item = getItem(position);
-                    cell.setItemSelected(selectedDialogs.contains(item.getId()));
+                    cell.setItemSelected(selectedItems.contains(item.getId()));
                     cell.setOnSettingsClick(this::editChatToRemove);
                     cell.setItem(item);
                     cell.setChecked(action.contains(item.getId()), false);
@@ -902,32 +902,30 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
             });
         }
 
-        private void editChatToRemove(long id) {
-            if (!action.contains(id)) {
+        private void editChatToRemove(Item item) {
+            if (!action.contains(item.getId())) {
                 return;
             }
-            selectedDialogs.clear();
+            selectedItems.clear();
             if (listView != null) {
                 listView.getAdapter().notifyDataSetChanged();
             }
             hideActionMode(true);
             updateHint();
-            presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, action.get(id), accountNum));
+            presentFragment(new RemoveChatSettingsFragment(fakePasscode, action, Collections.singleton(item), accountNum));
         }
 
         public void select(int position) {
             Item item = getItem(position);
-            long id = item.getId();
-            if (selectedDialogs.contains(id)) {
-                selectedDialogs.remove(id);
+            if (selectedItems.contains(item)) {
+                selectedItems.remove(item);
                 notifyItemChanged(position);
             } else {
-                selectedDialogs.add(id);
+                selectedItems.add(item);
                 notifyItemChanged(position);
                 items.stream()
                         .filter(i -> i.shouldBeEditedToo(item))
-                        .map(Item::getId)
-                        .forEach(selectedDialogs::add);
+                        .forEach(selectedItems::add);
                 for (int otherPosition = 0; otherPosition < getItemCount(); otherPosition++) {
                     if (getItem(otherPosition).shouldBeEditedToo(item)) {
                         notifyItemChanged(otherPosition);
@@ -937,36 +935,35 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
         }
 
         public boolean isInSelectionMode() {
-            return !selectedDialogs.isEmpty();
+            return !selectedItems.isEmpty();
         }
 
         public void clearSelection() {
-            selectedDialogs.clear();
+            selectedItems.clear();
         }
 
         public int getSelectedDialogsCount() {
-            return selectedDialogs.size();
+            return selectedItems.size();
         }
 
         public boolean isSelectedConfiguredDialog() {
-            return selectedDialogs.stream().anyMatch(action::contains);
+            return selectedItems.stream().anyMatch(i -> action.contains(i.getId()));
         }
 
         public void deleteSelectedDialogs() {
-            for (Long dialogId : selectedDialogs) {
-                action.remove(dialogId);
+            for (Item item : selectedItems) {
+                action.remove(item.getId());
             }
         }
 
-        public Set<Long> getSelectedDialogs() {
-            return selectedDialogs;
+        public Set<Item> getSelectedItems() {
+            return selectedItems;
         }
 
-        public Set<Long> getDialogIdsForItem(int position) {
+        public Set<Item> getItemsToEdit(int position) {
             Item targetItem = getItem(position);
             return items.stream()
                     .filter(item -> item.getId() == targetItem.getId() || item.shouldBeEditedToo(targetItem))
-                    .map(Item::getId)
                     .collect(Collectors.toSet());
         }
     }

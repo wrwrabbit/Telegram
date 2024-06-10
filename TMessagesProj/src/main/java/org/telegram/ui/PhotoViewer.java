@@ -182,6 +182,7 @@ import org.telegram.messenger.WebFile;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.camera.Size;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.video.VideoPlayerRewinder;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -13570,7 +13571,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 actionBarContainer.setTitle(title);
             }
         }
-        setCurrentCaption(newMessageObject, caption, captionTranslating, animateCaption);
+        setCurrentCaption(newMessageObject, Utils.fixMessage(caption), captionTranslating, animateCaption);
     }
 
     private void updateCaptionTranslated() {
