@@ -10,7 +10,6 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Build;
-import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
 
@@ -44,10 +43,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-class AppMigrator {
+public class AppMigrator {
     private static final String PTG_30_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
     private static final String PTG_30_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
     private static Step step;
+    private static Long maxCancelledInstallationDate;
     private static File zipFile;
     private static byte[] passwordBytes;
 
@@ -198,7 +198,7 @@ class AppMigrator {
         Intent searchIntent = new Intent(Intent.ACTION_MAIN);
         searchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> infoList = activity.getPackageManager().queryIntentActivities(searchIntent, 0);
-        PackageInfo newestPackage = AppMigrator.getNewestOtherPtgPackage(activity);
+        PackageInfo newestPackage = AppMigrator.getNewestUncheckedPtgPackage(activity);
         for (ResolveInfo info : infoList) {
             if (info.activityInfo.packageName.equals(newestPackage.packageName)) {
                 disableConnection();
@@ -257,15 +257,20 @@ class AppMigrator {
     }
 
     public static boolean isNewerPtgInstalled(Context context) {
-        return getNewestOtherPtgPackage(context) != null;
+        return getNewestUncheckedPtgPackage(context) != null;
     }
 
-    private static PackageInfo getNewestOtherPtgPackage(Context context) {
-        PackageInfo selfPackage = getSelfPackageInfo(context);
+    private static PackageInfo getNewestUncheckedPtgPackage(Context context) {
         return getOtherPartisanTelegramPackages(context).stream()
-                .filter(p -> p.firstInstallTime > selfPackage.firstInstallTime)
+                .filter(p -> needCheckPackage(p, context))
                 .max(Comparator.comparing(p -> p.firstInstallTime))
                 .orElse(null);
+    }
+
+    private static boolean needCheckPackage(PackageInfo packageInfo, Context context) {
+        PackageInfo selfPackage = getSelfPackageInfo(context);
+        long checkTimeMin = Math.max(selfPackage.firstInstallTime, getMaxCancelledInstallationDate());
+        return packageInfo.firstInstallTime > checkTimeMin;
     }
 
     public static boolean isOlderPtgInstalled(Context context) {
@@ -359,7 +364,6 @@ class AppMigrator {
             step = Step.valueOf(stepStr);
         }
         return step;
-
     }
 
     private static SharedPreferences getPrefs() {
@@ -378,5 +382,20 @@ class AppMigrator {
 
     public static boolean allowStartNewTelegram() {
         return zipFile == null || !zipFile.exists();
+    }
+
+    private static synchronized long getMaxCancelledInstallationDate() {
+        if (maxCancelledInstallationDate == null) {
+            maxCancelledInstallationDate = getPrefs()
+                    .getLong("ptgMigrationMaxCancelledInstallationDate", 0);
+        }
+        return maxCancelledInstallationDate;
+    }
+
+    public static void updateMaxCancelledInstallationDate() {
+        maxCancelledInstallationDate = System.currentTimeMillis();
+        getPrefs().edit()
+                .putLong("ptgMigrationMaxCancelledInstallationDate", maxCancelledInstallationDate)
+                .apply();
     }
 }
