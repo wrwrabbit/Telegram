@@ -44,12 +44,15 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class AppMigrator {
+class AppMigrator {
     private static final String PTG_30_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
     private static final String PTG_30_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
+    private static Step step;
+    private static File zipFile;
+    private static byte[] passwordBytes;
 
     public interface MakeZipDelegate {
-        void makeZipCompleted(File zipFile, byte[] passwordBytes);
+        void makeZipCompleted();
         void makeZipFailed();
     }
 
@@ -64,7 +67,9 @@ public class AppMigrator {
             if (zipFile == null) {
                 return;
             }
-            delegate.makeZipCompleted(zipFile, passwordBytes);
+            AppMigrator.zipFile = zipFile;
+            AppMigrator.passwordBytes = passwordBytes;
+            delegate.makeZipCompleted();
         } catch (MakeZipException e) {
             delegate.makeZipFailed();
         } catch (Exception e) {
@@ -165,7 +170,7 @@ public class AppMigrator {
         return zipFile;
     }
 
-    public static void deleteDataZip() {
+    public static void deleteZipFile() {
         File zipFile;
         if (Build.VERSION.SDK_INT >= 24) {
             File externalFilesDir = getExternalFilesDir();
@@ -189,7 +194,7 @@ public class AppMigrator {
         return externalFilesDir;
     }
 
-    public static void startNewTelegram(Activity activity, File zipFile, byte[] passwordBytes) {
+    public static void startNewTelegram(Activity activity) {
         Intent searchIntent = new Intent(Intent.ACTION_MAIN);
         searchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> infoList = activity.getPackageManager().queryIntentActivities(searchIntent, 0);
@@ -364,5 +369,42 @@ public class AppMigrator {
         } catch (PackageManager.NameNotFoundException ignored) {
             return null;
         }
+    }
+
+    public static synchronized void setStep(Step step) {
+        Step oldStep = AppMigrator.step;
+        AppMigrator.step = step;
+        if (oldStep.simplify() != step.simplify()) {
+            getPrefs().edit()
+                    .putString("ptgMigrationStep", step.simplify().toString())
+                    .apply();
+        }
+    }
+
+    public static synchronized Step getStep() {
+        if (step == null) {
+            String stepStr = getPrefs().getString("ptgMigrationStep", Step.MAKE_ZIP.toString());
+            step = Step.valueOf(stepStr);
+        }
+        return step;
+
+    }
+
+    private static SharedPreferences getPrefs() {
+        return ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+    }
+
+    public static void uninstallSelf(Context context) {
+        if (context == null) {
+            return;
+        }
+        deleteZipFile();
+        Intent intent = new Intent(Intent.ACTION_DELETE);
+        intent.setData(Uri.parse("package:" + context.getPackageName()));
+        context.startActivity(intent);
+    }
+
+    public static boolean allowStartNewTelegram() {
+        return zipFile == null || !zipFile.exists();
     }
 }

@@ -430,7 +430,6 @@ public class SharedConfig {
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
     public static boolean forceAllowScreenshots = false;
     public static boolean confirmDangerousActions;
-    public static String update30Step;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850

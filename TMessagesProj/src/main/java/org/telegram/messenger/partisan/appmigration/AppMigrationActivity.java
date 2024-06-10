@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.util.TypedValue;
@@ -18,7 +17,6 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -32,40 +30,11 @@ import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AppMigrationActivity extends BaseFragment implements AppMigrator.MakeZipDelegate {
-    enum Step {
-        MAKE_ZIP,
-        MAKE_ZIP_FAILED,
-        MAKE_ZIP_LOCKED,
-        MAKE_ZIP_COMPLETED,
-
-        UNINSTALL_SELF;
-
-        Step simplify() {
-            switch (this) {
-                case MAKE_ZIP:
-                case MAKE_ZIP_FAILED:
-                case MAKE_ZIP_LOCKED:
-                case MAKE_ZIP_COMPLETED:
-                default:
-                    return MAKE_ZIP;
-                case UNINSTALL_SELF:
-                    return UNINSTALL_SELF;
-            }
-        }
-    }
-
     RelativeLayout relativeLayout;
-
-    private Step step;
-
     private TextView titleTextView;
     private TextView descriptionText;
     private RadialProgressView progressBar;
     private TextView buttonTextView;
-
-    private File zipFile;
-    private byte[] passwordBytes;
-
     private boolean destroyed;
     private long spaceSizeNeeded;
 
@@ -83,7 +52,9 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         createProgressBar(context);
         createButton(context);
 
-        initStep();
+        if (AppMigrator.getStep() == Step.MAKE_ZIP) {
+            makeZip();
+        }
 
         new Thread(this::checkThread).start();
 
@@ -208,38 +179,23 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         buttonTextView.setOnClickListener(v -> buttonClicked());
     }
 
-    private void initStep() {
-        if (SharedConfig.update30Step == null) {
-            setStep(Step.MAKE_ZIP);
-            makeZip();
-        } else {
-            setStep(Step.valueOf(SharedConfig.update30Step));
-            if (step == Step.MAKE_ZIP) {
-                makeZip();
-            }
-        }
-
-    }
-
     @Override
     public void onFragmentDestroy() {
         destroyed = true;
         super.onFragmentDestroy();
     }
 
-    private synchronized void setStep(Step step) {
-        this.step = step;
-        SharedConfig.update30Step = step.toString();
-        SharedConfig.saveConfig();
+    private void setStep(Step step) {
+        AppMigrator.setStep(step);
         AndroidUtilities.runOnUIThread(this::updateUI);
     }
 
     private void updateUI() {
-        titleTextView.setText(getStepName(step));
+        titleTextView.setText(getStepName(AppMigrator.getStep()));
         descriptionText.setText(getStepDescription());
         buttonTextView.setText(getButtonName());
-        buttonTextView.setEnabled(getStepButtonEnabled(step));
-        progressBar.setVisibility(step == Step.MAKE_ZIP ? View.VISIBLE : View.GONE);
+        buttonTextView.setEnabled(getStepButtonEnabled(AppMigrator.getStep()));
+        progressBar.setVisibility(AppMigrator.getStep() == Step.MAKE_ZIP ? View.VISIBLE : View.GONE);
     }
 
     private static String getStepName(Step step) {
@@ -254,7 +210,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private String getStepDescription() {
-        switch (step) {
+        switch (AppMigrator.getStep()) {
             case MAKE_ZIP:
             default:
                 return LocaleController.getString(R.string.MakeDataDescription);
@@ -270,7 +226,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private String getButtonName() {
-        switch (step) {
+        switch (AppMigrator.getStep()) {
             default:
             case MAKE_ZIP:
             case MAKE_ZIP_COMPLETED:
@@ -295,26 +251,27 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private synchronized void buttonClicked() {
-        if (step == Step.MAKE_ZIP_FAILED) {
-            makeZip();
-        } else if (step == Step.MAKE_ZIP_COMPLETED) {
-            if (zipFile == null || !zipFile.exists()) {
+        switch (AppMigrator.getStep()) {
+            case MAKE_ZIP:
+            case MAKE_ZIP_FAILED:
                 makeZip();
-            } else {
-                AppMigrator.startNewTelegram(getParentActivity(), zipFile, passwordBytes);
-            }
-        } else if (step == Step.UNINSTALL_SELF) {
-            uninstallSelf();
+                break;
+            case MAKE_ZIP_COMPLETED:
+                if (AppMigrator.allowStartNewTelegram()) {
+                    AppMigrator.startNewTelegram(getParentActivity());
+                } else {
+                    makeZip();
+                }
+                break;
+            case UNINSTALL_SELF:
+                AppMigrator.uninstallSelf(getParentActivity());
+                break;
         }
     }
 
     @Override
-    public void makeZipCompleted(File zipFile, byte[] passwordBytes) {
-        AndroidUtilities.runOnUIThread(() -> {
-            this.zipFile = zipFile;
-            this.passwordBytes = passwordBytes;
-            setStep(Step.MAKE_ZIP_COMPLETED);
-        });
+    public void makeZipCompleted() {
+        AndroidUtilities.runOnUIThread(() -> setStep(Step.MAKE_ZIP_COMPLETED));
     }
 
     @Override
@@ -348,22 +305,12 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         }
     }
 
-    private void uninstallSelf() {
-        if (zipFile != null && zipFile.exists()) {
-            zipFile.delete();
-        }
-
-        Intent intent = new Intent(Intent.ACTION_DELETE);
-        intent.setData(Uri.parse("package:" + getParentActivity().getPackageName()));
-        getParentActivity().startActivity(intent);
-    }
-
     private void checkThread() {
         while (!destroyed) {
             try {
                 synchronized (this) {
                     long freeSize = getFreeMemorySize();
-                    if (step == Step.MAKE_ZIP_LOCKED) {
+                    if (AppMigrator.getStep() == Step.MAKE_ZIP_LOCKED) {
                         if (calculateZipSize() <= freeSize) {
                             makeZip();
                         }
@@ -392,10 +339,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private void installationFinished() {
-        AppMigrator.deleteDataZip();
-        if (zipFile != null && zipFile.exists()) {
-            zipFile.delete();
-        }
+        AppMigrator.deleteZipFile();
         setStep(Step.UNINSTALL_SELF);
     }
 
