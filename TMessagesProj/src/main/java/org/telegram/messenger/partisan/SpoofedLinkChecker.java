@@ -143,7 +143,7 @@ public class SpoofedLinkChecker {
         label = label.trim();
         String url = span.getURL();
         if (label.equals(url)) {
-            return true;
+            return false;
         }
 
         boolean isInternalActualLink = Browser.isInternalUrl(url, null);
