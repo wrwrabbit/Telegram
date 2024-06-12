@@ -19,7 +19,6 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserObject;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
 import org.telegram.tgnet.TLRPC;
@@ -43,6 +42,7 @@ import org.telegram.ui.DialogBuilder.DialogCheckBox;
 import org.telegram.ui.DialogBuilder.DialogTemplate;
 import org.telegram.ui.DialogBuilder.DialogType;
 import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
+import org.telegram.ui.RemoveChatsAction.items.Item;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,8 +56,8 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     private final FakePasscode fakePasscode;
     private final RemoveChatsAction action;
     int accountNum;
-    Collection<Long> dialogIds;
-    private final List<RemoveChatsAction.RemoveChatEntry> entries = new ArrayList<>();
+    private final Collection<Item> items;
+    private final List<RemoveChatsAction.RemoveChatEntry> removeChatEntries = new ArrayList<>();
     private final boolean isNew;
     private boolean changed;
 
@@ -78,20 +78,11 @@ public class RemoveChatSettingsFragment extends BaseFragment {
 
     private static final int done_button = 1;
 
-    public RemoveChatSettingsFragment(FakePasscode fakePasscode, RemoveChatsAction action, Collection<Long> dialogIds, int accountNum) {
+    public RemoveChatSettingsFragment(FakePasscode fakePasscode, RemoveChatsAction action, Collection<Item> items, int accountNum) {
         super();
         this.fakePasscode = fakePasscode;
         this.action = action;
-        this.dialogIds = new ArrayList<>(dialogIds);
-        this.isNew = dialogIds.stream().noneMatch(action::contains);
-        this.accountNum = accountNum;
-    }
-
-    public RemoveChatSettingsFragment(FakePasscode fakePasscode, RemoveChatsAction action, RemoveChatsAction.RemoveChatEntry entry, int accountNum) {
-        super();
-        this.fakePasscode = fakePasscode;
-        this.action = action;
-        this.entries.add(entry);
+        this.items = items;
         this.isNew = false;
         this.accountNum = accountNum;
     }
@@ -169,7 +160,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 if (hasHideDialog()) {
                     changed = true;
                 }
-                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                     entry.isExitFromChat = true;
                     entry.strictHiding = false;
                 }
@@ -179,7 +170,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 changed = true;
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
-                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                     entry.isDeleteFromCompanion = !checked;
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
@@ -187,7 +178,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 changed = true;
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
-                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                     entry.isDeleteNewMessages = !checked;
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
@@ -195,7 +186,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 changed = true;
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
-                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                     entry.isClearChat = !checked;
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
@@ -207,7 +198,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 if (hasDeleteDialog()) {
                     changed = true;
                 }
-                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                     entry.isExitFromChat = false;
                     entry.isClearChat = false;
                     entry.isDeleteFromCompanion = false;
@@ -219,7 +210,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 changed = true;
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
-                for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+                for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                     entry.strictHiding = !checked;
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
@@ -310,31 +301,18 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     }
 
     private void initEntries() {
-        if (dialogIds == null) {
+        if (items == null) {
             return;
         }
 
-        for (Long id : dialogIds) {
+        for (Item item : items) {
+            long id = item.getId();
             if (action.contains(id)) {
-                entries.add(action.get(id).copy());
+                removeChatEntries.add(action.get(id).copy());
             } else {
-                String title = getUserConfig().getChatTitleOverride(id);
-                if (title == null) {
-                    if (DialogObject.isUserDialog(id)) {
-                        title = UserObject.getUserName(getMessagesController().getUser(id), getCurrentAccount());
-                    } else if (DialogObject.isEncryptedDialog(id)) {
-                        TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(id));
-                        TLRPC.User user = getMessagesController().getUser(encryptedChat.user_id);
-                        title = UserObject.getUserName(user, getCurrentAccount());
-                    } else if (DialogObject.isChatDialog(id)) {
-                        title = getMessagesController().getChat(-id).title;
-                    } else {
-                        title = "";
-                    }
-                }
-                boolean isExitFromChat = !fakePasscode.passwordlessMode
-                        || id == getUserConfig().clientUserId;
-                entries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat));
+                String title = item.getDisplayName().toString();
+                boolean isExitFromChat = !fakePasscode.passwordlessMode || id == getUserConfig().clientUserId;
+                removeChatEntries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat));
             }
         }
     }
@@ -350,7 +328,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
             AlertDialog alertDialog = builder.create();
             showDialog(alertDialog);
         } else {
-            for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+            for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
                 action.remove(entry.chatId);
                 action.add(entry);
                 SharedConfig.saveConfig();
@@ -360,15 +338,15 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     }
 
     private boolean hasUsers() {
-        return entries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isUserDialog);
+        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isUserDialog);
     }
 
     private boolean hasEncryptedChats() {
-        return entries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isEncryptedDialog);
+        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isEncryptedDialog);
     }
 
     private boolean hasChats() {
-        return entries.stream().map(e -> (long)e.chatId).anyMatch(did -> {
+        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(did -> {
             if (!DialogObject.isChatDialog(did)) {
                 return false;
             }
@@ -378,15 +356,15 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     }
 
     private boolean hasSavedMessages() {
-        return entries.stream().anyMatch(e -> e.chatId == getUserConfig().clientUserId);
+        return removeChatEntries.stream().anyMatch(e -> e.chatId == getUserConfig().clientUserId);
     }
 
     private boolean hasOnlySavedMessages() {
-        return entries.size() == 1 && entries.get(0).chatId == getUserConfig().clientUserId;
+        return removeChatEntries.size() == 1 && removeChatEntries.get(0).chatId == getUserConfig().clientUserId;
     }
 
     private boolean hasDeleteDialog() {
-        for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+        for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
             if (entry.isExitFromChat) {
                 return true;
             }
@@ -395,7 +373,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     }
 
     private boolean hasHideDialog() {
-        for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+        for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
             if (!entry.isExitFromChat) {
                 return true;
             }
@@ -442,7 +420,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
 
     private CheckBoxSquareThreeState.State getState(Function<RemoveChatsAction.RemoveChatEntry, Boolean> getValue) {
         CheckBoxSquareThreeState.State state = null;
-        for (RemoveChatsAction.RemoveChatEntry entry : entries) {
+        for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
             CheckBoxSquareThreeState.State newState = getValue.apply(entry)
                     ? CheckBoxSquareThreeState.State.CHECKED
                     : CheckBoxSquareThreeState.State.UNCHECKED;

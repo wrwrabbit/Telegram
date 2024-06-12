@@ -143,11 +143,19 @@ public class DialogsChannelsAdapter extends UniversalAdapter {
             }
             if (!messages.isEmpty()) {
                 items.add(UItem.asGraySection(getString(R.string.SearchMessages)));
+                boolean anyMessageAdded = false;
                 for (MessageObject message : messages) {
-                    items.add(UItem.asSearchMessage(message));
+                    if (!FakePasscodeUtils.isHideMessage(currentAccount, message.getDialogId(), message.getId())) {
+                        anyMessageAdded = true;
+                        items.add(UItem.asSearchMessage(message));
+                    }
                 }
-                if (hasMore) {
-                    items.add(UItem.asFlicker(FlickerLoadingView.DIALOG_TYPE));
+                if (anyMessageAdded) {
+                    if (hasMore) {
+                        items.add(UItem.asFlicker(FlickerLoadingView.DIALOG_TYPE));
+                    }
+                } else {
+                    items.remove(items.size() - 1); // Remove "Messages" section
                 }
             }
         }
