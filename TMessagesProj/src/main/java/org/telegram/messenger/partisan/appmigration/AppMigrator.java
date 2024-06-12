@@ -349,7 +349,7 @@ public class AppMigrator {
     }
 
     public static synchronized void setStep(Step step) {
-        Step oldStep = AppMigrator.step;
+        Step oldStep = getStep(); // initialize old step if not initialized
         AppMigrator.step = step;
         if (oldStep.simplify() != step.simplify()) {
             getPrefs().edit()
