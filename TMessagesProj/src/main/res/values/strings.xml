@@ -9232,4 +9232,7 @@
     <string name="Step4">Step 4</string>
     <string name="UninstallSelfDescription">Telegram updated to version 3.0. Make sure that all data has been transferred to the new application. Then uninstall the old app.</string>
     <string name="UninstallSelf">Uninstall Old PTelegram</string>
+
+    <string name="ConnectionDisabledTitle">Connection is Disabled</string>
+    <string name="ConnectionDisabledMessage">Your data has been transferred to another app and connection in current app is disabled. Turn it on only if there are problems with the new version of the app.</string>
 </resources>

@@ -225,6 +225,11 @@ public class AppMigrator {
         }
     }
 
+    public static boolean isConnectionDisabled() {
+        return SharedConfig.isProxyEnabled()
+                && isProxyForDisablingConnection(SharedConfig.currentProxy);
+    }
+
     public static void enableConnection() {
         for (SharedConfig.ProxyInfo proxyInfo : SharedConfig.proxyList) {
             if (isProxyForDisablingConnection(proxyInfo)) {
@@ -234,11 +239,11 @@ public class AppMigrator {
     }
 
     private static boolean isProxyForDisablingConnection(SharedConfig.ProxyInfo proxyInfo) {
-        return "127.0.0.1".equals(proxyInfo.address) && proxyInfo.port == 1080;
+        return "127.0.0.1".equals(proxyInfo.address) && proxyInfo.port == -1;
     }
 
     public static void disableConnection() {
-        SharedConfig.ProxyInfo proxyInfo = new SharedConfig.ProxyInfo("127.0.0.1", 1080, "", "", "");
+        SharedConfig.ProxyInfo proxyInfo = new SharedConfig.ProxyInfo("127.0.0.1", -1, "", "", "");
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         SharedConfig.addProxy(proxyInfo);

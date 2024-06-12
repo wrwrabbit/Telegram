@@ -6703,7 +6703,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         getNotificationsController().showNotifications();
                         updatePasscodeButton();
                     } else if (id == 2) {
-                        presentFragment(new ProxyListActivity());
+                        AlertsCreator.showConnectionDisabledDialogIfNeed(DialogsActivity.this, () -> {
+                            presentFragment(new ProxyListActivity());
+                        });
                     } else if (id == 3) {
                         showSearch(true, true, true);
                         actionBar.openSearchField(true);

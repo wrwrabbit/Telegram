@@ -7486,7 +7486,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 if (lastFragment instanceof ProxyListActivity || lastFragment instanceof ProxySettingsActivity) {
                     return;
                 }
-                presentFragment(new ProxyListActivity());
+                AlertsCreator.showConnectionDisabledDialogIfNeed(getLastFragment(), () -> {
+                    presentFragment(new ProxyListActivity());
+                });
             };
         }
         actionBarLayout.setTitleOverlayText(title, titleId, action);

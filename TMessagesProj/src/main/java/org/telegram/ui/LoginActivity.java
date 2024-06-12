@@ -807,7 +807,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
         proxyButtonView = new ImageView(context);
         proxyButtonView.setImageDrawable(proxyDrawable = new ProxyDrawable(context));
-        proxyButtonView.setOnClickListener(v -> presentFragment(new ProxyListActivity()));
+        proxyButtonView.setOnClickListener(v -> AlertsCreator.showConnectionDisabledDialogIfNeed(this, () -> presentFragment(new ProxyListActivity())));
         proxyButtonView.setAlpha(0f);
         proxyButtonView.setVisibility(View.GONE);
         sizeNotifierFrameLayout.addView(proxyButtonView, LayoutHelper.createFrame(32, 32, Gravity.RIGHT | Gravity.TOP, 16, 16, 16, 16));
