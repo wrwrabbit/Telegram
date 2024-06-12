@@ -57,6 +57,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         }
 
         new Thread(this::checkThread).start();
+        updateUI();
 
         return fragmentView;
     }
