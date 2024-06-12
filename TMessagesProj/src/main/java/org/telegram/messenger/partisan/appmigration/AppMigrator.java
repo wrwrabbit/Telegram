@@ -381,7 +381,7 @@ public class AppMigrator {
     }
 
     public static boolean allowStartNewTelegram() {
-        return zipFile == null || !zipFile.exists();
+        return zipFile != null && zipFile.exists();
     }
 
     private static synchronized long getMaxCancelledInstallationDate() {
