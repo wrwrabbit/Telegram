@@ -87,7 +87,13 @@ public class SpoofedLinkChecker {
             return null;
         }
         ChatMessageCell cell = tryGetObjectFieldBySuffix(progress, "cell", ChatMessageCell.class);
-        return cell != null ? cell.getMessageObject() : null;
+        if (cell == null) {
+            return null;
+        } else if (cell.getCurrentMessagesGroup() != null) {
+            return cell.getCurrentMessagesGroup().captionMessage;
+        } else {
+            return cell.getMessageObject();
+        }
     }
 
     private static <T> T tryGetObjectFieldBySuffix(Object object, String suffix, Class<T> kind) {
