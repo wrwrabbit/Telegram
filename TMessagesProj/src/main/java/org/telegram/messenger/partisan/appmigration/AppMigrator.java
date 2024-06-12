@@ -1,5 +1,6 @@
 package org.telegram.messenger.partisan.appmigration;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +11,9 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import org.telegram.messenger.ApplicationLoader;
@@ -79,7 +82,7 @@ public class AppMigrator {
     }
 
     private static Uri fileToUri(File file, Activity activity) {
-        if (Build.VERSION.SDK_INT >= 24) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             return FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", file);
         } else {
             return Uri.fromFile(file);
@@ -139,7 +142,7 @@ public class AppMigrator {
         }
 
         File zipFile;
-        if (Build.VERSION.SDK_INT >= 24) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             zipFile = new File(externalFilesDir, "data.zip");
         } else {
             zipFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_DOCUMENT), "data.zip");
@@ -172,7 +175,7 @@ public class AppMigrator {
 
     public static void deleteZipFile() {
         File zipFile;
-        if (Build.VERSION.SDK_INT >= 24) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             File externalFilesDir = getExternalFilesDir();
             if (externalFilesDir == null) {
                 return;
@@ -331,7 +334,7 @@ public class AppMigrator {
         if (packageInfo == null) {
             return null;
         }
-        if (Build.VERSION.SDK_INT >= 28) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             return packageInfo.signingInfo.getApkContentsSigners();
         } else {
             return packageInfo.signatures;
@@ -340,7 +343,7 @@ public class AppMigrator {
 
     private static PackageInfo getPackageInfoWithCertificates(Context context, String packageName) {
         int flags;
-        if (Build.VERSION.SDK_INT >= 28) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             flags = PackageManager.GET_SIGNING_CERTIFICATES;
         } else {
             flags = PackageManager.GET_SIGNATURES;
@@ -380,8 +383,11 @@ public class AppMigrator {
             return;
         }
         deleteZipFile();
-        Intent intent = new Intent(Intent.ACTION_DELETE);
-        intent.setData(Uri.parse("package:" + context.getPackageName()));
+        // we will show the system app settings if the app doesn't have the permission
+        boolean deletionAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.REQUEST_DELETE_PACKAGES) == PackageManager.PERMISSION_GRANTED;
+        Intent intent = new Intent(deletionAllowed ? Intent.ACTION_DELETE : Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.fromParts("package", context.getPackageName(), null));
         context.startActivity(intent);
     }
 
