@@ -14,7 +14,7 @@ jobs:
         run: docker run --rm -v "$PWD":/home/source telegram-build #--cpus="3.5" -m 6000M telegram-build
       - name: Print Hash
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: sha256sum TMessagesProj/build/outputs/apk/afat/beta/app.apk
+        run: sha256sum TMessagesProj/build/outputs/apk/afat/debug/app.apk
       - name: Save artifact
         uses: actions/upload-artifact@master
         with:
