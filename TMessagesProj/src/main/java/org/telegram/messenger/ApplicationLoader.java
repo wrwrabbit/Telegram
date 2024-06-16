@@ -54,7 +54,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class ApplicationLoader extends Application {
 
@@ -139,6 +141,7 @@ public class ApplicationLoader extends Application {
         return applicationLoaderInstance.isHuaweiBuild();
     }
 
+    // This method actually returns whether the application should look like a standalone app
     public static boolean isStandaloneBuild() {
         return applicationLoaderInstance.isStandalone();
     }
@@ -153,9 +156,15 @@ public class ApplicationLoader extends Application {
             return true;
         }
         if (standaloneApp == null) {
-            standaloneApp = ApplicationLoader.applicationContext != null && ("org.telegram.messenger.web".equals(ApplicationLoader.applicationContext.getPackageName()) || "org.telegram.messenger.alpha".equals(ApplicationLoader.applicationContext.getPackageName()));
+            standaloneApp = ApplicationLoader.applicationContext != null && isRealBuildStandaloneBuild();
         }
         return standaloneApp;
+    }
+
+    public static boolean isRealBuildStandaloneBuild() {
+        List<String> standalonePackageNames = Arrays.asList("org.telegram.messenger.web", "org.telegram.messenger.alpha");
+        String appPackageName = ApplicationLoader.applicationContext.getPackageName();
+        return standalonePackageNames.stream().anyMatch(name -> name.equals(appPackageName));
     }
 
     public static File getFilesDirFixed() {

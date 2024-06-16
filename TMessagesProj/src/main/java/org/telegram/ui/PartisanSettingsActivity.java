@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -368,8 +369,13 @@ public class PartisanSettingsActivity extends BaseFragment {
         showCallButtonDetailRow = rowCount++;
         isDeleteMessagesForAllByDefaultRow = rowCount++;
         isDeleteMessagesForAllByDefaultDetailRow = rowCount++;
-        marketIconsRow = rowCount++;
-        marketIconsDetailRow = rowCount++;
+        if (ApplicationLoader.isRealBuildStandaloneBuild()) {
+            marketIconsRow = rowCount++;
+            marketIconsDetailRow = rowCount++;
+        } else {
+            marketIconsRow = -1;
+            marketIconsDetailRow = -1;
+        }
         verifiedRow = rowCount++;
         verifiedDetailRow = rowCount++;
         confirmDangerousActionRow = rowCount++;
