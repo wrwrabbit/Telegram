@@ -7292,7 +7292,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.UpdateCompletedTitle));
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UpdateCompletedMessage)));
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) -> {
+        builder.setNegativeButton(LocaleController.getString(R.string.OK), (dlg, which) -> {
             SharedConfig.runNumber = 1;
             SharedConfig.saveConfig();
             dlg.dismiss();
@@ -7310,7 +7310,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         AlertDialog dialog = builder.create();
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
-        DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.Cancel), 10,
+        DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 10,
                 (dlg, which) -> dlg.dismiss());
         dialog.show();
     }
