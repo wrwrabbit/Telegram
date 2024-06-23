@@ -818,7 +818,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                     }
                     ChatRemoveCell cell = (ChatRemoveCell) holder.itemView;
                     Item item = getItem(position);
-                    cell.setItemSelected(selectedItems.contains(item.getId()));
+                    cell.setItemSelected(selectedItems.contains(item));
                     cell.setOnSettingsClick(this::editChatToRemove);
                     cell.setItem(item);
                     cell.setChecked(action.contains(item.getId()), false);
