@@ -1,5 +1,6 @@
 package org.telegram.messenger.partisan.update;
 
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
@@ -15,7 +16,6 @@ import java.util.regex.Pattern;
 
 class UpdateMessageParser {
     private final Pattern VERSION_REGEX = Pattern.compile("(\\d+).(\\d+).(\\d+)");
-    private final String TARGET_FILE_NAME = "PTelegram.apk";
     private UpdateData currentUpdate;
     private MessageObject currentMessage;
     private String lang = "en";
@@ -98,7 +98,11 @@ class UpdateMessageParser {
     private boolean isTargetDocument(TLRPC.Document document) {
         return document != null
                 && document.file_name_fixed != null
-                && document.file_name_fixed.equals(TARGET_FILE_NAME);
+                && document.file_name_fixed.equals(getTargetFileName());
+    }
+
+    private String getTargetFileName() {
+        return ApplicationLoader.isRealBuildStandaloneBuild() ? "PTelegram.apk" : "PTelegram_GooglePlay.apk";
     }
 
     private UpdateData tryParseText(CharSequence text) {
