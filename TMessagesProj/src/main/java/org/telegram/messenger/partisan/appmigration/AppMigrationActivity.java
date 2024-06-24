@@ -51,7 +51,9 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         createTitleTextView(context);
         createProgressBar(context);
         createButton(context);
-
+        if (AppMigrator.getStep() == Step.NOT_STARTED) {
+            AppMigrator.setStep(Step.MAKE_ZIP);
+        }
         if (AppMigrator.getStep() == Step.MAKE_ZIP) {
             makeZip();
         }

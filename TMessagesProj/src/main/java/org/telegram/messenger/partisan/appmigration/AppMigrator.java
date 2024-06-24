@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -300,6 +301,9 @@ public class AppMigrator {
     }
 
     private static List<PackageInfo> getOtherPartisanTelegramPackages(Context context) {
+        if (context == null) {
+            return Collections.emptyList();
+        }
         String[] packageNames = {"org.telegram.messenger.alpha", "org.telegram.messenger.beta", "org.telegram.messenger.web", "org.telegram.messenger"};
         List<PackageInfo> result = new ArrayList<>();
         for (String packageName : packageNames) {
@@ -370,10 +374,14 @@ public class AppMigrator {
 
     public static synchronized Step getStep() {
         if (step == null) {
-            String stepStr = getPrefs().getString("ptgMigrationStep", Step.MAKE_ZIP.toString());
+            String stepStr = getPrefs().getString("ptgMigrationStep", Step.NOT_STARTED.toString());
             step = Step.valueOf(stepStr);
         }
         return step;
+    }
+
+    public static boolean isMigrationStarted() {
+        return getStep() != Step.NOT_STARTED;
     }
 
     private static SharedPreferences getPrefs() {

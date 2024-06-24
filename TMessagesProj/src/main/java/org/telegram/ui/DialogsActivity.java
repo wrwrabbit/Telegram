@@ -7316,9 +7316,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkNewerOtherPtg() {
-        boolean isNewerPtgInstalled = getParentActivity() != null
-                && AppMigrator.isNewerPtgInstalled(getParentActivity(), true);
-        if (isNewerPtgInstalled) {
+        if (!AppMigrator.isMigrationStarted() && AppMigrator.isNewerPtgInstalled(getParentActivity(), true)) {
             showNewerPtgInstalledDialog();
         }
     }
@@ -7383,6 +7381,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
         dialog.show();
+    }
+
+    @Override
+    public void onActivityResumed() {
+        if (AppMigrator.isMigrationStarted()) {
+            AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
+        }
     }
 
     @Override
