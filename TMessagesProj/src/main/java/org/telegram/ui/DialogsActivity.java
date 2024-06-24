@@ -7317,7 +7317,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private void checkNewerOtherPtg() {
         boolean isNewerPtgInstalled = getParentActivity() != null
-                && AppMigrator.isNewerPtgInstalled(getParentActivity());
+                && AppMigrator.isNewerPtgInstalled(getParentActivity(), true);
         if (isNewerPtgInstalled) {
             showNewerPtgInstalledDialog();
         }

@@ -26,6 +26,8 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
+import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.verification.VerificationRepository;
 import org.telegram.messenger.partisan.verification.VerificationStorage;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -60,6 +62,8 @@ public class PartisanSettingsActivity extends BaseFragment {
 
     private int rowCount;
 
+    private int transferDataToOtherPtgRow;
+    private int transferDataToOtherPtgDetailRow;
     private int versionRow;
     private int versionDetailRow;
     private int idRow;
@@ -184,7 +188,9 @@ public class PartisanSettingsActivity extends BaseFragment {
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter = new ListAdapter(context));
         listView.setOnItemClickListener((view, position, x, y) -> {
-            if (position == versionRow) {
+            if (position == transferDataToOtherPtgRow) {
+                presentFragment(new AppMigrationActivity());
+            } else if (position == versionRow) {
                 SharedConfig.showVersion = !SharedConfig.showVersion;
                 SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.showVersion);
@@ -343,6 +349,14 @@ public class PartisanSettingsActivity extends BaseFragment {
     private void updateRows() {
         rowCount = 0;
 
+        if (AppMigrator.isNewerPtgInstalled(ApplicationLoader.applicationContext, false)) {
+            transferDataToOtherPtgRow = rowCount++;
+            transferDataToOtherPtgDetailRow = rowCount++;
+        } else {
+            transferDataToOtherPtgRow = -1;
+            transferDataToOtherPtgDetailRow = -1;
+        }
+
         versionRow = rowCount++;
         versionDetailRow = rowCount++;
         idRow = rowCount++;
@@ -408,9 +422,10 @@ public class PartisanSettingsActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position != versionDetailRow && position != idDetailRow && position != disableAvatarDetailRow
-                    && position != renameChatDetailRow && position != deleteMyMessagesDetailRow && position != deleteAfterReadDetailRow
-                    && position != savedChannelsDetailRow && position != reactionsDetailRow && position != foreignAgentsDetailRow
+            return position != transferDataToOtherPtgDetailRow && position != versionDetailRow && position != idDetailRow
+                    && position != disableAvatarDetailRow && position != renameChatDetailRow && position != deleteMyMessagesDetailRow
+                    && position != deleteAfterReadDetailRow && position != savedChannelsDetailRow
+                    && position != reactionsDetailRow && position != foreignAgentsDetailRow
                     && position != onScreenLockActionDetailRow && position != isClearAllDraftsOnScreenLockDetailRow
                     && position != showCallButtonDetailRow && position != isDeleteMessagesForAllByDefaultDetailRow
                     && position != marketIconsDetailRow && position!= confirmDangerousActionDetailRow;
@@ -498,7 +513,10 @@ public class PartisanSettingsActivity extends BaseFragment {
                 }
                 case 1: {
                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
-                    if (position == versionDetailRow) {
+                    if (position == transferDataToOtherPtgDetailRow) {
+                        cell.setText(LocaleController.getString(R.string.TransferDataToOtherPtgInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == versionDetailRow) {
                         cell.setText(LocaleController.getString("ShowVersionInfo", R.string.ShowVersionInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == idDetailRow) {
@@ -551,8 +569,10 @@ public class PartisanSettingsActivity extends BaseFragment {
                 }
                 case 2: {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
-                    String value = null;
-                    if (position == onScreenLockActionRow) {
+                    if (position == transferDataToOtherPtgRow) {
+                        textCell.setText(LocaleController.getString(R.string.TransferDataToAnotherPtgButton), true);
+                    } else if (position == onScreenLockActionRow) {
+                        String value = null;
                         switch (SharedConfig.onScreenLockAction) {
                             case 0:
                                 value = LocaleController.getString("OnScreenLockActionNothing", R.string.OnScreenLockActionNothing);
@@ -564,7 +584,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                                 value = LocaleController.getString("OnScreenLockActionClose", R.string.OnScreenLockActionClose);
                                 break;
                         }
-                        textCell.setTextAndValue(LocaleController.getString("OnScreenLockActionTitle", R.string.OnScreenLockActionTitle), value, true);
+                        textCell.setTextAndValue(LocaleController.getString(R.string.OnScreenLockActionTitle), value, true);
                     }
                     break;
                 }
@@ -589,14 +609,15 @@ public class PartisanSettingsActivity extends BaseFragment {
                     || position == isClearAllDraftsOnScreenLockRow || position == showCallButtonRow
                     || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow || position == confirmDangerousActionRow) {
                 return 0;
-            } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
-                    || position == renameChatDetailRow || position == deleteMyMessagesDetailRow || position == deleteAfterReadDetailRow
-                    || position == savedChannelsDetailRow || position == reactionsDetailRow || position == foreignAgentsDetailRow
-                    || position == onScreenLockActionDetailRow || position == isClearAllDraftsOnScreenLockDetailRow
-                    || position == showCallButtonDetailRow || position == isDeleteMessagesForAllByDefaultDetailRow
-                    || position == marketIconsDetailRow || position == verifiedDetailRow || position == confirmDangerousActionDetailRow) {
+            } else if (position == transferDataToOtherPtgDetailRow || position == versionDetailRow || position == idDetailRow
+                    || position == disableAvatarDetailRow || position == renameChatDetailRow || position == deleteMyMessagesDetailRow
+                    || position == deleteAfterReadDetailRow || position == savedChannelsDetailRow || position == reactionsDetailRow
+                    || position == foreignAgentsDetailRow || position == onScreenLockActionDetailRow
+                    || position == isClearAllDraftsOnScreenLockDetailRow || position == showCallButtonDetailRow
+                    || position == isDeleteMessagesForAllByDefaultDetailRow|| position == marketIconsDetailRow
+                    || position == verifiedDetailRow || position == confirmDangerousActionDetailRow) {
                 return 1;
-            } else if (position == onScreenLockActionRow) {
+            } else if (position == transferDataToOtherPtgRow || position == onScreenLockActionRow) {
                 return 2;
             } else if (position == verifiedRow) {
                 return 3;

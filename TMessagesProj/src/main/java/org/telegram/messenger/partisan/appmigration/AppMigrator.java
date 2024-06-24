@@ -201,7 +201,7 @@ public class AppMigrator {
         Intent searchIntent = new Intent(Intent.ACTION_MAIN);
         searchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> infoList = activity.getPackageManager().queryIntentActivities(searchIntent, 0);
-        PackageInfo newestPackage = AppMigrator.getNewestUncheckedPtgPackage(activity);
+        PackageInfo newestPackage = AppMigrator.getNewestUncheckedPtgPackage(activity, false);
         for (ResolveInfo info : infoList) {
             if (info.activityInfo.packageName.equals(newestPackage.packageName)) {
                 disableConnection();
@@ -264,20 +264,22 @@ public class AppMigrator {
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 
-    public static boolean isNewerPtgInstalled(Context context) {
-        return getNewestUncheckedPtgPackage(context) != null;
+    public static boolean isNewerPtgInstalled(Context context, boolean checkCancelledDate) {
+        return getNewestUncheckedPtgPackage(context, checkCancelledDate) != null;
     }
 
-    private static PackageInfo getNewestUncheckedPtgPackage(Context context) {
+    private static PackageInfo getNewestUncheckedPtgPackage(Context context, boolean checkCancelledDate) {
         return getOtherPartisanTelegramPackages(context).stream()
-                .filter(p -> needCheckPackage(p, context))
+                .filter(p -> needCheckPackage(p, context, checkCancelledDate))
                 .max(Comparator.comparing(p -> p.firstInstallTime))
                 .orElse(null);
     }
 
-    private static boolean needCheckPackage(PackageInfo packageInfo, Context context) {
+    private static boolean needCheckPackage(PackageInfo packageInfo, Context context, boolean checkCancelledDate) {
         PackageInfo selfPackage = getSelfPackageInfo(context);
-        long checkTimeMin = Math.max(selfPackage.firstInstallTime, getMaxCancelledInstallationDate());
+        long checkTimeMin = checkCancelledDate
+                ? Math.max(selfPackage.firstInstallTime, getMaxCancelledInstallationDate())
+                : selfPackage.firstInstallTime;
         return packageInfo.firstInstallTime > checkTimeMin;
     }
 

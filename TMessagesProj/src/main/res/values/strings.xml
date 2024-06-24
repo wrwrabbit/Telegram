@@ -9193,28 +9193,24 @@
     <string name="CantChangePhoneNumberDescription">Partisan Telegram can\'t change your phone number. Use the official app for this.</string>
     <string name="SpoofedLinkTitle">⚠️ Spoofed Link</string>
     <string name="SpoofedLinkDescription">The link shows up as %1$s but points to %2$s.</string>
-
     <string name="OtherPTelegramAlertTitle">Other PTelegram Detected</string>
     <string name="OtherPTelegramAlert">Do you want to transfer all the data from this PTelegram to the new app?</string>
-
     <string name="UpdaterActivityTitle">Update</string>
     <string name="NoSpaceForStep">Your device does not have enough space. Before starting, make sure you have at least %.2f MB free.</string>
-
     <string name="TransferringFilesStep">Transferring Files</string>
     <string name="ZipPreparingDescription">PTelegram prepares data for transfer to another of the app. Wait for the end and then tap on the button \"%1$s\".</string>
     <string name="ZipPreparedDescription">Everything is ready to continue. Tap on the \"%1$s\" button.</string>
-    <string name="ZipPreparationFailedDescription">Failed to prepare data to transfering. Perhaps there is not enough space on the device. Fix it and tap \"%1$s\".</string>
+    <string name="ZipPreparationFailedDescription">Failed to prepare data to transferring. Perhaps there is not enough space on the device. Fix it and tap \"%1$s\".</string>
     <string name="TransferFilesToAnotherTelegramButton">Copy Files to Another PTelegram</string>
-
     <string name="UninstallSelfStep">Uninstall This PTelegram</string>
     <string name="UninstallSelfDescription">PTelegram has been updated to another version. Make sure that the new application works correctly. Then uninstall the old app manually or tap on the button below to open the app\'s system settings.</string>
     <string name="UninstallSelf">Uninstall This PTelegram</string>
-
     <string name="ConnectionDisabledTitle">Connection is Disabled</string>
     <string name="ConnectionDisabledMessage">Your data has been transferred to another app and connection in current app is disabled. Turn it on only if there are problems with the new version of the app.</string>
-
     <string name="UpdateCompletedTitle">PTelegram updated</string>
     <string name="UpdateCompletedMessage">Application data has been migrated successfully. Check it out and uninstall the old app. **Do not log out on the old app as this will log you out on both apps.**</string>
     <string name="OldAppNotRemovedTitle">Old PTelegram Not Removed</string>
     <string name="OldAppNotRemovedMessage">To continue using this version of the app, you must uninstall the old app. **Do not log out of your old app as this will log you out of both apps**</string>
+    <string name="TransferDataToAnotherPtgButton">Transfer Data To Another App</string>
+    <string name="TransferDataToOtherPtgInfo">You installed a different version of Partisan Telegram. Click the button if you want to transfer data.</string>
 </resources>
