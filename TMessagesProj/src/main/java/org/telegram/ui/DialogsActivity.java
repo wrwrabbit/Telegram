@@ -7325,8 +7325,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private void showNewerPtgInstalledDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString(R.string.NewVersion30AlertTitle));
-        builder.setMessage(LocaleController.getString(R.string.NewVersion30Alert));
+        builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));
+        builder.setMessage(LocaleController.getString(R.string.OtherPTelegramAlert));
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) ->
                 AppMigrator.updateMaxCancelledInstallationDate());
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->

@@ -234,4 +234,28 @@
     <string name="CantChangePhoneNumberDescription">Партизанский Телеграм не может изменить Ваш номер телефона. Воспользуйтесь официальным приложением для этого.</string>
     <string name="SpoofedLinkTitle">⚠️ Поддельная ссылка</string>
     <string name="SpoofedLinkDescription">Ссылка выглядит как %1$s, но ведёт на %2$s.</string>
+
+    <string name="OtherPTelegramAlertTitle">Обнаружена другая PTelegram</string>
+    <string name="OtherPTelegramAlert">Хотите перенести все данные из этой версии PTelegram в новое приложение?</string>
+
+    <string name="UpdaterActivityTitle">Обновление</string>
+    <string name="NoSpaceForStep">На вашем устройстве недостаточно места. Прежде чем начать, убедитесь, что у вас свободно хотя бы %.2f МБ.</string>
+
+    <string name="TransferringFilesStep">Перенос файлов</string>
+    <string name="ZipPreparingDescription">PTelegram подготавливает данные для переноса в другое приложение. Дождитесь окончания и нажмите кнопку \"%1$s\".</string>
+    <string name="ZipPreparedDescription">Все готово для продолжения. Нажмите кнопку \"%1$s\".</string>
+    <string name="ZipPreparationFailedDescription">Не удалось подготовить данные для переноса. Возможно, на устройстве недостаточно места. Исправьте это и нажмите "%1$s".</string>
+    <string name="TransferFilesToAnotherTelegramButton">Перенести файлы в другой PTelegram</string>
+
+    <string name="UninstallSelfStep">Удалить этот PTelegram</string>
+    <string name="UninstallSelfDescription">PTelegram обновлен до другой версии. Убедитесь, что новое приложение работает корректно. Затем удалите старое приложение вручную или нажмите кнопку ниже, чтобы открыть системные настройки приложения.</string>
+    <string name="UninstallSelf">Удалить эту PTelegram</string>
+
+    <string name="ConnectionDisabledTitle">Соединение отключено</string>
+    <string name="ConnectionDisabledMessage">Ваши данные были перенесены в другое приложение, а соединение в текущем приложении отключено. Включайте его только в случае проблем с новой версией приложения.</string>
+
+    <string name="UpdateCompletedTitle">PTelegram обновлен</string>
+    <string name="UpdateCompletedMessage">Данные приложения успешно перенесены. Проверьте это и удалите старое приложение. **Не выходите из старого приложения, поскольку это приведет к выходу из обоих приложений.**</string>
+    <string name="OldAppNotRemovedTitle">Старая PTelegram не удалена</string>
+    <string name="OldAppNotRemovedMessage">Чтобы продолжить использование этой версии приложения, необходимо удалить старое приложение. **Не выходите из старого приложения, поскольку это приведет к выходу из обоих приложений**</string>
 </resources>

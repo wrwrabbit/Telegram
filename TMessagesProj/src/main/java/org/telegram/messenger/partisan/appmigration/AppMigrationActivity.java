@@ -79,7 +79,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
 
-        actionBar.setTitle(LocaleController.getString(R.string.Updater30ActivityTitle));
+        actionBar.setTitle(LocaleController.getString(R.string.UpdaterActivityTitle));
         frameLayout.setTag(Theme.key_windowBackgroundGray);
         frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
     }
@@ -202,9 +202,9 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     private static String getStepName(Step step) {
         Step simplifiedStep = step.simplify();
         if (simplifiedStep == Step.MAKE_ZIP) {
-            return LocaleController.getString(R.string.Step3);
+            return LocaleController.getString(R.string.TransferringFilesStep);
         } else if (simplifiedStep == Step.UNINSTALL_SELF) {
-            return LocaleController.getString(R.string.Step4);
+            return LocaleController.getString(R.string.UninstallSelfStep);
         } else {
             return null;
         }
@@ -214,11 +214,11 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         switch (AppMigrator.getStep()) {
             case MAKE_ZIP:
             default:
-                return LocaleController.getString(R.string.MakeDataDescription);
+                return LocaleController.formatString(R.string.ZipPreparingDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
             case MAKE_ZIP_FAILED:
-                return LocaleController.getString(R.string.MakeDataFailedDescription);
+                return LocaleController.formatString(R.string.ZipPreparationFailedDescription, LocaleController.getString(R.string.Retry));
             case MAKE_ZIP_COMPLETED:
-                return LocaleController.getString(R.string.MakeDataCompleteDescription);
+                return LocaleController.formatString(R.string.ZipPreparedDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
             case UNINSTALL_SELF:
                 return LocaleController.getString(R.string.UninstallSelfDescription);
             case MAKE_ZIP_LOCKED:
@@ -232,7 +232,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             case MAKE_ZIP:
             case MAKE_ZIP_COMPLETED:
             case MAKE_ZIP_LOCKED:
-                return LocaleController.getString(R.string.TransferFilesToNewTelegram);
+                return LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton);
             case UNINSTALL_SELF:
                 return LocaleController.getString(R.string.UninstallSelf);
             case MAKE_ZIP_FAILED:
