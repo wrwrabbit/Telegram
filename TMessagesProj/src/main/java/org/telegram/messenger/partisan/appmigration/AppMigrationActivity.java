@@ -18,6 +18,8 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -37,6 +39,8 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     private TextView buttonTextView;
     private boolean destroyed;
     private long spaceSizeNeeded;
+
+    private final static int cancel = 100;
 
     public AppMigrationActivity() {
         super();
@@ -72,9 +76,15 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
+                } else if (id == cancel) {
+                    setStep(Step.NOT_STARTED);
+                    finishFragment();
                 }
             }
         });
+
+        ActionBarMenu menu = actionBar.createMenu();
+        menu.addItem(cancel, new BackDrawable(true));
     }
 
     private void createFragmentView(Context context) {
