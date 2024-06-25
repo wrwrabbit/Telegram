@@ -11162,9 +11162,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         String text;
                         TLRPC.User user = getMessagesController().getUser(userId);
                         String phoneNumber;
-                        if (user != null && user.id == getUserConfig().getClientUserId() && FakePasscodeUtils.getFakePhoneNumber(currentAccount) != null) {
-                            phoneNumber = FakePasscodeUtils.getFakePhoneNumber(currentAccount);
-                            text = PhoneFormat.getInstance().format("+" + phoneNumber);
+                        String fakePhone = FakePasscodeUtils.getFakePhoneNumber(currentAccount);
+                        if (user != null && user.id == getUserConfig().getClientUserId() && !TextUtils.isEmpty(fakePhone)) {
+                            text = PhoneFormat.getInstance().format("+" + fakePhone);
+                            phoneNumber = fakePhone;
                         } else if (user != null && !TextUtils.isEmpty(vcardPhone)) {
                             text = PhoneFormat.getInstance().format("+" + vcardPhone);
                             phoneNumber = vcardPhone;
