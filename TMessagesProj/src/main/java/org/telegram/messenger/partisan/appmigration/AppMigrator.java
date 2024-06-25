@@ -235,7 +235,7 @@ public class AppMigrator {
     }
 
     public static void enableConnection() {
-        for (SharedConfig.ProxyInfo proxyInfo : SharedConfig.proxyList) {
+        for (SharedConfig.ProxyInfo proxyInfo : new ArrayList<>(SharedConfig.proxyList)) {
             if (isProxyForDisablingConnection(proxyInfo)) {
                 SharedConfig.deleteProxy(proxyInfo);
             }
