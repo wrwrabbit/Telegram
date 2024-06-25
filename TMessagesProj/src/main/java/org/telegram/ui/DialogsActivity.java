@@ -7266,7 +7266,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkOlderOtherPtg() {
-        if (olderPtgChecked || !SharedConfig.filesCopiedFromOldTelegram || SharedConfig.oldTelegramRemoved) {
+        if (olderPtgChecked
+                || !SharedConfig.filesCopiedFromOldTelegram
+                || SharedConfig.oldTelegramRemoved) {
             return;
         }
         olderPtgChecked = true;
@@ -7316,7 +7318,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkNewerOtherPtg() {
-        if (!AppMigrator.isMigrationStarted() && AppMigrator.isNewerPtgInstalled(getParentActivity(), true)) {
+        if (!AppMigrator.isMigrationStarted() && !AppMigrator.isConnectionDisabled()
+                && AppMigrator.isNewerPtgInstalled(getParentActivity(), true)) {
             showNewerPtgInstalledDialog();
         }
     }
