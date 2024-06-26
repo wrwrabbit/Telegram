@@ -315,6 +315,9 @@ public class AppMigrator {
     }
 
     private static PackageInfo getSelfPackageInfo(Context context) {
+        if (context == null) {
+            return null;
+        }
         return getPackageInfoWithCertificates(context, context.getPackageName());
     }
 

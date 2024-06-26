@@ -131,7 +131,6 @@ import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
-import org.telegram.messenger.partisan.appmigration.Step;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -7267,27 +7266,54 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkOlderOtherPtg() {
+        OlderPtgStatus status = getOlderPtgStatus();
+        olderPtgChecked = true;
+        if (status == OlderPtgStatus.Removed) {
+            SharedConfig.oldTelegramRemoved = true;
+            SharedConfig.saveConfig();
+        } else if (status.isMigrated()) {
+            SharedConfig.runNumber++;
+            SharedConfig.saveConfig();
+            if (status == OlderPtgStatus.JustMigrated) {
+                showUpdateCompletedDialog();
+            } else if (status == OlderPtgStatus.MigratedLongTimeAgo) {
+                showOldPtgNotRemovedDialog();
+            }
+        }
+    }
+
+    private enum OlderPtgStatus {
+        NotExist,
+        Removed,
+        JustMigrated,
+        Migrated,
+        MigratedLongTimeAgo,
+        FakePasscode;
+
+        public boolean isMigrated() {
+            return Arrays.asList(Migrated, JustMigrated, MigratedLongTimeAgo).contains(this);
+        }
+
+        public boolean needShowDialog() {
+            return Arrays.asList(JustMigrated, MigratedLongTimeAgo).contains(this);
+        }
+    }
+
+    private OlderPtgStatus getOlderPtgStatus() {
         if (olderPtgChecked
                 || !SharedConfig.filesCopiedFromOldTelegram
                 || SharedConfig.oldTelegramRemoved) {
-            return;
-        }
-        olderPtgChecked = true;
-        boolean isOlderPtgRemoved = getParentActivity() != null
-                && !AppMigrator.isOlderPtgInstalled(getParentActivity());
-        if (isOlderPtgRemoved) {
-            SharedConfig.oldTelegramRemoved = true;
-            SharedConfig.saveConfig();
-        } else if (!FakePasscodeUtils.isFakePasscodeActivated()) {
-            if (SharedConfig.runNumber >= 1) {
-                SharedConfig.runNumber++;
-                SharedConfig.saveConfig();
-            }
-            if (SharedConfig.runNumber == 0 && !FakePasscodeUtils.isFakePasscodeActivated()) {
-                showUpdateCompletedDialog();
-            } else if (SharedConfig.runNumber > 3 && !FakePasscodeUtils.isFakePasscodeActivated()) {
-                showOldPtgNotRemovedDialog();
-            }
+            return OlderPtgStatus.NotExist;
+        } else if (!AppMigrator.isOlderPtgInstalled(getParentActivity())) {
+            return OlderPtgStatus.Removed;
+        } else if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            return OlderPtgStatus.FakePasscode;
+        } else if (SharedConfig.runNumber == 0) {
+            return OlderPtgStatus.JustMigrated;
+        } else if (SharedConfig.runNumber == 2) {
+            return OlderPtgStatus.MigratedLongTimeAgo;
+        } else {
+            return OlderPtgStatus.Migrated;
         }
     }
 
@@ -7295,11 +7321,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.UpdateCompletedTitle));
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UpdateCompletedMessage)));
-        builder.setNegativeButton(LocaleController.getString(R.string.OK), (dlg, which) -> {
-            SharedConfig.runNumber = 1;
-            SharedConfig.saveConfig();
-            dlg.dismiss();
-        });
+        builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
         AlertDialog dialog = builder.create();
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
@@ -7319,10 +7341,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkNewerOtherPtg() {
-        if (!AppMigrator.isMigrationStarted() && !AppMigrator.isConnectionDisabled()
-                && AppMigrator.isNewerPtgInstalled(getParentActivity(), true)) {
+        if (needShowNewerPtgDialog()) {
             showNewerPtgInstalledDialog();
         }
+    }
+
+    private boolean needShowNewerPtgDialog() {
+        return !FakePasscodeUtils.isFakePasscodeActivated()
+                && !AppMigrator.isMigrationStarted()
+                && !AppMigrator.isConnectionDisabled()
+                && AppMigrator.isNewerPtgInstalled(getParentActivity(), true);
     }
 
     private void showNewerPtgInstalledDialog() {
@@ -7963,7 +7991,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return true;
         }
-        return !needCameraPermission();
+        return !needShowNewerPtgDialog() && !getOlderPtgStatus().needShowDialog() && !needCameraPermission();
     }
 
     private boolean needCameraPermission() {
