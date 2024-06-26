@@ -52,6 +52,8 @@ public class AppMigrator {
     private static final String PTG_30_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
     private static Step step;
     private static Long maxCancelledInstallationDate;
+    private static String migratedPackageName;
+    private static Long migratedDate;
     private static File zipFile;
     private static byte[] passwordBytes;
 
@@ -296,6 +298,22 @@ public class AppMigrator {
                 .orElse(null);
     }
 
+    public static boolean isMigratedPackageInstalled(Context context) {
+        return getMigratedPackage(context) != null;
+    }
+
+    private static PackageInfo getMigratedPackage(Context context) {
+        String packageName = getMigratedPackageName();
+        long migratedDate = getMigratedDate();
+        if (packageName == null || migratedDate == 0) {
+            return null;
+        }
+        return getOtherPartisanTelegramPackages(context).stream()
+                .filter(p -> packageName.equals(p.packageName) && p.firstInstallTime < migratedDate)
+                .findAny()
+                .orElse(null);
+    }
+
     private static PackageInfo getSelfPackageInfo(Context context) {
         return getPackageInfoWithCertificates(context, context.getPackageName());
     }
@@ -384,6 +402,19 @@ public class AppMigrator {
         return getStep() != Step.NOT_STARTED;
     }
 
+    public static boolean checkMigrationNeedToResume(Context context) {
+        if (!isMigrationStarted()) {
+            return false;
+        }
+        if (getMigratedPackageName() != null && !isMigratedPackageInstalled(context)) {
+            setStep(Step.NOT_STARTED);
+            enableConnection();
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     private static SharedPreferences getPrefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
     }
@@ -417,6 +448,46 @@ public class AppMigrator {
         maxCancelledInstallationDate = System.currentTimeMillis();
         getPrefs().edit()
                 .putLong("ptgMigrationMaxCancelledInstallationDate", maxCancelledInstallationDate)
+                .apply();
+    }
+
+    private static synchronized String getMigratedPackageName() {
+        if (migratedPackageName == null) {
+            migratedPackageName = getPrefs()
+                    .getString("migratedPackageName", "");
+        }
+        return migratedPackageName;
+    }
+
+    private static synchronized long getMigratedDate() {
+        if (migratedDate == null) {
+            migratedDate = getPrefs()
+                    .getLong("migratedDate", 0);
+        }
+        return migratedDate;
+    }
+
+    public static void setMigrationFinished(String packageName) {
+        migratedPackageName = packageName;
+        getPrefs().edit()
+                .putString("migratedPackageName", migratedPackageName)
+                .apply();
+
+        migratedDate = System.currentTimeMillis();
+        getPrefs().edit()
+                .putLong("migratedDate", migratedDate)
+                .apply();
+    }
+
+    public static void resetMigrationFinished(String packageName) {
+        migratedPackageName = null;
+        getPrefs().edit()
+                .remove("migratedPackageName")
+                .apply();
+
+        migratedDate = null;
+        getPrefs().edit()
+                .remove("migratedDate")
                 .apply();
     }
 }

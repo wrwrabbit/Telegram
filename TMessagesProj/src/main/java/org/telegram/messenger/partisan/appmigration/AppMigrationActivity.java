@@ -313,7 +313,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         super.onActivityResultFragment(requestCode, resultCode, data);
         if (requestCode == 20202020) {
             if (resultCode == Activity.RESULT_OK && data != null && data.getBooleanExtra("copied", false)) {
-                installationFinished();
+                migrationFinished(data.getStringExtra("packageName"));
             }
         }
     }
@@ -351,7 +351,8 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         return size;
     }
 
-    private void installationFinished() {
+    private void migrationFinished(String packageName) {
+        AppMigrator.setMigrationFinished(packageName);
         AppMigrator.deleteZipFile();
         setStep(Step.UNINSTALL_SELF);
     }

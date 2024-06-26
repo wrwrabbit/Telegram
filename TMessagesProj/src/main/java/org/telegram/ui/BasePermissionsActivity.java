@@ -228,6 +228,7 @@ public class BasePermissionsActivity extends FragmentActivity {
 
                         Intent data = new Intent();
                         data.putExtra("copied", true);
+                        data.putExtra("packageName", getPackageName());
                         setResult(RESULT_OK, data);
 
                         finish();

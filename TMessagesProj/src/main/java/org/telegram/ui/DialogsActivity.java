@@ -131,6 +131,7 @@ import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.appmigration.Step;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -7388,7 +7389,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onActivityResumed() {
-        if (AppMigrator.isMigrationStarted()) {
+        if (AppMigrator.checkMigrationNeedToResume(getContext())) {
             AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
         }
     }
