@@ -7389,6 +7389,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onActivityResumed() {
+        AppMigrator.deleteZipFile();
         if (AppMigrator.checkMigrationNeedToResume(getContext())) {
             AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
         }
