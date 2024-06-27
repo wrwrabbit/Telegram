@@ -376,6 +376,14 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (!AppMigrator.checkMigrationNeedToResume(getContext())) {
+            finishFragment();
+        }
+    }
+
+    @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
