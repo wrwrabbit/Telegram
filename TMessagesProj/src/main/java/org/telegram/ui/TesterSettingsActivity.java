@@ -283,6 +283,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             } else if (position == forceAllowScreenshotsRow) {
                 SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
+                SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.forceAllowScreenshots);
             }
         });
