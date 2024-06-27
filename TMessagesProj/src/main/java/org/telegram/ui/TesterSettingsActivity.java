@@ -422,7 +422,7 @@ public class TesterSettingsActivity extends BaseFragment {
                     } else if (position == showPlainBackupRow) {
                         textCell.setTextAndCheck("Show plain backup", showPlainBackup, true);
                     } else if (position == disablePremiumRow) {
-                        textCell.setTextAndCheck("Disable Premiun", SharedConfig.premiumDisabled, true);
+                        textCell.setTextAndCheck("Disable Premium", SharedConfig.premiumDisabled, true);
                     } else if (position == hideDialogIsNotSafeWarningRow) {
                         textCell.setTextAndCheck("Show hide dialog is not safe warning",
                                 SharedConfig.showHideDialogIsNotSafeWarning, true);
