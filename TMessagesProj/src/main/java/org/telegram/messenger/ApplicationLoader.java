@@ -245,7 +245,7 @@ public class ApplicationLoader extends Application {
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
         checkFiledCopiedFromOldTelegram();
-        if (BuildVars.LOGS_ENABLED && !FakePasscodeUtils.isFakePasscodeActivated()) {
+        if (SharedConfig.saveLogcatAfterRestart) {
             saveLogcatFile();
         }
         RemoveAfterReadingMessages.runChecker();

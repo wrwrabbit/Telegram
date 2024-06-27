@@ -93,6 +93,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int checkVerificationUpdatesRow;
     private int resetVerificationLastCheckTimeRow;
     private int forceAllowScreenshotsRow;
+    private int saveLogcatAfterRestartRow;
 
     public static boolean showPlainBackup;
 
@@ -285,6 +286,10 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
                 SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.forceAllowScreenshots);
+            } else if (position == saveLogcatAfterRestartRow) {
+                SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
+                SharedConfig.saveConfig();
+                ((TextCheckCell) view).setChecked(SharedConfig.forceAllowScreenshots);
             }
         });
 
@@ -319,6 +324,7 @@ public class TesterSettingsActivity extends BaseFragment {
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
         forceAllowScreenshotsRow = rowCount++;
+        saveLogcatAfterRestartRow = rowCount++;
     }
 
     @Override
@@ -429,6 +435,9 @@ public class TesterSettingsActivity extends BaseFragment {
                     } else if (position == forceAllowScreenshotsRow) {
                         textCell.setTextAndCheck("Force allow screenshots",
                                 SharedConfig.forceAllowScreenshots, true);
+                    } else if (position == saveLogcatAfterRestartRow) {
+                        textCell.setTextAndCheck("Save logcat after restart",
+                                SharedConfig.saveLogcatAfterRestart, true);
                     }
                     break;
                 } case 1: {
@@ -465,7 +474,7 @@ public class TesterSettingsActivity extends BaseFragment {
         public int getItemViewType(int position) {
             if (position == sessionTerminateActionWarningRow || position == showPlainBackupRow
                     || position == disablePremiumRow || position == hideDialogIsNotSafeWarningRow
-                    || position == forceAllowScreenshotsRow) {
+                    || position == forceAllowScreenshotsRow || position == saveLogcatAfterRestartRow) {
                 return 0;
             } else if (position == updateChannelIdRow || position == updateChannelUsernameRow
                     || (simpleDataStartRow <= position && position < simpleDataEndRow)
