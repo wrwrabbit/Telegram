@@ -242,16 +242,16 @@
     <string name="ZipPreparingDescription">PTelegram подготавливает данные для переноса в другое приложение. Дождитесь окончания и нажмите кнопку \"%1$s\".</string>
     <string name="ZipPreparedDescription">Все готово для продолжения. Нажмите кнопку \"%1$s\".</string>
     <string name="ZipPreparationFailedDescription">Не удалось подготовить данные для переноса. Возможно, на устройстве недостаточно места. Исправьте это и нажмите "%1$s".</string>
-    <string name="TransferFilesToAnotherTelegramButton">Перенести файлы в другой PTelegram</string>
-    <string name="UninstallSelfStep">Удалить этот PTelegram</string>
+    <string name="TransferFilesToAnotherTelegramButton">Перенести файлы в другую версию PTelegram</string>
+    <string name="UninstallSelfStep">Удалить эту версию PTelegram</string>
     <string name="UninstallSelfDescription">PTelegram обновлен до другой версии. Убедитесь, что новое приложение работает корректно. Затем удалите старое приложение вручную или нажмите кнопку ниже, чтобы открыть системные настройки приложения.</string>
-    <string name="UninstallSelf">Удалить эту PTelegram</string>
-    <string name="ConnectionDisabledTitle">Соединение отключено</string>
-    <string name="ConnectionDisabledMessage">Ваши данные были перенесены в другое приложение, а соединение в текущем приложении отключено. Включайте его только в случае проблем с новой версией приложения.</string>
+    <string name="UninstallSelf">Удалить эту версию PTelegram</string>
+    <string name="ConnectionDisabledTitle">Соединение разорвано</string>
+    <string name="ConnectionDisabledMessage">Ваши данные были перенесены в другое приложение, а соединение в текущем приложении разорвано. Включайте его только в случае проблем с новой версией приложения.</string>
     <string name="UpdateCompletedTitle">PTelegram обновлен</string>
-    <string name="UpdateCompletedMessage">Данные приложения успешно перенесены. Проверьте это и удалите старое приложение. **Не выходите из старого приложения, поскольку это приведет к выходу из обоих приложений.**</string>
-    <string name="OldAppNotRemovedTitle">Старая PTelegram не удалена</string>
-    <string name="OldAppNotRemovedMessage">Чтобы продолжить использование этой версии приложения, необходимо удалить старое приложение. **Не выходите из старого приложения, поскольку это приведет к выходу из обоих приложений**</string>
+    <string name="UpdateCompletedMessage">Данные приложения успешно перенесены. Проверьте это и удалите старое приложение. **Не выходите из аккаунтов в старом приложении, поскольку это может привести к выходу из обоих приложений.**</string>
+    <string name="OldAppNotRemovedTitle">Старая версия PTelegram не удалена</string>
+    <string name="OldAppNotRemovedMessage">Чтобы продолжить использование этой версии приложения, необходимо удалить старое приложение. **Не выходите из аккаунтов в старом приложении, поскольку это может привести к выходу из обоих приложений.**</string>
     <string name="TransferDataToAnotherPtgButton">Перенести данные в другое приложение</string>
     <string name="TransferDataToOtherPtgInfo">Вы установили другую версию Партизанского Телеграма. Нажмите на кнопку, если хотите перенести данные.</string>
 </resources>
