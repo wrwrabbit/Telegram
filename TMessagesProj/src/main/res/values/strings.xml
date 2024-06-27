@@ -9213,4 +9213,6 @@
     <string name="OldAppNotRemovedMessage">To continue using this version of the app, you must uninstall the old app. **Do not log out of your accounts in the old app as this may result in you being logged out of both apps.**</string>
     <string name="TransferDataToAnotherPtgButton">Transfer Data To Another App</string>
     <string name="TransferDataToOtherPtgInfo">You installed a different version of Partisan Telegram. Click the button if you want to transfer data.</string>
+    <string name="MigrationTitle">Migration…</string>
+    <string name="MigrationDescription">The files are copied to the new version of Partisan Telegram. Please wait.</string>
 </resources>

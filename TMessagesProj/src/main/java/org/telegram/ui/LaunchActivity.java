@@ -126,6 +126,8 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.appmigration.MigrationReceiveActivity;
 import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -8038,13 +8040,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
     }
 
-    private void checkOtherPtgIntent() {
-        if (getIntent().getBooleanExtra("fromOtherPtg", false)) {
-            byte[] password = getIntent().getByteArrayExtra("zipPassword");
-            if (password != null) {
-                receiveZip();
-            }
+    private synchronized void checkOtherPtgIntent() {
+        if (AppMigrator.isReceivingZip()
+                || getCallingActivity() == null
+                || !AppMigrator.isPtgPackageName(getCallingActivity().getPackageName())
+                || !getIntent().getBooleanExtra("fromOtherPtg", false)) {
+            return;
         }
+        AppMigrator.receiveZip(this);
+        presentFragment(new MigrationReceiveActivity());
     }
 
     public static BaseFragment getLastFragment() {

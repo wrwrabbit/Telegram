@@ -13,10 +13,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.google.android.exoplayer2.util.Log;
+import com.google.android.gms.common.util.IOUtils;
+
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
@@ -26,23 +32,30 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.ui.BasePermissionsActivity;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -51,12 +64,19 @@ import javax.crypto.spec.SecretKeySpec;
 public class AppMigrator {
     private static final String PTG_30_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
     private static final String PTG_30_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
+    private static final List<String> PTG_PACKAGE_NAMES = Arrays.asList(
+            "org.telegram.messenger.alpha",
+            "org.telegram.messenger.beta",
+            "org.telegram.messenger.web",
+            "org.telegram.messenger"
+    );
     private static Step step;
     private static Long maxCancelledInstallationDate;
     private static String migratedPackageName;
     private static Long migratedDate;
     private static File zipFile;
     private static byte[] passwordBytes;
+    private static boolean receivingZip = false;
 
     public interface MakeZipDelegate {
         void makeZipCompleted();
@@ -268,6 +288,10 @@ public class AppMigrator {
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 
+    public static boolean isPtgPackageName(String packageName) {
+        return packageName != null && PTG_PACKAGE_NAMES.contains(packageName);
+    }
+
     public static boolean isNewerPtgInstalled(Context context, boolean checkCancelledDate) {
         return getNewestUncheckedPtgPackage(context, checkCancelledDate) != null;
     }
@@ -326,9 +350,8 @@ public class AppMigrator {
         if (context == null) {
             return Collections.emptyList();
         }
-        String[] packageNames = {"org.telegram.messenger.alpha", "org.telegram.messenger.beta", "org.telegram.messenger.web", "org.telegram.messenger"};
         List<PackageInfo> result = new ArrayList<>();
-        for (String packageName : packageNames) {
+        for (String packageName : PTG_PACKAGE_NAMES) {
             PackageInfo packageInfo = getPackageInfoWithCertificates(context, packageName);
             if (packageInfo == null || Objects.equals(packageInfo.packageName, context.getPackageName())) {
                 continue;
@@ -494,5 +517,17 @@ public class AppMigrator {
         getPrefs().edit()
                 .remove("migratedDate")
                 .apply();
+    }
+
+    public static boolean isReceivingZip() {
+        return receivingZip;
+    }
+
+    public static synchronized void receiveZip(Activity activity) {
+        if (receivingZip) {
+            return;
+        }
+        receivingZip = true;
+        MigrationReceiver.receiveZip(activity);
     }
 }
