@@ -412,6 +412,7 @@ public class AppMigrator {
         if (getMigratedPackageName() != null && !isMigratedPackageInstalled(context)) {
             setStep(Step.NOT_STARTED);
             enableConnection();
+            resetMigrationFinished();
             return false;
         } else {
             return true;
@@ -482,7 +483,7 @@ public class AppMigrator {
                 .apply();
     }
 
-    public static void resetMigrationFinished(String packageName) {
+    public static void resetMigrationFinished() {
         migratedPackageName = null;
         getPrefs().edit()
                 .remove("migratedPackageName")
