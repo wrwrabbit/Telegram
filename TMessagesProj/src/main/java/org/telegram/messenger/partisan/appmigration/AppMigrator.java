@@ -12,6 +12,7 @@ import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.text.TextUtils;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -409,7 +410,7 @@ public class AppMigrator {
         if (!isMigrationStarted()) {
             return false;
         }
-        if (getMigratedPackageName() != null && !isMigratedPackageInstalled(context)) {
+        if (!TextUtils.isEmpty(getMigratedPackageName()) && !isMigratedPackageInstalled(context)) {
             setStep(Step.NOT_STARTED);
             enableConnection();
             resetMigrationFinished();
