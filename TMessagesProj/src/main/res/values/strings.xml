@@ -9193,7 +9193,7 @@
     <string name="CantChangePhoneNumberDescription">Partisan Telegram can\'t change your phone number. Use the official app for this.</string>
     <string name="SpoofedLinkTitle">⚠️ Spoofed Link</string>
     <string name="SpoofedLinkDescription">The link shows up as %1$s but points to %2$s.</string>
-    <string name="OtherPTelegramAlertTitle">Other PTelegram Detected</string>
+    <string name="OtherPTelegramAlertTitle">Other PTelegram Version Detected</string>
     <string name="OtherPTelegramAlert">Do you want to transfer all the data from this PTelegram to the new app?</string>
     <string name="UpdaterActivityTitle">Update</string>
     <string name="NoSpaceForStep">Your device does not have enough space. Before starting, make sure you have at least %.2f MB free.</string>
