@@ -39,6 +39,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
@@ -243,11 +244,7 @@ public class ApplicationLoader extends Application {
 
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
-        if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
-            SharedConfig.filesCopiedFromOldTelegram = true;
-            SharedConfig.saveConfig();
-            SharedConfig.reloadConfig();
-        }
+        checkFiledCopiedFromOldTelegram();
         if (BuildVars.LOGS_ENABLED && !FakePasscodeUtils.isFakePasscodeActivated()) {
             saveLogcatFile();
         }
@@ -280,6 +277,20 @@ public class ApplicationLoader extends Application {
             DownloadController.getInstance(a);
         }
         BillingController.getInstance().startConnection();
+    }
+
+    private static void checkFiledCopiedFromOldTelegram() {
+        if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
+            SharedConfig.filesCopiedFromOldTelegram = true;
+            applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()
+                    .remove("ptgMigrationStep")
+                    .remove("ptgMigrationMaxCancelledInstallationDate")
+                    .remove("migratedPackageName")
+                    .remove("migratedDate")
+                    .apply();
+            SharedConfig.saveConfig();
+            SharedConfig.reloadConfig();
+        }
     }
 
     public ApplicationLoader() {
