@@ -253,6 +253,7 @@
     <string name="OldAppNotRemovedMessage">Щоб продовжити використання цієї версії програми, потрібно видалити стару програму. **Не виходьте з облікових записів у старій програмі, оскільки це може призвести до виходу з обох програм.**</string>
     <string name="TransferDataToAnotherPtgButton">Перенести дані до іншої програми</string>
     <string name="TransferDataToOtherPtgInfo">Ви встановили іншу версію Партизанського Телеграма. Натисніть кнопку, якщо хочете перенести дані.</string>
-    <string name="MigrationTitle">Міграція…</string>
+    <string name="MigrationTitle">Міграція</string>
     <string name="MigrationDescription">Файли копіюються до нової версії Партизанського Телеграма. Будь ласка зачекайте.</string>
+    <string name="MigrationErrorAlreadyHasAccountsDescription">Ви вже увійшли в акаунти в новій програмі. Якщо хочете перенести дані з цієї програми, вийдіть із усіх облікових акаунтів у новій програмі.</string>
 </resources>

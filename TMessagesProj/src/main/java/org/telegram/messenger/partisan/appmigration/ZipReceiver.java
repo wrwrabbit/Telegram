@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.UserConfig;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,19 +43,27 @@ class ZipReceiver {
 
     private void receiveZipInternal() {
         try {
+            if (appAlreadyHasAccounts()) {
+                finishReceivingMigration(false);
+                return;
+            }
             AndroidUtilities.runOnUIThread(() -> {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.telegramDataReceived);
             });
             deleteSharedPrefs();
-            ZipInputStream zipStream = createZipStream(activity.getIntent());
+            ZipInputStream zipStream = createZipStream();
             unpackZip(zipStream);
             zipStream.close();
             //noinspection ResultOfMethodCallIgnored
             new File(activity.getFilesDir(), "updater_files_copied").createNewFile();
-            finishReceivingMigration();
+            finishReceivingMigration(true);
         } catch (Exception ex) {
             showMigrationReceiveError(ex);
         }
+    }
+
+    private static boolean appAlreadyHasAccounts() {
+        return UserConfig.getActivatedAccountsCount(true) > 0;
     }
 
     private void deleteSharedPrefs() {
@@ -80,8 +89,8 @@ class ZipReceiver {
         }
     }
 
-    private @NonNull ZipInputStream createZipStream(Intent intent) throws FileNotFoundException, GeneralSecurityException {
-        InputStream inputStream = createInputStream(intent);
+    private @NonNull ZipInputStream createZipStream() throws FileNotFoundException, GeneralSecurityException {
+        InputStream inputStream = createInputStream(activity.getIntent());
         BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
         CipherInputStream cipherStream = new CipherInputStream(bufferedStream, createCipher());
         return new ZipInputStream(cipherStream);
@@ -152,19 +161,10 @@ class ZipReceiver {
         fileOutputStream.close();
     }
 
-    private void finishReceivingMigration() {
+    private void finishReceivingMigration(boolean copied) {
         AndroidUtilities.runOnUIThread(() -> {
-            if (Build.VERSION.SDK_INT < 24) {
-                File dataFile = new File(activity.getIntent().getData().getPath());
-                File copiedFile = new File(dataFile.getParentFile(), "copied");
-                try {
-                    copiedFile.createNewFile();
-                } catch (Exception ignored) {
-                }
-            }
-
             Intent data = new Intent();
-            data.putExtra("copied", true);
+            data.putExtra("copied", copied);
             data.putExtra("packageName", activity.getPackageName());
             activity.setResult(Activity.RESULT_OK, data);
 

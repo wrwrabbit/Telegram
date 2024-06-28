@@ -19,6 +19,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -312,8 +313,16 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
         super.onActivityResultFragment(requestCode, resultCode, data);
         if (requestCode == 20202020) {
-            if (resultCode == Activity.RESULT_OK && data != null && data.getBooleanExtra("copied", false)) {
-                migrationFinished(data.getStringExtra("packageName"));
+            if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("copied")) {
+                if (data.getBooleanExtra("copied", false)) {
+                    migrationFinished(data.getStringExtra("packageName"));
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                    builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
+                    builder.setMessage(LocaleController.getString(R.string.MigrationErrorAlreadyHasAccountsDescription));
+                    builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                    showDialog(builder.create());
+                }
             }
         }
     }

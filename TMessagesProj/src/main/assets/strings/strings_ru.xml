@@ -254,6 +254,7 @@
     <string name="OldAppNotRemovedMessage">Чтобы продолжить использование этой версии приложения, необходимо удалить старое приложение. **Не выходите из аккаунтов в старом приложении, поскольку это может привести к выходу из обоих приложений.**</string>
     <string name="TransferDataToAnotherPtgButton">Перенести данные в другое приложение</string>
     <string name="TransferDataToOtherPtgInfo">Вы установили другую версию Партизанского Телеграма. Нажмите на кнопку, если хотите перенести данные.</string>
-    <string name="MigrationTitle">Миграция…</string>
+    <string name="MigrationTitle">Миграция</string>
     <string name="MigrationDescription">Файлы копируются в новую версию Партизанского Телеграмма. Пожалуйста, подождите.</string>
+    <string name="MigrationErrorAlreadyHasAccountsDescription">Вы уже вошли в аккаунты в новом приложении. Если хотите перенести данные из этого приложения, выйдите из всех аккаунтов в новом приложении.</string>
 </resources>
