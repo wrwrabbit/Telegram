@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # [self-hosted, ptg]
+    runs-on: ubuntu-24.04 # [self-hosted, ptg]
     steps:
       - uses: actions/checkout@v2
       - name: Build docker image
