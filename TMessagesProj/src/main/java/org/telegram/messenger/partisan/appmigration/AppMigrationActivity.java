@@ -317,12 +317,15 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                 if (data.getBooleanExtra("copied", false)) {
                     migrationFinished(data.getStringExtra("packageName"));
                 } else {
+                    AppMigrator.enableConnection();
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                     builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
                     builder.setMessage(LocaleController.getString(R.string.MigrationErrorAlreadyHasAccountsDescription));
                     builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                     showDialog(builder.create());
                 }
+            } else {
+                AppMigrator.enableConnection();
             }
         }
     }
