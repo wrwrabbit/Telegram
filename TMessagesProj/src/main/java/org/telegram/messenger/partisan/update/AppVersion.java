@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.partisan.PartisanVersion;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +26,7 @@ public class AppVersion {
 
     public static synchronized AppVersion getCurrentVersion() {
         if (currentVersion == null) {
-            currentVersion = parseVersion(BuildVars.PARTISAN_VERSION_STRING, "(\\d+).(\\d+).(\\d+)");
+            currentVersion = parseVersion(PartisanVersion.PARTISAN_VERSION_STRING, "(\\d+).(\\d+).(\\d+)");
         }
         return currentVersion;
     }
