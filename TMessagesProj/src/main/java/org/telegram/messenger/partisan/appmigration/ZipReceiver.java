@@ -29,15 +29,15 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-class MigrationReceiver {
+class ZipReceiver {
     private final Activity activity;
 
-    private MigrationReceiver(Activity activity) {
+    private ZipReceiver(Activity activity) {
         this.activity = activity;
     }
 
     static void receiveZip(Activity activity) {
-        new Thread(() -> new MigrationReceiver(activity).receiveZipInternal()).start();
+        new Thread(() -> new ZipReceiver(activity).receiveZipInternal()).start();
     }
 
     private void receiveZipInternal() {
