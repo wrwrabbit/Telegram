@@ -13602,7 +13602,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (textToCopy != null) textToCopy = "@" + textToCopy;
             copyButton = getString(R.string.ProfileCopyUsername);
         } else if (position == phoneRow) {
-            textToCopy = user.phone;
+            String fakePhone = FakePasscodeUtils.getFakePhoneNumber(currentAccount);
+            if (user.id == getUserConfig().getClientUserId() && !TextUtils.isEmpty(fakePhone)) {
+                textToCopy = fakePhone;
+            } else {
+                textToCopy = user.phone;
+            }
         } else if (position == birthdayRow) {
             textToCopy = UserInfoActivity.birthdayString(userInfo.birthday);
         }
