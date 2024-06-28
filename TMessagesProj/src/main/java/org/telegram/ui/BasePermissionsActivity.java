@@ -99,10 +99,6 @@ public class BasePermissionsActivity extends FragmentActivity {
             NotificationCenter.getGlobalInstance().postNotificationName(granted ? NotificationCenter.locationPermissionGranted : NotificationCenter.locationPermissionDenied);
         } else if (requestCode == REQUEST_CODE_MEDIA_GEO) {
             NotificationCenter.getGlobalInstance().postNotificationName(granted ? NotificationCenter.locationPermissionGranted : NotificationCenter.locationPermissionDenied, 1);
-        } else if (requestCode == 1001) {
-            if (granted) {
-                AppMigrator.receiveZip(this);
-            }
         }
         return true;
     }
