@@ -7267,6 +7267,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private void checkOlderOtherPtg() {
         OlderPtgStatus status = getOlderPtgStatus();
+        if (status == OlderPtgStatus.FakePasscode) {
+            return;
+        }
         olderPtgChecked = true;
         if (status == OlderPtgStatus.Removed) {
             SharedConfig.oldTelegramRemoved = true;
@@ -7300,7 +7303,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private OlderPtgStatus getOlderPtgStatus() {
-        if (olderPtgChecked
+        if (AndroidUtilities.needShowPasscode(false)) {
+            return OlderPtgStatus.FakePasscode;
+        } if (olderPtgChecked
                 || !SharedConfig.filesCopiedFromOldTelegram
                 || SharedConfig.oldTelegramRemoved) {
             return OlderPtgStatus.NotExist;
