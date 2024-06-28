@@ -287,9 +287,9 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.forceAllowScreenshots);
             } else if (position == saveLogcatAfterRestartRow) {
-                SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
+                SharedConfig.saveLogcatAfterRestart = !SharedConfig.saveLogcatAfterRestart;
                 SharedConfig.saveConfig();
-                ((TextCheckCell) view).setChecked(SharedConfig.forceAllowScreenshots);
+                ((TextCheckCell) view).setChecked(SharedConfig.saveLogcatAfterRestart);
             }
         });
 
