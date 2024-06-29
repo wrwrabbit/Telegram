@@ -656,6 +656,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private static boolean olderPtgChecked;
     private static boolean ptgPermissionsChecked;
+    private boolean anyPtgDialogShown;
 
     public final Property<DialogsActivity, Float> SCROLL_Y = new AnimationProperties.FloatProperty<DialogsActivity>("animationValue") {
         @Override
@@ -7250,14 +7251,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
         VerificationUpdatesChecker.checkUpdate(currentAccount, false);
+        anyPtgDialogShown = false;
         checkOtherPtg();
-        if (!FakePasscodeUtils.isFakePasscodeActivated() && !AndroidUtilities.needShowPasscode() && !SharedConfig.isAppLocked()) {
-            Activity activity = getParentActivity();
-            if (!ptgPermissionsChecked && activity != null) {
-                ptgPermissionsChecked = true;
-                checkPtgPermissions();
-            }
-        }
+        checkPtgPermissions();
     }
 
     private void checkOtherPtg() {
@@ -7323,6 +7319,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void showUpdateCompletedDialog() {
+        if (anyPtgDialogShown) {
+            return;
+        }
+        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.UpdateCompletedTitle));
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UpdateCompletedMessage)));
@@ -7334,6 +7334,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void showOldPtgNotRemovedDialog() {
+        if (anyPtgDialogShown) {
+            return;
+        }
+        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.OldAppNotRemovedTitle));
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.OldAppNotRemovedMessage)));
@@ -7359,6 +7363,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void showNewerPtgInstalledDialog() {
+        if (anyPtgDialogShown) {
+            return;
+        }
+        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));
         builder.setMessage(LocaleController.getString(R.string.OtherPTelegramAlert));
@@ -7371,14 +7379,24 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkPtgPermissions() {
-        if (needCameraPermission()) {
-            requestCameraPermission();
-        } else if (needLocationPermission()) {
-            requestLocationPermission();
+        if (!FakePasscodeUtils.isFakePasscodeActivated() && !AndroidUtilities.needShowPasscode() && !SharedConfig.isAppLocked()) {
+            Activity activity = getParentActivity();
+            if (!ptgPermissionsChecked && activity != null) {
+                ptgPermissionsChecked = true;
+                if (needCameraPermission()) {
+                    requestCameraPermission();
+                } else if (needLocationPermission()) {
+                    requestLocationPermission();
+                }
+            }
         }
     }
 
     private void requestCameraPermission() {
+        if (anyPtgDialogShown) {
+            return;
+        }
+        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.AppName));
         builder.setMessage(LocaleController.getString(R.string.NeedCameraPermissionMessage));
@@ -7397,6 +7415,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void requestLocationPermission() {
+        if (anyPtgDialogShown) {
+            return;
+        }
+        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.AppName));
         builder.setMessage(LocaleController.getString(R.string.NeedLocationPermissionMessage));
