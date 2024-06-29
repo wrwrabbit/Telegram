@@ -8047,8 +8047,22 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 || !getIntent().getBooleanExtra("fromOtherPtg", false)) {
             return;
         }
+        applyLanguageFromIntent();
         AppMigrator.receiveZip(this);
         presentFragment(new MigrationReceiveActivity());
+    }
+
+    private void applyLanguageFromIntent() {
+        if (getIntent().hasExtra("language")) {
+            String targetLanguage = getIntent().getStringExtra("language");
+            LocaleController.LocaleInfo localeInfo = LocaleController.getInstance().languages.stream()
+                    .filter(l -> TextUtils.equals(l.shortName, targetLanguage))
+                    .findFirst()
+                    .orElse(null);
+            if (localeInfo != null) {
+                LocaleController.getInstance().applyLanguage(localeInfo, true, false, false, true, currentAccount, null);
+            }
+        }
     }
 
     public static BaseFragment getLastFragment() {
