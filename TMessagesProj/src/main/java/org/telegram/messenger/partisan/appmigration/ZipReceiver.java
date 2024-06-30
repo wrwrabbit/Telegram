@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.partisan.PartisanLog;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -57,8 +58,9 @@ class ZipReceiver {
             //noinspection ResultOfMethodCallIgnored
             new File(activity.getFilesDir(), "updater_files_copied").createNewFile();
             finishReceivingMigration(true);
-        } catch (Exception ex) {
-            showMigrationReceiveError(ex);
+        } catch (Exception e) {
+            PartisanLog.e("ReceiveDataFromOtherPtg", e);
+            showMigrationReceiveError(e);
         }
     }
 
