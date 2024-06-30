@@ -15,11 +15,11 @@ import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -52,13 +52,15 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class AppMigrator {
-    private static final String PTG_30_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
-    private static final String PTG_30_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
+    private static final String PTG_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
+    private static final String PTG_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
     private static final List<String> PTG_PACKAGE_NAMES = Arrays.asList(
-            "org.telegram.messenger.alpha",
-            "org.telegram.messenger.beta",
             "org.telegram.messenger.web",
             "org.telegram.messenger"
+    );
+    private static final List<String> PTG_DEBUG_PACKAGE_NAMES = Arrays.asList(
+            "org.telegram.messenger.alpha",
+            "org.telegram.messenger.beta"
     );
     private static Step step;
     private static Long maxCancelledInstallationDate;
@@ -303,7 +305,7 @@ public class AppMigrator {
     }
 
     public static boolean isPtgPackageName(String packageName) {
-        return packageName != null && PTG_PACKAGE_NAMES.contains(packageName);
+        return packageName != null && getPtgPackageNames().contains(packageName);
     }
 
     public static boolean isNewerPtgInstalled(Context context, boolean checkCancelledDate) {
@@ -365,7 +367,7 @@ public class AppMigrator {
             return Collections.emptyList();
         }
         List<PackageInfo> result = new ArrayList<>();
-        for (String packageName : PTG_PACKAGE_NAMES) {
+        for (String packageName : getPtgPackageNames()) {
             PackageInfo packageInfo = getPackageInfoWithCertificates(context, packageName);
             if (packageInfo == null || Objects.equals(packageInfo.packageName, context.getPackageName())) {
                 continue;
@@ -377,6 +379,18 @@ public class AppMigrator {
         return result;
     }
 
+    private static List<String> getPtgPackageNames() {
+        if (isDebugApp()) {
+            return PTG_DEBUG_PACKAGE_NAMES;
+        } else {
+            return PTG_PACKAGE_NAMES;
+        }
+    }
+
+    private static boolean isDebugApp() {
+        return BuildVars.isAlphaApp() || BuildVars.isBetaApp();
+    }
+
     private static boolean isPtg30Signature(PackageInfo packageInfo) {
         Signature[] signatures = getSignatures(packageInfo);
         if (signatures == null) {
@@ -386,13 +400,21 @@ public class AppMigrator {
             try {
                 MessageDigest hash = MessageDigest.getInstance("SHA-1");
                 String thumbprint = Utilities.bytesToHex(hash.digest(sig.toByteArray()));
-                if (thumbprint.equalsIgnoreCase(PTG_30_SIGNATURE) || thumbprint.equalsIgnoreCase(PTG_30_DEBUG_SIGNATURE)) {
+                if (thumbprint.equalsIgnoreCase(PTG_SIGNATURE) || thumbprint.equalsIgnoreCase(getPtgSignature())) {
                     return true;
                 }
             } catch (NoSuchAlgorithmException ignored) {
             }
         }
         return false;
+    }
+
+    private static String getPtgSignature() {
+        if (isDebugApp()) {
+            return PTG_DEBUG_SIGNATURE;
+        } else {
+            return PTG_SIGNATURE;
+        }
     }
 
     private static Signature[] getSignatures(PackageInfo packageInfo) {
