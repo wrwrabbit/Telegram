@@ -230,12 +230,14 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                 return LocaleController.formatString(R.string.ZipPreparingDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
             case MAKE_ZIP_FAILED:
                 return LocaleController.formatString(R.string.ZipPreparationFailedDescription, LocaleController.getString(R.string.Retry));
-            case MAKE_ZIP_COMPLETED:
-                return LocaleController.formatString(R.string.ZipPreparedDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
-            case UNINSTALL_SELF:
-                return LocaleController.getString(R.string.UninstallSelfDescription);
             case MAKE_ZIP_LOCKED:
                 return String.format(LocaleController.getString(R.string.NoSpaceForStep), (double)spaceSizeNeeded / 1024.0 / 1024.0);
+            case MAKE_ZIP_COMPLETED:
+                return LocaleController.formatString(R.string.ZipPreparedDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
+            case OPEN_NEW_TELEGRAM_FAILED:
+                return LocaleController.formatString(R.string.OpenNewTelegramFailedDescription, LocaleController.getString(R.string.Retry));
+            case UNINSTALL_SELF:
+                return LocaleController.getString(R.string.UninstallSelfDescription);
         }
     }
 
@@ -249,6 +251,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             case UNINSTALL_SELF:
                 return LocaleController.getString(R.string.UninstallSelf);
             case MAKE_ZIP_FAILED:
+            case OPEN_NEW_TELEGRAM_FAILED:
                 return LocaleController.getString(R.string.Retry);
         }
     }
@@ -257,6 +260,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         switch (step) {
             case MAKE_ZIP_FAILED:
             case MAKE_ZIP_COMPLETED:
+            case OPEN_NEW_TELEGRAM_FAILED:
             case UNINSTALL_SELF:
                 return true;
             default:
@@ -268,11 +272,15 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         switch (AppMigrator.getStep()) {
             case MAKE_ZIP:
             case MAKE_ZIP_FAILED:
+            case OPEN_NEW_TELEGRAM_FAILED:
                 makeZip();
                 break;
             case MAKE_ZIP_COMPLETED:
                 if (AppMigrator.allowStartNewTelegram()) {
-                    AppMigrator.startNewTelegram(getParentActivity());
+                    boolean success = AppMigrator.startNewTelegram(getParentActivity());
+                    if (!success) {
+                        setStep(Step.OPEN_NEW_TELEGRAM_FAILED);
+                    }
                 } else {
                     makeZip();
                 }

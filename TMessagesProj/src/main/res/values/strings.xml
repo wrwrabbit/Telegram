@@ -9200,7 +9200,7 @@
     <string name="TransferringFilesStep">Transferring Files</string>
     <string name="ZipPreparingDescription">PTelegram prepares data for transfer to another of the app. Wait for the end and then tap on the button \"%1$s\".</string>
     <string name="ZipPreparedDescription">Everything is ready to continue. Tap on the \"%1$s\" button.</string>
-    <string name="ZipPreparationFailedDescription">Failed to prepare data to transferring. Perhaps there is not enough space on the device. Fix it and tap \"%1$s\".</string>
+    <string name="ZipPreparationFailedDescription">Failed to prepare data to transferring. Perhaps there is not enough space on the device. Fix it and tap \"%1$s\". If the error persists, please contact technical Partisan Telegram support.</string>
     <string name="TransferFilesToAnotherTelegramButton">Copy Files to Another PTelegram Version</string>
     <string name="UninstallSelfStep">Uninstall This PTelegram Version</string>
     <string name="UninstallSelfDescription">PTelegram has been updated to another version. Make sure that the new application works correctly. Then uninstall the old app manually or tap on the button below to open the app\'s system settings.</string>
@@ -9216,4 +9216,5 @@
     <string name="MigrationTitle">Migration</string>
     <string name="MigrationDescription">The files are copied to the new version of Partisan Telegram. Please wait.</string>
     <string name="MigrationErrorAlreadyHasAccountsDescription">You are already signed in to your accounts in the new application. If you want to transfer data from this application, sign out of all accounts in the new application.</string>
+    <string name="OpenNewTelegramFailedDescription">Failed to open the new version of Partisan Telegram. Tap \"%1$s\" to try again. If the error persists, please contact technical Partisan Telegram support.</string>
 </resources>

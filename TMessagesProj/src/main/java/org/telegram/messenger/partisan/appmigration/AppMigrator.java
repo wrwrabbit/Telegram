@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -14,6 +15,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
@@ -94,9 +96,9 @@ public class AppMigrator {
         }
     }
 
-    private static Uri fileToUri(File file, Activity activity) {
+    private static Uri fileToUri(File file, Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", file);
+            return FileProvider.getUriForFile(context, ApplicationLoader.getApplicationId() + ".provider", file);
         } else {
             return Uri.fromFile(file);
         }
@@ -210,35 +212,55 @@ public class AppMigrator {
         return externalFilesDir;
     }
 
-    public static void startNewTelegram(Activity activity) {
+    public static boolean startNewTelegram(Activity activity) {
+        ActivityInfo activityInfo = getNewestUncheckedPtgActivity(activity);
+        if (activityInfo == null) {
+            return false;
+        }
+        try {
+            disableConnection();
+            Intent intent = createNewTelegramIntent(activity, activityInfo);
+            activity.startActivityForResult(intent, 20202020);
+            return true;
+        } catch (Exception e) {
+            enableConnection();
+            PartisanLog.e("MoveDataToOtherPtg", e);
+            return false;
+        }
+    }
+
+    private static ActivityInfo getNewestUncheckedPtgActivity(Context context) {
         Intent searchIntent = new Intent(Intent.ACTION_MAIN);
         searchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> infoList = activity.getPackageManager().queryIntentActivities(searchIntent, 0);
-        PackageInfo newestPackage = AppMigrator.getNewestUncheckedPtgPackage(activity, false);
+        List<ResolveInfo> infoList = context.getPackageManager().queryIntentActivities(searchIntent, 0);
+        PackageInfo newestPackage = AppMigrator.getNewestUncheckedPtgPackage(context, false);
+        if (newestPackage == null) {
+            return null;
+        }
         for (ResolveInfo info : infoList) {
-            if (info.activityInfo.packageName.equals(newestPackage.packageName)) {
-                disableConnection();
-
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                try {
-                    intent.setClassName(info.activityInfo.applicationInfo.packageName, info.activityInfo.name);
-                    intent.setDataAndType(fileToUri(zipFile, activity), "application/zip");
-                    intent.putExtra("zipPassword", passwordBytes);
-                    intent.putExtra("packageName", activity.getPackageName());
-                    intent.putExtra("language", LocaleController.getInstance().getLanguageOverride());
-                    intent.putExtra("fromOtherPtg", true);
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    } else {
-                        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    }
-                    activity.startActivityForResult(intent, 20202020);
-                } catch (Exception e) {
-                    PartisanLog.e("MoveDataToOtherPtg", e);
-                }
+            ActivityInfo activityInfo = info.activityInfo;
+            if (activityInfo != null && TextUtils.equals(activityInfo.packageName, newestPackage.packageName)) {
+                return activityInfo;
             }
         }
+        return null;
+    }
+
+    private static Intent createNewTelegramIntent(Context context, ActivityInfo activityInfo) {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.setClassName(activityInfo.applicationInfo.packageName, activityInfo.name);
+        intent.setDataAndType(fileToUri(zipFile, context), "application/zip");
+        intent.putExtra("zipPassword", passwordBytes);
+        intent.putExtra("packageName", context.getPackageName());
+        intent.putExtra("language", LocaleController.getInstance().getLanguageOverride());
+        intent.putExtra("fromOtherPtg", true);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } else {
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        return intent;
     }
 
     public static boolean isConnectionDisabled() {

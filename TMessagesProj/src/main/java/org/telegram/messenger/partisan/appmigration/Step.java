@@ -6,6 +6,7 @@ public enum Step {
     MAKE_ZIP_FAILED,
     MAKE_ZIP_LOCKED,
     MAKE_ZIP_COMPLETED,
+    OPEN_NEW_TELEGRAM_FAILED,
 
     UNINSTALL_SELF;
 
@@ -18,6 +19,7 @@ public enum Step {
             case MAKE_ZIP_FAILED:
             case MAKE_ZIP_LOCKED:
             case MAKE_ZIP_COMPLETED:
+            case OPEN_NEW_TELEGRAM_FAILED:
                 return MAKE_ZIP;
             case UNINSTALL_SELF:
                 return UNINSTALL_SELF;

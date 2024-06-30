@@ -241,7 +241,7 @@
     <string name="TransferringFilesStep">Перанос файлаў</string>
     <string name="ZipPreparingDescription">PTelegram падрыхтоўвае дадзеныя для пераносу ў іншае прыкладанне. Дачакайцеся заканчэння і націсніце кнопку \"%1$s\".</string>
     <string name="ZipPreparedDescription">Усё гатова для працягу. Націсніце кнопку \"%1$s\".</string>
-    <string name="ZipPreparationFailedDescription">Немагчыма падрыхтаваць дадзеныя для пераносу. Магчыма, на прыладзе не хапае месца. Выпраўце гэта і націсніце "%1$s".</string>
+    <string name="ZipPreparationFailedDescription">Немагчыма падрыхтаваць дадзеныя для пераносу. Магчыма, на прыладзе не хапае месца. Выпраўце гэта і націсніце "%1$s". Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
     <string name="TransferFilesToAnotherTelegramButton">Перанесці файлы ў іншую версію PTelegram</string>
     <string name="UninstallSelfStep">Выдаліць гэтую версію PTelegram</string>
     <string name="UninstallSelfDescription">PTelegram абноўлены да іншай версіі. Пераканайцеся, што новае прыкладанне працуе карэктна. Затым выдаліце старое прыкладанне ўручную або націсніце кнопку ніжэй, каб адкрыць сістэмныя наладкі прыкладання.</string>
@@ -257,4 +257,5 @@
     <string name="MigrationTitle">Міграцыя</string>
     <string name="MigrationDescription">Файлы капіруюцца ў новую версію Партызанскага Тэлеграма. Калі ласка, пачакайце.</string>
     <string name="MigrationErrorAlreadyHasAccountsDescription">Вы ўжо ўвайшлі ў акаўнты ў новым прыкладанні. Калі хочаце перанесці дадзеныя з гэтага прыкладання, выйдзіце з усіх акаўнтаў у новым прыкладанні.</string>
+    <string name="OpenNewTelegramFailedDescription">Не ўдалося адкрыць новую версію Партызанскага Тэлеграма. Націсніце на кнопку "%1$s", каб паспрабаваць яшчэ раз. Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
 </resources>
