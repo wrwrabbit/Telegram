@@ -9,6 +9,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
@@ -56,7 +57,8 @@ public class VerificationRepository {
             } else {
                 fillRepository();
             }
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            PartisanLog.e("VerificationRepository", e);
             loadedWithErrors = true;
         }
     }
