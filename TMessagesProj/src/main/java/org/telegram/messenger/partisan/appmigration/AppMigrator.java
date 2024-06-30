@@ -281,6 +281,9 @@ public class AppMigrator {
     }
 
     public static void disableConnection() {
+        if (isConnectionDisabled()) {
+            return;
+        }
         SharedConfig.ProxyInfo proxyInfo = new SharedConfig.ProxyInfo("127.0.0.1", -1, "", "", "");
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
