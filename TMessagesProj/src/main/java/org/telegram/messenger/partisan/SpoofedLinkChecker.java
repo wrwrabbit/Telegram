@@ -87,6 +87,12 @@ public class SpoofedLinkChecker {
             return null;
         }
         ChatMessageCell cell = tryGetObjectFieldBySuffix(progress, "cell", ChatMessageCell.class);
+        if (cell.getCurrentMessagesGroup() != null) {
+            MessageObject.GroupedMessages groupedMessages = cell.getCurrentMessagesGroup();
+            if (!groupedMessages.messages.isEmpty()) {
+                return groupedMessages.messages.get(0);
+            }
+        }
         return cell != null ? cell.getMessageObject() : null;
     }
 
