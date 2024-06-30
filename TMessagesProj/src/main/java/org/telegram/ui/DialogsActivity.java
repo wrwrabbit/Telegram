@@ -7251,9 +7251,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
         VerificationUpdatesChecker.checkUpdate(currentAccount, false);
-        anyPtgDialogShown = false;
-        checkOtherPtg();
-        checkPtgPermissions();
     }
 
     private void checkOtherPtg() {
@@ -7311,7 +7308,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return OlderPtgStatus.FakePasscode;
         } else if (SharedConfig.runNumber == 0) {
             return OlderPtgStatus.JustMigrated;
-        } else if (SharedConfig.runNumber == 2) {
+        } else if (SharedConfig.runNumber >= 2) {
             return OlderPtgStatus.MigratedLongTimeAgo;
         } else {
             return OlderPtgStatus.Migrated;
@@ -7443,10 +7440,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     @Override
-    public void onActivityResumed() {
+    public void onActivityResume() {
         AppMigrator.deleteZipFile();
         if (AppMigrator.checkMigrationNeedToResume(getContext())) {
             AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
+        } else {
+            anyPtgDialogShown = false;
+            checkOtherPtg();
+            checkPtgPermissions();
         }
     }
 
@@ -8015,6 +8016,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private boolean allowNonPtgDialogs() {
+        if (anyPtgDialogShown) {
+            return false;
+        }
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return true;
         }
