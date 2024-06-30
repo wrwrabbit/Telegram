@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.verification;
 
+import androidx.annotation.Keep;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,6 +11,7 @@ public class VerificationStorage {
     private static final int maxCheckDelay = 3 * 60 * 60;
     private static final Random random = new Random();
 
+    @Keep
     public String storageName;
     public String chatUsername;
     public long chatId;
