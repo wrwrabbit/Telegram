@@ -323,6 +323,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         if (requestCode == 20202020) {
             if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("copied")) {
                 if (data.getBooleanExtra("copied", false)) {
+                    AppMigrator.disableConnection();
                     migrationFinished(data.getStringExtra("packageName"));
                 } else {
                     AppMigrator.enableConnection();
