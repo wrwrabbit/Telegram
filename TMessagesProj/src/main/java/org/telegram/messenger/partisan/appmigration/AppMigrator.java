@@ -86,6 +86,7 @@ public class AppMigrator {
             AppMigrator.passwordBytes = passwordBytes;
             delegate.makeZipCompleted();
         } catch (MakeZipException e) {
+            PartisanLog.e("MoveDataToOtherPtg", e);
             delegate.makeZipFailed();
         } catch (Exception e) {
             delegate.makeZipFailed();
