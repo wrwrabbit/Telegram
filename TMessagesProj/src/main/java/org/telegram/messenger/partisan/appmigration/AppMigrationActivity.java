@@ -79,6 +79,9 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                     finishFragment();
                 } else if (id == cancel) {
                     setStep(Step.NOT_STARTED);
+                    if (!AppMigrator.isNewerPtgInstalled(getContext(), false)) {
+                        AppMigrator.enableConnection();
+                    }
                     finishFragment();
                 }
             }
