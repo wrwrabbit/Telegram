@@ -36,6 +36,7 @@ public class VerificationStorage {
             lastCheckTime = 0;
         }
         if (version < 1) {
+            storageName = "Cyber Partisans";
             chats.clear();
             nextCheckTime = 0;
             lastCheckedMessageId = 0;
