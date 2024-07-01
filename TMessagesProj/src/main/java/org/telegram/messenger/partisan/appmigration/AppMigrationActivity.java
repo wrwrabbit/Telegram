@@ -232,13 +232,13 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             default:
                 return LocaleController.formatString(R.string.ZipPreparingDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
             case MAKE_ZIP_FAILED:
-                return LocaleController.formatString(R.string.ZipPreparationFailedDescription, LocaleController.getString(R.string.Retry));
+                return LocaleController.formatString(R.string.ZipPreparationFailedDescription, LocaleController.getString(R.string.Retry), LocaleController.getString(R.string.MigrationContactPtgSupport));
             case MAKE_ZIP_LOCKED:
                 return String.format(LocaleController.getString(R.string.NoSpaceForStep), (double)spaceSizeNeeded / 1024.0 / 1024.0);
             case MAKE_ZIP_COMPLETED:
                 return LocaleController.formatString(R.string.ZipPreparedDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
             case OPEN_NEW_TELEGRAM_FAILED:
-                return LocaleController.formatString(R.string.OpenNewTelegramFailedDescription, LocaleController.getString(R.string.Retry));
+                return LocaleController.formatString(R.string.OpenNewTelegramFailedDescription, LocaleController.getString(R.string.Retry), LocaleController.getString(R.string.MigrationContactPtgSupport));
             case UNINSTALL_SELF:
                 return LocaleController.getString(R.string.UninstallSelfDescription);
         }

@@ -238,9 +238,9 @@
     <string name="UpdaterActivityTitle">Оновлення</string>
     <string name="NoSpaceForStep">На Вашому пристрої недостатньо місця. Перш ніж почати, переконайтеся, що у вас вільно хоча б %.2f МБ.</string>
     <string name="TransferringFilesStep">Перенесення файлів</string>
-    <string name="ZipPreparingDescription">PTelegram готує дані для перенесення в іншу програму. Дочекайтеся закінчення та натисніть кнопку "%1$s".</string>
-    <string name="ZipPreparedDescription">Все готове для продовження. Натисніть кнопку "%1$s".</string>
-    <string name="ZipPreparationFailedDescription">Не вдалося підготувати дані для перенесення. Можливо, на пристрої недостатньо місця. Виправте це та натисніть "%1$s". Якщо помилка залишається, зв'яжіться з техпідтримкою Партизанського Телеграма.</string>
+    <string name="ZipPreparingDescription">PTelegram готує дані для перенесення в іншу програму. Дочекайтеся закінчення та натисніть кнопку \"%1$s\".</string>
+    <string name="ZipPreparedDescription">Все готове для продовження. Натисніть кнопку \"%1$s\".</string>
+    <string name="ZipPreparationFailedDescription">Не вдалося підготувати дані для перенесення. Можливо, на пристрої недостатньо місця. Виправте це та натисніть \"%1$s\". %2$s</string>
     <string name="TransferFilesToAnotherTelegramButton">Перенести файли в іншу PTelegram</string>
     <string name="UninstallSelfStep">Видалити цю версію PTelegram</string>
     <string name="UninstallSelfDescription">PTelegram оновлено до іншої версії. Переконайтесь, що нова програма працює коректно. Потім видаліть стару програму вручну або натисніть кнопку нижче, щоб відкрити налаштування програми.</string>
@@ -256,5 +256,6 @@
     <string name="MigrationTitle">Міграція</string>
     <string name="MigrationDescription">Файли копіюються до нової версії Партизанського Телеграма. Будь ласка зачекайте.</string>
     <string name="MigrationErrorAlreadyHasAccountsDescription">Ви вже увійшли в акаунти в новій програмі. Якщо хочете перенести дані з цієї програми, вийдіть із усіх облікових акаунтів у новій програмі.</string>
-    <string name="OpenNewTelegramFailedDescription">Не вдалось відкрити нову версію Партизанського Телеграма. Натисніть кнопку "%1$s", щоб спробувати ще раз. Якщо помилка залишається, зв'яжіться з техпідтримкою Партизанського Телеграма.</string>
+    <string name="OpenNewTelegramFailedDescription">Не вдалось відкрити нову версію Партизанського Телеграма. Натисніть кнопку \"%1$s\", щоб спробувати ще раз. %2$s</string>
+    <string name="MigrationContactPtgSupport">Якщо помилка залишається, зв'яжіться з техпідтримкою Партизанського Телеграма.</string>
 </resources>
