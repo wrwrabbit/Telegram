@@ -7308,7 +7308,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return OlderPtgStatus.FakePasscode;
         } else if (SharedConfig.runNumber == 0) {
             return OlderPtgStatus.JustMigrated;
-        } else if (SharedConfig.runNumber >= 2) {
+        } else if (SharedConfig.runNumber > 3) {
             return OlderPtgStatus.MigratedLongTimeAgo;
         } else {
             return OlderPtgStatus.Migrated;
