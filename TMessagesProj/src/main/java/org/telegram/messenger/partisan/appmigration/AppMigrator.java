@@ -56,15 +56,11 @@ public class AppMigrator {
     private static final String PTG_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
     private static final List<String> PTG_PACKAGE_NAMES = Arrays.asList(
             "org.telegram.messenger.web",
-            "org.telegram.messenger",
-            "org.telegram.messenger.alpha",
-            "org.telegram.messenger.beta"
+            "org.telegram.messenger"
     );
     private static final List<String> PTG_DEBUG_PACKAGE_NAMES = Arrays.asList(
             "org.telegram.messenger.alpha",
-            "org.telegram.messenger.beta",
-            "org.telegram.messenger.web",
-            "org.telegram.messenger"
+            "org.telegram.messenger.beta"
     );
     private static Step step;
     private static Long maxCancelledInstallationDate;
@@ -376,7 +372,7 @@ public class AppMigrator {
             if (packageInfo == null || Objects.equals(packageInfo.packageName, context.getPackageName())) {
                 continue;
             }
-            if (isPtg30Signature(packageInfo)) {
+            if (isPtgSignature(packageInfo)) {
                 result.add(packageInfo);
             }
         }
@@ -395,7 +391,7 @@ public class AppMigrator {
         return BuildVars.isAlphaApp() || BuildVars.isBetaApp();
     }
 
-    private static boolean isPtg30Signature(PackageInfo packageInfo) {
+    private static boolean isPtgSignature(PackageInfo packageInfo) {
         Signature[] signatures = getSignatures(packageInfo);
         if (signatures == null) {
             return false;
@@ -404,7 +400,7 @@ public class AppMigrator {
             try {
                 MessageDigest hash = MessageDigest.getInstance("SHA-1");
                 String thumbprint = Utilities.bytesToHex(hash.digest(sig.toByteArray()));
-                if (thumbprint.equalsIgnoreCase(PTG_DEBUG_SIGNATURE) || thumbprint.equalsIgnoreCase(PTG_SIGNATURE)) {
+                if (thumbprint.equalsIgnoreCase(getPtgSignature())) {
                     return true;
                 }
             } catch (NoSuchAlgorithmException ignored) {
