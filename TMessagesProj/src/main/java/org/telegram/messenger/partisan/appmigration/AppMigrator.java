@@ -27,6 +27,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.PartisanVersion;
 import org.telegram.tgnet.ConnectionsManager;
 
 import java.io.BufferedOutputStream;
@@ -256,6 +257,7 @@ public class AppMigrator {
         intent.putExtra("packageName", context.getPackageName());
         intent.putExtra("language", LocaleController.getInstance().getLanguageOverride());
         intent.putExtra("fromOtherPtg", true);
+        intent.putExtra("version", PartisanVersion.PARTISAN_VERSION_STRING);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

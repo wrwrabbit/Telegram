@@ -9215,7 +9215,10 @@
     <string name="TransferDataToOtherPtgInfo">You installed a different version of Partisan Telegram. Click the button if you want to transfer data.</string>
     <string name="MigrationTitle">Migration</string>
     <string name="MigrationDescription">The files are copied to the new version of Partisan Telegram. Please wait.</string>
-    <string name="MigrationErrorAlreadyHasAccountsDescription">You are already signed in to your accounts in the new application. If you want to transfer data from this application, sign out of all accounts in the new application.</string>
     <string name="OpenNewTelegramFailedDescription">Failed to open the new version of Partisan Telegram. Tap \"%1$s\" to try again. %2$s</string>
+    <string name="MigrationErrorAlreadyHasAccountsDescription">You are already signed in to your accounts in the new application. If you want to transfer data from this application, sign out of all accounts in the new application.</string>
+    <string name="MigrationErrorSrcVersionGreaterDescription">The version of the target application is below the version of the current. Install the latest version of the target application and try again. %1$s</string>
+    <string name="MigrationErrorSrcVersionOldDescription">The current app is out of date and cannot transfer data to the new app. Please update it and try again.</string>
+    <string name="MigrationErrorUnknownDescription">An unknown error has occurred. Please update both apps and try again. %1$s</string>
     <string name="MigrationContactPtgSupport">If the error persists, please contact technical Partisan Telegram support.</string>
 </resources>

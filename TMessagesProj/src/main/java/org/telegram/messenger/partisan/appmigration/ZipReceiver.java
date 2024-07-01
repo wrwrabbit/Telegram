@@ -13,6 +13,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.update.AppVersion;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -45,7 +46,10 @@ class ZipReceiver {
     private void receiveZipInternal() {
         try {
             if (appAlreadyHasAccounts()) {
-                finishReceivingMigration(false);
+                finishReceivingMigration("alreadyHasAccounts");
+                return;
+            } else if (isSourceAppVersionGreater()) {
+                finishReceivingMigration("srcVersionGreater");
                 return;
             }
             AndroidUtilities.runOnUIThread(() -> {
@@ -57,7 +61,7 @@ class ZipReceiver {
             zipStream.close();
             //noinspection ResultOfMethodCallIgnored
             new File(activity.getFilesDir(), "updater_files_copied").createNewFile();
-            finishReceivingMigration(true);
+            finishReceivingMigration(null);
         } catch (Exception e) {
             PartisanLog.e("ReceiveDataFromOtherPtg", e);
             showMigrationReceiveError(e);
@@ -66,6 +70,12 @@ class ZipReceiver {
 
     private static boolean appAlreadyHasAccounts() {
         return UserConfig.getActivatedAccountsCount(true) > 0;
+    }
+
+    private boolean isSourceAppVersionGreater() {
+        String srcVersionString = activity.getIntent().getStringExtra("version");
+        AppVersion srcVersion = AppVersion.parseVersion(srcVersionString);
+        return srcVersion == null || srcVersion.greater(AppVersion.getCurrentVersion());
     }
 
     private void deleteSharedPrefs() {
@@ -163,10 +173,11 @@ class ZipReceiver {
         fileOutputStream.close();
     }
 
-    private void finishReceivingMigration(boolean copied) {
+    private void finishReceivingMigration(String error) {
         AndroidUtilities.runOnUIThread(() -> {
             Intent data = new Intent();
-            data.putExtra("copied", copied);
+            data.putExtra("success", error == null);
+            data.putExtra("error", error);
             data.putExtra("packageName", activity.getPackageName());
             activity.setResult(Activity.RESULT_OK, data);
 

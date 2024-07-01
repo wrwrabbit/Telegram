@@ -324,21 +324,34 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
         super.onActivityResultFragment(requestCode, resultCode, data);
         if (requestCode == 20202020) {
-            if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("copied")) {
-                if (data.getBooleanExtra("copied", false)) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("success")) {
+                if (data.getBooleanExtra("success", false)) {
                     AppMigrator.disableConnection();
                     migrationFinished(data.getStringExtra("packageName"));
                 } else {
                     AppMigrator.enableConnection();
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                     builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
-                    builder.setMessage(LocaleController.getString(R.string.MigrationErrorAlreadyHasAccountsDescription));
+                    String error = data.getStringExtra("error");
+                    builder.setMessage(getErrorMessage(error));
                     builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                     showDialog(builder.create());
                 }
             } else {
                 AppMigrator.enableConnection();
             }
+        }
+    }
+
+    private static String getErrorMessage(String error) {
+        if ("alreadyHasAccounts".equals(error)) {
+            return LocaleController.getString(R.string.MigrationErrorAlreadyHasAccountsDescription);
+        } else if ("srcVersionGreater".equals(error)) {
+            return LocaleController.formatString(R.string.MigrationErrorSrcVersionGreaterDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
+        } else if ("srcVersionOld".equals(error)) {
+            return LocaleController.getString(R.string.MigrationErrorSrcVersionOldDescription);
+        } else {
+            return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
         }
     }
 

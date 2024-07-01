@@ -255,7 +255,10 @@
     <string name="TransferDataToOtherPtgInfo">Ви встановили іншу версію Партизанського Телеграма. Натисніть кнопку, якщо хочете перенести дані.</string>
     <string name="MigrationTitle">Міграція</string>
     <string name="MigrationDescription">Файли копіюються до нової версії Партизанського Телеграма. Будь ласка зачекайте.</string>
-    <string name="MigrationErrorAlreadyHasAccountsDescription">Ви вже увійшли в акаунти в новій програмі. Якщо хочете перенести дані з цієї програми, вийдіть із усіх облікових акаунтів у новій програмі.</string>
     <string name="OpenNewTelegramFailedDescription">Не вдалось відкрити нову версію Партизанського Телеграма. Натисніть кнопку \"%1$s\", щоб спробувати ще раз. %2$s</string>
+    <string name="MigrationErrorAlreadyHasAccountsDescription">Ви вже увійшли в акаунти в новій програмі. Якщо хочете перенести дані з цієї програми, вийдіть із усіх облікових акаунтів у новій програмі.</string>
+    <string name="MigrationErrorSrcVersionGreaterDescription">Версія цільової програми нижче версії теперішньої. Встановіть останню версію цільової програми та повторіть спробу. %1$s</string>
+    <string name="MigrationErrorSrcVersionOldDescription">Теперішня програма застаріла і не може передати дані в новий додаток. Оновіть її та повторіть спробу.</string>
+    <string name="MigrationErrorUnknownDescription">Сталася невідома помилка. Оновіть обидві програми та спробуйте ще раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Якщо помилка залишається, зв'яжіться з техпідтримкою Партизанського Телеграма.</string>
 </resources>

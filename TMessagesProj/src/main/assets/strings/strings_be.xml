@@ -256,7 +256,10 @@
     <string name="TransferDataToOtherPtgInfo">Вы ўсталявалі іншую версію Партызанскага Тэлеграма. Націсніце на кнопку, калі жадаеце перанесці дадзеныя.</string>
     <string name="MigrationTitle">Міграцыя</string>
     <string name="MigrationDescription">Файлы капіруюцца ў новую версію Партызанскага Тэлеграма. Калі ласка, пачакайце.</string>
-    <string name="MigrationErrorAlreadyHasAccountsDescription">Вы ўжо ўвайшлі ў акаўнты ў новым прыкладанні. Калі хочаце перанесці дадзеныя з гэтага прыкладання, выйдзіце з усіх акаўнтаў у новым прыкладанні.</string>
     <string name="OpenNewTelegramFailedDescription">Не ўдалося адкрыць новую версію Партызанскага Тэлеграма. Націсніце на кнопку \"%1$s\", каб паспрабаваць яшчэ раз. %2$s</string>
+    <string name="MigrationErrorAlreadyHasAccountsDescription">Вы ўжо ўвайшлі ў акаўнты ў новым прыкладанні. Калі хочаце перанесці дадзеныя з гэтага прыкладання, выйдзіце з усіх акаўнтаў у новым прыкладанні.</string>
+    <string name="MigrationErrorSrcVersionGreaterDescription">Версія новага прыкладання ніжэйшая за версію бягучага. Усталюйце апошнюю версію новага прыкладання і паспрабуйце яшчэ раз. %1$s</string>
+    <string name="MigrationErrorSrcVersionOldDescription">Бягучае прыкладанне састарэла і не можа перадаць дадзеныя ў новае прыкладанне. Абнавіце яго і паспрабуйце яшчэ раз.</string>
+    <string name="MigrationErrorUnknownDescription">Адбылася невядомая памылка. Абнавіце абодва прыкладанні і паспрабуйце яшчэ раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
 </resources>
