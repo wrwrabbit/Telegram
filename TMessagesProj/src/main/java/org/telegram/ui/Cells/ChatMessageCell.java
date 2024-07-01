@@ -16450,7 +16450,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             } else if (messageObject.replyMessageObject.messageOwner != null && messageObject.replyMessageObject.messageOwner.peer_id != null) {
                                 TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(messageObject.replyMessageObject.messageOwner.peer_id.channel_id);
                                 if (chat != null) {
-                                    name = ndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, chat));
+                                    name = AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, chat));
                                 }
                             }
                         }
