@@ -235,7 +235,7 @@ public class SendMessageChatCell extends FrameLayout {
                 boolean continueUpdate = false;
                 if ((mask & MessagesController.UPDATE_MASK_STATUS) != 0) {
                     int newStatus = 0;
-                    if (currentUser.status != null) {
+                    if (currentUser != null && currentUser.status != null) {
                         newStatus = currentUser.status.expires;
                     }
                     if (newStatus != lastStatus) {
@@ -253,7 +253,7 @@ public class SendMessageChatCell extends FrameLayout {
                 }
             }
             avatarDrawable.setInfo(currentAccount, currentUser);
-            lastStatus = currentUser.status != null ? currentUser.status.expires : 0;
+            lastStatus = currentUser != null && currentUser.status != null ? currentUser.status.expires : 0;
 
             if (currentName != null) {
                 lastName = null;
