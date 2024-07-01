@@ -106,6 +106,8 @@ public class SendMessageChatCell extends FrameLayout {
             return DialogObject.makeEncryptedDialogId(((TLRPC.EncryptedChat) currentObject).id);
         } else if (currentObject instanceof TLRPC.Chat) {
             return -((TLRPC.Chat) currentObject).id;
+        } else if (currentObject instanceof Long) {
+            return (long) currentObject;
         } else {
             return 0;
         }
@@ -264,6 +266,11 @@ public class SendMessageChatCell extends FrameLayout {
             }
 
             avatarImageView.setForUserOrChat(currentUser, avatarDrawable);
+        } else if (currentObject instanceof Long) {
+            String name = UserObject.getUserName(null, currentAccount);
+            nameTextView.setText(name);
+            avatarDrawable.setInfo((long) currentObject, name, "");
+            avatarImageView.setForUserOrChat(null, avatarDrawable);
         }
     }
 
