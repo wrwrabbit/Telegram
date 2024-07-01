@@ -12,10 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 class UpdateMessageParser {
-    private final Pattern VERSION_REGEX = Pattern.compile("(\\d+).(\\d+).(\\d+)");
     private UpdateData currentUpdate;
     private MessageObject currentMessage;
     private String lang = "en";
@@ -202,9 +200,9 @@ class UpdateMessageParser {
         String name = parts[0];
         String value = parts.length == 2 ? parts[1] : null;
         if (name.equals("version") || name.equals("appVersion")) {
-            currentUpdate.version = AppVersion.parseVersion(value, VERSION_REGEX);
+            currentUpdate.version = AppVersion.parseVersion(value);
         } else if (name.equals("originalVersion")) {
-            currentUpdate.originalVersion = AppVersion.parseVersion(value, VERSION_REGEX);
+            currentUpdate.originalVersion = AppVersion.parseVersion(value);
         } else if (name.equals("canNotSkip")) {
             currentUpdate.canNotSkip = value == null || value.equals("true");
         } else if (name.equals("lang")) {
