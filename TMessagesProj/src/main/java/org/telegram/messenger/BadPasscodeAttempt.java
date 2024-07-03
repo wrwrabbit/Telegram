@@ -8,6 +8,9 @@ import org.telegram.messenger.camera.HiddenCameraManager;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BadPasscodeAttempt {
     public static final int AppUnlockType = 0;
@@ -15,8 +18,11 @@ public class BadPasscodeAttempt {
     public int type;
     public boolean isFakePasscode;
     public LocalDateTime date;
-    public String frontPhotoPath;
-    public String backPhotoPath;
+    @Deprecated
+    private String frontPhotoPath;
+    @Deprecated
+    private String backPhotoPath;
+    public List<String> photoPaths = new ArrayList<>();
 
     public BadPasscodeAttempt() {}
     public BadPasscodeAttempt(int type, boolean isFakePasscode) {
@@ -34,33 +40,52 @@ public class BadPasscodeAttempt {
         }
     }
 
-    public void takePhoto(Context context) {
+    public void takePhotos(Context context) {
         if (SharedConfig.takePhotoWithBadPasscodeFront) {
-            (new HiddenCameraManager(context)).takePhoto(true, path -> {
-                frontPhotoPath = path;
-                SharedConfig.saveConfig();
-                if (SharedConfig.takePhotoWithBadPasscodeBack) {
-                    (new HiddenCameraManager(context)).takePhoto(false, backPath -> {
-                        backPhotoPath = backPath;
-                        SharedConfig.saveConfig();
-                    });
+            takeSinglePhoto(context, true, () -> {
+                if (SharedConfig.takePhotoWithBadPasscodeFront) {
+                    takeSinglePhoto(context, false, null);
                 }
             });
         } else if (SharedConfig.takePhotoWithBadPasscodeBack) {
-            (new HiddenCameraManager(context)).takePhoto(false, path -> {
-                backPhotoPath = path;
-                SharedConfig.saveConfig();
-            });
+            takeSinglePhoto(context, false, null);
         }
     }
 
+    private void takeSinglePhoto(Context context, boolean front, Runnable onFinish) {
+        (new HiddenCameraManager(context)).takePhoto(front, path -> {
+            photoPaths.add(path);
+            SharedConfig.saveConfig();
+            if (onFinish != null) {
+                onFinish.run();
+            }
+        });
+    }
+
     public void clear() {
+        for (String path : photoPaths) {
+            new File(ApplicationLoader.getFilesDirFixed(), path).delete();
+        }
+        photoPaths.clear();
+    }
+
+    /** @noinspection deprecation*/
+    public boolean migrate() {
+        if (!photoPaths.isEmpty()) {
+            return false;
+        }
         if (frontPhotoPath != null) {
-            new File(frontPhotoPath).delete();
+            photoPaths.add(frontPhotoPath);
             frontPhotoPath = null;
-        } else if (backPhotoPath != null) {
-            new File(backPhotoPath).delete();
+        }
+        if (backPhotoPath != null) {
+            photoPaths.add(backPhotoPath);
             backPhotoPath = null;
         }
+        String prefix = ApplicationLoader.getFilesDirFixed() + File.separator;
+        photoPaths = photoPaths.stream()
+                .map(path -> path.replace(prefix, ""))
+                .collect(Collectors.toList());
+        return true;
     }
 }

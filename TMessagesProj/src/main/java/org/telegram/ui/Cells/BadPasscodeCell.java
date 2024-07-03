@@ -43,17 +43,18 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.channels.FileChannel;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BadPasscodeCell extends FrameLayout {
 
-    private TextView typeView;
-    private TextView fakePasscodeView;
-    private TextView dateView;
-    private ImageView frontPhoto;
-    private ImageView backPhoto;
-    private LinearLayout layout;
+    private final TextView typeView;
+    private final TextView fakePasscodeView;
+    private final TextView dateView;
+    private final List<ImageView> photos = new ArrayList<>();
+    private final LinearLayout layout;
 
     public BadPasscodeCell(Context context) {
         super(context);
@@ -100,11 +101,11 @@ public class BadPasscodeCell extends FrameLayout {
         lp.leftMargin = AndroidUtilities.dp(5);
         lp.rightMargin = AndroidUtilities.dp(5);
 
-        frontPhoto = createImageView(context);
-        layout.addView(frontPhoto, lp);
-
-        backPhoto = createImageView(context);
-        layout.addView(backPhoto, lp);
+        for (int i = 0; i < 2; i++) {
+            ImageView photo = createImageView(context);
+            layout.addView(photo, lp);
+            photos.add(photo);
+        }
         return layout;
     }
 
@@ -135,33 +136,38 @@ public class BadPasscodeCell extends FrameLayout {
         dateView.setVisibility(VISIBLE);
         dateView.setText(badPasscodeAttempt.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        bindPhoto(frontPhoto, badPasscodeAttempt.frontPhotoPath);
-        bindPhoto(backPhoto, badPasscodeAttempt.backPhotoPath);
+        for (int i = 0; i < photos.size(); i++) {
+            String path = i < badPasscodeAttempt.photoPaths.size()
+                    ? badPasscodeAttempt.photoPaths.get(i)
+                    : null;
+            bindPhoto(photos.get(i), path);
+        }
         setWillNotDraw(false);
     }
 
     private void bindPhoto(ImageView image, String path) {
-        if (path != null) {
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.submit(() -> {
-                Bitmap bitmap = lessResolution(path);
-                AndroidUtilities.runOnUIThread(() -> image.setImageBitmap(bitmap));
-            });
-            image.setVisibility(VISIBLE);
-            image.setOnLongClickListener(view -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
-                builder.setMessage(LocaleController.getString("SaveToGallery", R.string.SaveToGallery) + "?");
-                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialogInterface, i) -> {
-                    saveFile(path);
-                });
-                builder.create().show();
-                return true;
-            });
-        } else {
+        if (path == null) {
             image.setVisibility(GONE);
+            image.setOnClickListener(null);
+            return;
         }
+        File file = new File(ApplicationLoader.getFilesDirFixed(), path);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            Bitmap bitmap = lessResolution(file.getAbsolutePath());
+            AndroidUtilities.runOnUIThread(() -> image.setImageBitmap(bitmap));
+        });
+        image.setVisibility(VISIBLE);
+        image.setOnClickListener(view -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
+            builder.setMessage(LocaleController.getString("SaveToGallery", R.string.SaveToGallery) + "?");
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialogInterface, i) -> {
+                saveFile(file);
+            });
+            builder.create().show();
+        });
     }
 
     public static Bitmap lessResolution(String filePath) {
@@ -222,20 +228,8 @@ public class BadPasscodeCell extends FrameLayout {
         return degree;
     }
 
-    public static void saveFile(String fullPath) {
-        if (fullPath == null) {
-            return;
-        }
-
-        File file = null;
-        if (!TextUtils.isEmpty(fullPath)) {
-            file = new File(fullPath);
-            if (!file.exists()) {
-                file = null;
-            }
-        }
-
-        if (file == null) {
+    public static void saveFile(File file) {
+        if (file == null || !file.exists()) {
             return;
         }
 
