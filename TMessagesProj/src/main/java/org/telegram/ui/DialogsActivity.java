@@ -10020,10 +10020,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 pin2Item.setText(LocaleController.getString("DialogUnpin", R.string.DialogUnpin));
             }
         }
-        if (canSaveCount != 0 && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showSavedChannels) {
-            saveItem.setVisibility(View.VISIBLE);
-        } else {
-            saveItem.setVisibility(View.GONE);
+        if (saveItem != null) {
+            if (canSaveCount != 0 && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showSavedChannels) {
+                saveItem.setVisibility(View.VISIBLE);
+            } else {
+                saveItem.setVisibility(View.GONE);
+            }
         }
     }
 
