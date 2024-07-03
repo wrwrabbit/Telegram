@@ -5,11 +5,19 @@ import android.content.Context;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 
 public class AppMigrationDialogs {
+    public static boolean needShowNewerPtgDialog(Context context) {
+        return !FakePasscodeUtils.isFakePasscodeActivated()
+                && !AppMigrator.isMigrationStarted()
+                && !AppMigrator.isConnectionDisabled()
+                && AppMigrator.isNewerPtgInstalled(context, true);
+    }
+
     public static AlertDialog createNewerPtgInstalledDialog(BaseFragment fragment) {
         AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
         builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));

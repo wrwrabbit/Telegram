@@ -7327,16 +7327,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void checkNewerOtherPtg() {
-        if (needShowNewerPtgDialog()) {
+        if (AppMigrationDialogs.needShowNewerPtgDialog(getContext())) {
             showPtgDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(this), true);
         }
-    }
-
-    private boolean needShowNewerPtgDialog() {
-        return !FakePasscodeUtils.isFakePasscodeActivated()
-                && !AppMigrator.isMigrationStarted()
-                && !AppMigrator.isConnectionDisabled()
-                && AppMigrator.isNewerPtgInstalled(getParentActivity(), true);
     }
 
     private void showPtgDialog(AlertDialog dialog, boolean showUsingFragmentMethod) {
@@ -7979,7 +7972,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return true;
         }
-        return !needShowNewerPtgDialog() && !getOlderPtgStatus().needShowDialog() && !needCameraPermission();
+        return !AppMigrationDialogs.needShowNewerPtgDialog(getContext())
+                && !getOlderPtgStatus().needShowDialog()
+                && !needCameraPermission();
     }
 
     private boolean needCameraPermission() {
