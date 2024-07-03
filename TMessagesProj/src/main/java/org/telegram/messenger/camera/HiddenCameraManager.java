@@ -186,23 +186,22 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
 
     private String savePicture(byte[] bytes) {
         try {
-            File pictureFileDir = ApplicationLoader.getFilesDirFixed();
             if (bytes == null) {
                 return null;
             }
+            File pictureFileDir = ApplicationLoader.getFilesDirFixed();
             if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
                 return null;
             }
             SimpleDateFormat dateFormat = new SimpleDateFormat("(hh:mm:ss)(dd.MM.yyyy)", Locale.US);
             String date = dateFormat.format(new Date());
-            String photoFile = "hidden photo " + date + ".jpg";
+            String fileName = "hidden photo " + date + ".jpg";
 
-            String filePath = pictureFileDir.getPath() + File.separator + photoFile;
-            File pictureFile = new File(filePath);
-            FileOutputStream fos = new FileOutputStream(pictureFile);
+            File fullPath = new File(pictureFileDir, fileName);
+            FileOutputStream fos = new FileOutputStream(fullPath);
             fos.write(bytes);
             fos.close();
-            return filePath;
+            return fileName;
         } catch (Exception e) {
             PartisanLog.handleException(e);
             return null;

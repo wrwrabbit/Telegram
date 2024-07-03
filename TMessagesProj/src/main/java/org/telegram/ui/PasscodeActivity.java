@@ -104,7 +104,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PasscodeActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -1312,7 +1311,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.PasscodeSettingsType, result.fakePasscode != null);
                     SharedConfig.badPasscodeAttemptList.add(badAttempt);
                     SharedConfig.saveConfig();
-                    badAttempt.takePhoto(getParentActivity());
+                    badAttempt.takePhotos(getParentActivity());
                 }
                 if (!result.allowLogin() || result.isRealPasscodeSuccess && FakePasscodeUtils.isFakePasscodeActivated()
                     || result.fakePasscode != null && FakePasscodeUtils.getActivatedFakePasscode() != result.fakePasscode) {

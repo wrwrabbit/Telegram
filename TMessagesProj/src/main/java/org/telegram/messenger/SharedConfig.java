@@ -706,6 +706,16 @@ public class SharedConfig {
         }
     }
 
+    private static void migrateBadPasscodeAttempts() {
+        for (BadPasscodeAttempt attempt : badPasscodeAttemptList) {
+            boolean migrated = attempt.migrate();
+            if (!migrated) {
+                return;
+            }
+        }
+        saveConfig();
+    }
+
     public static void reloadConfig() {
         synchronized (sync) {
             configLoaded = false;
@@ -924,6 +934,7 @@ public class SharedConfig {
 
             configLoaded = true;
             migrateFakePasscode();
+            migrateBadPasscodeAttempts();
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && debugWebView) {
