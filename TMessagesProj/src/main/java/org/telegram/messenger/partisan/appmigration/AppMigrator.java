@@ -18,6 +18,8 @@ import android.text.TextUtils;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
@@ -216,13 +218,20 @@ public class AppMigrator {
     }
 
     public static boolean startNewTelegram(Activity activity) {
-        ActivityInfo activityInfo = getNewestUncheckedPtgActivity(activity);
-        if (activityInfo == null) {
+        ActivityInfo newestActivityInfo = getNewestUncheckedPtgActivity(activity);
+        if (newestActivityInfo == null) {
+            PartisanLog.d("MoveDataToOtherPtg newestActivityInfo == null");
             return false;
         }
         try {
+            PartisanLog.d("MoveDataToOtherPtg " + SharedConfig.toJson(newestActivityInfo));
+        } catch (JsonProcessingException e) {
+            PartisanLog.e("MoveDataToOtherPtg", e);
+        }
+        try {
             disableConnection();
-            Intent intent = createNewTelegramIntent(activity, activityInfo);
+            Intent intent = createNewTelegramIntent(activity, newestActivityInfo);
+            PartisanLog.d("MoveDataToOtherPtg startActivityForResult");
             activity.startActivityForResult(intent, 20202020);
             return true;
         } catch (Exception e) {
