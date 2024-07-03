@@ -385,15 +385,17 @@ public class ContactsController extends BaseController {
     }
 
     public void checkAppAccount() {
-        AccountManager am = AccountManager.get(ApplicationLoader.applicationContext);
-        Map<Integer, Boolean> logoutMap = FakePasscodeUtils.getLogoutOrHideAccountMap();
+        systemAccount = null;
+        Utilities.globalQueue.postRunnable(() -> {
+            AccountManager am = AccountManager.get(ApplicationLoader.applicationContext);
+            Map<Integer, Boolean> logoutMap = FakePasscodeUtils.getLogoutOrHideAccountMap();
         try {
             Account[] accounts = am.getAccountsByType("org.telegram.messenger");
-            systemAccount = null;
-            for (int a = 0; a < accounts.length; a++) {
-                Account acc = accounts[a];
-                boolean found = false;
-                boolean remove = false;
+
+                for (int a = 0; a < accounts.length; a++) {
+                    Account acc = accounts[a];
+                    boolean found = false;
+                    boolean remove = false;
                 for (int b = 0; b < UserConfig.MAX_ACCOUNT_COUNT; b++) {
                     TLRPC.User user = UserConfig.getInstance(b).getCurrentUser();
                     if (user != null) {
@@ -413,27 +415,28 @@ public class ContactsController extends BaseController {
                     remove = true;
                 }
                 if (remove) {
+                        try {
+                            am.removeAccount(accounts[a], null, null);
+                        } catch (Exception ignore) {
+
+                    }
+                }
+                }
+            } catch (Throwable ignore) {
+
+            }
+            if (getUserConfig().isClientActivated()) {
+                readContacts();
+                if (systemAccount == null && !Objects.equals(logoutMap.get(currentAccount), true)) {
                     try {
-                        am.removeAccount(accounts[a], null, null);
+                        systemAccount = new Account("" + getUserConfig().getClientUserId(), "org.telegram.messenger");
+                        am.addAccountExplicitly(systemAccount, "", null);
                     } catch (Exception ignore) {
 
                     }
                 }
             }
-        } catch (Throwable ignore) {
-
-        }
-        if (getUserConfig().isClientActivated()) {
-            readContacts();
-            if (systemAccount == null && !Objects.equals(logoutMap.get(currentAccount), true)) {
-                try {
-                    systemAccount = new Account("" + getUserConfig().getClientUserId(), "org.telegram.messenger");
-                    am.addAccountExplicitly(systemAccount, "", null);
-                } catch (Exception ignore) {
-
-                }
-            }
-        }
+        });
     }
 
     public void deleteUnknownAppAccounts() {
