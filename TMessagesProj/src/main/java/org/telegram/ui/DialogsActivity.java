@@ -130,6 +130,7 @@ import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
+import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
@@ -7279,9 +7280,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             SharedConfig.runNumber++;
             SharedConfig.saveConfig();
             if (status == OlderPtgStatus.JustMigrated) {
-                showUpdateCompletedDialog();
+                AlertDialog dialog = AppMigrationDialogs.createUpdateCompletedDialog(getContext());
+                showPtgDialog(dialog, false);
             } else if (status == OlderPtgStatus.MigratedLongTimeAgo) {
-                showOldPtgNotRemovedDialog();
+                AlertDialog dialog = AppMigrationDialogs.createOldPtgNotRemovedDialog(getContext());
+                showPtgDialog(dialog, false);
             }
         }
     }
@@ -7323,42 +7326,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    private void showUpdateCompletedDialog() {
-        if (anyPtgDialogShown) {
-            return;
-        }
-        anyPtgDialogShown = true;
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString(R.string.UpdateCompletedTitle));
-        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UpdateCompletedMessage)));
-        builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
-        AlertDialog dialog = builder.create();
-        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
-        dialog.setCanCancel(false);
-        dialog.setCancelable(false);
-        dialog.show();
-    }
-
-    private void showOldPtgNotRemovedDialog() {
-        if (anyPtgDialogShown) {
-            return;
-        }
-        anyPtgDialogShown = true;
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString(R.string.OldAppNotRemovedTitle));
-        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.OldAppNotRemovedMessage)));
-        AlertDialog dialog = builder.create();
-        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
-        dialog.setCanCancel(false);
-        dialog.setCancelable(false);
-        DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 10,
-                (dlg, which) -> dlg.dismiss());
-        dialog.show();
-    }
-
     private void checkNewerOtherPtg() {
         if (needShowNewerPtgDialog()) {
-            showNewerPtgInstalledDialog();
+            showPtgDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(this), true);
         }
     }
 
@@ -7369,21 +7339,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 && AppMigrator.isNewerPtgInstalled(getParentActivity(), true);
     }
 
-    private void showNewerPtgInstalledDialog() {
+    private void showPtgDialog(AlertDialog dialog, boolean showUsingFragmentMethod) {
         if (anyPtgDialogShown) {
             return;
         }
         anyPtgDialogShown = true;
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));
-        builder.setMessage(LocaleController.getString(R.string.OtherPTelegramAlert));
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) ->
-                AppMigrator.updateMaxCancelledInstallationDate());
-        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->
-                presentFragment(new AppMigrationActivity()));
-        AlertDialog dialog = builder.create();
         dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
-        showDialog(dialog);
+        if (showUsingFragmentMethod) {
+            showDialog(dialog);
+        } else {
+            dialog.show();
+        }
     }
 
     private void checkPtgPermissions() {
@@ -7401,10 +7367,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void requestCameraPermission() {
-        if (anyPtgDialogShown) {
-            return;
-        }
-        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.AppName));
         builder.setMessage(LocaleController.getString(R.string.NeedCameraPermissionMessage));
@@ -7417,17 +7379,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             SharedConfig.saveConfig();
         });
         AlertDialog dialog = builder.create();
-        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
-        dialog.show();
+        showPtgDialog(dialog, false);
     }
 
     private void requestLocationPermission() {
-        if (anyPtgDialogShown) {
-            return;
-        }
-        anyPtgDialogShown = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.AppName));
         builder.setMessage(LocaleController.getString(R.string.NeedLocationPermissionMessage));
@@ -7446,10 +7403,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             SharedConfig.saveConfig();
         });
         AlertDialog dialog = builder.create();
-        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
-        dialog.show();
+        showPtgDialog(dialog, false);
     }
 
     @Override
