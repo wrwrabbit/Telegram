@@ -669,7 +669,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private static boolean olderPtgChecked;
     private static boolean ptgPermissionsChecked;
-    private boolean anyPtgDialogShown;
+    private boolean anyPtgDialogShown = false;
 
     public final Property<DialogsActivity, Float> SCROLL_Y = new AnimationProperties.FloatProperty<DialogsActivity>("animationValue") {
         @Override
@@ -7023,6 +7023,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
         VerificationUpdatesChecker.checkUpdate(currentAccount, false);
+
+        AppMigrator.deleteZipFile();
+        if (AppMigrator.checkMigrationNeedToResume(getContext())) {
+            AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
+        } else {
+            checkOtherPtg();
+            checkPtgPermissions();
+        }
     }
 
     private void checkOtherPtg() {
@@ -7097,6 +7105,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UpdateCompletedMessage)));
         builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
         AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
         dialog.show();
@@ -7111,6 +7120,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         builder.setTitle(LocaleController.getString(R.string.OldAppNotRemovedTitle));
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.OldAppNotRemovedMessage)));
         AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
         DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 10,
@@ -7144,6 +7154,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->
                 presentFragment(new AppMigrationActivity()));
         AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         showDialog(dialog);
     }
 
@@ -7178,6 +7189,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             SharedConfig.saveConfig();
         });
         AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
         dialog.show();
@@ -7206,21 +7218,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             SharedConfig.saveConfig();
         });
         AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
         dialog.show();
-    }
-
-    @Override
-    public void onActivityResume() {
-        AppMigrator.deleteZipFile();
-        if (AppMigrator.checkMigrationNeedToResume(getContext())) {
-            AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
-        } else {
-            anyPtgDialogShown = false;
-            checkOtherPtg();
-            checkPtgPermissions();
-        }
     }
 
     @Override
