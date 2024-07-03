@@ -7255,7 +7255,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         AppMigrator.deleteZipFile();
         if (AppMigrator.checkMigrationNeedToResume(getContext())) {
             AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
-        } else {
+        } else if (!AndroidUtilities.needShowPasscode(false)) {
             checkOtherPtg();
             checkPtgPermissions();
         }
