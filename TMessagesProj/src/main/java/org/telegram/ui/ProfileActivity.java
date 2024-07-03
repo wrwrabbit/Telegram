@@ -10747,7 +10747,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                         i.setType("message/rfc822");
                         i.putExtra(Intent.EXTRA_EMAIL, "");
-                        i.putExtra(Intent.EXTRA_SUBJECT, "Logcat from " + LocaleController.getInstance().formatterStats.format(System.currentTimeMillis()));
+                        i.putExtra(Intent.EXTRA_SUBJECT, "Logcat from " + LocaleController.getInstance().getFormatterStats().format(System.currentTimeMillis()));
                         i.putExtra(Intent.EXTRA_STREAM, uri);
                         if (getParentActivity() != null) {
                             try {
