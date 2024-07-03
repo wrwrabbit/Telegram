@@ -604,7 +604,6 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
 //        }
         if (!fragmentsStack.isEmpty()) {
             BaseFragment lastFragment = fragmentsStack.get(fragmentsStack.size() - 1);
-            lastFragment.onActivityResume();
             lastFragment.onResume();
         }
     }
