@@ -126,6 +126,7 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.appmigration.MigrationReceiveActivity;
 import org.telegram.messenger.partisan.update.UpdateChecker;
@@ -6010,6 +6011,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     VideoCapturerDevice.mediaProjectionPermissionResultData = data;
                     service.createCaptureDevice(true);
                 }
+            }
+        } else if (requestCode == 500) {
+            if (actionBarLayout.getFragmentStack().size() != 0 && AppMigrationDialogs.needShowNewerPtgDialog(this)) {
+                BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
+                lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
             }
         } else if (requestCode == PLAY_SERVICES_REQUEST_CHECK_SETTINGS) {
             LocationController.getInstance(currentAccount).startFusedLocationRequest(resultCode == Activity.RESULT_OK);
