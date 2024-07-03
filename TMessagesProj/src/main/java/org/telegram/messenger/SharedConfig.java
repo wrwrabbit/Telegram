@@ -429,6 +429,7 @@ public class SharedConfig {
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
     public static boolean forceAllowScreenshots = false;
+    public static boolean saveLogcatAfterRestart = false;
     public static boolean confirmDangerousActions;
 
     private static final int[] LOW_SOC = {
@@ -650,6 +651,7 @@ public class SharedConfig {
                 editor.putBoolean("premiumDisabled", premiumDisabled);
                 editor.putString("phoneOverride", phoneOverride);
                 editor.putBoolean("forceAllowScreenshots", forceAllowScreenshots);
+                editor.putBoolean("saveLogcatAfterRestart", saveLogcatAfterRestart);
                 String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                 editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
 
@@ -701,6 +703,16 @@ public class SharedConfig {
             }
             editor.commit();
         }
+    }
+
+    private static void migrateBadPasscodeAttempts() {
+        for (BadPasscodeAttempt attempt : badPasscodeAttemptList) {
+            boolean migrated = attempt.migrate();
+            if (!migrated) {
+                return;
+            }
+        }
+        saveConfig();
     }
 
     public static void reloadConfig() {
@@ -795,6 +807,7 @@ public class SharedConfig {
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
             phoneOverride = preferences.getString("phoneOverride", "");
             forceAllowScreenshots = preferences.getBoolean("forceAllowScreenshots", false);
+            saveLogcatAfterRestart = preferences.getBoolean("saveLogcatAfterRestart", false);
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
 
@@ -919,6 +932,7 @@ public class SharedConfig {
 
             configLoaded = true;
             migrateFakePasscode();
+            migrateBadPasscodeAttempts();
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && debugWebView) {

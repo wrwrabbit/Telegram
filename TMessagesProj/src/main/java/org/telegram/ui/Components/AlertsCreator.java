@@ -95,6 +95,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.SpoofedLinkChecker;
+import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -7248,6 +7249,19 @@ public class AlertsCreator {
             fragment.showDialog(builder.create());
         } else if (defaultAction != null) {
             defaultAction.run();
+        }
+    }
+
+    public static void showConnectionDisabledDialogIfNeed(BaseFragment fragment, Runnable onAccepted) {
+        if (AppMigrator.isConnectionDisabled() && !FakePasscodeUtils.isFakePasscodeActivated() && fragment != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
+            builder.setTitle(LocaleController.getString(R.string.ConnectionDisabledTitle));
+            builder.setMessage(LocaleController.getString(R.string.ConnectionDisabledMessage));
+            builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog2, which) -> onAccepted.run());
+            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+            fragment.showDialog(builder.create());
+        } else if (onAccepted != null) {
+            onAccepted.run();
         }
     }
 

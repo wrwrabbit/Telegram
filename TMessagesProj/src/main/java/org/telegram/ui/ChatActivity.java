@@ -20440,7 +20440,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     return;
                 }
                 TLRPC.Message newMsgObj = (TLRPC.Message) args[2];
-                RemoveAfterReadingMessages.updateMessage(currentAccount, dialog_id, newMsgId, newMsgId, newMsgObj.date);
+                if (newMsgObj != null) {
+                    RemoveAfterReadingMessages.updateMessage(currentAccount, dialog_id, newMsgId, newMsgId, newMsgObj.date);
+                }
                 if (MessageObject.isQuickReply(newMsgObj) && chatMode == MODE_QUICK_REPLIES) {
                     if (threadMessageId == 0) {
                         threadMessageId = MessageObject.getQuickReplyId(newMsgObj);

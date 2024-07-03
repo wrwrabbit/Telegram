@@ -4,9 +4,12 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -37,6 +40,8 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

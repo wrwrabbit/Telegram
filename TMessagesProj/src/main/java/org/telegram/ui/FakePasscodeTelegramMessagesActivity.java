@@ -423,6 +423,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     id = -((TLRPC.Chat) object).id;
                 } else if (object instanceof TLRPC.EncryptedChat) {
                     id = DialogObject.makeEncryptedDialogId(((TLRPC.EncryptedChat) object).id);
+                } else if (object instanceof Long) {
+                    id = (long) object;
                 } else {
                     return;
                 }
@@ -605,6 +607,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     id = -((TLRPC.Chat) object).id;
                 } else if (object instanceof TLRPC.EncryptedChat) {
                     id = DialogObject.makeEncryptedDialogId(((TLRPC.EncryptedChat) object).id);
+                } else if (object instanceof Long) {
+                    id = (long) object;
                 } else {
                     id = 0;
                 }
@@ -672,7 +676,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
         private ArrayList<CharSequence> searchResultNames = new ArrayList<>();
         private Runnable searchRunnable;
         private boolean searching;
-        private ArrayList<TLObject> contacts = new ArrayList<>();
+        private ArrayList<Object> contacts = new ArrayList<>();
 
         public TelegramMessageAdapter(Context ctx) {
             context = ctx;
@@ -682,10 +686,12 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
 
             Set<Long> selectedIds = action.entries.stream().map(e -> (long) e.userId).collect(Collectors.toSet());
             for (Long id: selectedIds) {
+                boolean added = false;
                 if (DialogObject.isUserDialog(id)) {
                     TLRPC.User user = getMessagesController().getUser(id);
                     if (user != null) {
                         contacts.add(user);
+                        added = true;
                         if (UserObject.isUserSelf(user)) {
                             hasSelf = true;
                         }
@@ -694,14 +700,19 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(id));
                     if (encryptedChat != null) {
                         contacts.add(encryptedChat);
+                        added = true;
                     }
                 } else if (DialogObject.isChatDialog(id)) {
                     TLRPC.Chat chat = getMessagesController().getChat(-id);
                     if (chat != null) {
                         if (!chat.broadcast || (chat.admin_rights != null && chat.admin_rights.post_messages)) {
                             contacts.add(chat);
+                            added = true;
                         }
                     }
+                }
+                if (!added) {
+                    contacts.add(id);
                 }
             }
 
@@ -819,6 +830,8 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         id = -((TLRPC.Chat) object).id;
                     } else if (object instanceof TLRPC.EncryptedChat) {
                         id = DialogObject.makeEncryptedDialogId(((TLRPC.EncryptedChat) object).id);
+                    } else if (object instanceof Long) {
+                        id = (long) object;
                     } else {
                         id = 0;
                     }
@@ -886,7 +899,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         ArrayList<CharSequence> resultArrayNames = new ArrayList<>();
 
                         for (int a = 0; a < contacts.size(); a++) {
-                            TLObject object = contacts.get(a);
+                            Object object = contacts.get(a);
 
                             String username = "";
                             final String[] names = new String[3];

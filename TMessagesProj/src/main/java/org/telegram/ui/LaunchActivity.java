@@ -71,6 +71,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.arch.core.util.Function;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.ColorUtils;
@@ -125,6 +126,9 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
+import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.appmigration.MigrationReceiveActivity;
 import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -6008,6 +6012,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     service.createCaptureDevice(true);
                 }
             }
+        } else if (requestCode == 500) {
+            if (actionBarLayout.getFragmentStack().size() != 0 && AppMigrationDialogs.needShowNewerPtgDialog(this)) {
+                BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
+                lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
+            }
         } else if (requestCode == PLAY_SERVICES_REQUEST_CHECK_SETTINGS) {
             LocationController.getInstance(currentAccount).startFusedLocationRequest(resultCode == Activity.RESULT_OK);
         } else {
@@ -6297,6 +6306,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
 
         invalidateTabletMode();
+        checkOtherPtgIntent();
         SpoilerEffect2.pause(false);
 
         if (ApplicationLoader.applicationLoaderInstance != null) {
@@ -7484,7 +7494,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 if (lastFragment instanceof ProxyListActivity || lastFragment instanceof ProxySettingsActivity) {
                     return;
                 }
-                presentFragment(new ProxyListActivity());
+                AlertsCreator.showConnectionDisabledDialogIfNeed(getLastFragment(), () -> {
+                    presentFragment(new ProxyListActivity());
+                });
             };
         }
         actionBarLayout.setTitleOverlayText(title, titleId, action);
@@ -8031,6 +8043,31 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         } else {
             fileOrDirectory.delete();
+        }
+    }
+
+    private synchronized void checkOtherPtgIntent() {
+        if (AppMigrator.isReceivingZip()
+                || getCallingActivity() == null
+                || !AppMigrator.isPtgPackageName(getCallingActivity().getPackageName())
+                || !getIntent().getBooleanExtra("fromOtherPtg", false)) {
+            return;
+        }
+        applyLanguageFromIntent();
+        AppMigrator.receiveZip(this);
+        presentFragment(new MigrationReceiveActivity());
+    }
+
+    private void applyLanguageFromIntent() {
+        if (getIntent().hasExtra("language")) {
+            String targetLanguage = getIntent().getStringExtra("language");
+            LocaleController.LocaleInfo localeInfo = LocaleController.getInstance().languages.stream()
+                    .filter(l -> TextUtils.equals(l.shortName, targetLanguage))
+                    .findFirst()
+                    .orElse(null);
+            if (localeInfo != null) {
+                LocaleController.getInstance().applyLanguage(localeInfo, true, false, false, true, currentAccount, null);
+            }
         }
     }
 

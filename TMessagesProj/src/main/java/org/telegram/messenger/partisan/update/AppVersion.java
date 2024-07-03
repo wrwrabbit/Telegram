@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.partisan.PartisanVersion;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AppVersion {
+    private static final Pattern VERSION_REGEX = Pattern.compile("(\\d+).(\\d+).(\\d+)");
+
     public int major;
     public int minor;
     public int patch;
@@ -25,21 +28,17 @@ public class AppVersion {
 
     public static synchronized AppVersion getCurrentVersion() {
         if (currentVersion == null) {
-            currentVersion = parseVersion(BuildVars.PARTISAN_VERSION_STRING, "(\\d+).(\\d+).(\\d+)");
+            currentVersion = parseVersion(PartisanVersion.PARTISAN_VERSION_STRING);
         }
         return currentVersion;
     }
 
     public static synchronized AppVersion getCurrentOriginalVersion() {
-        return parseVersion(BuildVars.BUILD_VERSION_STRING, "(\\d+).(\\d+).(\\d+)");
+        return parseVersion(BuildVars.BUILD_VERSION_STRING);
     }
 
-    public static AppVersion parseVersion(String versionString, String regex) {
-        return parseVersion(versionString, Pattern.compile(regex));
-    }
-
-    public static AppVersion parseVersion(String versionString, Pattern regex) {
-        Matcher currentVersionMatcher = regex.matcher(versionString);
+    public static AppVersion parseVersion(String versionString) {
+        Matcher currentVersionMatcher = VERSION_REGEX.matcher(versionString);
         if (currentVersionMatcher.find() && currentVersionMatcher.groupCount() >= 3) {
             return new AppVersion(
                     Integer.parseInt(currentVersionMatcher.group(1)),

@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.verification;
 
+import androidx.annotation.Keep;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,6 +11,7 @@ public class VerificationStorage {
     private static final int maxCheckDelay = 3 * 60 * 60;
     private static final Random random = new Random();
 
+    @Keep
     public String storageName;
     public String chatUsername;
     public long chatId;
@@ -17,6 +20,7 @@ public class VerificationStorage {
     public long nextCheckTime;
     public int lastCheckedMessageId;
     List<VerificationChatInfo> chats = new ArrayList<>();
+    public int version = 0;
 
     public VerificationStorage() {}
     public VerificationStorage(String storageName, String chatUsername, long chatId) {
@@ -26,11 +30,18 @@ public class VerificationStorage {
     }
 
     /** @noinspection deprecation*/
-    public void migrate() {
+    public synchronized void migrate() {
         if (lastCheckTime != 0) {
             updateNextCheckTime(lastCheckTime);
             lastCheckTime = 0;
         }
+        if (version < 1) {
+            storageName = "Cyber Partisans";
+            chats.clear();
+            nextCheckTime = 0;
+            lastCheckedMessageId = 0;
+        }
+        version = 1;
     }
 
     public void updateNextCheckTime(long lastCheckTime) {
