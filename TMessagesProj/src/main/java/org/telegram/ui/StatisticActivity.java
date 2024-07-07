@@ -572,7 +572,7 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
         TLRPC.Chat currentChat = MessagesController.getInstance(currentAccount).getChat(chatId);
         TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount).getChatFull(chatId);
         boolean isBoostSupported = ChatObject.isBoostSupported(currentChat);
-        final boolean hasMonetization = ChatObject.isChannelAndNotMegaGroup(currentChat) && chatFull != null && chatFull.can_view_revenue;
+        final boolean hasMonetization = ChatObject.isChannelAndNotMegaGroup(currentChat) && chatFull != null && (chatFull.can_view_revenue || chatFull.can_view_stars_revenue);
         BottomPagerTabs storiesTabsView = new BottomPagerTabs(context, getResourceProvider()) {
             @Override
             public Tab[] createTabs() {
@@ -608,7 +608,8 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
             boostLayout = new ChannelBoostLayout(StatisticActivity.this, -chatId, getResourceProvider());
         }
         if (hasMonetization) {
-            monetizationLayout = new ChannelMonetizationLayout(getContext(), StatisticActivity.this, currentAccount, -chatId, getResourceProvider());
+            monetizationLayout = new ChannelMonetizationLayout(getContext(), StatisticActivity.this, currentAccount, -chatId, getResourceProvider(), chatFull.can_view_revenue, chatFull.can_view_stars_revenue);
+            monetizationLayout.setActionBar(actionBar);
         }
         boolean showTabs = isBoostSupported && !onlyBoostsStat;
         if (showTabs && startFromBoosts) {
@@ -2186,7 +2187,7 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
         public String errorMessage;
         public long activeZoom;
         public boolean viewShowed;
-        ChartData chartData;
+        public ChartData chartData;
         ChartData childChartData;
         String token;
         String zoomToken;

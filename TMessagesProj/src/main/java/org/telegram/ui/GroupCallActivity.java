@@ -5135,12 +5135,12 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                     int year = calendar.get(Calendar.YEAR);
                     if (year == currentYear) {
                         return (
-                            LocaleController.getInstance().formatterWeek.format(date) +
+                            LocaleController.getInstance().getFormatterWeek().format(date) +
                             " " +
-                            LocaleController.getInstance().formatterScheduleDay.format(date)
+                            LocaleController.getInstance().getFormatterScheduleDay().format(date)
                         );
                     } else {
-                        return LocaleController.getInstance().formatterScheduleYear.format(date);
+                        return LocaleController.getInstance().getFormatterScheduleYear().format(date);
                     }
                 }
             });
@@ -7382,7 +7382,7 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                     options.add(1);
                 }
             }
-            if (participant.peer.channel_id != 0 && !ChatObject.isMegagroup(currentAccount, participant.peer.channel_id)) {
+            if (participant.peer != null && participant.peer.channel_id != 0 && !ChatObject.isMegagroup(currentAccount, participant.peer.channel_id)) {
                 items.add(LocaleController.getString("VoipGroupOpenChannel", R.string.VoipGroupOpenChannel));
                 icons.add(R.drawable.msg_channel);
                 options.add(8);
