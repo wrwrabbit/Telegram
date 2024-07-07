@@ -280,7 +280,7 @@ public class AppMigrator {
         }
     }
 
-    private static boolean isProxyForDisablingConnection(SharedConfig.ProxyInfo proxyInfo) {
+    public static boolean isProxyForDisablingConnection(SharedConfig.ProxyInfo proxyInfo) {
         return "127.0.0.1".equals(proxyInfo.address) && proxyInfo.port == -1;
     }
 
