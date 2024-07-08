@@ -17,18 +17,16 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_passcode_screen.PasscodeEnteredDelegate;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
-    private final static float BACKGROUND_SPRING_STIFFNESS = 300f;
-
-    private PasscodeView passcodeView;
+    private PasscodeEnteredDelegate delegate;
     private Context context;
 
     private final int BUTTON_X_MARGIN = 28;
@@ -43,19 +41,16 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     public FrameLayout numbersFrameLayout;
     private ArrayList<Button> numberFrameLayouts;
 
-    public CalculatorPasscodeScreen(PasscodeView passcodeView, Context context) {
-        this.passcodeView = passcodeView;
+    public CalculatorPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
+        this.delegate = delegate;
     }
 
     @Override
-    public void init() {
-        passcodeView.setWillNotDraw(false);
-        passcodeView.setVisibility(View.GONE);
+    public View createView() {
 
         backgroundFrameLayout = new FrameLayout(context);
         backgroundFrameLayout.setWillNotDraw(false);
-        passcodeView.addView(backgroundFrameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         inputEditText = new TextView(context);
         inputEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 36);
@@ -168,7 +163,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
                     addCharToInput(tag.charAt(0));
                 }
                 if (inputEditText.length() == 4) {
-                    passcodeView.processDone(false, getPasswordString());
+                    delegate.passcodeEntered(getPasswordString());
                 }
             });
             numberFrameLayouts.add(button);
@@ -181,6 +176,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
                 numbersFrameLayout.addView(button, LayoutHelper.createFrame(BUTTON_SIZE, BUTTON_SIZE, Gravity.BOTTOM | Gravity.LEFT));
             }
         }
+        return backgroundFrameLayout;
     }
 
     private String getPasswordString() {
@@ -197,10 +193,6 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
                 AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
             }
         }
-        if (passcodeView.getVisibility() == View.VISIBLE) {
-            return;
-        }
-        passcodeView.setTranslationY(0);
         backgroundFrameLayout.setBackgroundColor(0xff000000);
 
         if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PIN) {
@@ -208,7 +200,6 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             inputEditText.setVisibility(View.VISIBLE);
             outputEditText.setVisibility(View.VISIBLE);
         }
-        passcodeView.setVisibility(View.VISIBLE);
         inputEditText.setText("");
         outputEditText.setText("");
         inputString = "";

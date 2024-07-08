@@ -51,6 +51,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_passcode_screen.PasscodeEnteredDelegate;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BackgroundGradientDrawable;
@@ -58,7 +59,6 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
-import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ import java.util.List;
 public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
     private final static float BACKGROUND_SPRING_STIFFNESS = 300f;
 
-    private PasscodeView passcodeView;
+    private PasscodeEnteredDelegate delegate;
     private Context context;
 
     private final int BUTTON_X_MARGIN = 28;
@@ -98,16 +98,13 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
     private int backgroundFrameLayoutColor;
     private boolean showed = false;
 
-    public OriginalPasscodeScreen(PasscodeView passcodeView, Context context) {
-        this.passcodeView = passcodeView;
+    public OriginalPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
+        this.delegate = delegate;
     }
 
     @Override
-    public void init() {
-        passcodeView.setWillNotDraw(false);
-        passcodeView.setVisibility(View.GONE);
-
+    public View createView() {
         backgroundFrameLayout = new FrameLayout(context) {
 
             private Paint paint = new Paint();
@@ -141,7 +138,6 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
             }
         };
         backgroundFrameLayout.setWillNotDraw(false);
-        passcodeView.addView(backgroundFrameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         passwordFrameLayout = new FrameLayout(context);
         backgroundFrameLayout.addView(passwordFrameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -179,7 +175,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
         passwordFrameLayout.addView(passwordEditText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 70, 0, 70, 0));
         passwordEditText.setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_DONE) {
-                passcodeView.processDone(false, getPasswordString());
+                delegate.passcodeEntered(getPasswordString());
                 return true;
             }
             return false;
@@ -252,7 +248,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
             @Override
             public void afterTextChanged(Editable s) {
                 if (passwordEditText.length() == 4 && SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PIN) {
-                    passcodeView.processDone(false, getPasswordString());
+                    delegate.passcodeEntered(getPasswordString());
                 }
             }
         });
@@ -279,7 +275,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
         checkImage.setBackgroundResource(R.drawable.bar_selector_lock);
         passwordFrameLayout.addView(checkImage, LayoutHelper.createFrame(BUTTON_SIZE, BUTTON_SIZE, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 10, 4));
         checkImage.setContentDescription(LocaleController.getString("Done", R.string.Done));
-        checkImage.setOnClickListener(v -> passcodeView.processDone(false, getPasswordString()));
+        checkImage.setOnClickListener(v -> delegate.passcodeEntered(getPasswordString()));
 
         fingerprintImage = new ImageView(context);
         fingerprintImage.setImageResource(R.drawable.fingerprint);
@@ -424,7 +420,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
                         break;
                 }
                 if (passwordEditText2.length() == 4) {
-                    passcodeView.processDone(false, getPasswordString());
+                    delegate.passcodeEntered(getPasswordString());
                 }
                 if (tag == 11) {
 
@@ -491,6 +487,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
             numbersFrameLayout.addView(frameLayout, LayoutHelper.createFrame(BUTTON_SIZE, BUTTON_SIZE, Gravity.TOP | Gravity.LEFT));
         }
         checkFingerprintButton();
+        return backgroundFrameLayout;
     }
 
     private String getPasswordString() {
@@ -985,11 +982,6 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
                 }
             }
         }
-        if (passcodeView.getVisibility() == View.VISIBLE) {
-            showed = true;
-            return;
-        }
-        passcodeView.setTranslationY(0);
         boolean saturateColors = false;
         backgroundDrawable = null;
         backgroundFrameLayoutColor = 0;
@@ -1062,20 +1054,9 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
             checkImage.setVisibility(View.VISIBLE);
             fingerprintImage.setVisibility(fingerprintView.getVisibility());
         }
-        passcodeView.setVisibility(View.VISIBLE);
         passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
         passwordEditText.setText("");
         passwordEditText2.eraseAllCharacters(false);
-
-        /*
-        passcodeView.setAlpha(1.0f);
-        //onAnimationUpdate(shownT = 1f);
-        if (onShow != null) {
-            onShow.run();
-        }
-
-        passcodeView.setOnTouchListener((v, event) -> true);
-        */
         showed = true;
     }
 

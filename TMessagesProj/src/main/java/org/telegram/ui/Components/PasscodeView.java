@@ -111,8 +111,12 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     public PasscodeView(final Context context) {
         super(context);
 
-        screen = new CalculatorPasscodeScreen(this, context);
-        screen.init();
+
+        setWillNotDraw(false);
+        setVisibility(View.GONE);
+
+        screen = new CalculatorPasscodeScreen(context, password -> processDone(false, password));
+        addView(screen.createView());
         if (screen != null) {
             return;
         }
@@ -309,6 +313,25 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     }
 
     public void onShow(boolean fingerprint, boolean animated, int x, int y, Runnable onShow, Runnable onStart) {
+        checkRetryTextView();
+        Activity parentActivity = AndroidUtilities.findActivity(getContext());
+        if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD) {
+
+        } else {
+            if (parentActivity != null) {
+                View currentFocus = parentActivity.getCurrentFocus();
+                if (currentFocus != null) {
+                    currentFocus.clearFocus();
+                    AndroidUtilities.hideKeyboard(((Activity) getContext()).getCurrentFocus());
+                    AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
+                }
+            }
+        }
+        if (getVisibility() == View.VISIBLE) {
+            return;
+        }
+        setTranslationY(0);
+        setVisibility(View.VISIBLE);
         if (screen != null) {
             screen.onShow(fingerprint, animated);
         }
