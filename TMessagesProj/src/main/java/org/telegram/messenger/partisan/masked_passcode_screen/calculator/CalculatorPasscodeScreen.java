@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -58,10 +59,12 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         inputEditText = new TextView(context);
         inputEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 36);
         inputEditText.setTextColor(0xFFFFFFFF);
+        inputEditText.setEllipsize(TextUtils.TruncateAt.START);
+        inputEditText.setSingleLine();
         backgroundFrameLayout.addView(inputEditText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
 
         outputEditText = new TextView(context);
-        outputEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 68);
+        outputEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 52);
         outputEditText.setTextColor(0xFFFFFFFF);
         backgroundFrameLayout.addView(outputEditText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
 
@@ -266,19 +269,19 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
             buttonsFrameLayout.setLayoutParams(layoutParams);
 
+            layoutParams = (FrameLayout.LayoutParams) inputEditText.getLayoutParams();
+            layoutParams.bottomMargin = buttonSize + 2 * sizeBetweenButtonsY + 2 * AndroidUtilities.dp(52);
+            layoutParams.leftMargin = sizeBetweenButtonsX;
+            layoutParams.rightMargin = width / 2 + sizeBetweenButtonsX;
+            layoutParams.width = LayoutHelper.WRAP_CONTENT;
+            inputEditText.setLayoutParams(layoutParams);
+
             layoutParams = (FrameLayout.LayoutParams) outputEditText.getLayoutParams();
             layoutParams.bottomMargin = buttonSize + 2 * sizeBetweenButtonsY;
             layoutParams.leftMargin = sizeBetweenButtonsX;
             layoutParams.rightMargin = width / 2 + sizeBetweenButtonsX;
             layoutParams.width = LayoutHelper.WRAP_CONTENT;
             outputEditText.setLayoutParams(layoutParams);
-
-            layoutParams = (FrameLayout.LayoutParams) inputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonSize + 2 * sizeBetweenButtonsY + 2 * AndroidUtilities.dp(68);
-            layoutParams.leftMargin = sizeBetweenButtonsX;
-            layoutParams.rightMargin = width / 2 + sizeBetweenButtonsX;
-            layoutParams.width = LayoutHelper.WRAP_CONTENT;
-            inputEditText.setLayoutParams(layoutParams);
         } else {
             FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) buttonsFrameLayout.getLayoutParams();
             layoutParams.leftMargin = 0;
@@ -292,19 +295,19 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             }
             buttonsFrameLayout.setLayoutParams(layoutParams);
 
-            layoutParams = (FrameLayout.LayoutParams) outputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonsSumHeight + buttonSize + 2 * sizeBetweenButtonsY;
-            layoutParams.leftMargin = AndroidUtilities.dp(70);
-            layoutParams.rightMargin = sizeBetweenButtonsX;
-            layoutParams.width = LayoutHelper.WRAP_CONTENT;
-            outputEditText.setLayoutParams(layoutParams);
-
             layoutParams = (FrameLayout.LayoutParams) inputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonsSumHeight + buttonSize + 2 * sizeBetweenButtonsY + AndroidUtilities.dp(68) + 2 * sizeBetweenButtonsY;
-            layoutParams.leftMargin = AndroidUtilities.dp(70);
+            layoutParams.bottomMargin = buttonsSumHeight + buttonSize + 2 * sizeBetweenButtonsY + AndroidUtilities.dp(52) + 2 * sizeBetweenButtonsY;
+            layoutParams.leftMargin = sizeBetweenButtonsX;
             layoutParams.rightMargin = sizeBetweenButtonsX;
             layoutParams.width = LayoutHelper.WRAP_CONTENT;
             inputEditText.setLayoutParams(layoutParams);
+
+            layoutParams = (FrameLayout.LayoutParams) outputEditText.getLayoutParams();
+            layoutParams.bottomMargin = buttonsSumHeight + buttonSize + 2 * sizeBetweenButtonsY;
+            layoutParams.leftMargin = sizeBetweenButtonsX;
+            layoutParams.rightMargin = sizeBetweenButtonsX;
+            layoutParams.width = LayoutHelper.WRAP_CONTENT;
+            outputEditText.setLayoutParams(layoutParams);
         }
     }
 
