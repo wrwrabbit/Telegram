@@ -71,6 +71,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -498,7 +499,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     ActionBarMenu menu = actionBar.createMenu();
 
                     ActionBarMenuSubItem switchItem;
-                    if (type == TYPE_SETUP_CODE) {
+                    if (type == TYPE_SETUP_CODE && MaskedPasscodeConfig.allowAlphaNumericPassword()) {
                         otherItem = menu.addItem(0, R.drawable.ic_ab_other);
                         switchItem = otherItem.addSubItem(ID_SWITCH_TYPE, R.drawable.msg_permissions, LocaleController.getString(R.string.PasscodeSwitchToPassword));
                     } else switchItem = null;
@@ -1073,7 +1074,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             if (Build.VERSION.SDK_INT >= 23) {
                 if (
                     BiometricManager.from(ApplicationLoader.applicationContext).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS &&
-                    AndroidUtilities.isKeyguardSecure()
+                    AndroidUtilities.isKeyguardSecure() &&
+                    MaskedPasscodeConfig.allowFingerprint()
                 ) {
                     fingerprintRow = rowCount++;
                 }
