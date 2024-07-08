@@ -531,6 +531,10 @@ public class SharedConfig {
                 fakePasscodeActivated(fakePasscodes.indexOf(fakePasscode));
             }
         }
+
+        public static PasscodeCheckResult createFailedResult() {
+            return new PasscodeCheckResult(false, null);
+        }
     }
 
     private static ObjectMapper jsonMapper = null;
