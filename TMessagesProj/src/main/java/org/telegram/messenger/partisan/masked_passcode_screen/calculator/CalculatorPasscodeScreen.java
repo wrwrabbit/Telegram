@@ -5,6 +5,7 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -87,85 +88,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         numberFrameLayouts = new ArrayList<>();
 
         for (int i = 0; i < 20; i++) {
-            Button button = new Button(context);
-            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
-            ScaleStateListAnimator.apply(button, .15f, 1.5f);
-            int row = i / 4;
-            int col = i % 4;
-            if (row >= 1 && row <= 3 && col <= 2) {
-                button.setTextColor(0xffffffff);
-                button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(BUTTON_SIZE / 2), 0xff323232, 0xff323232));
-                int num = (row - 1) * 3 + col + 1;
-                button.setTag(String.valueOf(num));
-                button.setText(String.valueOf(num));
-            } else if (col == 3) {
-                button.setTextColor(0xffffffff);
-                button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(BUTTON_SIZE / 2), 0xfffe9500, 0xfffe9500));
-                String operation = null;
-                if (row == 0) {
-                    operation = "=";
-                } else if (row == 1) {
-                    operation = "+";
-                } else if (row == 2) {
-                    operation = "-";
-                } else if (row == 3) {
-                    operation = "×";
-                } else if (row == 4) {
-                    operation = "/";
-                }
-                button.setTag(operation);
-                button.setText(operation);
-            } else if (row == 4) {
-                button.setTextColor(0xff060606);
-                button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(BUTTON_SIZE / 2), 0xffa5a5a5, 0xffa5a5a5));
-                String operation = null;
-                if (col == 0) {
-                    operation = "AC";
-                } else if (col == 1) {
-                    operation = "<";
-                } else if (col == 2) {
-                    operation = "%";
-                }
-                button.setTag(operation);
-                button.setText(operation.equals("<") ? "\u232b" : operation);
-            } else if (i == 0) {
-                button.setTextColor(0xffffffff);
-                button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(BUTTON_SIZE / 2), 0xff323232, 0xff323232));
-                button.setTag("0");
-                button.setText("0");
-            } else if (i == 1) {
-                button.setVisibility(View.GONE);
-            } else if (i == 2) {
-                button.setTextColor(0xffffffff);
-                button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(BUTTON_SIZE / 2), 0xff323232, 0xff323232));
-                button.setTag(".");
-                button.setText(".");
-            }
-            button.setOnClickListener(v -> {
-                String tag = (String) v.getTag();
-                if (tag.equals("=")) {
-                    String outputString = outputEditText.getText().toString();
-                    if (outputString.isEmpty()) {
-                        clearInput();
-                    } else {
-                        try {
-                            BigDecimal outputValue = new BigDecimal(outputString);
-                            setInput(removeFractionZeroesFromString(outputValue.toPlainString()));
-                        } catch (Exception ignore) {
-                            clearInput();
-                        }
-                    }
-                } else if (tag.equals("<")) {
-                    deleteLastInputChar();
-                } else if (tag.equals("AC")) {
-                    clearInput();
-                } else {
-                    addCharToInput(tag.charAt(0));
-                }
-                if (inputEditText.length() == 4) {
-                    delegate.passcodeEntered(getPasswordString());
-                }
-            });
+            Button button = createButton(i);
             numberFrameLayouts.add(button);
         }
         for (int a = 19; a >= 0; a--) {
@@ -177,6 +100,103 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             }
         }
         return backgroundFrameLayout;
+    }
+
+    private Button createButton(int i) {
+        Button button = new Button(context);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
+        ScaleStateListAnimator.apply(button, .15f, 1.5f);
+        int row = i / 4;
+        int col = i % 4;
+        button.setTextColor(getButtonTextColor(row, col));
+        int backgroundColor = getButtonBackgroundColor(row, col);
+        Drawable background = Theme.createSimpleSelectorRoundRectDrawable(dp(BUTTON_SIZE / 2), backgroundColor, backgroundColor);
+        button.setBackground(background);
+        String buttonText = getButtonText(row, col);
+        button.setTag(buttonText);
+        button.setText(buttonText);
+        button.setOnClickListener(this::onButtonClicked);
+        return button;
+    }
+
+    private int getButtonBackgroundColor(int row, int col) {
+        if (col == 3) {
+            return 0xfffe9500;
+        } else if (row == 4) {
+            return 0xffa5a5a5;
+        } else {
+            return 0xff323232;
+        }
+    }
+
+    private int getButtonTextColor(int row, int col) {
+        if (row == 4 && col != 3) {
+            return 0xff060606;
+        } else {
+            return 0xffffffff;
+        }
+    }
+
+    private String getButtonText(int row, int col) {
+        if (row >= 1 && row <= 3 && col <= 2) {
+            int num = (row - 1) * 3 + col + 1;
+            return String.valueOf(num);
+        } else if (col == 3) {
+            if (row == 0) {
+                return "=";
+            } else if (row == 1) {
+                return "+";
+            } else if (row == 2) {
+                return "-";
+            } else if (row == 3) {
+                return "×";
+            } else if (row == 4) {
+                return "/";
+            }
+        } else if (row == 4) {
+            if (col == 0) {
+                return "AC";
+            } else if (col == 1) {
+                return "⌫";
+            } else if (col == 2) {
+                return "%";
+            }
+        } else if (row == 0) {
+            if (col == 0) {
+                return "0";
+            } else if (col == 1) {
+                return "";
+            } else if (col == 2) {
+                return ".";
+            }
+        }
+        return "";
+    }
+
+    private void onButtonClicked(View view) {
+        String tag = (String) view.getTag();
+        if (tag.equals("=")) {
+            String outputString = outputEditText.getText().toString();
+            if (outputString.isEmpty()) {
+                clearInput();
+            } else {
+                try {
+                    BigDecimal outputValue = new BigDecimal(outputString);
+                    setInput(removeFractionZeroesFromString(outputValue.toPlainString()));
+                } catch (Exception ignore) {
+                    clearInput();
+                }
+            }
+        } else if (tag.equals("⌫")) {
+            deleteLastInputChar();
+        } else if (tag.equals("AC")) {
+            clearInput();
+        } else {
+            addCharToInput(tag.charAt(0));
+        }
+        if (inputEditText.length() == 4) {
+            delegate.passcodeEntered(getPasswordString());
+        }
     }
 
     private String getPasswordString() {
