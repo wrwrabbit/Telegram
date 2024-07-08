@@ -209,7 +209,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
 
     private void updateUI() {
         titleTextView.setText(getStepName(AppMigrator.getStep()));
-        descriptionText.setText(getStepDescription());
+        descriptionText.setText(AndroidUtilities.replaceTags(getStepDescription()));
         buttonTextView.setText(getButtonName());
         buttonTextView.setEnabled(getStepButtonEnabled(AppMigrator.getStep()));
         progressBar.setVisibility(AppMigrator.getStep() == Step.MAKE_ZIP ? View.VISIBLE : View.GONE);

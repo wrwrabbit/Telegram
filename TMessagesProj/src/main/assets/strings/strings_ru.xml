@@ -243,8 +243,8 @@
     <string name="ZipPreparedDescription">Все готово для продолжения. Нажмите кнопку \"%1$s\".</string>
     <string name="ZipPreparationFailedDescription">Не удалось подготовить данные для переноса. Возможно, на устройстве недостаточно места. Исправьте это и нажмите "%1$s". %2$s</string>
     <string name="TransferFilesToAnotherTelegramButton">Перенести файлы в другую версию PTelegram</string>
-    <string name="UninstallSelfStep">Удалить эту версию PTelegram</string>
-    <string name="UninstallSelfDescription">PTelegram обновлен до другой версии. Убедитесь, что новое приложение работает корректно. Затем удалите старое приложение вручную или нажмите кнопку ниже, чтобы открыть системные настройки приложения.</string>
+    <string name="UninstallSelfStep">Данные перенесены успешно</string>
+    <string name="UninstallSelfDescription">PTelegram обновлен до другой версии. **Убедитесь, что новое приложение работает корректно.** Затем удалите старое приложение вручную или нажмите кнопку ниже, чтобы открыть системные настройки приложения.</string>
     <string name="UninstallSelf">Удалить эту версию PTelegram</string>
     <string name="ConnectionDisabledTitle">Соединение разорвано</string>
     <string name="ConnectionDisabledMessage">Ваши данные были перенесены в другое приложение, а соединение в текущем приложении разорвано. Включайте его только в случае проблем с новой версией приложения.</string>

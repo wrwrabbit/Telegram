@@ -9314,8 +9314,8 @@
     <string name="ZipPreparedDescription">Everything is ready to continue. Tap on the \"%1$s\" button.</string>
     <string name="ZipPreparationFailedDescription">Failed to prepare data to transferring. Perhaps there is not enough space on the device. Fix it and tap \"%1$s\". %2$s</string>
     <string name="TransferFilesToAnotherTelegramButton">Copy Files to Another PTelegram Version</string>
-    <string name="UninstallSelfStep">Uninstall This PTelegram Version</string>
-    <string name="UninstallSelfDescription">PTelegram has been updated to another version. Make sure that the new application works correctly. Then uninstall the old app manually or tap on the button below to open the app\'s system settings.</string>
+    <string name="UninstallSelfStep">Data transferred successfully</string>
+    <string name="UninstallSelfDescription">PTelegram has been updated to another version. **Make sure that the new application works correctly.** Then uninstall the old app manually or tap on the button below to open the app\'s system settings.</string>
     <string name="UninstallSelf">Uninstall This PTelegram Version</string>
     <string name="ConnectionDisabledTitle">Connection is Disabled</string>
     <string name="ConnectionDisabledMessage">Your data has been transferred to another app and connection in current app is disabled. Turn it on only if there are problems with the new version of the app.</string>
