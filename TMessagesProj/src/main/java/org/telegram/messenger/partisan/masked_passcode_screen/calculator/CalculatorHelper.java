@@ -6,21 +6,23 @@ import java.util.Stack;
 
 public class CalculatorHelper {
     private String remainingExpression;
+    private char decimalSeparator;
     private final Stack<BigDecimal> valueStack = new Stack<>();
     private final Stack<Character> operationStack = new Stack<>();
 
-    private CalculatorHelper(String expression) {
-        remainingExpression = expression;
+    private CalculatorHelper(String expression, char decimalSeparator) {
+        this.remainingExpression = expression;
+        this.decimalSeparator = decimalSeparator;
     }
 
-    public static BigDecimal calculateExpression(String expression) throws Exception {
-        return new CalculatorHelper(expression).calculateExpressionInternal();
+    public static BigDecimal calculateExpression(String expression, char decimalSeparator) throws Exception {
+        return new CalculatorHelper(expression, decimalSeparator).calculateExpressionInternal();
     }
 
     private BigDecimal calculateExpressionInternal() throws Exception {
         while (!remainingExpression.isEmpty()) {
             char firstChar = remainingExpression.charAt(0);
-            if ("0123456789.".contains(String.valueOf(firstChar))) {
+            if (("0123456789" + decimalSeparator).contains(String.valueOf(firstChar))) {
                 processValue();
             } else {
                 processOperation(firstChar);
@@ -37,7 +39,9 @@ public class CalculatorHelper {
         BigDecimal currentValue = null;
         try {
             while (numberEndPos < remainingExpression.length()) {
-                currentValue = new BigDecimal(remainingExpression.substring(0, numberEndPos + 1));
+                String currentSubstring = remainingExpression.substring(0, numberEndPos + 1)
+                        .replace(decimalSeparator, '.');
+                currentValue = new BigDecimal(currentSubstring);
                 numberEndPos++;
             }
         } catch (Exception ignore) {

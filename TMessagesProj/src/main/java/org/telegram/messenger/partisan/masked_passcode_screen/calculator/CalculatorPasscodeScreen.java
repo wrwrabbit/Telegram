@@ -25,7 +25,9 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     private PasscodeEnteredDelegate delegate;
@@ -178,17 +180,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     private void onButtonClicked(View view) {
         String tag = (String) view.getTag();
         if (tag.equals("=")) {
-            String outputString = outputEditText.getText().toString();
-            if (outputString.isEmpty()) {
-                clearInput();
-            } else {
-                try {
-                    BigDecimal outputValue = new BigDecimal(outputString);
-                    setInput(removeFractionZeroesFromString(outputValue.toPlainString()));
-                } catch (Exception ignore) {
-                    clearInput();
-                }
-            }
+            doEquals();
         } else if (tag.equals("⌫")) {
             deleteLastInputChar();
         } else if (tag.equals("AC")) {
@@ -198,6 +190,17 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         }
         if (inputEditText.length() == 4) {
             delegate.passcodeEntered(getPasswordString());
+        }
+    }
+
+    private void doEquals() {
+        try {
+            String outputString = outputEditText.getText().toString()
+                    .replace(getDecimalSeparator(), '.');
+            BigDecimal outputValue = new BigDecimal(outputString);
+            setInput(removeFractionZeroesFromString(outputValue.toPlainString(), getLocale()));
+        } catch (Exception ignore) {
+            clearInput();
         }
     }
 
@@ -345,12 +348,13 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
                 }
                 for (int i = inputString.length() - 1; i >= 0; i--) {
                     char currentChar = inputString.charAt(i);
-                    if (currentChar == '.') {
+                    if (currentChar == getDecimalSeparator()) {
                         return;
                     } else if (!"0123456789".contains(String.valueOf(currentChar))) {
                         break;
                     }
                 }
+                c = getDecimalSeparator();
             } else if ("+-×/".contains(String.valueOf(c))) {
                 if ("+-×/".contains(String.valueOf(lastChar))) {
                     inputString = inputString.substring(0, inputString.length() - 1);
@@ -368,14 +372,14 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
     private void updateOutput() {
         try {
-            BigDecimal result = CalculatorHelper.calculateExpression(inputString);
-            outputEditText.setText(formatBigDecimal(result));
+            BigDecimal result = CalculatorHelper.calculateExpression(inputString, getDecimalSeparator());
+            outputEditText.setText(formatBigDecimal(result, getLocale()));
         } catch (Exception ignore) {
             outputEditText.setText("Error");
         }
     }
 
-    private static String formatBigDecimal(BigDecimal value) {
+    private static String formatBigDecimal(BigDecimal value, Locale locale) {
         if (value == null) {
             return "";
         } else if (value.compareTo(BigDecimal.ZERO) == 0) {
@@ -383,23 +387,37 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         } else {
             String plainOutput = value.toPlainString();
             if (plainOutput.length() <= 10) {
-                return removeFractionZeroesFromString(plainOutput);
+                return removeFractionZeroesFromString(plainOutput, locale)
+                        .replace('.', getDecimalSeparator(locale));
             } else {
-                String output = String.format("%." + Math.min(value.precision(), 7) + "g", value);
-                return removeFractionZeroesFromString(output);
+                String output = String.format(locale, "%." + Math.min(value.precision(), 7) + "g", value);
+                return removeFractionZeroesFromString(output, locale);
             }
         }
     }
 
-    private static String removeFractionZeroesFromString(String output) {
-        if (output.contains(".")) {
+    private static String removeFractionZeroesFromString(String output, Locale locale) {
+        char decimalSeparator = getDecimalSeparator(locale);
+        if (output.contains(String.valueOf(decimalSeparator))) {
             while (output.endsWith("0")) {
                 output = output.substring(0, output.length() - 1);
             }
         }
-        if (output.endsWith(".")) {
+        if (output.endsWith(String.valueOf(decimalSeparator))) {
             output = output.substring(0, output.length() - 1);
         }
         return output;
+    }
+
+    private char getDecimalSeparator() {
+        return getDecimalSeparator(getLocale());
+    }
+
+    private static char getDecimalSeparator(Locale locale) {
+        return DecimalFormatSymbols.getInstance(locale).getDecimalSeparator();
+    }
+
+    private Locale getLocale() {
+        return context.getResources().getConfiguration().locale;
     }
 }
