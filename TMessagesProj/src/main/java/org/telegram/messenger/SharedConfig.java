@@ -248,7 +248,7 @@ public class SharedConfig {
     private static String passcodeHash = "";
     public static long passcodeRetryInMs;
     public static long lastUptimeMillis;
-    public static boolean bruteForceProtectionEnabled = true;
+    public static boolean bruteForceProtectionEnabled = false;
     public static long bruteForceRetryInMillis = 0;
     public static boolean clearCacheOnLock = true;
     public static int badPasscodeTries;
@@ -742,7 +742,7 @@ public class SharedConfig {
             passcodeType = preferences.getInt("passcodeType", 0);
             passcodeRetryInMs = preferences.getLong("passcodeRetryInMs", 0);
             lastUptimeMillis = preferences.getLong("lastUptimeMillis", 0);
-            bruteForceProtectionEnabled = preferences.getBoolean("bruteForceProtectionEnabled", true);
+            bruteForceProtectionEnabled = preferences.getBoolean("bruteForceProtectionEnabled", false);
             clearCacheOnLock = preferences.getBoolean("clearCacheOnLock", true);
             bruteForceRetryInMillis = preferences.getLong("bruteForceRetryInMillis", 0);
             badPasscodeTries = preferences.getInt("badPasscodeTries", 0);
