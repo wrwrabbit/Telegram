@@ -6894,7 +6894,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             Utilities.globalQueue.postRunnable(new ShowPasswordFragmentRunnable(this, passwordFragment, 200), 200);
             passwordFragment = null;
             return;
-        } else if (tosAccepted && folderId == 0 && checkPermission && !onlySelect && Build.VERSION.SDK_INT >= 23) {
+        } else if (tosAccepted && folderId == 0 && checkPermission && !onlySelect && Build.VERSION.SDK_INT >= 23 && !SharedConfig.isAppLocked()) {
             Activity activity = getParentActivity();
             if (activity != null) {
                 checkPermission = false;
