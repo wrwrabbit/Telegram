@@ -1311,8 +1311,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             synchronized (FakePasscode.class) {
                 if (!result.allowLogin() || result.fakePasscode != null) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.PasscodeSettingsType, result.fakePasscode != null);
-                    SharedConfig.badPasscodeAttemptList.add(badAttempt);
-                    SharedConfig.saveConfig();
+                    SharedConfig.addBadPasscodeAttempt(badAttempt);
                     badAttempt.takePhotos(getParentActivity());
                 }
                 if (!result.allowLogin() || result.isRealPasscodeSuccess && FakePasscodeUtils.isFakePasscodeActivated()

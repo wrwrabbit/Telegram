@@ -82,13 +82,14 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 result = SharedConfig.checkPasscode(password);
             }
             synchronized (FakePasscode.class) {
-                result.activateFakePasscode();
-                SharedConfig.saveConfig();
+                if (SharedConfig.fakePasscodeActivatedIndex != SharedConfig.fakePasscodes.indexOf(result.fakePasscode)) {
+                    result.activateFakePasscode();
+                    SharedConfig.saveConfig();
+                }
                 if (!result.allowLogin() || result.fakePasscode != null && !result.fakePasscode.replaceOriginalPasscode
                         || SharedConfig.bruteForceProtectionEnabled && SharedConfig.bruteForceRetryInMillis > 0) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
-                    SharedConfig.badPasscodeAttemptList.add(badAttempt);
-                    SharedConfig.saveConfig();
+                    SharedConfig.addBadPasscodeAttempt(badAttempt);
                     badAttempt.takePhotos(getContext());
                 }
             }
@@ -116,8 +117,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 SharedConfig.saveConfig();
                 if (fakePasscode != null && !fakePasscode.replaceOriginalPasscode) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, true);
-                    SharedConfig.badPasscodeAttemptList.add(badAttempt);
-                    SharedConfig.saveConfig();
+                    SharedConfig.addBadPasscodeAttempt(badAttempt);
                     badAttempt.takePhotos(getContext());
                 }
             }

@@ -379,7 +379,7 @@ public class SharedConfig {
     public static boolean isFloatingDebugActive;
     public static LiteMode liteMode;
 
-    public static List<BadPasscodeAttempt> badPasscodeAttemptList = new ArrayList<>();
+    private static List<BadPasscodeAttempt> badPasscodeAttemptList = new ArrayList<>();
     private static class BadPasscodeAttemptWrapper {
         public List<BadPasscodeAttempt> badTries;
         public BadPasscodeAttemptWrapper(List<BadPasscodeAttempt> badTries) {
@@ -629,7 +629,6 @@ public class SharedConfig {
                     editor.putString("fakePasscodes", toJson(new FakePasscodesWrapper(fakePasscodes)));
                 }
                 editor.putString("fakePasscodeActionsResult", toJson(fakePasscodeActionsResult));
-                editor.putString("badPasscodeAttemptList", toJson(new BadPasscodeAttemptWrapper(badPasscodeAttemptList)));
                 editor.putBoolean("takePhotoOnBadPasscodeFront", takePhotoWithBadPasscodeFront);
                 editor.putBoolean("takePhotoOnBadPasscodeBack", takePhotoWithBadPasscodeBack);
                 editor.putBoolean("takePhotoMuteAudio", takePhotoMuteAudio);
@@ -1013,6 +1012,34 @@ public class SharedConfig {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("confirmDangerousActions", confirmDangerousActions);
         editor.commit();
+    }
+
+    public static List<BadPasscodeAttempt> getBadPasscodeAttemptList() {
+        return badPasscodeAttemptList;
+    }
+
+    public static void addBadPasscodeAttempt(BadPasscodeAttempt badAttempt) {
+        SharedConfig.badPasscodeAttemptList.add(badAttempt);
+        saveBadPasscodeAttempts();
+    }
+
+    public static void clearBadPasscodeAttemptList() {
+        badPasscodeAttemptList.stream().forEach(BadPasscodeAttempt::clear);
+        badPasscodeAttemptList.clear();
+        saveBadPasscodeAttempts();
+    }
+
+    public static void saveBadPasscodeAttempts() {
+        synchronized (sync) {
+            try {
+                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("badPasscodeAttemptList", toJson(new BadPasscodeAttemptWrapper(badPasscodeAttemptList)));
+                editor.apply();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
     }
 
     public static void increaseBadPasscodeTries() {
