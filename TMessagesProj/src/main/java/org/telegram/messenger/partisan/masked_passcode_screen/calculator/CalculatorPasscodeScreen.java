@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -22,6 +21,7 @@ import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeScre
 import org.telegram.messenger.partisan.masked_passcode_screen.PasscodeEnteredDelegate;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 
 import java.math.BigDecimal;
@@ -42,8 +42,8 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
     private FrameLayout backgroundFrameLayout;
     private String inputString = "";
-    private TextView inputEditText;
-    private TextView outputEditText;
+    private TextView inputTextView;
+    private TextView outputTextView;
     private FrameLayout buttonsFrameLayout;
     private ArrayList<Button> buttons;
 
@@ -58,17 +58,17 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         backgroundFrameLayout = new FrameLayout(context);
         backgroundFrameLayout.setWillNotDraw(false);
 
-        inputEditText = new TextView(context);
-        inputEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 36);
-        inputEditText.setTextColor(0xFFFFFFFF);
-        inputEditText.setEllipsize(TextUtils.TruncateAt.START);
-        inputEditText.setSingleLine();
-        backgroundFrameLayout.addView(inputEditText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
+        inputTextView = new TextView(context);
+        inputTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 36);
+        inputTextView.setTextColor(0xFFFFFFFF);
+        inputTextView.setEllipsize(TextUtils.TruncateAt.START);
+        inputTextView.setSingleLine();
+        backgroundFrameLayout.addView(inputTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
 
-        outputEditText = new TextView(context);
-        outputEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 52);
-        outputEditText.setTextColor(0xFFFFFFFF);
-        backgroundFrameLayout.addView(outputEditText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
+        outputTextView = new TextView(context);
+        outputTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 52);
+        outputTextView.setTextColor(0xFFFFFFFF);
+        backgroundFrameLayout.addView(outputTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
 
         buttonsFrameLayout = new FrameLayout(context) {
             @Override
@@ -93,15 +93,14 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
         for (int i = 0; i < 20; i++) {
             Button button = createButton(i);
+            if (i == 1) {
+                button.setVisibility(View.GONE);
+            }
             buttons.add(button);
         }
         for (int a = 19; a >= 0; a--) {
             Button button = buttons.get(a);
-            if (a == 0) {
-                buttonsFrameLayout.addView(button, LayoutHelper.createFrame(BUTTON_SIZE + BUTTON_X_MARGIN + BUTTON_SIZE, BUTTON_SIZE, Gravity.BOTTOM | Gravity.LEFT));
-            } else {
-                buttonsFrameLayout.addView(button, LayoutHelper.createFrame(BUTTON_SIZE, BUTTON_SIZE, Gravity.BOTTOM | Gravity.LEFT));
-            }
+            buttonsFrameLayout.addView(button, LayoutHelper.createFrame(BUTTON_SIZE, BUTTON_SIZE, Gravity.BOTTOM | Gravity.LEFT));
         }
         return backgroundFrameLayout;
     }
@@ -188,14 +187,14 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         } else {
             addCharToInput(tag.charAt(0));
         }
-        if (inputEditText.length() == 4) {
+        if (inputTextView.length() == 4) {
             delegate.passcodeEntered(getPasswordString());
         }
     }
 
     private void doEquals() {
         try {
-            String outputString = outputEditText.getText().toString()
+            String outputString = outputTextView.getText().toString()
                     .replace(getDecimalSeparator(), '.');
             BigDecimal outputValue = new BigDecimal(outputString);
             setInput(removeFractionZeroesFromString(outputValue.toPlainString(), getLocale()));
@@ -205,7 +204,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     private String getPasswordString() {
-        return (String) inputEditText.getText();
+        return (String) inputTextView.getText();
     }
 
     @Override
@@ -222,96 +221,99 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
         if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PIN) {
             buttonsFrameLayout.setVisibility(View.VISIBLE);
-            inputEditText.setVisibility(View.VISIBLE);
-            outputEditText.setVisibility(View.VISIBLE);
+            inputTextView.setVisibility(View.VISIBLE);
+            outputTextView.setVisibility(View.VISIBLE);
         }
-        inputEditText.setText("");
-        outputEditText.setText("");
+        inputTextView.setText("");
+        outputTextView.setText("");
         inputString = "";
     }
 
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        FrameLayout.LayoutParams layoutParams;
+
         int width = View.MeasureSpec.getSize(widthMeasureSpec);
         int height = AndroidUtilities.displaySize.y - (Build.VERSION.SDK_INT >= 21 ? 0 : AndroidUtilities.statusBarHeight);
 
         int sizeBetweenButtonsX = dp(BUTTON_X_MARGIN);
         int sizeBetweenButtonsY = dp(BUTTON_Y_MARGIN);
-        int buttonSize = dp(BUTTON_SIZE);
+        int buttonHeight = dp(BUTTON_SIZE);
+        int buttonWidth = dp(BUTTON_SIZE);
 
         final boolean landscape = !AndroidUtilities.isTablet() && context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
 
-        int buttonsSumHeight = 2 * sizeBetweenButtonsY + (buttonSize + sizeBetweenButtonsY) * 4 + buttonSize;
-        int targetButtonsSumHeight = (int)(0.65 * height);
-        if (targetButtonsSumHeight >= buttonsSumHeight) {
-            int spacesHeight = 2 * sizeBetweenButtonsY + 4 * sizeBetweenButtonsY;
-            int spacesTargetHeight = targetButtonsSumHeight - 5 * buttonSize;
-            float scale = (float)spacesTargetHeight / spacesHeight;
-            sizeBetweenButtonsY = (int)(scale * sizeBetweenButtonsY);
+        int buttonsSumWidth = 2 * sizeBetweenButtonsX + (buttonWidth + sizeBetweenButtonsX) * 3 + buttonWidth;
+        int targetButtonsSumWidth = landscape ? width / 2 : width;
+        float scaleX = (float) targetButtonsSumWidth / buttonsSumWidth;
+
+        int buttonsSumHeight = 2 * sizeBetweenButtonsY + (buttonHeight + sizeBetweenButtonsY) * 4 + buttonHeight;
+        int targetButtonsSumHeight = landscape ? height : (int)(0.65 * height);
+        float scaleY = (float) targetButtonsSumHeight / buttonsSumHeight;
+
+        buttonsSumWidth = (int)(buttonsSumWidth * scaleX);
+        buttonsSumHeight = (int)(buttonsSumHeight * scaleY);
+        sizeBetweenButtonsX = (int)(sizeBetweenButtonsX * scaleX);
+        sizeBetweenButtonsY = (int)(sizeBetweenButtonsY * scaleY);
+        buttonWidth = (int)(buttonWidth * scaleX);
+        buttonHeight = (int)(buttonHeight * scaleY);
+
+        if (buttonHeight > buttonWidth) {
+            sizeBetweenButtonsY += (int)(((float)buttonHeight - buttonWidth) * 5 / 6);
+            buttonHeight = buttonWidth;
         }
-        if (landscape) {
-            sizeBetweenButtonsY = 0;
-        }
+
         for (int a = 0; a < 20; a++) {
-            FrameLayout.LayoutParams layoutParams;
             int row = a / BUTTONS_COL_COUNT;
             int col = a % BUTTONS_COL_COUNT;
             Button button = buttons.get(a);
             layoutParams = (FrameLayout.LayoutParams) button.getLayoutParams();
-            layoutParams.bottomMargin = 2 * sizeBetweenButtonsY + (buttonSize + sizeBetweenButtonsY) * row;
-            layoutParams.leftMargin = (buttonSize + sizeBetweenButtonsX) * col;
+            layoutParams.bottomMargin = 2 * sizeBetweenButtonsY + (buttonHeight + sizeBetweenButtonsY) * row;
+            layoutParams.leftMargin = (buttonWidth + sizeBetweenButtonsX) * col;
+
+            if (a == 0) {
+                layoutParams.width = buttonWidth + sizeBetweenButtonsX + buttonWidth;
+            } else {
+                layoutParams.width = buttonWidth;
+            }
+            layoutParams.height = buttonHeight;
+            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28.0f * Math.min(scaleX, scaleY));
+
             button.setLayoutParams(layoutParams);
         }
 
+        int textViewsBottomOffset;
+        int textViewsRightOffset;
+
+        layoutParams = (FrameLayout.LayoutParams) buttonsFrameLayout.getLayoutParams();
         if (landscape) {
-            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) buttonsFrameLayout.getLayoutParams();
-            layoutParams.leftMargin = width / 2;
-            layoutParams.topMargin = Build.VERSION.SDK_INT >= 21 ? AndroidUtilities.statusBarHeight : 0;
+            textViewsBottomOffset = 0;
+            textViewsRightOffset = width / 2;
             layoutParams.width = width / 2;
-            layoutParams.height = height;
             layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
-            buttonsFrameLayout.setLayoutParams(layoutParams);
-
-            layoutParams = (FrameLayout.LayoutParams) inputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonSize + 2 * sizeBetweenButtonsY + 2 * AndroidUtilities.dp(52);
-            layoutParams.leftMargin = sizeBetweenButtonsX;
-            layoutParams.rightMargin = width / 2 + sizeBetweenButtonsX;
-            layoutParams.width = LayoutHelper.WRAP_CONTENT;
-            inputEditText.setLayoutParams(layoutParams);
-
-            layoutParams = (FrameLayout.LayoutParams) outputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonSize + 2 * sizeBetweenButtonsY;
-            layoutParams.leftMargin = sizeBetweenButtonsX;
-            layoutParams.rightMargin = width / 2 + sizeBetweenButtonsX;
-            layoutParams.width = LayoutHelper.WRAP_CONTENT;
-            outputEditText.setLayoutParams(layoutParams);
         } else {
-            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) buttonsFrameLayout.getLayoutParams();
-            layoutParams.leftMargin = 0;
-            layoutParams.topMargin = 0;
-            layoutParams.width =  buttonSize * BUTTONS_COL_COUNT + sizeBetweenButtonsX * Math.max(0, BUTTONS_COL_COUNT - 1);
-            layoutParams.height = dp(82) + targetButtonsSumHeight;
-            if (AndroidUtilities.isTablet()) {
-                layoutParams.gravity = Gravity.CENTER;
-            } else {
-                layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-            }
-            buttonsFrameLayout.setLayoutParams(layoutParams);
-
-            layoutParams = (FrameLayout.LayoutParams) inputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonsSumHeight + buttonSize + 2 * sizeBetweenButtonsY + AndroidUtilities.dp(52) + 2 * sizeBetweenButtonsY;
-            layoutParams.leftMargin = sizeBetweenButtonsX;
-            layoutParams.rightMargin = sizeBetweenButtonsX;
-            layoutParams.width = LayoutHelper.WRAP_CONTENT;
-            inputEditText.setLayoutParams(layoutParams);
-
-            layoutParams = (FrameLayout.LayoutParams) outputEditText.getLayoutParams();
-            layoutParams.bottomMargin = buttonsSumHeight + buttonSize + 2 * sizeBetweenButtonsY;
-            layoutParams.leftMargin = sizeBetweenButtonsX;
-            layoutParams.rightMargin = sizeBetweenButtonsX;
-            layoutParams.width = LayoutHelper.WRAP_CONTENT;
-            outputEditText.setLayoutParams(layoutParams);
+            textViewsBottomOffset = buttonsSumHeight;
+            textViewsRightOffset = 0;
+            layoutParams.width =  buttonWidth * BUTTONS_COL_COUNT + sizeBetweenButtonsX * Math.max(0, BUTTONS_COL_COUNT - 1);
+            layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         }
+        layoutParams.height = dp(82) + targetButtonsSumHeight;
+        layoutParams.leftMargin = textViewsRightOffset;
+        buttonsFrameLayout.setLayoutParams(layoutParams);
+
+        layoutParams = (FrameLayout.LayoutParams) inputTextView.getLayoutParams();
+        layoutParams.bottomMargin = textViewsBottomOffset + buttonHeight + 2 * sizeBetweenButtonsY + 2 * AndroidUtilities.dp(52);
+        layoutParams.leftMargin = sizeBetweenButtonsX;
+        layoutParams.rightMargin = textViewsRightOffset + sizeBetweenButtonsX;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        inputTextView.setLayoutParams(layoutParams);
+
+        layoutParams = (FrameLayout.LayoutParams) outputTextView.getLayoutParams();
+        layoutParams.bottomMargin = textViewsBottomOffset + buttonHeight + 2 * sizeBetweenButtonsY;
+        layoutParams.leftMargin = sizeBetweenButtonsX;
+        layoutParams.rightMargin = textViewsRightOffset + sizeBetweenButtonsX;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        outputTextView.setLayoutParams(layoutParams);
     }
 
     private void deleteLastInputChar() {
@@ -319,19 +321,19 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             return;
         }
         inputString = inputString.substring(0, inputString.length() - 1);
-        inputEditText.setText(inputString);
+        inputTextView.setText(inputString);
         updateOutput();
     }
 
     private void clearInput() {
         inputString = "";
-        inputEditText.setText(inputString);
+        inputTextView.setText(inputString);
         updateOutput();
     }
 
     private void setInput(String input) {
         inputString = input;
-        inputEditText.setText(inputString);
+        inputTextView.setText(inputString);
         updateOutput();
     }
 
@@ -366,16 +368,16 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             }
         }
         inputString += c;
-        inputEditText.setText(inputString);
+        inputTextView.setText(inputString);
         updateOutput();
     }
 
     private void updateOutput() {
         try {
             BigDecimal result = CalculatorHelper.calculateExpression(inputString, getDecimalSeparator());
-            outputEditText.setText(formatBigDecimal(result, getLocale()));
+            outputTextView.setText(formatBigDecimal(result, getLocale()));
         } catch (Exception ignore) {
-            outputEditText.setText("Error");
+            outputTextView.setText("Error");
         }
     }
 
