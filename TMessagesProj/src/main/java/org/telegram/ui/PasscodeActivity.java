@@ -1522,7 +1522,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setTag(Theme.key_text_RedBold);
                         textCell.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     } else if (position == badPasscodeAttemptsRow) {
-                        textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.badPasscodeAttemptList.size()),true);
+                        textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.getBadPasscodeAttemptList().size()),true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
