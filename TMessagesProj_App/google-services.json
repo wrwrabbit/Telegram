@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:127113305710:android:450481b8390a513531507f",
         "android_client_info": {
-          "package_name": "org.telegram.messenger"
+          "package_name": "calculator.calculator.calculator"
         }
       },
       "oauth_client": [
