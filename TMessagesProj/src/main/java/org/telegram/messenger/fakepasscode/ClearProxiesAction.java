@@ -1,6 +1,10 @@
 package org.telegram.messenger.fakepasscode;
 
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.partisan.appmigration.AppMigrator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @FakePasscodeSerializer.EnabledSerialization
 public class ClearProxiesAction implements Action {
@@ -8,9 +12,13 @@ public class ClearProxiesAction implements Action {
 
     @Override
     public void execute(FakePasscode fakePasscode) {
-        if (enabled) {
-            while (SharedConfig.proxyList.size() > 0) {
-                SharedConfig.deleteProxy(SharedConfig.proxyList.get(0));
+        if (!enabled) {
+            return;
+        }
+        List<SharedConfig.ProxyInfo> proxies = new ArrayList<>(SharedConfig.proxyList);
+        for (SharedConfig.ProxyInfo proxy : proxies) {
+            if (!AppMigrator.isProxyForDisablingConnection(proxy)) {
+                SharedConfig.deleteProxy(proxy);
             }
         }
     }

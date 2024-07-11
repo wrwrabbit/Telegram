@@ -342,6 +342,7 @@ public class SharedConfig {
     public static int emojiInteractionsHintCount;
     public static int dayNightThemeSwitchHintCount;
     public static int callEncryptionHintDisplayedCount;
+    public static boolean botTabs3DEffect;
 
     public static UpdateData pendingPtgAppUpdate;
     public static long lastUpdateCheckTime;
@@ -429,6 +430,7 @@ public class SharedConfig {
     public static String phoneOverride;
     public static Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
     public static boolean forceAllowScreenshots = false;
+    public static boolean saveLogcatAfterRestart = false;
     public static boolean confirmDangerousActions;
 
     private static final int[] LOW_SOC = {
@@ -650,6 +652,7 @@ public class SharedConfig {
                 editor.putBoolean("premiumDisabled", premiumDisabled);
                 editor.putString("phoneOverride", phoneOverride);
                 editor.putBoolean("forceAllowScreenshots", forceAllowScreenshots);
+                editor.putBoolean("saveLogcatAfterRestart", saveLogcatAfterRestart);
                 String ignoredSecurityIssuesStr = ignoredSecurityIssues.stream().map(Enum::toString).reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                 editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
 
@@ -701,6 +704,16 @@ public class SharedConfig {
             }
             editor.commit();
         }
+    }
+
+    private static void migrateBadPasscodeAttempts() {
+        for (BadPasscodeAttempt attempt : badPasscodeAttemptList) {
+            boolean migrated = attempt.migrate();
+            if (!migrated) {
+                return;
+            }
+        }
+        saveConfig();
     }
 
     public static void reloadConfig() {
@@ -795,6 +808,7 @@ public class SharedConfig {
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
             phoneOverride = preferences.getString("phoneOverride", "");
             forceAllowScreenshots = preferences.getBoolean("forceAllowScreenshots", false);
+            saveLogcatAfterRestart = preferences.getBoolean("saveLogcatAfterRestart", false);
             String ignoredSecurityIssuesStr = preferences.getString("ignoredSecurityIssues", "");
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
 
@@ -905,12 +919,13 @@ public class SharedConfig {
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useNewBlur = preferences.getBoolean("useNewBlur", true);
-            useCamera2Force = !preferences.contains("useCamera2Force") ? null : preferences.getBoolean("useCamera2Force", false);
+            useCamera2Force = !preferences.contains("useCamera2Force_2") ? null : preferences.getBoolean("useCamera2Force_2", false);
             useSurfaceInStories = preferences.getBoolean("useSurfaceInStories", Build.VERSION.SDK_INT >= 30);
             payByInvoice = preferences.getBoolean("payByInvoice", false);
             photoViewerBlur = preferences.getBoolean("photoViewerBlur", true);
             multipleReactionsPromoShowed = preferences.getBoolean("multipleReactionsPromoShowed", false);
             callEncryptionHintDisplayedCount = preferences.getInt("callEncryptionHintDisplayedCount", 0);
+            botTabs3DEffect = preferences.getBoolean("botTabs3DEffect", true);
 
             loadDebugConfig(preferences);
 
@@ -919,6 +934,7 @@ public class SharedConfig {
 
             configLoaded = true;
             migrateFakePasscode();
+            migrateBadPasscodeAttempts();
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && debugWebView) {
@@ -1452,6 +1468,13 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("callEncryptionHintDisplayedCount", callEncryptionHintDisplayedCount);
+        editor.apply();
+    }
+
+    public static void setBotTabs3DEffect(boolean value) {
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("botTabs3DEffect", botTabs3DEffect = value);
         editor.apply();
     }
 
@@ -2176,7 +2199,7 @@ public class SharedConfig {
     public static void toggleUseCamera2(int currentAccount) {
         ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
                 .edit()
-                .putBoolean("useCamera2Force", useCamera2Force = !isUsingCamera2(currentAccount))
+                .putBoolean("useCamera2Force_2", useCamera2Force = !isUsingCamera2(currentAccount))
                 .apply();
     }
 

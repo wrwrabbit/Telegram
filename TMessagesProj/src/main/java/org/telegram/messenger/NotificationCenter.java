@@ -253,6 +253,9 @@ public class NotificationCenter {
     public static final int starBalanceUpdated = totalEvents++;
     public static final int starTransactionsLoaded = totalEvents++;
     public static final int factCheckLoaded = totalEvents++;
+    public static final int botStarsUpdated = totalEvents++;
+    public static final int botStarsTransactionsLoaded = totalEvents++;
+    public static final int channelStarsUpdated = totalEvents++;
 
     //partisan
     public static final int dialogDeletedByAction = totalEvents++;
@@ -270,6 +273,7 @@ public class NotificationCenter {
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;
     public static final int unknownPartisanActionLinkOpened = totalEvents++;
+    public static final int update30MessageLoaded = totalEvents++;
 
 
     //global

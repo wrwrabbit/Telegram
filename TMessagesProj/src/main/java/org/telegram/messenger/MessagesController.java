@@ -90,6 +90,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SecretMediaViewer;
+import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.TopicsFragment;
@@ -595,6 +596,7 @@ public class MessagesController extends BaseController implements NotificationCe
     public int recommendedChannelsLimitPremium;
     public int boostsChannelLevelMax;
     public int channelRestrictSponsoredLevelMin;
+    public Set<String> webAppAllowedProtocols;
 
     public int channelsLimitDefault;
     public int channelsLimitPremium;
@@ -663,6 +665,8 @@ public class MessagesController extends BaseController implements NotificationCe
     public boolean showAnnualPerMonth = false;
     public boolean canEditFactcheck;
     public int factcheckLengthLimit;
+    public long starsRevenueWithdrawalMin;
+    public long starsPaidPostAmountMax;
 
     public int savedDialogsPinnedLimitDefault;
     public int savedDialogsPinnedLimitPremium;
@@ -1599,11 +1603,14 @@ public class MessagesController extends BaseController implements NotificationCe
         newNoncontactPeersRequirePremiumWithoutOwnpremium = mainPreferences.getBoolean("newNoncontactPeersRequirePremiumWithoutOwnpremium", false);
         reactionsUniqMax = mainPreferences.getInt("reactionsUniqMax", 11);
         premiumManageSubscriptionUrl = mainPreferences.getString("premiumManageSubscriptionUrl", ApplicationLoader.isStandaloneBuild() ? "https://t.me/premiumbot?start=status" : "https://play.google.com/store/account/subscriptions?sku=telegram_premium&package=org.telegram.messenger");
-        androidDisableRoundCamera2 = mainPreferences.getBoolean("androidDisableRoundCamera2", false);
+        androidDisableRoundCamera2 = mainPreferences.getBoolean("androidDisableRoundCamera2", true);
         storiesPinnedToTopCountMax = mainPreferences.getInt("storiesPinnedToTopCountMax", 3);
         showAnnualPerMonth = mainPreferences.getBoolean("showAnnualPerMonth", false);
         canEditFactcheck = mainPreferences.getBoolean("canEditFactcheck", false);
         factcheckLengthLimit = mainPreferences.getInt("factcheckLengthLimit", 1024);
+        starsRevenueWithdrawalMin = mainPreferences.getLong("starsRevenueWithdrawalMin", 1000);
+        starsPaidPostAmountMax = mainPreferences.getLong("starsPaidPostAmountMax", 10_000);
+        webAppAllowedProtocols = mainPreferences.getStringSet("webAppAllowedProtocols", new HashSet<>(Arrays.asList("http", "https")));
         scheduleTranscriptionUpdate();
         BuildVars.GOOGLE_AUTH_CLIENT_ID = mainPreferences.getString("googleAuthClientId", BuildVars.GOOGLE_AUTH_CLIENT_ID);
         if (mainPreferences.contains("dcDomainName2")) {
@@ -4177,6 +4184,47 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     break;
                 }
+                case "stars_revenue_withdrawal_min": {
+                    if (value.value instanceof TLRPC.TL_jsonNumber) {
+                        TLRPC.TL_jsonNumber num = (TLRPC.TL_jsonNumber) value.value;
+                        if ((long) num.value != starsRevenueWithdrawalMin) {
+                            starsRevenueWithdrawalMin = (long) num.value;
+                            editor.putLong("starsRevenueWithdrawalMin", starsRevenueWithdrawalMin);
+                            changed = true;
+                        }
+                    }
+                    break;
+                }
+                case "stars_paid_post_amount_max": {
+                    if (value.value instanceof TLRPC.TL_jsonNumber) {
+                        TLRPC.TL_jsonNumber num = (TLRPC.TL_jsonNumber) value.value;
+                        if ((long) num.value != starsPaidPostAmountMax) {
+                            starsPaidPostAmountMax = (long) num.value;
+                            editor.putLong("starsPaidPostAmountMax", starsPaidPostAmountMax);
+                            changed = true;
+                        }
+                    }
+                    break;
+                }
+                case "web_app_allowed_protocols": {
+                    HashSet<String> newProtocols = new HashSet<>();
+                    if (value.value instanceof TLRPC.TL_jsonArray) {
+                        TLRPC.TL_jsonArray array = (TLRPC.TL_jsonArray) value.value;
+                        for (int b = 0, N2 = array.value.size(); b < N2; b++) {
+                            TLRPC.JSONValue val = array.value.get(b);
+                            if (val instanceof TLRPC.TL_jsonString) {
+                                TLRPC.TL_jsonString string = (TLRPC.TL_jsonString) val;
+                                newProtocols.add(string.value.toLowerCase());
+                            }
+                        }
+                    }
+                    if (!webAppAllowedProtocols.equals(newProtocols)) {
+                        webAppAllowedProtocols = newProtocols;
+                        editor.putStringSet("webAppAllowedProtocols", webAppAllowedProtocols);
+                        changed = true;
+                    }
+                    break;
+                }
             }
         }
 
@@ -5123,13 +5171,13 @@ public class MessagesController extends BaseController implements NotificationCe
         if (dialogId >= 0) {
             TLRPC.User user = getUser(dialogId);
             if (firstName) {
-                return UserObject.getFirstName(user, true);
+                return AndroidUtilities.removeDiacritics(UserObject.getFirstName(user, true));
             } else {
-                return UserObject.getUserName(user);
+                return AndroidUtilities.removeDiacritics(UserObject.getUserName(user));
             }
         } else {
             TLRPC.Chat chat = getChat(-dialogId);
-            return chat == null ? "" : chat.title;
+            return AndroidUtilities.removeDiacritics(chat == null ? "" : chat.title);
         }
     }
 
@@ -9657,9 +9705,9 @@ public class MessagesController extends BaseController implements NotificationCe
             return "";
         }
         if (user.first_name != null && user.first_name.length() > 0) {
-            return user.first_name;
+            return AndroidUtilities.removeDiacritics(user.first_name);
         } else if (user.last_name != null && user.last_name.length() > 0) {
-            return user.last_name;
+            return AndroidUtilities.removeDiacritics(user.last_name);
         }
         return "";
     }
@@ -11641,7 +11689,7 @@ public class MessagesController extends BaseController implements NotificationCe
         req.offset_id = offset;
         req.offset_date = offsetDate;
         if (BuildVars.LOGS_ENABLED) {
-            FileLog.d("start migrate with id " + offset + " date " + LocaleController.getInstance().formatterStats.format((long) offsetDate * 1000));
+            FileLog.d("start migrate with id " + offset + " date " + LocaleController.getInstance().getFormatterStats().format((long) offsetDate * 1000));
         }
         if (offset == 0) {
             req.offset_peer = new TLRPC.TL_inputPeerEmpty();
@@ -11670,14 +11718,14 @@ public class MessagesController extends BaseController implements NotificationCe
                         for (int a = 0; a < dialogsRes.messages.size(); a++) {
                             TLRPC.Message message = dialogsRes.messages.get(a);
                             if (BuildVars.LOGS_ENABLED) {
-                                FileLog.d("search migrate id " + message.id + " date " + LocaleController.getInstance().formatterStats.format((long) message.date * 1000));
+                                FileLog.d("search migrate id " + message.id + " date " + LocaleController.getInstance().getFormatterStats().format((long) message.date * 1000));
                             }
                             if (lastMessage == null || message.date < lastMessage.date) {
                                 lastMessage = message;
                             }
                         }
                         if (BuildVars.LOGS_ENABLED) {
-                            FileLog.d("migrate step with id " + lastMessage.id + " date " + LocaleController.getInstance().formatterStats.format((long) lastMessage.date * 1000));
+                            FileLog.d("migrate step with id " + lastMessage.id + " date " + LocaleController.getInstance().getFormatterStats().format((long) lastMessage.date * 1000));
                         }
                         if (dialogsRes.dialogs.size() >= 100) {
                             offsetId = lastMessage.id;
@@ -11755,7 +11803,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                         }
                                         offsetId = -1;
                                         if (BuildVars.LOGS_ENABLED) {
-                                            FileLog.d("migrate stop due to reached loaded dialogs " + LocaleController.getInstance().formatterStats.format((long) date * 1000));
+                                            FileLog.d("migrate stop due to reached loaded dialogs " + LocaleController.getInstance().getFormatterStats().format((long) date * 1000));
                                         }
                                     }
                                     dialogsRes.messages.remove(a);
@@ -11780,7 +11828,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 }
                                 offsetId = -1;
                                 if (BuildVars.LOGS_ENABLED) {
-                                    FileLog.d("migrate stop due to reached loaded dialogs " + LocaleController.getInstance().formatterStats.format((long) date * 1000));
+                                    FileLog.d("migrate stop due to reached loaded dialogs " + LocaleController.getInstance().getFormatterStats().format((long) date * 1000));
                                 }
                             }
                         }
@@ -17675,10 +17723,10 @@ public class MessagesController extends BaseController implements NotificationCe
                 updatesOnMainThread.add(baseUpdate);
             } else if (baseUpdate instanceof TLRPC.TL_updateMessageExtendedMedia) {
                 TLRPC.TL_updateMessageExtendedMedia extendedMedia = (TLRPC.TL_updateMessageExtendedMedia) baseUpdate;
-                if (extendedMedia.extended_media instanceof TLRPC.TL_messageExtendedMedia) {
+                if (!extendedMedia.extended_media.isEmpty()) {
                     TLRPC.Message msg = getMessagesStorage().getMessage(DialogObject.getPeerDialogId(extendedMedia.peer), extendedMedia.msg_id);
                     if (msg != null) {
-                        msg.media.extended_media = extendedMedia.extended_media;
+                        msg.media.extended_media = new ArrayList<>(extendedMedia.extended_media);
                         if (messagesArr == null) {
                             messagesArr = new ArrayList<>();
                         }
@@ -17875,6 +17923,8 @@ public class MessagesController extends BaseController implements NotificationCe
                         } else if (update.key instanceof TLRPC.TL_privacyKeyAbout) {
                             getContactsController().setPrivacyRules(update.rules, ContactsController.PRIVACY_RULES_TYPE_BIO);
                         }
+                    } else if (baseUpdate instanceof TLRPC.TL_updateStarsRevenueStatus) {
+                        BotStarsController.getInstance(currentAccount).onUpdate((TLRPC.TL_updateStarsRevenueStatus) baseUpdate);
                     } else if (baseUpdate instanceof TLRPC.TL_updateUserStatus) {
                         TLRPC.TL_updateUserStatus update = (TLRPC.TL_updateUserStatus) baseUpdate;
                         TLRPC.User currentUser = getUser(update.user_id);
@@ -18413,6 +18463,7 @@ public class MessagesController extends BaseController implements NotificationCe
                             } catch (Throwable e) {
                                 FileLog.e(e);
                             }
+                            FileLog.e("updatePhoneCall: svc=" + svc + " callIShouldHavePutIntoIntent=" + VoIPService.callIShouldHavePutIntoIntent + " callStateIsIdle=" + callStateIsIdle);
                             if (svc != null || VoIPService.callIShouldHavePutIntoIntent != null || !callStateIsIdle) {
                                 if (BuildVars.LOGS_ENABLED) {
                                     FileLog.d("Auto-declining call " + call.id + " because there's already active one");
@@ -18422,6 +18473,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 req.peer.access_hash = call.access_hash;
                                 req.peer.id = call.id;
                                 req.reason = new TLRPC.TL_phoneCallDiscardReasonBusy();
+                                FileLog.e("discardCall " + req.reason);
                                 getConnectionsManager().sendRequest(req, (response, error) -> {
                                     if (response != null) {
                                         TLRPC.Updates updates1 = (TLRPC.Updates) response;
@@ -18434,6 +18486,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 FileLog.d("Starting service for call " + call.id);
                             }
                             VoIPService.callIShouldHavePutIntoIntent = call;
+                            FileLog.e("set VoIPService.callIShouldHavePutIntoIntent = " + call);
                             Intent intent = new Intent(ApplicationLoader.applicationContext, VoIPService.class);
                             intent.putExtra("is_outgoing", false);
                             intent.putExtra("user_id", call.participant_id == getUserConfig().getClientUserId() ? call.admin_id : call.participant_id);
@@ -18459,7 +18512,8 @@ public class MessagesController extends BaseController implements NotificationCe
                                     FileLog.d("Updated the call while the service is starting");
                                 }
                                 if (call.id == VoIPService.callIShouldHavePutIntoIntent.id) {
-                                    VoIPService.callIShouldHavePutIntoIntent = call;
+                                    VoIPService.callIShouldHavePutIntoIntent = call instanceof TLRPC.TL_phoneCallDiscarded ? null : call;
+                                    FileLog.e("(2) set VoIPService.callIShouldHavePutIntoIntent = " + VoIPService.callIShouldHavePutIntoIntent);
                                 }
                             }
                         }
@@ -20084,6 +20138,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean checkCanOpenChat(Bundle bundle, BaseFragment fragment, MessageObject originalMessage) {
+        return checkCanOpenChat(bundle, fragment, originalMessage, null);
+    }
+
+    public boolean checkCanOpenChat(Bundle bundle, BaseFragment fragment, MessageObject originalMessage, Browser.Progress progress) {
         if (bundle == null || fragment == null) {
             return true;
         }
@@ -20113,7 +20171,13 @@ public class MessagesController extends BaseController implements NotificationCe
         if (messageId != 0 && originalMessage != null && chat != null && chat.access_hash == 0) {
             long did = originalMessage.getDialogId();
             if (!DialogObject.isEncryptedDialog(did)) {
-                AlertDialog progressDialog = new AlertDialog(fragment.getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER);
+                final AlertDialog progressDialog;
+                if (progress != null) {
+                    progressDialog = null;
+                    progress.init();
+                } else {
+                    progressDialog = new AlertDialog(fragment.getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER);
+                }
                 TLObject req;
                 if (did < 0) {
                     chat = getChat(-did);
@@ -20133,7 +20197,12 @@ public class MessagesController extends BaseController implements NotificationCe
                     if (response != null) {
                         AndroidUtilities.runOnUIThread(() -> {
                             try {
-                                progressDialog.dismiss();
+                                if (progressDialog != null) {
+                                    progressDialog.dismiss();
+                                }
+                                if (progress != null) {
+                                    progress.end();
+                                }
                             } catch (Exception e) {
                                 FileLog.e(e);
                             }
@@ -20145,14 +20214,38 @@ public class MessagesController extends BaseController implements NotificationCe
                         });
                     }
                 });
-                progressDialog.setOnCancelListener(dialog -> {
-                    getConnectionsManager().cancelRequest(reqId, true);
-                    fragment.setVisibleDialog(null);
-                });
-                fragment.setVisibleDialog(progressDialog);
-                progressDialog.show();
+                if (progressDialog != null) {
+                    progressDialog.setOnCancelListener(dialog -> {
+                        getConnectionsManager().cancelRequest(reqId, true);
+                        fragment.setVisibleDialog(null);
+                    });
+                    fragment.setVisibleDialog(progressDialog);
+                    progressDialog.show();
+                } else {
+                    progress.onCancel(() -> {
+                        getConnectionsManager().cancelRequest(reqId, true);
+                        fragment.setVisibleDialog(null);
+                    });
+                    progress.init();
+                }
                 return false;
             }
+        } else if (messageId != 0 && originalMessage != null && progress != null) {
+            progress.init();
+            progress.onCancel(ensureMessagesLoaded(-chatId, messageId, new MessagesLoadedCallback() {
+                @Override
+                public void onMessagesLoaded(boolean fromCache) {
+                    progress.end();
+                    fragment.presentFragment(new ChatActivity(bundle), true);
+                }
+
+                @Override
+                public void onError() {
+                    progress.end();
+                    fragment.presentFragment(new ChatActivity(bundle), true);
+                }
+            }));
+            return false;
         }
         return true;
     }
@@ -20286,7 +20379,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
-    public void ensureMessagesLoaded(long dialogId, int messageId, MessagesLoadedCallback callback) {
+    public Runnable ensureMessagesLoaded(long dialogId, int messageId, MessagesLoadedCallback callback) {
         SharedPreferences sharedPreferences = MessagesController.getNotificationsSettings(currentAccount);
         if (messageId == 0) {
             messageId = sharedPreferences.getInt("diditem" + dialogId, 0);
@@ -20306,13 +20399,17 @@ public class MessagesController extends BaseController implements NotificationCe
         if (chatId != 0) {
             currentChat = getMessagesController().getChat(chatId);
             if (currentChat == null) {
+                final boolean[] cancelled = new boolean[1];
+                final Runnable[] cancel = new Runnable[1];
                 MessagesStorage messagesStorage = getMessagesStorage();
                 messagesStorage.getStorageQueue().postRunnable(() -> {
+                    if (cancelled[0]) return;
                     TLRPC.Chat chat = messagesStorage.getChat(chatId);
                     AndroidUtilities.runOnUIThread(() -> {
+                        if (cancelled[0]) return;
                         if (chat != null) {
                             getMessagesController().putChat(chat, true);
-                            ensureMessagesLoaded(dialogId, finalMessageId, callback);
+                            cancel[0] = ensureMessagesLoaded(dialogId, finalMessageId, callback);
                         } else {
                             if (callback != null) {
                                 callback.onError();
@@ -20320,7 +20417,12 @@ public class MessagesController extends BaseController implements NotificationCe
                         }
                     });
                 });
-                return;
+                return () -> {
+                    cancelled[0] = true;
+                    if (cancel[0] != null) {
+                        cancel[0].run();
+                    }
+                };
             }
         }
 
@@ -20366,6 +20468,8 @@ public class MessagesController extends BaseController implements NotificationCe
         } else {
             loadMessagesInternal(dialogId, 0, true, count, finalMessageId, 0, true, 0, classGuid, 2, 0, 0, 0, -1, 0, 0, 0, false, 0, true, false, false, null, 0L);
         }
+
+        return () -> getConnectionsManager().cancelRequestsForGuid(classGuid);
     }
 
     public int getChatPendingRequestsOnClosed(long chatId) {

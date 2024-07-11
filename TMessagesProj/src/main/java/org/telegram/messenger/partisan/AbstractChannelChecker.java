@@ -83,7 +83,7 @@ public abstract class AbstractChannelChecker implements NotificationCenter.Notif
 
     private void loadMessages(boolean testLoad, int lastMessageId) {
         int count = testLoad ? 1 : MESSAGES_COUNT_PER_LOAD;
-        int loadType = needLoadAllMessagesFromChannel() ? 2 : 0;
+        int loadType = needLoadAllMessagesFromChannel() ? 0 : 2;
         int lastMessageIdFinal = needLoadAllMessagesFromChannel() ? 0 : lastMessageId;
         int maxId = needLoadAllMessagesFromChannel() ? lastCheckedMessageId + MESSAGES_COUNT_PER_LOAD : 0;
         getMessagesController().loadMessages(getChannelId(), 0, false,
@@ -97,8 +97,6 @@ public abstract class AbstractChannelChecker implements NotificationCenter.Notif
 
     private void channelMessagesLoaded(Object[] args) {
         updatesChecked = true;
-        getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
-        getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
         ArrayList<MessageObject> messages = (ArrayList<MessageObject>) args[2];
         processChannelMessages(messages);
 
@@ -111,6 +109,8 @@ public abstract class AbstractChannelChecker implements NotificationCenter.Notif
             } else {
                 loadMessages(false, (int)args[5]);
             }
+        } else {
+            removeObservers();
         }
     }
 

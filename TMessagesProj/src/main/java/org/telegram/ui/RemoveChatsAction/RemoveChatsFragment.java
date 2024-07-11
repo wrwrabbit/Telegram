@@ -818,7 +818,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                     }
                     ChatRemoveCell cell = (ChatRemoveCell) holder.itemView;
                     Item item = getItem(position);
-                    cell.setItemSelected(selectedItems.contains(item.getId()));
+                    cell.setItemSelected(selectedItems.contains(item));
                     cell.setOnSettingsClick(this::editChatToRemove);
                     cell.setItem(item);
                     cell.setChecked(action.contains(item.getId()), false);
@@ -924,14 +924,20 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
                 selectedItems.add(item);
                 notifyItemChanged(position);
                 items.stream()
-                        .filter(i -> i.shouldBeEditedToo(item))
+                        .filter(i -> shouldBeEditedToo(item, i))
                         .forEach(selectedItems::add);
                 for (int otherPosition = 0; otherPosition < getItemCount(); otherPosition++) {
-                    if (getItem(otherPosition).shouldBeEditedToo(item)) {
+                    Item otherItem = getItem(otherPosition);
+                    if (shouldBeEditedToo(item, otherItem)) {
                         notifyItemChanged(otherPosition);
                     }
                 }
             }
+        }
+
+        private boolean shouldBeEditedToo(Item item, Item otherItem) {
+            return otherItem.shouldBeEditedToo(item)
+                    && !action.contains(otherItem.getId());
         }
 
         public boolean isInSelectionMode() {
@@ -963,7 +969,7 @@ public class RemoveChatsFragment extends BaseFragment implements NotificationCen
         public Set<Item> getItemsToEdit(int position) {
             Item targetItem = getItem(position);
             return items.stream()
-                    .filter(item -> item.getId() == targetItem.getId() || item.shouldBeEditedToo(targetItem))
+                    .filter(otherItem -> otherItem.getId() == targetItem.getId() || shouldBeEditedToo(targetItem, otherItem))
                     .collect(Collectors.toSet());
         }
     }

@@ -965,7 +965,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, result.fakePasscode != null);
                     SharedConfig.badPasscodeAttemptList.add(badAttempt);
                     SharedConfig.saveConfig();
-                    badAttempt.takePhoto(getContext());
+                    badAttempt.takePhotos(getContext());
                 }
             }
             if (!result.allowLogin() || SharedConfig.bruteForceProtectionEnabled && SharedConfig.bruteForceRetryInMillis > 0) {
@@ -1002,7 +1002,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.AppUnlockType, true);
                     SharedConfig.badPasscodeAttemptList.add(badAttempt);
                     SharedConfig.saveConfig();
-                    badAttempt.takePhoto(getContext());
+                    badAttempt.takePhotos(getContext());
                 }
             }
             if (fakePasscode != null && !fakePasscode.allowLogin) {
@@ -1246,7 +1246,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         if (Build.VERSION.SDK_INT < 23) {
             return;
         }
-        Activity parentActivity = (Activity) getContext();
+        Activity parentActivity = AndroidUtilities.findActivity(getContext());
         if (parentActivity != null && fingerprintView.getVisibility() == VISIBLE && !ApplicationLoader.mainInterfacePaused && (!(parentActivity instanceof LaunchActivity) || ((LaunchActivity) parentActivity).allowShowFingerprintDialog(this))) {
             try {
                 if (BiometricManager.from(getContext()).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS && FingerprintController.isKeyReady() && !FingerprintController.checkDeviceFingerprintsChanged()) {
@@ -1289,7 +1289,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     }
 
     private boolean hasFingerprint() {
-        Activity parentActivity = (Activity) getContext();
+        Activity parentActivity = AndroidUtilities.findActivity(getContext());
         if (Build.VERSION.SDK_INT >= 23 && parentActivity != null && SharedConfig.useFingerprintLock) {
             try {
                 FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(ApplicationLoader.applicationContext);
@@ -1303,7 +1303,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
     private void checkFingerprintButton() {
         boolean hasFingerprint = false;
-        Activity parentActivity = (Activity) getContext();
+        Activity parentActivity = AndroidUtilities.findActivity(getContext());
         if (Build.VERSION.SDK_INT >= 23 && parentActivity != null && SharedConfig.useFingerprintLock) {
             try {
                 FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(ApplicationLoader.applicationContext);
@@ -1330,7 +1330,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         showed = false;
         checkFingerprintButton();
         checkRetryTextView();
-        Activity parentActivity = (Activity) getContext();
+        Activity parentActivity = AndroidUtilities.findActivity(getContext());
         if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD) {
             if (!animated && retryTextView.getVisibility() != VISIBLE && passwordEditText != null) {
                 passwordEditText.requestFocus();
@@ -1341,7 +1341,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 View currentFocus = parentActivity.getCurrentFocus();
                 if (currentFocus != null) {
                     currentFocus.clearFocus();
-                    AndroidUtilities.hideKeyboard(((Activity) getContext()).getCurrentFocus());
+                    AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
                 }
             }
         }
