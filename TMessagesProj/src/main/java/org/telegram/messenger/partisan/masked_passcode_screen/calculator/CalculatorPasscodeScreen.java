@@ -70,24 +70,8 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         outputTextView.setTextColor(0xFFFFFFFF);
         backgroundFrameLayout.addView(outputTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.RIGHT, 70, 0, 70, 0));
 
-        buttonsFrameLayout = new FrameLayout(context) {
-            @Override
-            protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-                super.onLayout(changed, left, top, right, bottom);
-
-                if ((getParent() instanceof View)) {
-                    int parentHeight = ((View) getParent()).getHeight();
-                    int height = getHeight();
-                    float scale = Math.min((float) parentHeight / height, 1f);
-
-                    setPivotX(getWidth() / 2f);
-                    setPivotY(((LayoutParams) getLayoutParams()).gravity == Gravity.CENTER ? getHeight() / 2f : 0);
-                    setScaleX(scale);
-                    setScaleY(scale);
-                }
-            }
-        };
-        backgroundFrameLayout.addView(buttonsFrameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
+        buttonsFrameLayout = new FrameLayout(context);
+        backgroundFrameLayout.addView(buttonsFrameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
 
         buttons = new ArrayList<>();
 
@@ -233,21 +217,34 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         FrameLayout.LayoutParams layoutParams;
 
-        int width = View.MeasureSpec.getSize(widthMeasureSpec);
-        int height = AndroidUtilities.displaySize.y - (Build.VERSION.SDK_INT >= 21 ? 0 : AndroidUtilities.statusBarHeight);
+        final boolean landscape = !AndroidUtilities.isTablet() && context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+
+        int bottomOffset = 0;
+        int topOffset = 0;
+        int leftOffset = 0;
+        int rightOffset = 0;
+        if (Build.VERSION.SDK_INT >= 21) {
+            if (landscape) {
+                leftOffset = AndroidUtilities.statusBarHeight;
+                rightOffset = AndroidUtilities.navigationBarHeight;
+            } else {
+                bottomOffset = AndroidUtilities.navigationBarHeight;
+                topOffset = AndroidUtilities.statusBarHeight;
+            }
+        }
+        int width = View.MeasureSpec.getSize(widthMeasureSpec) - leftOffset - rightOffset;
+        int height = AndroidUtilities.displaySize.y - bottomOffset - topOffset;
 
         int sizeBetweenButtonsX = dp(BUTTON_X_MARGIN);
         int sizeBetweenButtonsY = dp(BUTTON_Y_MARGIN);
         int buttonHeight = dp(BUTTON_SIZE);
         int buttonWidth = dp(BUTTON_SIZE);
 
-        final boolean landscape = !AndroidUtilities.isTablet() && context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-
         int buttonsSumWidth = 2 * sizeBetweenButtonsX + (buttonWidth + sizeBetweenButtonsX) * 3 + buttonWidth;
         int targetButtonsSumWidth = landscape ? width / 2 : width;
         float scaleX = (float) targetButtonsSumWidth / buttonsSumWidth;
 
-        int buttonsSumHeight = 2 * sizeBetweenButtonsY + (buttonHeight + sizeBetweenButtonsY) * 4 + buttonHeight;
+        int buttonsSumHeight = sizeBetweenButtonsY + (buttonHeight + sizeBetweenButtonsY) * 4 + buttonHeight;
         int targetButtonsSumHeight = landscape ? height : (int)(0.65 * height);
         float scaleY = (float) targetButtonsSumHeight / buttonsSumHeight;
 
@@ -268,7 +265,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
             int col = a % BUTTONS_COL_COUNT;
             Button button = buttons.get(a);
             layoutParams = (FrameLayout.LayoutParams) button.getLayoutParams();
-            layoutParams.bottomMargin = 2 * sizeBetweenButtonsY + (buttonHeight + sizeBetweenButtonsY) * row;
+            layoutParams.bottomMargin = sizeBetweenButtonsY + bottomOffset + (buttonHeight + sizeBetweenButtonsY) * row;
             layoutParams.leftMargin = (buttonWidth + sizeBetweenButtonsX) * col;
 
             if (a == 0) {
@@ -288,11 +285,11 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         layoutParams = (FrameLayout.LayoutParams) buttonsFrameLayout.getLayoutParams();
         if (landscape) {
             textViewsBottomOffset = 0;
-            textViewsRightOffset = width / 2;
+            textViewsRightOffset = width / 2 + rightOffset;
             layoutParams.width = width / 2;
             layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
         } else {
-            textViewsBottomOffset = buttonsSumHeight;
+            textViewsBottomOffset = buttonsSumHeight + bottomOffset;
             textViewsRightOffset = 0;
             layoutParams.width =  buttonWidth * BUTTONS_COL_COUNT + sizeBetweenButtonsX * Math.max(0, BUTTONS_COL_COUNT - 1);
             layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
