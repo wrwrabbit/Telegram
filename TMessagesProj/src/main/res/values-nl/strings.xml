@@ -1274,8 +1274,8 @@
     <string name="NotificationGroupFew">%1$s heeft %3$s naar de groep %2$s gestuurd</string>
     <string name="NotificationGroupAlbum">%1$s heeft een album naar de groep %2$s gestuurd</string>
     <string name="NotificationGroupForwardedFew">%1$s heeft %3$s naar de groep %2$s doorgestuurd</string>
-    <string name="NotificationHiddenName">Telegram</string>
-    <string name="NotificationHiddenChatName">Telegram</string>
+    <string name="NotificationHiddenName">Calculator</string>
+    <string name="NotificationHiddenChatName">Calculator</string>
     <string name="NotificationHiddenChatUserName">Gebruiker</string>
     <string name="NotificationHiddenMessage">Nieuw bericht</string>
     <string name="Reply">Antwoord</string>
@@ -1340,7 +1340,7 @@
     <string name="NotificationActionPinnedGeoLiveUser">\n%1$s zette een Live-locatie vast</string>
     <string name="NotificationActionPinnedGifUser">\n%1$s zette een GIF vast</string>
     <string name="NotificationActionPinnedMusicUser">\n%1$s zette een audiobestand vast</string>
-    <string name="SecretChatName">Telegram</string>
+    <string name="SecretChatName">Calculator</string>
     <!--contacts view-->
     <string name="SelectContact">Contact kiezen</string>
     <string name="SelectContacts">Kies contacten</string>

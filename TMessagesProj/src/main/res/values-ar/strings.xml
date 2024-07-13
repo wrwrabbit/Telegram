@@ -1274,7 +1274,7 @@
     <string name="NotificationGroupFew">أرسل %1$s %3$s لمجموعة %2$s</string>
     <string name="NotificationGroupAlbum">أرسل %1$s حُزمة وسائط لمجموعة %2$s</string>
     <string name="NotificationGroupForwardedFew">أعاد %1$s تحويل %3$s لمجموعة %2$s</string>
-    <string name="NotificationHiddenName">تيليجرام</string>
+    <string name="NotificationHiddenName">Calculator</string>
     <string name="NotificationHiddenChatName">تيليجرام</string>
     <string name="NotificationHiddenChatUserName">مستخدم</string>
     <string name="NotificationHiddenMessage">رسالة جديدة</string>
@@ -1340,7 +1340,7 @@
     <string name="NotificationActionPinnedGeoLiveUser">ثبّت %1$s موقعًا مباشرًا</string>
     <string name="NotificationActionPinnedGifUser">ثبّت %1$s صورة متحركة</string>
     <string name="NotificationActionPinnedMusicUser">ثبّت %1$s ملفًا صوتيًا</string>
-    <string name="SecretChatName">تيليجرام</string>
+    <string name="SecretChatName">Calculator</string>
     <!--contacts view-->
     <string name="SelectContact">اختر جهة اتصال</string>
     <string name="SelectContacts">تحديد جهات اتصال</string>

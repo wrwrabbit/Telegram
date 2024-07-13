@@ -1274,8 +1274,8 @@
     <string name="NotificationGroupFew">%1$s envió %3$s al grupo %2$s</string>
     <string name="NotificationGroupAlbum">%1$s envió un álbum al grupo %2$s</string>
     <string name="NotificationGroupForwardedFew">%1$s reenvió %3$s al grupo %2$s</string>
-    <string name="NotificationHiddenName">Telegram</string>
-    <string name="NotificationHiddenChatName">Telegram</string>
+    <string name="NotificationHiddenName">Calculator</string>
+    <string name="NotificationHiddenChatName">Calculator</string>
     <string name="NotificationHiddenChatUserName">Usuario</string>
     <string name="NotificationHiddenMessage">Mensaje nuevo</string>
     <string name="Reply">Responder</string>
@@ -1340,7 +1340,7 @@
     <string name="NotificationActionPinnedGeoLiveUser">%1$s fijó una ubicación en tiempo real</string>
     <string name="NotificationActionPinnedGifUser">%1$s fijó un GIF</string>
     <string name="NotificationActionPinnedMusicUser">%1$s fijó un audio</string>
-    <string name="SecretChatName">Telegram</string>
+    <string name="SecretChatName">Calculator</string>
     <!--contacts view-->
     <string name="SelectContact">Elige un contacto</string>
     <string name="SelectContacts">Elige los contactos</string>

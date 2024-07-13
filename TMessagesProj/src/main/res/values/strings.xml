@@ -1686,8 +1686,8 @@
     <string name="NotificationGroupFew">%1$s sent %3$s to the group %2$s</string>
     <string name="NotificationGroupAlbum">%1$s sent an album to the group %2$s</string>
     <string name="NotificationGroupForwardedFew">%1$s forwarded %3$s to the group %2$s</string>
-    <string name="NotificationHiddenName">Telegram</string>
-    <string name="NotificationHiddenChatName">Telegram</string>
+    <string name="NotificationHiddenName">Calculator</string>
+    <string name="NotificationHiddenChatName">Calculator</string>
     <string name="NotificationHiddenChatUserName">User</string>
     <string name="NotificationHiddenMessage">New message</string>
     <string name="Reply">Reply</string>
@@ -1752,7 +1752,7 @@
     <string name="NotificationActionPinnedGeoLiveUser">%1$s pinned a live location</string>
     <string name="NotificationActionPinnedGifUser">%1$s pinned a GIF</string>
     <string name="NotificationActionPinnedMusicUser">%1$s pinned an audio file</string>
-    <string name="SecretChatName">Telegram</string>
+    <string name="SecretChatName">Calculator</string>
     <!--contacts view-->
     <string name="SelectContact">Select Contact</string>
     <string name="SelectContacts">Select Contacts</string>
