@@ -16,4 +16,8 @@ public class MaskedPasscodeConfig {
     public static boolean allowFingerprint() {
         return false;
     }
+
+    public static boolean allowIconShortcuts() {
+        return false;
+    }
 }

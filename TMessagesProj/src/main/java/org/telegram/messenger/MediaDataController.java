@@ -50,6 +50,7 @@ import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
+import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeConfig;
 import org.telegram.messenger.ringtone.RingtoneDataStore;
 import org.telegram.messenger.ringtone.RingtoneUploader;
 import org.telegram.tgnet.ConnectionsManager;
@@ -4845,7 +4846,7 @@ public class MediaDataController extends BaseController {
     private static Path roundPath;
 
     public void buildShortcuts() {
-        if (Build.VERSION.SDK_INT < 23) {
+        if (Build.VERSION.SDK_INT < 23 || !MaskedPasscodeConfig.allowIconShortcuts()) {
             return;
         }
         int maxShortcuts = ShortcutManagerCompat.getMaxShortcutCountPerActivity(ApplicationLoader.applicationContext) - 2;
