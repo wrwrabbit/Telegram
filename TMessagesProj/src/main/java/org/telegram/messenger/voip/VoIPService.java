@@ -3608,8 +3608,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 
 			cpuWakelock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "telegram-voip");
 			cpuWakelock.acquire();
-
-			btAdapter = am.isBluetoothScoAvailableOffCall() ? BluetoothAdapter.getDefaultAdapter() : null;
+			btAdapter = am.isBluetoothScoAvailableOffCall() && hasBluetoothPermission() ? BluetoothAdapter.getDefaultAdapter() : null;
 
 			IntentFilter filter = new IntentFilter();
 			filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -3669,6 +3668,14 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			}
 			startForeground(ID_ONGOING_CALL_NOTIFICATION, bldr.build());
 		}
+	}
+
+	private boolean hasBluetoothPermission() throws PackageManager.NameNotFoundException {
+		String[] permissions = getPackageManager()
+				.getPackageInfo(getPackageName(), PackageManager.GET_PERMISSIONS)
+				.requestedPermissions;
+		return Arrays.asList(permissions).stream()
+				.anyMatch(p -> p != null && p.equals("android.permission.BLUETOOTH"));
 	}
 
 	private void checkUpdateBluetoothHeadset() {
