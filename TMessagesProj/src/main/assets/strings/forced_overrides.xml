@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <string name="AppName">Calculator</string>
+    <string name="AppNameBeta">Calculator</string>
+    <string name="NotificationHiddenName">Calculator</string>
+    <string name="NotificationHiddenChatName">Calculator</string>
+    <string name="SecretChatName">Calculator</string>
 </resources>
