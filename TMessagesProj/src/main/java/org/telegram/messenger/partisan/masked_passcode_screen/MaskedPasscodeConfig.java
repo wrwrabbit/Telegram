@@ -20,4 +20,8 @@ public class MaskedPasscodeConfig {
     public static boolean allowIconShortcuts() {
         return false;
     }
+
+    public static boolean allowCallNotification() {
+        return false;
+    }
 }
