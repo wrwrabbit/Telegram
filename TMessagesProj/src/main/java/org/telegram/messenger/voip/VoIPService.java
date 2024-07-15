@@ -111,8 +111,8 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.XiaomiUtilities;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -4118,6 +4118,9 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void showIncomingNotification(String name, TLObject userOrChat, boolean video, int additionalMemberCount) {
+		if (!MaskedPasscodeConfig.allowCallNotification()) {
+			return;
+		}
 		Intent intent = new Intent(this, LaunchActivity.class);
 		intent.setAction("voip");
 
