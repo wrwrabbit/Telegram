@@ -4685,7 +4685,7 @@ public class NotificationsController extends BaseController {
         }
 
         long selfUserId = getUserConfig().getClientUserId();
-        boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter;
+        boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPasscodeConfig.allowNotHiddenNotifications();
         boolean passcode = SharedConfig.passcodeEnabled();
 
         int maxCount = 7;
