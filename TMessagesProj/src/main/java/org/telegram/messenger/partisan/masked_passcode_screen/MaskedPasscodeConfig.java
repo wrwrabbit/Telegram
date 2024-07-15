@@ -24,4 +24,8 @@ public class MaskedPasscodeConfig {
     public static boolean allowCallNotification() {
         return false;
     }
+
+    public static boolean allowNotHiddenNotifications() {
+        return false;
+    }
 }
