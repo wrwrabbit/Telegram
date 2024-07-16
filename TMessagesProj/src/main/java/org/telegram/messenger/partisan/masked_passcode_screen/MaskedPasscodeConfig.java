@@ -30,6 +30,6 @@ public class MaskedPasscodeConfig {
     }
 
     public static int getNotificationsColor() {
-        return 0xff11acfa;
+        return 0xff34d02c;
     }
 }
