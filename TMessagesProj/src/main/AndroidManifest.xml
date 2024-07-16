@@ -294,26 +294,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name="org.telegram.ui.ChatsWidgetConfigActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
-            android:hardwareAccelerated="@bool/useHardwareAcceleration"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true">
-            <intent-filter android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="org.telegram.ui.ContactsWidgetConfigActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
-            android:hardwareAccelerated="@bool/useHardwareAcceleration"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true">
-            <intent-filter android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-            </intent-filter>
-        </activity>
 <!--        <activity-->
 <!--            android:name="org.telegram.ui.FeedWidgetConfigActivity"-->
 <!--            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"-->
@@ -502,30 +482,6 @@
             android:authorities="${applicationId}.call_sound_provider"
             android:name="org.telegram.messenger.voip.CallNotificationSoundProvider"
             android:exported="true"/>
-
-        <receiver android:name="org.telegram.messenger.ChatsWidgetProvider" android:exported="false">
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/chats_widget_info" />
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-        </receiver>
-
-        <service android:name="org.telegram.messenger.ChatsWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
-
-        <receiver android:name="org.telegram.messenger.ContactsWidgetProvider" android:exported="false">
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/contacts_widget_info" />
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-        </receiver>
-
-        <service android:name="org.telegram.messenger.ContactsWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
 
 <!--        <receiver android:name="org.telegram.messenger.FeedWidgetProvider">-->
 <!--            <meta-data android:name="android.appwidget.provider"-->

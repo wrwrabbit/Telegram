@@ -3520,6 +3520,7 @@ public class NotificationsController extends BaseController {
             preferences.edit().putBoolean("groupsCreated5", true).commit();
             groupsCreated = true;
         }
+        /*
         if (!channelGroupsCreated) {
             List<NotificationChannelGroup> list = systemNotificationManager.getNotificationChannelGroups();
             String channelsId = "channels" + notHiddenAccount;
@@ -3585,6 +3586,7 @@ public class NotificationsController extends BaseController {
 
             channelGroupsCreated = true;
         }
+        */
     }
 
     @TargetApi(26)
@@ -3858,7 +3860,7 @@ public class NotificationsController extends BaseController {
                 channelId = notHiddenAccount + "channel_" + dialogId + "_" + Utilities.random.nextLong();
             }
             NotificationChannel notificationChannel = new NotificationChannel(channelId, secretChat ? LocaleController.getString("SecretChatName", R.string.SecretChatName) : name, importance);
-            notificationChannel.setGroup(groupId);
+            //notificationChannel.setGroup(groupId);
             if (ledColor != 0) {
                 notificationChannel.enableLights(true);
                 notificationChannel.setLightColor(ledColor);
