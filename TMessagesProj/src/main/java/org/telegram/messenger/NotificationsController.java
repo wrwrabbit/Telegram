@@ -5050,7 +5050,7 @@ public class NotificationsController extends BaseController {
                                         personName = LocaleController.getString("NotificationHiddenChatName", R.string.NotificationHiddenChatName);
                                     }
                                 } else {
-                                    personName = LocaleController.getString("NotificationHiddenChatUserName", R.string.NotificationHiddenChatUserName);
+                                    personName = LocaleController.getString("NotificationHiddenName", R.string.NotificationHiddenName);
                                 }
                             } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
                                 personName = LocaleController.getString("NotificationHiddenName", R.string.NotificationHiddenName);

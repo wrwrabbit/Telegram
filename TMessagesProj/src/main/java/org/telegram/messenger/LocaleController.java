@@ -3880,7 +3880,7 @@ public class LocaleController {
         }
         assetValues.keySet().removeAll(newValues.keySet());
         newValues.putAll(assetValues);
-        newValues.putAll(getLocaleFileStrings(null, false, "strings/forced_overrides.xml"));
+        newValues.putAll(getLocaleFileStrings(null, false, "strings/overrides.xml"));
         return newValues;
     }
 
