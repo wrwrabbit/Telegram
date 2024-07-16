@@ -28,4 +28,8 @@ public class MaskedPasscodeConfig {
     public static boolean allowNotHiddenNotifications() {
         return false;
     }
+
+    public static int getNotificationsColor() {
+        return 0xff11acfa;
+    }
 }

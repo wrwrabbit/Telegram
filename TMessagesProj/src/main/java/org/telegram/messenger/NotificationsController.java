@@ -5289,7 +5289,7 @@ public class NotificationsController extends BaseController {
                     .setContentText(Utils.fixMessage(text.toString()))
                     .setAutoCancel(true)
                     .setNumber(dialogKey.story ? storyPushMessages.size() : messageObjects.size())
-                    .setColor(0xff11acfa)
+                    .setColor(MaskedPasscodeConfig.getNotificationsColor())
                     .setGroupSummary(false)
                     .setWhen(date)
                     .setShowWhen(true)
