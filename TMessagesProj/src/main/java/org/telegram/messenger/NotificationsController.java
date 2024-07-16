@@ -5329,9 +5329,12 @@ public class NotificationsController extends BaseController {
             if (DialogObject.isEncryptedDialog(dialogId)) {
                 builder.setLocalOnly(true);
             }
+            /*
             if (avatarBitmap != null) {
                 builder.setLargeIcon(avatarBitmap);
             }
+            */
+            builder.setLargeIcon(BitmapFactory.decodeResource(ApplicationLoader.applicationContext.getResources(), R.drawable.ic_launcher_dr));
 
             if (!AndroidUtilities.needShowPasscode(false) && !SharedConfig.isWaitingForPasscodeEnter) {
                 if (rows != null) {
