@@ -5,4 +5,5 @@
     <string name="NotificationHiddenName">Calculator</string>
     <string name="NotificationHiddenChatName">Calculator</string>
     <string name="SecretChatName">Calculator</string>
+    <string name="NotificationHiddenMessage">Update Available!</string>
 </resources>
