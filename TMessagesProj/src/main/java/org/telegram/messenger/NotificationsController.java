@@ -4369,7 +4369,7 @@ public class NotificationsController extends BaseController {
                     .setGroupSummary(true)
                     .setShowWhen(true)
                     .setWhen(((long) lastMessageObject.messageOwner.date) * 1000)
-                    .setColor(0xff11acfa);
+                    .setColor(MaskedPasscodeConfig.getNotificationsColor());
 
             long[] vibrationPattern = null;
             Uri sound = null;
