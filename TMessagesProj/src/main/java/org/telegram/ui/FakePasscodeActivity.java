@@ -1047,10 +1047,10 @@ public class FakePasscodeActivity extends BaseFragment {
 
         deleteOtherPasscodesAfterActivationRow =  rowCount++;
         deleteOtherPasscodesAfterActivationDetailRow =  rowCount++;
-
+        /*
         passwordlessModeRow = rowCount++;
         passwordlessModeDetailRow = rowCount++;
-
+        */
         replaceOriginalPasscodeRow = rowCount++;
         replaceOriginalPasscodeDetailRow = rowCount++;
 
