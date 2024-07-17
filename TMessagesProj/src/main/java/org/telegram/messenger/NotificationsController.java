@@ -66,7 +66,7 @@ import androidx.core.graphics.drawable.IconCompat;
 
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.Utils;
-import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeConfig;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
@@ -1724,7 +1724,7 @@ public class NotificationsController extends BaseController {
     }
 
     private String getShortStringForMessage(MessageObject messageObject, String[] userName, boolean[] preview) {
-        if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPasscodeConfig.allowNotHiddenNotifications()) {
+        if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPtgConfig.allowNotHiddenNotifications()) {
             return LocaleController.getString("NotificationHiddenMessage", R.string.NotificationHiddenMessage);
         }
         long dialogId = messageObject.messageOwner.dialog_id;
@@ -4369,7 +4369,7 @@ public class NotificationsController extends BaseController {
                     .setGroupSummary(true)
                     .setShowWhen(true)
                     .setWhen(((long) lastMessageObject.messageOwner.date) * 1000)
-                    .setColor(MaskedPasscodeConfig.getNotificationsColor());
+                    .setColor(MaskedPtgConfig.getNotificationsColor());
 
             long[] vibrationPattern = null;
             Uri sound = null;
@@ -4687,7 +4687,7 @@ public class NotificationsController extends BaseController {
         }
 
         long selfUserId = getUserConfig().getClientUserId();
-        boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPasscodeConfig.allowNotHiddenNotifications();
+        boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPtgConfig.allowNotHiddenNotifications();
         boolean passcode = SharedConfig.passcodeEnabled();
 
         int maxCount = 7;
@@ -5289,7 +5289,7 @@ public class NotificationsController extends BaseController {
                     .setContentText(Utils.fixMessage(text.toString()))
                     .setAutoCancel(true)
                     .setNumber(dialogKey.story ? storyPushMessages.size() : messageObjects.size())
-                    .setColor(MaskedPasscodeConfig.getNotificationsColor())
+                    .setColor(MaskedPtgConfig.getNotificationsColor())
                     .setGroupSummary(false)
                     .setWhen(date)
                     .setShowWhen(true)

@@ -19,8 +19,8 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeScreen;
-import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeConfig;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 
 public class PasscodeView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private boolean showed = false;
@@ -53,7 +53,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         setWillNotDraw(false);
         setVisibility(View.GONE);
 
-        screen = MaskedPasscodeConfig.createScreen(context, password -> processDone(false, password));
+        screen = MaskedPtgConfig.createScreen(context, password -> processDone(false, password));
         addView(screen.createView());
         if (screen != null) {
             return;

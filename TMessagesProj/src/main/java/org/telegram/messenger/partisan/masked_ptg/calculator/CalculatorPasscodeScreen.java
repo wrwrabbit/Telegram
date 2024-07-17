@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan.masked_passcode_screen.calculator;
+package org.telegram.messenger.partisan.masked_ptg.calculator;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 
@@ -17,11 +17,10 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeScreen;
-import org.telegram.messenger.partisan.masked_passcode_screen.PasscodeEnteredDelegate;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 
 import java.math.BigDecimal;

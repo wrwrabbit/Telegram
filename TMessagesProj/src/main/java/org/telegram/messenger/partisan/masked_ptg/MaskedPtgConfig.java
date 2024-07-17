@@ -1,10 +1,10 @@
-package org.telegram.messenger.partisan.masked_passcode_screen;
+package org.telegram.messenger.partisan.masked_ptg;
 
 import android.content.Context;
 
-import org.telegram.messenger.partisan.masked_passcode_screen.calculator.CalculatorPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.calculator.CalculatorPasscodeScreen;
 
-public class MaskedPasscodeConfig {
+public class MaskedPtgConfig {
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
         return new CalculatorPasscodeScreen(context, delegate);
     }

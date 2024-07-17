@@ -112,7 +112,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.XiaomiUtilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeConfig;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -3656,7 +3656,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			}
 			callFailed();
 		}
-		if (callIShouldHavePutIntoIntent != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && MaskedPasscodeConfig.allowCallNotification()) {
+		if (callIShouldHavePutIntoIntent != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && MaskedPtgConfig.allowCallNotification()) {
 			NotificationsController.checkOtherNotificationsChannel();
 			Notification.Builder bldr = new Notification.Builder(this, NotificationsController.OTHER_NOTIFICATIONS_CHANNEL)
 					.setContentTitle(LocaleController.getString("VoipOutgoingCall", R.string.VoipOutgoingCall))
@@ -4118,7 +4118,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void showIncomingNotification(String name, TLObject userOrChat, boolean video, int additionalMemberCount) {
-		if (!MaskedPasscodeConfig.allowCallNotification()) {
+		if (!MaskedPtgConfig.allowCallNotification()) {
 			return;
 		}
 		Intent intent = new Intent(this, LaunchActivity.class);

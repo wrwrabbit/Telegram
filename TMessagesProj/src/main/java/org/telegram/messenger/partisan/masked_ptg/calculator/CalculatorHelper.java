@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan.masked_passcode_screen.calculator;
+package org.telegram.messenger.partisan.masked_ptg.calculator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
