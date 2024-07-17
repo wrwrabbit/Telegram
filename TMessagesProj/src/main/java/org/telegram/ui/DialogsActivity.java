@@ -3214,6 +3214,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             @Override
             public void onTextChanged(EditText editText) {
+                if (searchViewPager == null && !FakePasscodeUtils.isFakePasscodeActivated()) {
+                    createSearchViewPager();
+                    AndroidUtilities.runOnUIThread(() -> onTextChanged(editText), 200);
+                    return;
+                }
                 String text = editText.getText().toString();
                 checkPasscodeFromSearch(text);
                 if (text.length() != 0 || (searchViewPager != null && searchViewPager.dialogsSearchAdapter != null && searchViewPager.dialogsSearchAdapter.hasRecentSearch()) || searchFiltersWasShowed || hasStories) {
