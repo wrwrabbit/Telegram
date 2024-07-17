@@ -3609,7 +3609,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 
 			cpuWakelock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "telegram-voip");
 			cpuWakelock.acquire();
-			btAdapter = am.isBluetoothScoAvailableOffCall() && MaskedPtgUtils.hasPermission(this, "android.permission.BLUETOOTH") ? BluetoothAdapter.getDefaultAdapter() : null;
+			btAdapter = am.isBluetoothScoAvailableOffCall() && MaskedPtgUtils.hasPermission(this, Manifest.permission.BLUETOOTH) ? BluetoothAdapter.getDefaultAdapter() : null;
 
 			IntentFilter filter = new IntentFilter();
 			filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
