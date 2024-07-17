@@ -184,7 +184,7 @@ public class ChatAttachAlertBotWebViewLayout extends ChatAttachAlert.AttachAlert
         settingsItem = otherItem.addSubItem(R.id.menu_settings, R.drawable.msg_settings, LocaleController.getString(R.string.BotWebViewSettings));
         settingsItem.setVisibility(View.GONE);
         otherItem.addSubItem(R.id.menu_reload_page, R.drawable.msg_retry, LocaleController.getString(R.string.BotWebViewReloadPage));
-        addToHomeScreenItem = otherItem.addSubItem(R.id.menu_add_to_home_screen_bot, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
+        //addToHomeScreenItem = otherItem.addSubItem(R.id.menu_add_to_home_screen_bot, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
         addToHomeScreenItem.setVisibility(View.GONE);
         otherItem.addSubItem(R.id.menu_tos_bot, R.drawable.menu_intro, LocaleController.getString(R.string.BotWebViewToS));
         otherItem.addSubItem(R.id.menu_delete_bot, R.drawable.msg_delete, LocaleController.getString(R.string.BotWebViewDeleteBot));
@@ -478,7 +478,7 @@ public class ChatAttachAlertBotWebViewLayout extends ChatAttachAlert.AttachAlert
         this.startCommand = startCommand;
         if (addToHomeScreenItem != null) {
             if (MediaDataController.getInstance(currentAccount).canCreateAttachedMenuBotShortcut(botId)) {
-                addToHomeScreenItem.setVisibility(View.VISIBLE);
+                //addToHomeScreenItem.setVisibility(View.VISIBLE);
             } else {
                 addToHomeScreenItem.setVisibility(View.GONE);
             }
