@@ -7265,14 +7265,6 @@ public class AlertsCreator {
         }
     }
 
-    public static Dialog createPermissionDisabledDialog(Context ctx) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-            builder.setTitle(LocaleController.getString(R.string.PermissionDisabledTitle));
-            builder.setMessage(LocaleController.getString(R.string.PermissionDisabledMessage));
-            builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
-            return builder.create();
-    }
-
     public interface SoundFrequencyDelegate {
         void didSelectValues(int time, int minute);
     }

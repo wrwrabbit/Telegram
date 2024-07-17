@@ -49,8 +49,8 @@ public class BasePermissionsActivity extends FragmentActivity {
         boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
         if (!granted && !MaskedPtgUtils.hasAllPermissions(this, permissions)) {
-            if (requestCode != 17) {
-                AlertsCreator.createPermissionDisabledDialog(this).show();
+            if (MaskedPtgUtils.needShowPermissionsDisabledDialog(requestCode, permissions)) {
+                MaskedPtgUtils.createPermissionDisabledDialog(this).show();
             }
             return false;
         }

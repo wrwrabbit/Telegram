@@ -1,7 +1,13 @@
 package org.telegram.messenger.partisan.masked_ptg;
 
+import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.AlertDialog;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -37,5 +43,23 @@ public class MaskedPtgUtils {
         } catch (PackageManager.NameNotFoundException ignore) {
             return false;
         }
+    }
+
+    public static boolean needShowPermissionsDisabledDialog(int requestCode, String[] permissions) {
+        if (requestCode == 17) {
+            return false;
+        }
+        if (requestCode == 1 && Arrays.asList(permissions).contains(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static Dialog createPermissionDisabledDialog(Context ctx) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+        builder.setTitle(LocaleController.getString(R.string.PermissionDisabledTitle));
+        builder.setMessage(LocaleController.getString(R.string.PermissionDisabledMessage));
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        return builder.create();
     }
 }
