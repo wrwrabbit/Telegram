@@ -72,6 +72,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -1111,10 +1112,12 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             clearCacheOnLockDetailRow = rowCount++;
 
             badPasscodeAttemptsRow = rowCount++;
-            badPasscodePhotoFrontRow = rowCount++;
-            badPasscodePhotoBackRow = rowCount++;
-            if (SharedConfig.takePhotoWithBadPasscodeBack || SharedConfig.takePhotoWithBadPasscodeFront) {
-                badPasscodeMuteAudioRow = rowCount++;
+            if (MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.CAMERA)) {
+                badPasscodePhotoFrontRow = rowCount++;
+                badPasscodePhotoBackRow = rowCount++;
+                if (SharedConfig.takePhotoWithBadPasscodeBack || SharedConfig.takePhotoWithBadPasscodeFront) {
+                    badPasscodeMuteAudioRow = rowCount++;
+                }
             }
             badPasscodeAttemptsDetailRow = rowCount++;
 

@@ -19,13 +19,10 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.camera.CameraController;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AlertsCreator;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class BasePermissionsActivity extends FragmentActivity {
     public final static int REQUEST_CODE_GEOLOCATION = 2,
@@ -51,7 +48,7 @@ public class BasePermissionsActivity extends FragmentActivity {
 
         boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-        if (!granted && !hasAllPermissions(permissions)) {
+        if (!granted && !MaskedPtgUtils.hasAllPermissions(this, permissions)) {
             if (requestCode != 17) {
                 AlertsCreator.createPermissionDisabledDialog(this).show();
             }
@@ -112,19 +109,6 @@ public class BasePermissionsActivity extends FragmentActivity {
             NotificationCenter.getGlobalInstance().postNotificationName(granted ? NotificationCenter.locationPermissionGranted : NotificationCenter.locationPermissionDenied, 1);
         }
         return true;
-    }
-
-    private boolean hasAllPermissions(String[] requestedPermissions) {
-        try {
-            String[] manifestPermissions = getPackageManager()
-                    .getPackageInfo(getPackageName(), PackageManager.GET_PERMISSIONS)
-                    .requestedPermissions;
-            Set<String> manifestPermissionSet = new HashSet<>(Arrays.asList(manifestPermissions));
-            return Arrays.asList(requestedPermissions).stream()
-                    .allMatch(manifestPermissionSet::contains);
-        } catch (PackageManager.NameNotFoundException ignore) {
-            return false;
-        }
     }
 
     protected AlertDialog createPermissionErrorAlert(@RawRes int animationId, String message) {
