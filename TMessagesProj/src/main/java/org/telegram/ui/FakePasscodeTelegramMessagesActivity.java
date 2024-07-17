@@ -485,8 +485,10 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     template.title = LocaleController.getString("ChangeMessage", R.string.ChangeMessage);
                     template.addEditTemplate("", LocaleController.getString("Message", R.string.Message), false);
                     List<View> viewsOutput = new ArrayList<>();
-                    template.addCheckboxTemplate(false, LocaleController.getString(R.string.AddGeolocation),
-                            getGeolocationCheckboxListener(id, cell, viewsOutput));
+                    if (MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        template.addCheckboxTemplate(false, LocaleController.getString(R.string.AddGeolocation),
+                                getGeolocationCheckboxListener(id, cell, viewsOutput));
+                    }
                     template.positiveListener = views -> {
                         String message = ((EditTextCaption)views.get(0)).getText().toString();
                         boolean addGeolocation = ((DialogCheckBox)views.get(1)).isChecked();
