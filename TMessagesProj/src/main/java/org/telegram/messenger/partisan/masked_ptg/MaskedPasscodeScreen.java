@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan.masked_passcode_screen;
+package org.telegram.messenger.partisan.masked_ptg;
 
 import android.view.View;
 

@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan.masked_passcode_screen.original;
+package org.telegram.messenger.partisan.masked_ptg.original;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 
@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -50,8 +49,8 @@ import org.telegram.messenger.FingerprintController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.masked_passcode_screen.MaskedPasscodeScreen;
-import org.telegram.messenger.partisan.masked_passcode_screen.PasscodeEnteredDelegate;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BackgroundGradientDrawable;
