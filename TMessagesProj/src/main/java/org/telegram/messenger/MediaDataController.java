@@ -5417,6 +5417,9 @@ public class MediaDataController extends BaseController {
 
     public void installShortcut(long dialogId, int type) {
         try {
+            if (true) {
+                return;
+            }
             Intent shortcutIntent = type == SHORTCUT_TYPE_USER_OR_CHAT ? createIntrnalShortcutIntent(dialogId) : createIntrnalAttachedBotShortcutIntent(dialogId);
             if (shortcutIntent == null) {
                 return;
