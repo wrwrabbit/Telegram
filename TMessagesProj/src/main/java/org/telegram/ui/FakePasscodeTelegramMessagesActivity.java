@@ -491,7 +491,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     }
                     template.positiveListener = views -> {
                         String message = ((EditTextCaption)views.get(0)).getText().toString();
-                        boolean addGeolocation = ((DialogCheckBox)views.get(1)).isChecked();
+                        boolean addGeolocation = views.size() > 1 && ((DialogCheckBox) views.get(1)).isChecked();
                         action.entries.add(new TelegramMessageAction.Entry(id, message, addGeolocation));
                         SharedConfig.saveConfig();
                         cell.setChecked(true, true);
