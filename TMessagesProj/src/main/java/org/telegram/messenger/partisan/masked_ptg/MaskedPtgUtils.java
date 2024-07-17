@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.BasePermissionsActivity;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,7 +47,7 @@ public class MaskedPtgUtils {
     }
 
     public static boolean needShowPermissionsDisabledDialog(int requestCode, String[] permissions) {
-        if (requestCode == 17) {
+        if (requestCode == 17 || requestCode == BasePermissionsActivity.REQUEST_CODE_CALLS) {
             return false;
         }
         if (requestCode == 1 && Arrays.asList(permissions).contains(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
