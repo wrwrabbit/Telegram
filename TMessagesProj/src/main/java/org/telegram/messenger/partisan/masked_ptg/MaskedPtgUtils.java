@@ -10,6 +10,9 @@ import java.util.Set;
 public class MaskedPtgUtils {
     public static boolean hasPermission(Context context, String permission) {
         try {
+            if (context == null) {
+                return false;
+            }
             String[] permissions = context.getPackageManager()
                     .getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS)
                     .requestedPermissions;
@@ -22,6 +25,9 @@ public class MaskedPtgUtils {
 
     public static boolean hasAllPermissions(Context context, String[] requestedPermissions) {
         try {
+            if (context == null) {
+                return false;
+            }
             String[] manifestPermissions = context.getPackageManager()
                     .getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS)
                     .requestedPermissions;
