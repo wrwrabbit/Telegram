@@ -2976,7 +2976,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                                 if (!allowReadPhoneNumbers && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     permissionsItems.add(Manifest.permission.READ_PHONE_NUMBERS);
                                 }
-                                if (!permissionsItems.isEmpty()) {
+                                if (!permissionsItems.isEmpty() && MaskedPtgUtils.hasAllPermissions(getContext(), permissionsItems.toArray(new String[0]))) {
                                     SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                                     if (preferences.getBoolean("firstlogin", true) || getParentActivity().shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE) || getParentActivity().shouldShowRequestPermissionRationale(Manifest.permission.READ_CALL_LOG)) {
                                         preferences.edit().putBoolean("firstlogin", false).commit();
@@ -3053,7 +3053,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     if (!allowReadPhoneNumbers && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         permissionsItems.add(Manifest.permission.READ_PHONE_NUMBERS);
                     }
-                    if (!permissionsItems.isEmpty()) {
+                    if (!permissionsItems.isEmpty() && MaskedPtgUtils.hasAllPermissions(getContext(), permissionsItems.toArray(new String[0]))) {
                         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                         if (preferences.getBoolean("firstlogin", true) || getParentActivity().shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE) || getParentActivity().shouldShowRequestPermissionRationale(Manifest.permission.READ_CALL_LOG)) {
                             preferences.edit().putBoolean("firstlogin", false).commit();
