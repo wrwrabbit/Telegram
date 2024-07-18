@@ -754,7 +754,7 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
             }
         });
         listView.setOnItemClickListener((view, position) -> {
-            if (MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (!MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
                 MaskedPtgUtils.createPermissionDisabledDialog(getContext()).show();
                 return;
             }
