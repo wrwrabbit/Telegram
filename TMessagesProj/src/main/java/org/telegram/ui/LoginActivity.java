@@ -132,6 +132,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PrivacyChecker;
 import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.SerializedData;
@@ -3328,7 +3329,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                                         permissionsShowDialog = showDialog(builder.create(), true, null);
                                         needRequestPermissions = true;
                                     } else {
-                                        getParentActivity().requestPermissions(callbackPermissionItems.toArray(new String[0]), BasePermissionsActivity.REQUEST_CODE_CALLS);
+                                        if (MaskedPtgUtils.hasAllPermissions(getContext(), callbackPermissionItems.toArray(new String[0]))) {
+                                            getParentActivity().requestPermissions(callbackPermissionItems.toArray(new String[0]), BasePermissionsActivity.REQUEST_CODE_CALLS);
+                                        }
                                     }
                                 };
                                 if (isAnimatingIntro) {
