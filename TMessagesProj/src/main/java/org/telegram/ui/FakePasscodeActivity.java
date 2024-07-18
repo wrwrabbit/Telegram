@@ -1183,7 +1183,7 @@ public class FakePasscodeActivity extends BaseFragment {
             return;
         }
 
-        fakePasscode.passcodeHash = FakePasscodeSerializer.calculateHash(firstPassword, SharedConfig.passcodeSalt);
+        fakePasscode.generatePasscodeHash(firstPassword);
         SharedConfig.saveConfig();
 
         passwordEditText.clearFocus();
@@ -1210,7 +1210,7 @@ public class FakePasscodeActivity extends BaseFragment {
 
     private void processDoneBackup() {
         String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
-        if (Objects.equals(FakePasscodeSerializer.calculateHash(passcodeString, SharedConfig.passcodeSalt), fakePasscode.passcodeHash)) {
+        if (fakePasscode.validatePasscode(passcodeString)) {
             presentFragment(new FakePasscodeBackupActivity(fakePasscode, passcodeString), true);
         } else {
             showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
@@ -1223,7 +1223,7 @@ public class FakePasscodeActivity extends BaseFragment {
         FakePasscode passcode = FakePasscodeSerializer.deserializeEncrypted(encryptedPasscode, passcodeString);
         if (passcode == null) {
             showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
-        } else if (SharedConfig.fakePasscodes.stream().anyMatch(p -> p.passcodeHash.equals(passcode.passcodeHash))) {
+        } else if (SharedConfig.fakePasscodes.stream().anyMatch(p -> p.validatePasscode(passcodeString))) {
             showPasscodeError(ErrorType.PASSCODE_IN_USE);
         } else {
             SharedConfig.fakePasscodes.add(passcode);

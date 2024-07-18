@@ -350,11 +350,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         alertDialog.show();
                         ((TextView)alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     } else if (position == changePasscodeRow) {
-                        if (SharedConfig.fakePasscodes.isEmpty() || FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                            presentFragment(new PasscodeActivity(TYPE_SETUP_CODE));
-                        } else {
-                            requireFakePasscodesDeletionConfirmation((dialogInterface, i) -> presentFragment(new PasscodeActivity(TYPE_SETUP_CODE)));
-                        }
+                        presentFragment(new PasscodeActivity(TYPE_SETUP_CODE));
                     } else if (position == autoLockRow) {
                         if (getParentActivity() == null) {
                             return;
@@ -1243,24 +1239,18 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
             boolean isFirst = !SharedConfig.passcodeEnabled();
             try {
-                if (FakePasscodeUtils.getActivatedFakePasscode() == null) {
-                    SharedConfig.passcodeSalt = new byte[16];
-                    Utilities.random.nextBytes(SharedConfig.passcodeSalt);
-                }
-                byte[] passcodeBytes = firstPassword.getBytes("UTF-8");
-                byte[] bytes = new byte[32 + passcodeBytes.length];
-                System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, 0, 16);
-                System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
-                System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
-                if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                    FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                    FakePasscodeUtils.getActivatedFakePasscode().generatePasscodeHash(firstPassword);
                     FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = false;
                 } else {
+                    SharedConfig.passcodeSalt = new byte[16];
+                    Utilities.random.nextBytes(SharedConfig.passcodeSalt);
+                    byte[] passcodeBytes = firstPassword.getBytes("UTF-8");
+                    byte[] bytes = new byte[32 + passcodeBytes.length];
+                    System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, 0, 16);
+                    System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
+                    System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                     SharedConfig.setPasscode(Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)));
-                    for (FakePasscode passcode: SharedConfig.fakePasscodes) {
-                        passcode.onDelete();
-                    }
-                    SharedConfig.fakePasscodes.clear();
                 }
             } catch (Exception e) {
                 FileLog.e(e);
@@ -1374,16 +1364,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 outlinePasswordView.animateError(0f);
             }
         }, isPinCode() ? 150 : 1000));
-    }
-
-    private void requireFakePasscodesDeletionConfirmation(final DialogInterface.OnClickListener listener) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setMessage(LocaleController.getString("AllFakePasscodesWillBeDeleted", R.string.AllFakePasscodesWillBeDeleted));
-        builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
-        builder.setPositiveButton(LocaleController.getString("Continue", R.string.Continue), listener);
-        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-        AlertDialog alertDialog = builder.create();
-        showDialog(alertDialog);
     }
 
     private void showPhotoWarning(Runnable callback) {

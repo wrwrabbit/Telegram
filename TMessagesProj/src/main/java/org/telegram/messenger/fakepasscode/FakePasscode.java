@@ -8,6 +8,7 @@ import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesStorage;
@@ -15,6 +16,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
@@ -26,13 +28,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class FakePasscode {
     @JsonIgnore
-    private final int CURRENT_PASSCODE_VERSION = 3;
+    private final int CURRENT_PASSCODE_VERSION = 4;
     private int passcodeVersion = 0;
 
     @JsonProperty(value = "PLATFORM", access = JsonProperty.Access.READ_ONLY)
@@ -44,7 +47,9 @@ public class FakePasscode {
     public boolean allowLogin = true;
     public String name;
     @FakePasscodeSerializer.Ignore
-    public String passcodeHash = "";
+    private String passcodeHash = "";
+    @FakePasscodeSerializer.Ignore
+    private byte[] passcodeSalt;
     public String activationMessage = "";
     public Integer badTriesToActivate;
     public Integer activateByTimerTime;
@@ -238,6 +243,9 @@ public class FakePasscode {
         if (actionsResult != null) {
             actionsResult.migrate();
         }
+        if (passcodeVersion < 4) {
+            passcodeSalt = SharedConfig.passcodeSalt;
+        }
         passcodeVersion = CURRENT_PASSCODE_VERSION;
     }
 
@@ -388,5 +396,38 @@ public class FakePasscode {
     public void removePasswordlessIncompatibleSettings() {
         allowLogin = true;
         badTriesToActivate = null;
+    }
+
+    public void generatePasscodeHash(String password) {
+        passcodeSalt = new byte[16];
+        Utilities.random.nextBytes(passcodeSalt);
+        passcodeHash = calculateHash(password, passcodeSalt);
+    }
+
+    private static String calculateHash(String password, byte[] salt) {
+        try {
+            byte[] passcodeBytes = password.getBytes("UTF-8");
+            byte[] bytes = new byte[32 + passcodeBytes.length];
+            System.arraycopy(salt, 0, bytes, 0, 16);
+            System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
+            System.arraycopy(salt, 0, bytes, passcodeBytes.length + 16, 16);
+            return Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
+    public boolean validatePasscode(String password) {
+        return Objects.equals(calculateHash(password, passcodeSalt), passcodeHash);
+    }
+
+    public void replaceOriginalPasscodeIfNeed() {
+        if (!replaceOriginalPasscode) {
+            return;
+        }
+        SharedConfig.fakePasscodeActivatedIndex = -1;
+        SharedConfig.setPasscode(passcodeHash);
+        SharedConfig.fakePasscodes.remove(this);
     }
 }

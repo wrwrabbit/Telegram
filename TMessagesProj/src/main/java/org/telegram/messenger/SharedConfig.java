@@ -1104,10 +1104,8 @@ public class SharedConfig {
             }
         }
         FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
-        if (passcode != null && passcode.replaceOriginalPasscode) {
-            fakePasscodeActivatedIndex = -1;
-            passcodeHash = passcode.passcodeHash;
-            fakePasscodes.remove(fakePasscodeIndex);
+        if (passcode != null) {
+            passcode.replaceOriginalPasscodeIfNeed();
         }
     }
 
@@ -1222,11 +1220,11 @@ public class SharedConfig {
                     if ((originalPasscodePrioritized || !FakePasscodeUtils.isFakePasscodeActivated()) && passcodeHash.equals(hash)) {
                         return new PasscodeCheckResult(true, null);
                     }
-                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
+                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().validatePasscode(passcode)) {
                         return new PasscodeCheckResult(false, FakePasscodeUtils.getActivatedFakePasscode());
                     }
                     for (FakePasscode fakePasscode : fakePasscodes) {
-                        if (fakePasscode.passcodeHash.equals(hash)) {
+                        if (fakePasscode.validatePasscode(passcode)) {
                             return new PasscodeCheckResult(false, fakePasscode);
                         }
                     }
