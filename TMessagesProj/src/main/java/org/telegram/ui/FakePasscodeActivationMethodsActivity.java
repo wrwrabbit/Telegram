@@ -209,7 +209,7 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                 }
             } else if (position == fingerprintRow) {
                 TextCheckCell cell = (TextCheckCell) view;
-                fakePasscode.activateByFingerprint = !fakePasscode.activateByFingerprint;
+                fakePasscode.activateByFingerprint = fakePasscode.activateByFingerprint;
                 if (fakePasscode.activateByFingerprint) {
                     fakePasscode.allowLogin = true;
                 }

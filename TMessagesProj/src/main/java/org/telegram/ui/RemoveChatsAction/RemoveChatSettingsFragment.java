@@ -275,6 +275,9 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         if (hasUsers() || hasEncryptedChats()) {
             deleteFromCompanionRow = rowCount++;
             deleteFromCompanionDetailsRow = rowCount++;
+        } else {
+            deleteFromCompanionRow = 0;
+            deleteFromCompanionDetailsRow = 0;
         }
 
         if (hasUsers()) {
@@ -567,11 +570,11 @@ public class RemoveChatSettingsFragment extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == deleteDialogRow || position == hideDialogRow) {
-                return 0;
-            } else if (position == deleteFromCompanionRow || position == deleteNewMessagesRow
+            if (position == deleteFromCompanionRow || position == deleteNewMessagesRow
                     || position == deleteAllMyMessagesRow || position == strictHidingRow) {
                 return 1;
+            } else if (position == deleteDialogRow || position == hideDialogRow) {
+                return 0;
             } else if (position == deleteFromCompanionDetailsRow || position == deleteNewMessagesDetailsRow
                     || position == deleteAllMyMessagesDetailsRow || position == hideDialogDetailsRow
                     || position == strictHidingDetailsRow) {

@@ -11,6 +11,7 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
@@ -237,6 +238,15 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
             } else if (entry.isExitFromChat) {
                 Utils.deleteDialog(accountNum, entry.chatId, entry.isDeleteFromCompanion);
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogDeletedByAction, entry.chatId);
+                for (TLRPC.Dialog dialog : getMessagesController().getAllDialogs()) {
+                    if (DialogObject.isEncryptedDialog(dialog.id)) {
+                        TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(dialog.id));
+                        if (encryptedChat.user_id == entry.chatId) {
+                            Utils.deleteDialog(accountNum, dialog.id, entry.isDeleteFromCompanion);
+                            getNotificationCenter().postNotificationName(NotificationCenter.dialogDeletedByAction, dialog.id);
+                        }
+                    }
+                }
             }
         }
     }

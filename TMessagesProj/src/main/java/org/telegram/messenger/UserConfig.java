@@ -188,7 +188,7 @@ public class UserConfig extends BaseController {
     public static String getChatTitleOverride(Integer accountNum, long id, String defaultValue) {
         return accountNum != null && accountNum < UserConfig.MAX_ACCOUNT_COUNT
                 ? UserConfig.getInstance(accountNum).getChatTitleOverride(id, defaultValue)
-                : null;
+                : (SharedConfig.allowRenameChat ? " " : defaultValue);
     }
 
     public static String getChatTitleOverride(Integer accountNum, TLRPC.Chat chat) {
@@ -205,13 +205,13 @@ public class UserConfig extends BaseController {
 
     public static String getChatTitleOverride(Integer accountNum, TLRPC.Peer peer, String defaultValue) {
         if (peer == null) {
-            return defaultValue;
+            return SharedConfig.allowRenameChat ? " " : defaultValue;
         }
         String title = getChatTitleOverride(accountNum, peer.chat_id, null);
         if (title == null) {
             title = getChatTitleOverride(accountNum, peer.channel_id, null);
         }
-        return title != null ? title : defaultValue;
+        return title != null ? title : (SharedConfig.allowRenameChat ? " " : defaultValue);
     }
 
     public String getChatTitleOverride(long id) {
@@ -227,7 +227,7 @@ public class UserConfig extends BaseController {
         if (chatInfo != null && chatInfo.title != null) {
             return chatInfo.title;
         } else {
-            return defaultValue;
+            return SharedConfig.allowRenameChat ? " " : defaultValue;
         }
     }
 

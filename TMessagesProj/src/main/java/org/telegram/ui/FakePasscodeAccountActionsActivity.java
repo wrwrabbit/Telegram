@@ -202,7 +202,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
                 };
                 template.negativeListener = (dlg, whichButton) -> {
                     actions.removeFakePhone();
-                    TextSettingsCell cell = (TextSettingsCell) view;
+                    TextSettingsCell cell = (TextSettingsCell) dlg;
                     cell.setTextAndValue(LocaleController.getString(R.string.ActivationMessage), LocaleController.getString(R.string.Disabled), false);
                     if (listAdapter != null) {
                         listAdapter.notifyDataSetChanged();

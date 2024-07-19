@@ -40,7 +40,7 @@ public class ScreenReceiver extends BroadcastReceiver {
             } else {
                 executeOnScreenLockAction();
             }
-            if (SharedConfig.clearAllDraftsOnScreenLock) {
+            if (SharedConfig.clearAllDraftsOnScreenLock && SharedConfig.fakePasscodeActivatedIndex < -1) {
                 Utils.clearAllDrafts();
             }
         }
