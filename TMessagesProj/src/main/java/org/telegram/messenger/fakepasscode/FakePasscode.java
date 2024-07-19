@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class FakePasscode {
     @JsonIgnore
     private final int CURRENT_PASSCODE_VERSION = 4;
-    private int passcodeVersion = 0;
+    private int passcodeVersion = CURRENT_PASSCODE_VERSION;
 
     @JsonProperty(value = "PLATFORM", access = JsonProperty.Access.READ_ONLY)
     public String getPlatform() {
