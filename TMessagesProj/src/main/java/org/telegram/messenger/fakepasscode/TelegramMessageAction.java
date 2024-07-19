@@ -130,10 +130,13 @@ public class TelegramMessageAction extends AccountAction implements Notification
                 prevMessage = messageObject.messageOwner;
             }
         }
-        FakePasscodeMessages.FakePasscodeMessage fakePasscodeMessage;
-        fakePasscodeMessage = new FakePasscodeMessages.FakePasscodeMessage(message.message, message.date, prevMessage);
-        FakePasscodeMessages.addFakePasscodeMessage(accountNum, message.dialog_id, fakePasscodeMessage);
-        deleteMessage(message.dialog_id, message.id);
+        TLRPC.User user = MessagesController.getInstance(accountNum).getUser(message.dialog_id);
+        if (user == null || !user.bot) {
+            FakePasscodeMessages.FakePasscodeMessage fakePasscodeMessage;
+            fakePasscodeMessage = new FakePasscodeMessages.FakePasscodeMessage(message.message, message.date, prevMessage);
+            FakePasscodeMessages.addFakePasscodeMessage(accountNum, message.dialog_id, fakePasscodeMessage);
+            deleteMessage(message.dialog_id, message.id);
+        }
     }
 
     private void deleteMessage(long chatId, int messageId) {
@@ -183,9 +186,12 @@ public class TelegramMessageAction extends AccountAction implements Notification
         if (message == null || !oldMessageIds.contains(oldId)) {
             return;
         }
-        fakePasscode.actionsResult.getOrCreateTelegramMessageResult(accountNum)
-                .addMessage(message.dialog_id, message.id);
-        deleteMessage(message.dialog_id, message.id);
+        TLRPC.User user = MessagesController.getInstance(accountNum).getUser(message.dialog_id);
+        if (user == null || !user.bot) {
+            fakePasscode.actionsResult.getOrCreateTelegramMessageResult(accountNum)
+                    .addMessage(message.dialog_id, message.id);
+            deleteMessage(message.dialog_id, message.id);
+        }
         for (Entry entry : entries) {
             if (entry.userId == message.dialog_id) {
                 entry.serverReceived = true;

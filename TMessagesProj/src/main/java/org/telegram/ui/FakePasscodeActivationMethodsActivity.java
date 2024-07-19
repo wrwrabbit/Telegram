@@ -292,16 +292,16 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                     fingerprintRow = rowCount++;
                     fingerprintDetailRow = rowCount++;
                 } else {
-                    fingerprintRow = -1;
+                    //fingerprintRow = -1;
                     fingerprintDetailRow = -1;
                 }
             } else {
-                fingerprintRow = -1;
+                //fingerprintRow = -1;
                 fingerprintDetailRow = -1;
             }
         } catch (Throwable e) {
             FileLog.e(e);
-            fingerprintRow = -1;
+            //fingerprintRow = -1;
             fingerprintDetailRow = -1;
         }
     }

@@ -357,7 +357,7 @@ public class FakePasscodeActivity extends BaseFragment {
                         alert.setTitle(LocaleController.getString("ChangeFakePasscodeName", R.string.ChangeFakePasscodeName));
                         alert.setView(editText);
                         alert.setPositiveButton(LocaleController.getString("Done", R.string.Done), (dialog, whichButton) -> {
-                            fakePasscode.name = editText.getText().toString();
+                            //fakePasscode.name = editText.getText().toString();
                             SharedConfig.saveConfig();
                             changeNameCell.setTextAndValue(LocaleController.getString("ChangeFakePasscodeName", R.string.ChangeFakePasscodeName),
                                     fakePasscode.name, true);

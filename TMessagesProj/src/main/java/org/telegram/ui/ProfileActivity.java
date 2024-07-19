@@ -8688,7 +8688,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 numberRow = rowCount++;
                 setUsernameRow = rowCount++;
                 bioRow = rowCount++;
-                if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showId) {
+                if (/*!FakePasscodeUtils.isFakePasscodeActivated() && */SharedConfig.showId) {
                     chatIdRow = rowCount++;
                 }
 
@@ -8801,7 +8801,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (userId != getUserConfig().getClientUserId()) {
                     notificationsRow = rowCount++;
                 }
-                if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showId) {
+                if (/*!FakePasscodeUtils.isFakePasscodeActivated() && */SharedConfig.showId) {
                     chatIdRow = rowCount++;
                 }
                 infoEndRow = rowCount - 1;
@@ -8876,7 +8876,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 //                notificationsDividerRow = rowCount++;
 //            }
             notificationsRow = rowCount++;
-            if (!FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.showId) {
+            if (/*!FakePasscodeUtils.isFakePasscodeActivated() && */SharedConfig.showId) {
                 chatIdRow = rowCount++;
             }
             infoSectionRow = rowCount++;

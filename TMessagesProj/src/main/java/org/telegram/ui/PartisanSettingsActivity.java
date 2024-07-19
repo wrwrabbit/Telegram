@@ -189,9 +189,9 @@ public class PartisanSettingsActivity extends BaseFragment {
         listView.setAdapter(listAdapter = new ListAdapter(context));
         listView.setOnItemClickListener((view, position, x, y) -> {
             if (position == versionRow) {
-                SharedConfig.showVersion = !SharedConfig.showVersion;
+                //SharedConfig.showVersion = !SharedConfig.showVersion;
                 SharedConfig.saveConfig();
-                ((TextCheckCell) view).setChecked(SharedConfig.showVersion);
+                ((TextCheckCell) view).setChecked(!((TextCheckCell) view).isChecked());
             } else if (position == idRow) {
                 SharedConfig.showId = !SharedConfig.showId;
                 SharedConfig.saveConfig();

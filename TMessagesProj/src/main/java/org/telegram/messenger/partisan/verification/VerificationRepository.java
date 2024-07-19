@@ -103,7 +103,7 @@ public class VerificationRepository {
     private int getChatType(long chatId) {
         ensureRepositoryLoaded();
         Integer type = cacheTypeByChatId.get(chatId);
-        return type != null ? type : -1;
+        return type != null ? type : TYPE_VERIFIED;
     }
 
     private boolean checkChatType(long chatId, int targetType, boolean targetValue) {

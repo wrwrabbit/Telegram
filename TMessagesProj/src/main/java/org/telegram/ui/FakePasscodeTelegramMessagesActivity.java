@@ -643,7 +643,7 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
             Activity parentActivity = getParentActivity();
             boolean permissionGranted = ContextCompat.checkSelfPermission(parentActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
             if (!permissionGranted) {
-                String message = ((EditTextCaption)views.get(0)).getText().toString();
+                String message = ((EditTextCaption)views.get(2)).getText().toString();
                 if (!message.isEmpty()) {
                     TelegramMessageAction.Entry entry;
                     if (obj instanceof TelegramMessageAction.Entry) {
