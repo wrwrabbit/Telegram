@@ -202,6 +202,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     public PasscodeActivity(@PasscodeActivityType int type) {
         super();
         this.type = type;
+        if (type == TYPE_SETUP_CODE && !SharedConfig.fakePasscodes.isEmpty()) {
+            currentPasswordType = SharedConfig.passcodeType;
+        }
     }
 
     @Override
@@ -496,7 +499,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     ActionBarMenuSubItem switchItem;
                     if (type == TYPE_SETUP_CODE) {
                         otherItem = menu.addItem(0, R.drawable.ic_ab_other);
-                        switchItem = otherItem.addSubItem(ID_SWITCH_TYPE, R.drawable.msg_permissions, LocaleController.getString(R.string.PasscodeSwitchToPassword));
+                        switchItem = otherItem.addSubItem(ID_SWITCH_TYPE, R.drawable.msg_permissions, LocaleController.getString(currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? R.string.PasscodeSwitchToPassword : R.string.PasscodeSwitchToPIN));
                     } else switchItem = null;
 
                     actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -506,6 +509,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                 finishFragment();
                             } else if (id == ID_SWITCH_TYPE) {
                                 currentPasswordType = currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? SharedConfig.PASSCODE_TYPE_PASSWORD : SharedConfig.PASSCODE_TYPE_PIN;
+                                if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD && currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN) {
+                                    showPasswordToPinSwitchWarning();
+                                }
                                 AndroidUtilities.runOnUIThread(()->{
                                     switchItem.setText(LocaleController.getString(currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? R.string.PasscodeSwitchToPassword : R.string.PasscodeSwitchToPIN));
                                     switchItem.setIcon(currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? R.drawable.msg_permissions : R.drawable.msg_pin_code);
@@ -1377,6 +1383,15 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             AlertDialog alertDialog = builder.create();
             showDialog(alertDialog);
         }
+    }
+
+    private void showPasswordToPinSwitchWarning() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString(R.string.Warning));
+        builder.setMessage(LocaleController.getString(R.string.PasswordToPinSwitchWarning));
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        AlertDialog alertDialog = builder.create();
+        showDialog(alertDialog);
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
