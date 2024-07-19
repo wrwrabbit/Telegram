@@ -9077,6 +9077,7 @@
 
     <!--partisan telegram-->
     <string name="FakePasscode">Fake Passcode</string>
+    <string name="FakePassword">Fake Password</string>
     <string name="ChangeFakePasscode">Change Fake Passcode</string>
     <string name="FakePasscodeActionsInfo">When a fake passcode is entered, selected actions are performed.</string>
     <string name="AllowFakePasscodeLogin">Allow login using Fake Passcode</string>

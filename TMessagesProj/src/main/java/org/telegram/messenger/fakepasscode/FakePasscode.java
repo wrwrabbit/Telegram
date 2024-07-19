@@ -81,9 +81,16 @@ public class FakePasscode {
         }
         FakePasscode fakePasscode = new FakePasscode();
         fakePasscode.uuid = UUID.randomUUID();
-        fakePasscode.name = LocaleController.getString("FakePasscode", R.string.FakePasscode) + " " + (SharedConfig.fakePasscodeIndex);
+        fakePasscode.name = generatePasscodeName();
         fakePasscode.autoAddAccountHidings();
         return fakePasscode;
+    }
+
+    private static String generatePasscodeName() {
+        String base = SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PIN
+                ? LocaleController.getString(R.string.FakePasscode)
+                : LocaleController.getString(R.string.FakePassword);
+        return base + " " + (SharedConfig.fakePasscodeIndex);
     }
 
     List<Action> actions()

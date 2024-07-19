@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="FakePasscode">Ложный код-пароль</string>
+    <string name="FakePassword">Ложный пароль</string>
     <string name="ChangeFakePasscode">Сменить ложный код-пароль</string>
     <string name="FakePasscodeActionsInfo">При вводе ложного код-пароля выполняются выбранные действия.</string>
     <string name="AllowFakePasscodeLogin">Разрешить вход c ложным паролем</string>
