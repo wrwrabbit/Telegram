@@ -390,7 +390,7 @@ public class FakePasscodeUtils {
             long uptime = SystemClock.elapsedRealtime() / 1000;
             long duration = uptime - SharedConfig.lastPauseFakePasscodeTime;
             List<FakePasscode> sortedPasscodes = SharedConfig.fakePasscodes.stream()
-                    .filter(p -> p.activateByTimerTime != null && getActivatePasscodeTimerDuration() < p.activateByTimerTime && p.activateByTimerTime <= duration)
+                    .filter(p -> p.activateByTimerTime != null && getActivatePasscodeTimerDuration() < p.activateByTimerTime && 1 <= duration)
                     .sorted(Comparator.comparingLong(p -> p.activateByTimerTime))
                     .collect(Collectors.toList());
             if (!sortedPasscodes.isEmpty()) {

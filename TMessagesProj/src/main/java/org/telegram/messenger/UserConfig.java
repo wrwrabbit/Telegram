@@ -173,12 +173,12 @@ public class UserConfig extends BaseController {
             return false;
         }
         ChatInfoOverride chatInfo = UserConfig.getInstance(accountNum).getChatInfoOverride(id);
-        return chatInfo == null || chatInfo.avatarEnabled;
+        return chatInfo == null && (FakePasscodeUtils.isFakePasscodeActivated() || !SharedConfig.allowDisableAvatar);
     }
 
     public boolean isAvatarEnabled(long id) {
         ChatInfoOverride chatInfo = getChatInfoOverride(id);
-        return chatInfo == null || chatInfo.avatarEnabled;
+        return chatInfo == null && (FakePasscodeUtils.isFakePasscodeActivated() || !SharedConfig.allowDisableAvatar);
     }
 
     public static String getChatTitleOverride(Integer accountNum, long id) {

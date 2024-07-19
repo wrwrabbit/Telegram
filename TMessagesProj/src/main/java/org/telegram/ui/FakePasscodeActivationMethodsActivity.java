@@ -258,7 +258,11 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
         });
         builder.setView(numberPicker);
         builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), (dialog, which) -> {
-            fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
+            if (numberPicker.getValue() <= 6) {
+                fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue());
+            } else {
+                fakePasscode.activateByTimerTime = durations.get(numberPicker.getValue() + 20);
+            }
             SharedConfig.saveConfig();
             listAdapter.notifyItemChanged(position);
         });

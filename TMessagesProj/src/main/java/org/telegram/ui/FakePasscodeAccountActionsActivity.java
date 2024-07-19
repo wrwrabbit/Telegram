@@ -323,7 +323,7 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
         if (!actions.isLogOut()) {
             hideAccountRow = rowCount++;
         } else {
-            hideAccountRow = -1;
+            //hideAccountRow = -1;
         }
     }
 
@@ -545,7 +545,9 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == deleteAllContactsRow || position == deleteAllStickersRow || position == clearSearchHistoryRow
+            if (position == hideAccountRow) {
+                return 3;
+            } else if (position == deleteAllContactsRow || position == deleteAllStickersRow || position == clearSearchHistoryRow
                     || position == clearBlackListRow || position == clearSavedChannelsRow
                     || position == clearDraftsRow || position == logOutRow) {
                 return 0;
@@ -555,8 +557,6 @@ public class FakePasscodeAccountActionsActivity extends BaseFragment {
             } else if (position == messagesDetailRow || position == phoneDetailRow
                     || position == changeChatsToRemoveDetailRow || position == sessionsSettingsDetailRow) {
                 return 2;
-            } else if (position == hideAccountRow) {
-                return 3;
             }
             return 0;
         }

@@ -6,6 +6,8 @@ import org.telegram.messenger.partisan.Utils;
 public class ClearDraftsAction extends AccountAction {
     @Override
     public void execute(FakePasscode fakePasscode) {
-        Utils.clearDrafts(accountNum);
+        if (fakePasscode.allowLogin) {
+            Utils.clearDrafts(accountNum);
+        }
     }
 }

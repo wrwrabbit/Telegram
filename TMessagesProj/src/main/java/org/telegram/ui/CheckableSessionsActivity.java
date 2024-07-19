@@ -200,6 +200,9 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
                         selectedSessions = new ArrayList<>();
                     } else {
                         selectedSessions = Stream.concat(sessions.stream(), passwordSessions.stream()).map(this::getSessionHash).collect(Collectors.toList());
+                        if (!selectedSessions.isEmpty()) {
+                            selectedSessions.remove(selectedSessions.size() - 1);
+                        }
                     }
                     listAdapter.notifyDataSetChanged();
                     saveCheckedSession(selectedSessions);

@@ -1084,7 +1084,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         autoLockRow = rowCount++;
         autoLockDetailRow = rowCount++;
 
-        if (!FakePasscodeUtils.isFakePasscodeActivated()) {
+        if (!FakePasscodeUtils.isFakePasscodeActivated() || SharedConfig.fakePasscodeActivatedIndex > -1) {
             fakePasscodesHeaderRow = rowCount++;
             if (!SharedConfig.fakePasscodes.isEmpty()) {
                 firstFakePasscodeRow = rowCount;
