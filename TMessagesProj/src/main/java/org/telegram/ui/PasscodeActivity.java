@@ -1193,7 +1193,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
     private void processNext() {
         if (currentPasswordType == SharedConfig.PASSCODE_TYPE_PASSWORD && passwordEditText.getText().length() == 0 || currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN && codeFieldContainer.getCode().length() != 4) {
-            showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+            onPasscodeError();
             return;
         }
 
@@ -1242,7 +1242,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
     private void processDone() {
         if (isPassword() && passwordEditText.getText().length() == 0) {
-            showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+            onPasscodeError();
             return;
         }
         String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
@@ -1307,7 +1307,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 if (isPinCode()) {
                     codeFieldContainer.codeField[0].requestFocus();
                 }
-                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+                onPasscodeError();
                 return;
             }
             SharedConfig.PasscodeCheckResult result = SharedConfig.checkPasscode(password);
@@ -1327,7 +1327,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     if (isPinCode()) {
                         codeFieldContainer.codeField[0].requestFocus();
                     }
-                    showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
+                    onPasscodeError();
                     return;
                 }
                 SharedConfig.fakePasscodeActivated(SharedConfig.fakePasscodes.indexOf(result.fakePasscode));
