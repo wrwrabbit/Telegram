@@ -1132,15 +1132,7 @@ public class FakePasscodeActivity extends BaseFragment {
             return;
         }
 
-        String code;
-        if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD) {
-            code = passwordEditText.getText().toString();
-        } else {
-            code = codeFieldContainer.getCode();
-        }
-        SharedConfig.PasscodeCheckResult passcodeCheckResult = SharedConfig.checkPasscode(code);
-        if (passcodeCheckResult.isRealPasscodeSuccess || passcodeCheckResult.fakePasscode != null) {
-            showPasscodeError(ErrorType.PASSCODE_IN_USE);
+        if (checkPasscodeInUse()) {
             return;
         }
 
@@ -1152,6 +1144,18 @@ public class FakePasscodeActivity extends BaseFragment {
         for (CodeNumberField f : codeFieldContainer.codeField) f.setText("");
         showKeyboard();
         passcodeSetStep = 1;
+    }
+
+    private boolean checkPasscodeInUse() {
+        String passcode = SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD
+                ? passwordEditText.getText().toString()
+                : codeFieldContainer.getCode();
+        SharedConfig.PasscodeCheckResult passcodeCheckResult = SharedConfig.checkPasscode(passcode);
+        if (passcodeCheckResult.isRealPasscodeSuccess || passcodeCheckResult.fakePasscode != null) {
+            showPasscodeError(ErrorType.PASSCODE_IN_USE);
+            return true;
+        }
+        return false;
     }
 
     private boolean isPinCode() {
