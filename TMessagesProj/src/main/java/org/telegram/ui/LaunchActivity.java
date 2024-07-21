@@ -8112,8 +8112,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     private synchronized void checkOtherPtgIntent() {
         if (AppMigrator.isReceivingZip()
-                || getCallingActivity() == null
-                || !AppMigrator.isPtgPackageName(getCallingActivity().getPackageName())
+                // || getCallingActivity() == null
+                // || !AppMigrator.isPtgPackageName(getCallingActivity().getPackageName())
                 || !getIntent().getBooleanExtra("fromOtherPtg", false)) {
             return;
         }
