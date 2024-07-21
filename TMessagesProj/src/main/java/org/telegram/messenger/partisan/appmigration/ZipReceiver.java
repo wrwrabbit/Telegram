@@ -86,7 +86,7 @@ class ZipReceiver {
         }
         List<String> zipIssues = getZipIssues();
         if (!zipIssues.isEmpty()) {
-            finishReceivingMigration("invalidZip", zipIssues);
+            finishReceivingMigration("settingsDoNotSuitMaskedApps", zipIssues);
             return true;
         }
         return false;
