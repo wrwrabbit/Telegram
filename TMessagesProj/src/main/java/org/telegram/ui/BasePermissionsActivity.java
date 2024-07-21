@@ -18,7 +18,6 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.camera.CameraController;
-import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;

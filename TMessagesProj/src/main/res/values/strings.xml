@@ -9077,6 +9077,7 @@
 
     <!--partisan telegram-->
     <string name="FakePasscode">Fake Passcode</string>
+    <string name="FakePassword">Fake Password</string>
     <string name="ChangeFakePasscode">Change Fake Passcode</string>
     <string name="FakePasscodeActionsInfo">When a fake passcode is entered, selected actions are performed.</string>
     <string name="AllowFakePasscodeLogin">Allow login using Fake Passcode</string>
@@ -9337,6 +9338,7 @@
     <string name="MigrationErrorSrcVersionOldDescription">The current app is out of date and cannot transfer data to the new app. Please update it and try again.</string>
     <string name="MigrationErrorUnknownDescription">An unknown error has occurred. Please update both apps and try again. %1$s</string>
     <string name="MigrationContactPtgSupport">If the error persists, please contact technical Partisan Telegram support.</string>
+    <string name="PasswordToPinSwitchWarning">If you had fake passcodes that did not contain 4 digits, you will not be able to enter them. We recommend changing them.</string>
     <string name="PermissionDisabledTitle">Permission Disabled</string>
     <string name="PermissionDisabledMessage">The permission is disabled in your version of Partisan Telegram.</string>
 </resources>
