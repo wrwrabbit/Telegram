@@ -59,7 +59,10 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         if (AppMigrator.getStep() == Step.NOT_STARTED) {
             AppMigrator.setStep(Step.MAKE_ZIP);
         }
-        if (AppMigrator.getStep() == Step.MAKE_ZIP) {
+        if (AppMigrator.getStep().simplify() == Step.MAKE_ZIP) {
+            if (AppMigrator.getStep() != Step.MAKE_ZIP) {
+                AppMigrator.setStep(Step.MAKE_ZIP);
+            }
             makeZip();
         }
 
@@ -78,10 +81,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                 if (id == -1) {
                     finishFragment();
                 } else if (id == cancel) {
-                    setStep(Step.NOT_STARTED);
-                    if (!AppMigrator.isNewerPtgInstalled(getContext(), false)) {
-                        AppMigrator.enableConnection();
-                    }
+                    cancelMigration();
                     finishFragment();
                 }
             }
@@ -89,6 +89,14 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
 
         ActionBarMenu menu = actionBar.createMenu();
         menu.addItem(cancel, new BackDrawable(true));
+    }
+
+    private void cancelMigration() {
+        AppMigrator.setInstalledMaskedPtgPackageName(null);
+        setStep(Step.NOT_STARTED);
+        if (!AppMigrator.isNewerPtgInstalled(getContext(), false)) {
+            AppMigrator.enableConnection();
+        }
     }
 
     private void createFragmentView(Context context) {
@@ -332,8 +340,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                     AppMigrator.enableConnection();
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                     builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
-                    String error = data.getStringExtra("error");
-                    builder.setMessage(getErrorMessage(error));
+                    builder.setMessage(getErrorMessage(data));
                     builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                     showDialog(builder.create());
                 }
@@ -343,13 +350,34 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         }
     }
 
-    private static String getErrorMessage(String error) {
+    private static String getErrorMessage(Intent data) {
+        String error = data.getStringExtra("error");
         if ("alreadyHasAccounts".equals(error)) {
             return LocaleController.getString(R.string.MigrationErrorAlreadyHasAccountsDescription);
         } else if ("srcVersionGreater".equals(error)) {
             return LocaleController.formatString(R.string.MigrationErrorSrcVersionGreaterDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
         } else if ("srcVersionOld".equals(error)) {
             return LocaleController.getString(R.string.MigrationErrorSrcVersionOldDescription);
+        } else if ("settingsDoNotSuitMaskedApps".equals(error)) {
+            StringBuilder stringBuilder = new StringBuilder(LocaleController.getString(R.string.MigrationErrorSettingsDoNotSuitMaskedAppsDescription));
+            String[] issues = data.getStringArrayExtra("issues");
+            if (issues != null) {
+                for (String issue : issues) {
+                    stringBuilder.append("\n\n");
+                    stringBuilder.append(getMigrationIssueDescription(issue));
+                }
+            }
+            return stringBuilder.toString();
+        } else {
+            return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
+        }
+    }
+
+    private static String getMigrationIssueDescription(String issue) {
+        if ("invalidPasscodeType".equals(issue)) {
+            return LocaleController.getString(R.string.IssueInvalidPasscodeTypeDescription);
+        } else if ("passwordlessMode".equals(issue)) {
+            return LocaleController.getString(R.string.IssuePasswordlessModeDescription);
         } else {
             return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
         }

@@ -261,7 +261,10 @@
     <string name="MigrationErrorAlreadyHasAccountsDescription">Вы уже вошли в аккаунты в новом приложении. Если хотите перенести данные из этого приложения, выйдите из всех аккаунтов в новом приложении.</string>
     <string name="MigrationErrorSrcVersionGreaterDescription">Версия целевого приложения ниже версии текущего. Установите последнюю версию целевого приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationErrorSrcVersionOldDescription">Текущее приложение устарело и не может передать данные в новое приложение. Обновите его и повторите попытку.</string>
+    <string name="MigrationErrorSettingsDoNotSuitMaskedAppsDescription">Некоторые настройки текущего приложения не подходят для нового замаскированного приложения. Исправьте их в настройках.</string>
     <string name="MigrationErrorUnknownDescription">Произошла неизвестная ошибка. Обновите оба приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Если ошибка остаётся, пожалуйста, свяжитесь с техподдержкой Партизанского Телеграма.</string>
+    <string name="IssueInvalidPasscodeTypeDescription">Буквенно-цифровой пароль не разрешён в этом замаскированном приложении. Измените его на 4-циферный код-пароль.</string>
+    <string name="IssuePasswordlessModeDescription">Беспарольный режим не разрешён в замаскированном приложении. Отключите его.</string>
     <string name="PasswordToPinSwitchWarning">Если у Вас были ложные код-пароли, состоящие не из 4 цифры, их не получится ввести. Мы рекомендуем изменить их.</string>
 </resources>

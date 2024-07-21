@@ -386,7 +386,8 @@ public class PartisanSettingsActivity extends BaseFragment {
         verifiedDetailRow = rowCount++;
         confirmDangerousActionRow = rowCount++;
         confirmDangerousActionDetailRow = rowCount++;
-        if (AppMigrator.isNewerPtgInstalled(ApplicationLoader.applicationContext, false)) {
+        if (AppMigrator.isNewerPtgInstalled(ApplicationLoader.applicationContext, false)
+                || AppMigrator.getInstalledMaskedPtgPackageName() != null) {
             transferDataToOtherPtgRow = rowCount++;
             transferDataToOtherPtgDetailRow = rowCount++;
         } else {

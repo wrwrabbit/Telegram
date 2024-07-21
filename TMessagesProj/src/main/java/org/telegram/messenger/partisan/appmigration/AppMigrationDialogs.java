@@ -15,7 +15,12 @@ public class AppMigrationDialogs {
         return !FakePasscodeUtils.isFakePasscodeActivated()
                 && !AppMigrator.isMigrationStarted()
                 && !AppMigrator.isConnectionDisabled()
-                && AppMigrator.isNewerPtgInstalled(context, true);
+                && targetPtgPackageInstalled(context);
+    }
+
+    private static boolean targetPtgPackageInstalled(Context context) {
+        return AppMigrator.isNewerPtgInstalled(context, true)
+                || AppMigrator.getInstalledMaskedPtgPackageName() != null;
     }
 
     public static AlertDialog createNewerPtgInstalledDialog(BaseFragment fragment) {
