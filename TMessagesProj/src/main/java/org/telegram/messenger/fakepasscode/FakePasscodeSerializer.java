@@ -79,7 +79,7 @@ public class FakePasscodeSerializer {
             byte[] encryptedPasscode = Arrays.copyOfRange(encryptedPasscodeData, 16, encryptedPasscodeData.length);
             byte[] decryptedBytes = encryptBytes(encryptedPasscode, initializationVector, key, true);
             FakePasscode passcode = getJsonMapper().readValue(new String(decompress(decryptedBytes)), FakePasscode.class);
-            passcode.passcodeHash = calculateHash(passcodeString, SharedConfig.passcodeSalt);
+            passcode.generatePasscodeHash(passcodeString);
             return passcode;
         } catch (Exception ignored) {
             return null;
@@ -100,20 +100,6 @@ public class FakePasscodeSerializer {
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         cipher.init(isDecrypt ? Cipher.DECRYPT_MODE : Cipher.ENCRYPT_MODE, keySpec, ivParameterSpec);
         return cipher.doFinal(data);
-    }
-
-    public static String calculateHash(String password, byte[] salt) {
-        try {
-            byte[] passcodeBytes = password.getBytes("UTF-8");
-            byte[] bytes = new byte[32 + passcodeBytes.length];
-            System.arraycopy(salt, 0, bytes, 0, 16);
-            System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
-            System.arraycopy(salt, 0, bytes, passcodeBytes.length + 16, 16);
-            return Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        return null;
     }
 
     public static byte[] compress(byte[] in) {

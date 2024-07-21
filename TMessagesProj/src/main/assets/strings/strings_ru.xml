@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="FakePasscode">Ложный код-пароль</string>
+    <string name="FakePassword">Ложный пароль</string>
     <string name="ChangeFakePasscode">Сменить ложный код-пароль</string>
     <string name="FakePasscodeActionsInfo">При вводе ложного код-пароля выполняются выбранные действия.</string>
     <string name="AllowFakePasscodeLogin">Разрешить вход c ложным паролем</string>
@@ -262,4 +263,5 @@
     <string name="MigrationErrorSrcVersionOldDescription">Текущее приложение устарело и не может передать данные в новое приложение. Обновите его и повторите попытку.</string>
     <string name="MigrationErrorUnknownDescription">Произошла неизвестная ошибка. Обновите оба приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Если ошибка остаётся, пожалуйста, свяжитесь с техподдержкой Партизанского Телеграма.</string>
+    <string name="PasswordToPinSwitchWarning">Если у Вас были ложные код-пароли, состоящие не из 4 цифры, их не получится ввести. Мы рекомендуем изменить их.</string>
 </resources>
