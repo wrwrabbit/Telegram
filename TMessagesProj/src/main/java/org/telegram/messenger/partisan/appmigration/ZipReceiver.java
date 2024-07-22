@@ -86,7 +86,7 @@ class ZipReceiver {
             finishReceivingMigration("srcVersionGreater");
             return true;
         }
-        List<String> zipIssues = getZipIssues();
+        Set<String> zipIssues = getZipIssues();
         if (!zipIssues.isEmpty()) {
             finishReceivingMigration("settingsDoNotSuitMaskedApps", zipIssues);
             return true;
@@ -104,29 +104,56 @@ class ZipReceiver {
         return srcVersion == null || srcVersion.greater(AppVersion.getCurrentVersion());
     }
 
-    private @NonNull List<String> getZipIssues() {
+    private @NonNull Set<String> getZipIssues() {
         Document config = extractXmlDocumentFromZip("userconfing.xml");
         if (config == null) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
-        List<String> issues = new ArrayList<>();
+        Set<String> issues = new HashSet<>();
         if (!validatePasscodeType(config)) {
             issues.add("invalidPasscodeType");
+        }
+        if (!validateMainPasscodeFingerprint(config)) {
+            issues.add("activateByFingerprint");
         }
 
         issues.addAll(getFakePasscodesIssues(config));
         return issues;
     }
 
+    private boolean validateMainPasscodeFingerprint(Document config) {
+        if (MaskedPtgConfig.allowFingerprint()) {
+            return true;
+        }
+        String type = getPreferenceValueFromAttribute(config, "int", "useFingerprint");
+        return Objects.equals(type, "false");
+    }
+
     private boolean validatePasscodeType(Document config) {
         if (MaskedPtgConfig.allowAlphaNumericPassword()) {
             return true;
         }
-        Node preferenceNode = getPreferenceNodeFromConfig(config, "int", "passcodeType");
+        String type = getPreferenceValueFromAttribute(config, "int", "passcodeType");
+        return Objects.equals(type, "0");
+    }
+
+    private String getPreferenceValueFromAttribute(Document config, String nodeType, String name) {
+        Node preferenceNode = getPreferenceNodeFromConfig(config, nodeType, name);
         if (preferenceNode == null) {
-            return false;
+            return null;
         }
-        return Objects.equals(preferenceNode.getAttributes().getNamedItem("value").getNodeValue(), "0");
+        return preferenceNode.getAttributes().getNamedItem("value").getNodeValue();
+    }
+
+    private Node getPreferenceNodeFromConfig(Document config, String nodeType, String name) {
+        NodeList nodeList = config.getElementsByTagName(nodeType);
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node tagNode = nodeList.item(i);
+            if (tagNode.getAttributes().getNamedItem("name").getNodeValue().equals(name)) {
+                return tagNode;
+            }
+        }
+        return null;
     }
 
     private @NonNull Set<String> getFakePasscodesIssues(Document config) {
@@ -139,10 +166,7 @@ class ZipReceiver {
             if (fakePasscode.passwordlessMode) {
                 issues.add("passwordlessMode");
             }
-            if (!fakePasscode.allowLogin) {
-                issues.add("allowLogin");
-            }
-            if (fakePasscode.activateByFingerprint) {
+            if (!MaskedPtgConfig.allowFingerprint() && fakePasscode.activateByFingerprint) {
                 issues.add("activateByFingerprint");
             }
         }
@@ -163,17 +187,6 @@ class ZipReceiver {
             PartisanLog.e("ReceiveDataFromOtherPtg", e);
             return null;
         }
-    }
-
-    private Node getPreferenceNodeFromConfig(Document config, String nodeType, String name) {
-        NodeList nodeList = config.getElementsByTagName(nodeType);
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node tagNode = nodeList.item(i);
-            if (tagNode.getAttributes().getNamedItem("name").getNodeValue().equals(name)) {
-                return tagNode;
-            }
-        }
-        return null;
     }
 
     private Document extractXmlDocumentFromZip(String filename) {
@@ -312,7 +325,7 @@ class ZipReceiver {
         finishReceivingMigration(error, null);
     }
 
-    private void finishReceivingMigration(String error, List<String> issues) {
+    private void finishReceivingMigration(String error, Set<String> issues) {
         AndroidUtilities.runOnUIThread(() -> {
             Intent data = new Intent();
             data.putExtra("success", error == null);
