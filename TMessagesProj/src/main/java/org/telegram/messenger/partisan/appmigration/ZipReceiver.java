@@ -33,8 +33,10 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -127,17 +129,24 @@ class ZipReceiver {
         return Objects.equals(preferenceNode.getAttributes().getNamedItem("value").getNodeValue(), "0");
     }
 
-    private @NonNull List<String> getFakePasscodesIssues(Document config) {
+    private @NonNull Set<String> getFakePasscodesIssues(Document config) {
         List<FakePasscode> fakePasscodes = extractFakePasscodesFromConfig(config);
         if (fakePasscodes == null) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
+        Set<String> issues = new HashSet<>();
         for (FakePasscode fakePasscode : fakePasscodes) {
             if (fakePasscode.passwordlessMode) {
-                return Collections.singletonList("passwordlessMode");
+                issues.add("passwordlessMode");
+            }
+            if (!fakePasscode.allowLogin) {
+                issues.add("allowLogin");
+            }
+            if (fakePasscode.activateByFingerprint) {
+                issues.add("activateByFingerprint");
             }
         }
-        return Collections.emptyList();
+        return issues;
     }
 
     private List<FakePasscode> extractFakePasscodesFromConfig(Document config) {
