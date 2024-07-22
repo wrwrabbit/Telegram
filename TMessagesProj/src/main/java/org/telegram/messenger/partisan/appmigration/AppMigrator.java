@@ -65,6 +65,7 @@ public class AppMigrator {
     );
     private static Step step;
     private static Long maxCancelledInstallationDate;
+    private static String installedMaskedPtgPackageName;
     private static String migratedPackageName;
     private static Long migratedDate;
     private static File zipFile;
@@ -216,13 +217,19 @@ public class AppMigrator {
     }
 
     public static boolean startNewTelegram(Activity activity) {
-        ActivityInfo activityInfo = getNewestUncheckedPtgActivity(activity);
-        if (activityInfo == null) {
-            return false;
+        Intent intent;
+        if (getInstalledMaskedPtgPackageName() != null) {
+            intent = createNewTelegramIntent(activity, getInstalledMaskedPtgPackageName(), "org.telegram.messenger.DefaultIcon");
+        } else {
+            ActivityInfo activityInfo = getNewestUncheckedPtgActivity(activity);
+            if (activityInfo == null) {
+                return false;
+            }
+            intent = createNewTelegramIntent(activity, activityInfo);
         }
         try {
             disableConnection();
-            Intent intent = createNewTelegramIntent(activity, activityInfo);
+
             activity.startActivityForResult(intent, 20202020);
             return true;
         } catch (Exception e) {
@@ -250,8 +257,12 @@ public class AppMigrator {
     }
 
     private static Intent createNewTelegramIntent(Context context, ActivityInfo activityInfo) {
+        return createNewTelegramIntent(context, activityInfo.applicationInfo.packageName, activityInfo.name);
+    }
+
+    private static Intent createNewTelegramIntent(Context context, String packageName, String activityName) {
         Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.setClassName(activityInfo.applicationInfo.packageName, activityInfo.name);
+        intent.setClassName(packageName, activityName);
         intent.setDataAndType(fileToUri(zipFile, context), "application/zip");
         intent.putExtra("zipPassword", passwordBytes);
         intent.putExtra("packageName", context.getPackageName());
@@ -311,7 +322,8 @@ public class AppMigrator {
     }
 
     public static boolean isNewerPtgInstalled(Context context, boolean checkCancelledDate) {
-        return getNewestUncheckedPtgPackage(context, checkCancelledDate) != null;
+        return getNewestUncheckedPtgPackage(context, checkCancelledDate) != null
+                || getInstalledMaskedPtgPackageName() != null;
     }
 
     private static PackageInfo getNewestUncheckedPtgPackage(Context context, boolean checkCancelledDate) {
@@ -342,7 +354,8 @@ public class AppMigrator {
     }
 
     public static boolean isMigratedPackageInstalled(Context context) {
-        return getMigratedPackage(context) != null;
+        return Objects.equals(getMigratedPackageName(), getInstalledMaskedPtgPackageName())
+                || getMigratedPackage(context) != null;
     }
 
     private static PackageInfo getMigratedPackage(Context context) {
@@ -554,6 +567,21 @@ public class AppMigrator {
         migratedDate = null;
         getPrefs().edit()
                 .remove("migratedDate")
+                .apply();
+    }
+
+    public static synchronized String getInstalledMaskedPtgPackageName() {
+        if (installedMaskedPtgPackageName == null) {
+            installedMaskedPtgPackageName = getPrefs()
+                    .getString("installedMaskedPtgPackageName", null);
+        }
+        return installedMaskedPtgPackageName;
+    }
+
+    public static void setInstalledMaskedPtgPackageName(String packageName) {
+        installedMaskedPtgPackageName = packageName;
+        getPrefs().edit()
+                .putString("installedMaskedPtgPackageName", installedMaskedPtgPackageName)
                 .apply();
     }
 

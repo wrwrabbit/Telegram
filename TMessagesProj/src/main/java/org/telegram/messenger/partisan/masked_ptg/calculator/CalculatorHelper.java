@@ -50,10 +50,6 @@ public class CalculatorHelper {
             throw new Exception();
         }
         remainingExpression = remainingExpression.substring(numberEndPos);
-        while (remainingExpression.startsWith("%")) {
-            currentValue = currentValue.divide(new BigDecimal(100));
-            remainingExpression = remainingExpression.substring(1);
-        }
         valueStack.push(currentValue);
     }
 
@@ -63,6 +59,10 @@ public class CalculatorHelper {
         if (operation == '%') {
             if (!valueStack.isEmpty()) {
                 BigDecimal newValue = valueStack.pop().divide(new BigDecimal(100));
+                if (!valueStack.isEmpty()) {
+                    BigDecimal oldValue = valueStack.peek();
+                    newValue = newValue.multiply(oldValue);
+                }
                 valueStack.push(newValue);
             }
         } else {

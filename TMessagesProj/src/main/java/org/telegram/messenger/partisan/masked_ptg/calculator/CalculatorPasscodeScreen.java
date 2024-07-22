@@ -358,7 +358,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
                     inputString = inputString.substring(0, inputString.length() - 1);
                 }
             } else if (c == '%') {
-                if (!"0123456789%".contains(String.valueOf(lastChar))) {
+                if (!"0123456789".contains(String.valueOf(lastChar))) {
                     return;
                 }
             }
