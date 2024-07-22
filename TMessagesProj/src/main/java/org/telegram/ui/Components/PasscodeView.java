@@ -232,6 +232,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
+        if (screen != null) {
+            screen.onAttachedToWindow();
+        }
+
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didGenerateFingerprintKeyPair);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.passcodeDismissed);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.fakePasscodeActivated);
@@ -240,6 +244,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+
+        if (screen != null) {
+            screen.onDetachedFromWindow();
+        }
 
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didGenerateFingerprintKeyPair);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.passcodeDismissed);
