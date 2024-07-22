@@ -139,9 +139,6 @@ class ZipReceiver {
             if (fakePasscode.passwordlessMode) {
                 issues.add("passwordlessMode");
             }
-            if (!fakePasscode.allowLogin) {
-                issues.add("allowLogin");
-            }
             if (fakePasscode.activateByFingerprint) {
                 issues.add("activateByFingerprint");
             }
