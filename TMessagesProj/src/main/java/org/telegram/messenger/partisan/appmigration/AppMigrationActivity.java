@@ -378,6 +378,8 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             return LocaleController.getString(R.string.IssueInvalidPasscodeTypeDescription);
         } else if ("passwordlessMode".equals(issue)) {
             return LocaleController.getString(R.string.IssuePasswordlessModeDescription);
+        } else if ("activateByFingerprint".equals(issue)) {
+            return LocaleController.getString(R.string.IssueActivateByFingerprintDescription);
         } else {
             return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
         }

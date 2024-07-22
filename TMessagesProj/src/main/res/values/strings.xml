@@ -9340,6 +9340,7 @@
     <string name="MigrationErrorUnknownDescription">An unknown error has occurred. Please update both apps and try again. %1$s</string>
     <string name="MigrationContactPtgSupport">If the error persists, please contact technical Partisan Telegram support.</string>
     <string name="IssueInvalidPasscodeTypeDescription">Alphanumeric password is not allowed in this masked app. Change it to a 4-digit passcode.</string>
-    <string name="IssuePasswordlessModeDescription">Passwordless mode is not allowed in a masked app. Disable it.</string>
+    <string name="IssuePasswordlessModeDescription">Fake passcodes with passwordless mode are not allowed in a masked app. Disable this mode in passcodes or delete these passcodes.</string>
+    <string name="IssueActivateByFingerprintDescription">Fingerprint-activated passcodes are not allowed in a masked app. Disable this option.</string>
     <string name="PasswordToPinSwitchWarning">If you had fake passcodes that did not contain 4 digits, you will not be able to enter them. We recommend changing them.</string>
 </resources>
