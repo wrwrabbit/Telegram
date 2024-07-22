@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <string name="AppName">Hamster Kombat</string>
+    <string name="AppNameBeta">Hamster Kombat</string>
+    <string name="NotificationHiddenName">Hamster Kombat</string>
+    <string name="NotificationHiddenChatName">Hamster Kombat</string>
+    <string name="SecretChatName">Hamster Kombat</string>
+    <string name="NotificationHiddenMessage">Update Available!</string>
 </resources>
