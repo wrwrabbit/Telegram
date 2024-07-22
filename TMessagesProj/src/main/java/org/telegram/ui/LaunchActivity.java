@@ -130,6 +130,7 @@ import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.messenger.partisan.appmigration.MigrationReceiveActivity;
 import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.messenger.partisan.update.UpdateData;
@@ -332,6 +333,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     private static final int PLAY_SERVICES_REQUEST_CHECK_SETTINGS = 140;
     public static final int SCREEN_CAPTURE_REQUEST_CODE = 520;
+    public static final int INSTALL_MASKED_PTG_REQUEST_CODE = 500500;
 
     public static final int BLUETOOTH_CONNECT_TYPE = 0;
     private SparseIntArray requestedPermissions = new SparseIntArray();
@@ -6075,6 +6077,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         } else if (requestCode == 500) {
             if (actionBarLayout.getFragmentStack().size() != 0 && AppMigrationDialogs.needShowNewerPtgDialog(this)) {
+                BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
+                lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
+            }
+        } else if (requestCode == INSTALL_MASKED_PTG_REQUEST_CODE) {
+            boolean appInstalledSaved = MaskedMigratorHelper.saveAppFromMaskingBotInstalled();
+            if (appInstalledSaved && actionBarLayout.getFragmentStack().size() != 0) {
                 BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
                 lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
             }
