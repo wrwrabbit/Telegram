@@ -126,7 +126,7 @@ class ZipReceiver {
             return true;
         }
         String type = getPreferenceValueFromAttribute(config, "int", "useFingerprint");
-        return Objects.equals(type, "false");
+        return !Objects.equals(type, "true");
     }
 
     private boolean validatePasscodeType(Document config) {
