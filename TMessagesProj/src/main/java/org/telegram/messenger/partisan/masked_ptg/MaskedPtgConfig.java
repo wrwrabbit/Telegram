@@ -3,11 +3,10 @@ package org.telegram.messenger.partisan.masked_ptg;
 import android.content.Context;
 
 import org.telegram.messenger.partisan.masked_ptg.loading.LoadingPasscodeScreen;
-import org.telegram.messenger.partisan.masked_ptg.original.OriginalPasscodeScreen;
 
 public class MaskedPtgConfig {
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
-        return new OriginalPasscodeScreen(context, delegate);
+        return new LoadingPasscodeScreen(context, delegate);
     }
 
     public static boolean allowAlphaNumericPassword() {
