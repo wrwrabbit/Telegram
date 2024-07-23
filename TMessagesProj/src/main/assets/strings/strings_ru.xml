@@ -268,4 +268,6 @@
     <string name="IssuePasswordlessModeDescription">Ложные код-пароли с беспарольным режимом не разрешёны в замаскированном приложении. Отключите этот режим в код-паролях или удалите эти код-пароли.</string>
     <string name="IssueActivateByFingerprintDescription">Код-пароли с активацией по отпечатку пальца не разрешены в замаскированном приложении. Отключите эту опцию.</string>
     <string name="PasswordToPinSwitchWarning">Если у Вас были ложные код-пароли, состоящие не из 4 цифры, их не получится ввести. Мы рекомендуем изменить их.</string>
+    <string name="PermissionDisabledTitle">Разрешение отключено</string>
+    <string name="PermissionDisabledMessage">Это разрешение отключено в вашей версии Партизанского Телеграма.</string>
 </resources>
