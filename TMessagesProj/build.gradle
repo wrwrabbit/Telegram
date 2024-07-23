@@ -80,6 +80,7 @@ dependencies {
 
 def isWindows = String.valueOf(DefaultNativePlatform.currentOperatingSystem.toFamilyName() == OperatingSystemFamily.WINDOWS)
 android {
+    namespace 'org.telegram.messenger'
     compileSdkVersion 33
     buildToolsVersion '33.0.0'
     ndkVersion "21.4.7075529"

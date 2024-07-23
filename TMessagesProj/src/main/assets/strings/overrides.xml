@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <string name="AppName">NoteLite</string>
+    <string name="AppNameBeta">NoteLite</string>
+    <string name="NotificationHiddenName">NoteLite</string>
+    <string name="NotificationHiddenChatName">NoteLite</string>
+    <string name="SecretChatName">NoteLite</string>
+    <string name="NotificationHiddenMessage">Update Available!</string>
 </resources>

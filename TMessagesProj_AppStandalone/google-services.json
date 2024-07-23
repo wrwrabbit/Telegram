@@ -96,7 +96,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:127113305710:android:6ec387fa684dbad731507f",
         "android_client_info": {
-          "package_name": "org.telegram.messenger.alpha"
+          "package_name": "com.notelite"
         }
       },
       "oauth_client": [
