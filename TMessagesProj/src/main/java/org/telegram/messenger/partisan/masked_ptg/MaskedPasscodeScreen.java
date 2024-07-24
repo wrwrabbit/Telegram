@@ -9,4 +9,7 @@ public interface MaskedPasscodeScreen {
     default void onPasscodeError() {}
     default void onAttachedToWindow() {}
     default void onDetachedFromWindow() {}
+    default boolean onBackPressed () {
+        return true;
+    }
 }
