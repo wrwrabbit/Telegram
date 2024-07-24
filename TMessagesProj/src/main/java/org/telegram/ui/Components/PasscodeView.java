@@ -221,7 +221,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
     }
 
     public boolean onBackPressed() {
-        return true;
+        return screen.onBackPressed();
     }
 
     public void onPause() {
