@@ -10,7 +10,7 @@ public class MaskedPtgConfig {
     }
 
     public static boolean allowAlphaNumericPassword() {
-        return false;
+        return true;
     }
 
     public static boolean allowFingerprint() {
