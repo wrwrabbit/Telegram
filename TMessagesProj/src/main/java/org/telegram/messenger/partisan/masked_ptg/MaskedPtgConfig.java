@@ -30,6 +30,6 @@ public class MaskedPtgConfig {
     }
 
     public static int getNotificationsColor() {
-        return 0xff11acfa;
+        return 0xfff2a159;
     }
 }
