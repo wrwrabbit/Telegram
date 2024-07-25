@@ -125,7 +125,7 @@ class ZipReceiver {
         if (MaskedPtgConfig.allowFingerprint()) {
             return true;
         }
-        String type = getPreferenceValueFromAttribute(config, "int", "useFingerprint");
+        String type = getPreferenceValueFromAttribute(config, "boolean", "useFingerprint");
         return !Objects.equals(type, "true");
     }
 
