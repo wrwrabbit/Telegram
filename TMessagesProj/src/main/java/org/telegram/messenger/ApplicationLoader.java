@@ -39,7 +39,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
-import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
@@ -287,6 +286,7 @@ public class ApplicationLoader extends Application {
                     .remove("ptgMigrationMaxCancelledInstallationDate")
                     .remove("migratedPackageName")
                     .remove("migratedDate")
+                    .remove("installedMaskedPtgPackageName")
                     .apply();
             SharedConfig.saveConfig();
             SharedConfig.reloadConfig();
