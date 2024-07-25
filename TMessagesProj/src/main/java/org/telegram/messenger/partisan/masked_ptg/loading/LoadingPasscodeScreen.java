@@ -97,11 +97,11 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         if (relativeY > .85) {
             posY = 0;
         } else if (relativeY > .65) {
-            posY = 1;
+            posY = 3;
         } else if (relativeY > .35) {
             posY = 2;
         } else {
-            posY = 3;
+            posY = 1;
         }
         int digit;
         if (posY == 0) {
