@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -45,11 +46,7 @@ class ZipReceiver {
 
     private void receiveZipInternal() {
         try {
-            if (appAlreadyHasAccounts()) {
-                finishReceivingMigration("alreadyHasAccounts");
-                return;
-            } else if (isSourceAppVersionGreater()) {
-                finishReceivingMigration("srcVersionGreater");
+            if (finishReceivingMigrationIfNeed()) {
                 return;
             }
             AndroidUtilities.runOnUIThread(() -> {
@@ -66,6 +63,17 @@ class ZipReceiver {
             PartisanLog.e("ReceiveDataFromOtherPtg", e);
             showMigrationReceiveError(e);
         }
+    }
+
+    private boolean finishReceivingMigrationIfNeed() {
+        if (appAlreadyHasAccounts()) {
+            finishReceivingMigration("alreadyHasAccounts");
+            return true;
+        } else if (isSourceAppVersionGreater()) {
+            finishReceivingMigration("srcVersionGreater");
+            return true;
+        }
+        return false;
     }
 
     private static boolean appAlreadyHasAccounts() {
