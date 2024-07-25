@@ -1270,6 +1270,7 @@ public class SharedConfig {
             fakePasscodes.clear();
             fakePasscodeActivatedIndex = -1;
         }
+        filesCopiedFromOldTelegram = false;
         passcodeSalt = new byte[0];
         autoLockIn = 60 * 60;
         lastPauseTime = 0;
