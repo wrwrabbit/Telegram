@@ -80,7 +80,11 @@ class ZipReceiver {
 
     private boolean finishReceivingMigrationIfNeed() {
         if (appAlreadyHasAccounts()) {
-            finishReceivingMigration("alreadyHasAccounts");
+            if (SharedConfig.filesCopiedFromOldTelegram) { // already migrated
+                finishReceivingMigration(null);
+            } else {
+                finishReceivingMigration("alreadyHasAccounts");
+            }
             return true;
         } else if (isSourceAppVersionGreater()) {
             finishReceivingMigration("srcVersionGreater");
