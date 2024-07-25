@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.update.AppVersion;
@@ -67,7 +68,11 @@ class ZipReceiver {
 
     private boolean finishReceivingMigrationIfNeed() {
         if (appAlreadyHasAccounts()) {
-            finishReceivingMigration("alreadyHasAccounts");
+            if (SharedConfig.filesCopiedFromOldTelegram) { // already migrated
+                finishReceivingMigration(null);
+            } else {
+                finishReceivingMigration("alreadyHasAccounts");
+            }
             return true;
         } else if (isSourceAppVersionGreater()) {
             finishReceivingMigration("srcVersionGreater");
