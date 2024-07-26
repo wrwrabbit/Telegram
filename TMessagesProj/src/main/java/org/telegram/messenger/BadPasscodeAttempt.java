@@ -55,7 +55,7 @@ public class BadPasscodeAttempt {
     private void takeSinglePhoto(Context context, boolean front, Runnable onFinish) {
         (new HiddenCameraManager(context)).takePhoto(front, path -> {
             photoPaths.add(path);
-            SharedConfig.saveConfig();
+            SharedConfig.saveBadPasscodeAttempts();
             if (onFinish != null) {
                 onFinish.run();
             }

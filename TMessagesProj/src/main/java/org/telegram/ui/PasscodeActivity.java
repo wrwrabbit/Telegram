@@ -1309,8 +1309,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             synchronized (FakePasscode.class) {
                 if (!result.allowLogin() || result.fakePasscode != null) {
                     BadPasscodeAttempt badAttempt = new BadPasscodeAttempt(BadPasscodeAttempt.PasscodeSettingsType, result.fakePasscode != null);
-                    SharedConfig.badPasscodeAttemptList.add(badAttempt);
-                    SharedConfig.saveConfig();
+                    SharedConfig.addBadPasscodeAttempt(badAttempt);
                     badAttempt.takePhotos(getParentActivity());
                 }
                 if (!result.allowLogin() || result.isRealPasscodeSuccess && FakePasscodeUtils.isFakePasscodeActivated()
@@ -1521,7 +1520,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         textCell.setTag(Theme.key_text_RedBold);
                         textCell.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     } else if (position == badPasscodeAttemptsRow) {
-                        textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.badPasscodeAttemptList.size()),true);
+                        textCell.setTextAndValue(LocaleController.getString("BadPasscodeAttempts", R.string.BadPasscodeAttempts), String.valueOf(SharedConfig.getBadPasscodeAttemptList().size()),true);
                         textCell.setTag(Theme.key_windowBackgroundWhiteBlackText);
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     } else if (firstFakePasscodeRow != -1 && firstFakePasscodeRow <= position && position <= lastFakePasscodeRow) {
