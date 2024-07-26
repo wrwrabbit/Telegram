@@ -10,7 +10,7 @@ public class MaskedMigratorHelper {
     private static final long MASKING_BOT_ID = 7116474629L;
     private static final long MASKING_BOT_ID2 = 7138739692L;
     private static final Map<File, String> fileToPackageName = new HashMap<>();
-    public static String installingPackageName = null;
+    private static String installingPackageName = null;
 
     public static void saveFileMetadataFromMaskingBotIfNeed(File f, MessageObject message) {
         if (message.messageOwner.from_id.user_id == MASKING_BOT_ID
@@ -36,5 +36,9 @@ public class MaskedMigratorHelper {
         }
         AppMigrator.setInstalledMaskedPtgPackageName(installingPackageName);
         return true;
+    }
+
+    public static String getInstallingPackageName() {
+        return installingPackageName;
     }
 }

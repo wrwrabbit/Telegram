@@ -530,7 +530,7 @@ public class AppMigrator {
                 .apply();
     }
 
-    private static synchronized String getMigratedPackageName() {
+    public static synchronized String getMigratedPackageName() {
         if (migratedPackageName == null) {
             migratedPackageName = getPrefs()
                     .getString("migratedPackageName", "");
