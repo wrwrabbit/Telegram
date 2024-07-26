@@ -614,7 +614,10 @@ int32_t ConnectionSocket::checkSocketError(int32_t *error) {
     socklen_t len = sizeof(int);
     ret = getsockopt(socketFd, SOL_SOCKET, SO_ERROR, &code, &len);
     if (ret != 0 || code != 0) {
-        if (LOGS_ENABLED) DEBUG_E("socket error 0x%x code 0x%x", ret, code);
+        std::string& proxyAddress = ConnectionsManager::getInstance(instanceNum).proxyAddress;
+        uint16_t proxyPort = ConnectionsManager::getInstance(instanceNum).proxyPort;
+        bool connectionDisabledDueMigration = proxyPort == (uint16_t)-1 && proxyAddress == "127.0.0.1";
+        if (LOGS_ENABLED && !connectionDisabledDueMigration) DEBUG_E("socket error 0x%x code 0x%x", ret, code);
     }
     *error = code;
     return (ret || code) != 0;

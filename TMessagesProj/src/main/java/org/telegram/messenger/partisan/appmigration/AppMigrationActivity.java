@@ -442,11 +442,18 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         return result;
     }
 
+    private boolean isFinishingFragment = false;
     @Override
     public void onResume() {
         super.onResume();
         if (!AppMigrator.checkMigrationNeedToResume(getContext())) {
-            finishFragment();
+            if (!isFinishingFragment) { // workaround for stack overflow
+                isFinishingFragment = true;
+                finishFragment();
+                isFinishingFragment = false;
+            } else {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
         }
     }
 
