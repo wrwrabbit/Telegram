@@ -223,6 +223,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -6081,10 +6082,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
             }
         } else if (requestCode == INSTALL_MASKED_PTG_REQUEST_CODE) {
-            boolean appInstalledSaved = MaskedMigratorHelper.saveAppFromMaskingBotInstalled();
-            if (appInstalledSaved && actionBarLayout.getFragmentStack().size() != 0) {
-                BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
-                lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
+            boolean migrationNotStarted = !AppMigrator.checkMigrationNeedToResume(this);
+            boolean migratingToThisPackage = Objects.equals(AppMigrator.getInstalledMaskedPtgPackageName(), MaskedMigratorHelper.getInstallingPackageName());
+            if (migrationNotStarted || migratingToThisPackage) {
+                boolean appInstalledSaved = MaskedMigratorHelper.saveAppFromMaskingBotInstalled();
+                if (appInstalledSaved && actionBarLayout.getFragmentStack().size() != 0) {
+                    BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
+                    lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
+                }
             }
         } else if (requestCode == PLAY_SERVICES_REQUEST_CHECK_SETTINGS) {
             LocationController.getInstance(currentAccount).startFusedLocationRequest(resultCode == Activity.RESULT_OK);
