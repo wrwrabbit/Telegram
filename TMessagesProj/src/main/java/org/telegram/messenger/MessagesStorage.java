@@ -31,6 +31,7 @@ import androidx.collection.LongSparseArray;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
+import org.telegram.SQLite.SQLiteDatabaseWrapper;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
@@ -307,7 +308,7 @@ public class MessagesStorage extends BaseController {
             createTable = true;
         }
         try {
-            database = new SQLiteDatabase(cacheFile.getPath());
+            database = new SQLiteDatabaseWrapper(cacheFile.getPath());
             database.executeFast("PRAGMA secure_delete = ON").stepThis().dispose();
             database.executeFast("PRAGMA temp_store = MEMORY").stepThis().dispose();
             database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
@@ -420,7 +421,7 @@ public class MessagesStorage extends BaseController {
         FileLog.e("Database restored = " + restored);
         if (restored) {
             try {
-                database = new SQLiteDatabase(cacheFile.getPath());
+                database = new SQLiteDatabaseWrapper(cacheFile.getPath());
                 database.executeFast("PRAGMA secure_delete = ON").stepThis().dispose();
                 database.executeFast("PRAGMA temp_store = MEMORY").stepThis().dispose();
                 database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
@@ -4490,7 +4491,7 @@ public class MessagesStorage extends BaseController {
                 cursor = null;
                 deleteFromDownloadQueue(idsToDelete, true);
                 if (!messages.isEmpty()) {
-                    state = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
+                    state = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                     for (int a = 0; a < messages.size(); a++) {
                         TLRPC.Message message = messages.get(a);
 
@@ -11336,7 +11337,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<TLRPC.Message> createNewTopics = null;
                 ArrayList<TLRPC.Message> changedSavedMessages = null;
 
-                state_messages = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
+                state_messages = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                 state_messages_topic = database.executeFast("REPLACE INTO messages_topics VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
                 state_media = null;
                 state_randoms = database.executeFast("REPLACE INTO randoms_v2 VALUES(?, ?, ?)");
@@ -14505,7 +14506,7 @@ public class MessagesStorage extends BaseController {
                             changedSavedMessages.add(message);
                         }
                     } else {
-                        state = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
+                        state = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                     }
                     state.requery();
 
@@ -14826,7 +14827,7 @@ public class MessagesStorage extends BaseController {
                     Long lastMessageGroupId = null;
 
                     state_messages_topics = database.executeFast("REPLACE INTO messages_topics VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
-                    state_messages = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
+                    state_messages = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                     state_media = database.executeFast("REPLACE INTO media_v4 VALUES(?, ?, ?, ?, ?)");
                     state_media_topics = database.executeFast("REPLACE INTO media_topics VALUES(?, ?, ?, ?, ?, ?)");
                     state_polls = null;
@@ -15870,7 +15871,7 @@ public class MessagesStorage extends BaseController {
             }
 
             if (!dialogs.dialogs.isEmpty()) {
-                state_messages = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
+                state_messages = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                 state_dialogs = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 state_media = database.executeFast("REPLACE INTO media_v4 VALUES(?, ?, ?, ?, ?)");
                 state_settings = database.executeFast("REPLACE INTO dialog_settings VALUES(?, ?)");
