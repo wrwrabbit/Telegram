@@ -4490,7 +4490,7 @@ public class MessagesStorage extends BaseController {
                 cursor = null;
                 deleteFromDownloadQueue(idsToDelete, true);
                 if (!messages.isEmpty()) {
-                    state = database.executeFast("UPDATE messages_v2 SET mid = ?, uid = ?, read_state = ?, send_state = ?, date = ?, data = ?, out = ?, ttl = ?, media = ?, replydata = ?, imp = ?, mention = ?, forwards = ?, replies_data = ?, thread_reply_id = ?, is_channel = ?, reply_to_message_id = ?, custom_params = ?, group_id = ?, reply_to_story_id = ?");
+                    state = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
                     for (int a = 0; a < messages.size(); a++) {
                         TLRPC.Message message = messages.get(a);
 
@@ -11336,7 +11336,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<TLRPC.Message> createNewTopics = null;
                 ArrayList<TLRPC.Message> changedSavedMessages = null;
 
-                state_messages = database.executeFast("UPDATE messages_v2 SET mid = ?, uid = ?, read_state = ?, send_state = ?, date = ?, data = ?, out = ?, ttl = ?, media = ?, replydata = ?, imp = ?, mention = ?, forwards = ?, replies_data = ?, thread_reply_id = ?, is_channel = ?, reply_to_message_id = ?, custom_params = ?, group_id = ?, reply_to_story_id = ?");
+                state_messages = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
                 state_messages_topic = database.executeFast("REPLACE INTO messages_topics VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
                 state_media = null;
                 state_randoms = database.executeFast("REPLACE INTO randoms_v2 VALUES(?, ?, ?)");
@@ -14505,7 +14505,7 @@ public class MessagesStorage extends BaseController {
                             changedSavedMessages.add(message);
                         }
                     } else {
-                        state = database.executeFast("UPDATE messages_v2 SET mid = ?, uid = ?, read_state = ?, send_state = ?, date = ?, data = ?, out = ?, ttl = ?, media = ?, replydata = ?, imp = ?, mention = ?, forwards = ?, replies_data = ?, thread_reply_id = ?, is_channel = ?, reply_to_message_id = ?, custom_params = ?, group_id = ?, reply_to_story_id = ?");
+                        state = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
                     }
                     state.requery();
 
@@ -14826,7 +14826,7 @@ public class MessagesStorage extends BaseController {
                     Long lastMessageGroupId = null;
 
                     state_messages_topics = database.executeFast("REPLACE INTO messages_topics VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
-                    state_messages = database.executeFast("UPDATE messages_v2 SET mid = ?, uid = ?, read_state = ?, send_state = ?, date = ?, data = ?, out = ?, ttl = ?, media = ?, replydata = ?, imp = ?, mention = ?, forwards = ?, replies_data = ?, thread_reply_id = ?, is_channel = ?, reply_to_message_id = ?, custom_params = ?, group_id = ?, reply_to_story_id = ?");
+                    state_messages = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
                     state_media = database.executeFast("REPLACE INTO media_v4 VALUES(?, ?, ?, ?, ?)");
                     state_media_topics = database.executeFast("REPLACE INTO media_topics VALUES(?, ?, ?, ?, ?, ?)");
                     state_polls = null;
@@ -15870,7 +15870,7 @@ public class MessagesStorage extends BaseController {
             }
 
             if (!dialogs.dialogs.isEmpty()) {
-                state_messages = database.executeFast("UPDATE messages_v2 SET mid = ?, uid = ?, read_state = ?, send_state = ?, date = ?, data = ?, out = ?, ttl = ?, media = ?, replydata = NULL, imp = ?, mention = ?, forwards = ?, replies_data = ?, thread_reply_id = ?, is_channel = ?, reply_to_message_id = 0, custom_params = NULL, group_id = ?, reply_to_story_id = ?");
+                state_messages = database.executeFast("SELECT mid FROM messages_v2 WHERE mid = ? AND uid = ? AND read_state = ? AND send_state = ? AND date = ? AND data = ? AND out = ? AND ttl = ? AND media = ? AND replydata = ? AND imp = ? AND mention = ? AND forwards = ? AND replies_data = ? AND thread_reply_id = ? AND is_channel = ? AND reply_to_message_id = ? AND custom_params = ? AND group_id = ? AND reply_to_story_id = ?");
                 state_dialogs = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 state_media = database.executeFast("REPLACE INTO media_v4 VALUES(?, ?, ?, ?, ?)");
                 state_settings = database.executeFast("REPLACE INTO dialog_settings VALUES(?, ?)");
