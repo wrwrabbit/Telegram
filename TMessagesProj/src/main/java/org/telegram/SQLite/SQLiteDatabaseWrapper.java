@@ -15,6 +15,9 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     private final Set<String> queryStartsForSpecificDB = new HashSet<>(Arrays.asList(
             "INSERT INTO", "UPDATE", "REPLACE INTO", "DELETE FROM", "SELECT"
     ));
+    private final Set<String> onlyMemoryTables = new HashSet<>(Arrays.asList(
+            "messages_v2", "chats", "contacts", "dialogs", "messages_holes"
+    ));
     private enum SQL_FOR {
         REAL_DB,
         MEMORY_DB,
@@ -46,7 +49,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
             if (sql.startsWith("SELECT")) {
                 return SQL_FOR.MEMORY_DB;
             } else {
-                if (sql.contains("messages_v2")) {
+                if (onlyMemoryTables.stream().anyMatch(table -> sql.contains(" " + table))) {
                     return SQL_FOR.MEMORY_DB;
                 } else {
                     return SQL_FOR.BOTH_DB;
