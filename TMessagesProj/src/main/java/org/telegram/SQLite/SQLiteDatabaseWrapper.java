@@ -10,15 +10,15 @@ import java.util.Set;
 
 public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     private final Set<String> sqlPrefixesForBothDB = new HashSet<>(Arrays.asList(
-            "PRAGMA", "CREATE TABLE", "CREATE INDEX", "VACUUM", "DROP TABLE"
+            "PRAGMA", "CREATE TABLE", "CREATE INDEX", "VACUUM", "DROP TABLE", "DELETE FROM", "UPDATE"
     ));
     private final Set<String> queryStartsForSpecificDB = new HashSet<>(Arrays.asList(
-            "INSERT INTO", "UPDATE", "REPLACE INTO", "DELETE FROM", "SELECT"
+            "INSERT INTO", "REPLACE INTO", "SELECT"
     ));
     private final Set<String> onlyMemoryTables = new HashSet<>(Arrays.asList(
             "messages_v2", "chats", "contacts", "dialogs", "messages_holes"
     ));
-    private enum SQL_FOR {
+    private enum DbSelector {
         REAL_DB,
         MEMORY_DB,
         BOTH_DB
@@ -42,17 +42,17 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
         return realDatabase.tableExists(tableName);
     }
 
-    private SQL_FOR checkSqlForMemoryDatabase(String sql) {
+    private DbSelector checkSqlForMemoryDatabase(String sql) {
         if (sqlPrefixesForBothDB.stream().anyMatch(sql::startsWith)) {
-            return SQL_FOR.BOTH_DB;
+            return DbSelector.BOTH_DB;
         } else if (queryStartsForSpecificDB.stream().anyMatch(sql::startsWith)) {
             if (sql.startsWith("SELECT")) {
-                return SQL_FOR.MEMORY_DB;
+                return DbSelector.MEMORY_DB;
             } else {
                 if (onlyMemoryTables.stream().anyMatch(table -> sql.contains(" " + table))) {
-                    return SQL_FOR.MEMORY_DB;
+                    return DbSelector.MEMORY_DB;
                 } else {
-                    return SQL_FOR.BOTH_DB;
+                    return DbSelector.BOTH_DB;
                 }
             }
         } else {
@@ -60,7 +60,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
                 PartisanLog.e("Failed execute sql: " + sql);
                 throw new RuntimeException();
             }
-            return SQL_FOR.BOTH_DB;
+            return DbSelector.BOTH_DB;
         }
     }
 
@@ -73,7 +73,11 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     }
 
     private <R> List<R> executeFunctionInSpecificDB(String sql, DbFunction<R> function) throws SQLiteException {
-        switch (checkSqlForMemoryDatabase(sql)) {
+        return executeFunctionInSpecificDB(checkSqlForMemoryDatabase(sql), function);
+    }
+
+    private <R> List<R> executeFunctionInSpecificDB(DbSelector dbSelector, DbFunction<R> function) throws SQLiteException {
+        switch (dbSelector) {
             case REAL_DB:
                 return Collections.singletonList(function.apply(realDatabase));
             case MEMORY_DB:
@@ -103,6 +107,10 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     @Override
     public SQLitePreparedStatement executeFast(String sql) throws SQLiteException {
         return new SQLitePreparedStatementMultiple(executeFunctionInSpecificDB(sql, db -> db.executeFast(sql)));
+    }
+
+    public SQLitePreparedStatementMultiple executeFastForBothDb(String sql) throws SQLiteException {
+        return new SQLitePreparedStatementMultiple(executeFunctionInSpecificDB(DbSelector.BOTH_DB, db -> db.executeFast(sql)));
     }
 
     @Override

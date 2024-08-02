@@ -34,6 +34,7 @@ import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteDatabaseWrapper;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
+import org.telegram.SQLite.SQLitePreparedStatementMultiple;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
@@ -71,7 +72,7 @@ import java.util.function.Consumer;
 public class MessagesStorage extends BaseController {
 
     private DispatchQueue storageQueue;
-    private SQLiteDatabase database;
+    private SQLiteDatabaseWrapper database;
     private File cacheFile;
     private File walCacheFile;
     private File shmCacheFile;
@@ -4491,9 +4492,10 @@ public class MessagesStorage extends BaseController {
                 cursor = null;
                 deleteFromDownloadQueue(idsToDelete, true);
                 if (!messages.isEmpty()) {
-                    state = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                    state = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                     for (int a = 0; a < messages.size(); a++) {
                         TLRPC.Message message = messages.get(a);
+                        ((SQLitePreparedStatementMultiple)state).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
 
                         MessageObject.normalizeFlags(message);
                         NativeByteBuffer data = new NativeByteBuffer(message.getObjectSize());
@@ -9959,7 +9961,8 @@ public class MessagesStorage extends BaseController {
                 data4.reuse();
                 data5.reuse();
                 if (dialog != null) {
-                    state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    state = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    ((SQLitePreparedStatementMultiple)state).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialog.id) ? -1 : 0);
                     state.bindLong(1, dialog.id);
                     state.bindInteger(2, dialog.last_message_date);
                     state.bindInteger(3, dialog.unread_count);
@@ -11337,7 +11340,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<TLRPC.Message> createNewTopics = null;
                 ArrayList<TLRPC.Message> changedSavedMessages = null;
 
-                state_messages = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                state_messages = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                 state_messages_topic = database.executeFast("REPLACE INTO messages_topics VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
                 state_media = null;
                 state_randoms = database.executeFast("REPLACE INTO randoms_v2 VALUES(?, ?, ?)");
@@ -11349,6 +11352,7 @@ public class MessagesStorage extends BaseController {
 
                 for (int a = 0; a < messages.size(); a++) {
                     TLRPC.Message message = messages.get(a);
+                    ((SQLitePreparedStatementMultiple)state_messages).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
 
                     int messageId = message.id;
                     MessageObject.getDialogId(message);
@@ -12081,7 +12085,7 @@ public class MessagesStorage extends BaseController {
                     }
                 }
 
-                state_dialogs_replace = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                state_dialogs_replace = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 state_dialogs_update = database.executeFast("UPDATE dialogs SET date = ?, unread_count = ?, last_mid = ?, last_mid_group = ?, unread_count_i = ? WHERE did = ?");
                 state_dialogs_update_without_message = database.executeFast("UPDATE dialogs SET unread_count = ?, unread_count_i = ? WHERE did = ?");
                 state_topics_update = database.executeFast("UPDATE topics SET unread_count = ?, top_message = ?, unread_mentions = ?, total_messages_count = ? WHERE did = ? AND topic_id = ?");
@@ -12163,6 +12167,7 @@ public class MessagesStorage extends BaseController {
                             state_dialogs_update_without_message.step();
                         }
                     } else {
+                        ((SQLitePreparedStatementMultiple)state_dialogs_replace).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
                         state_dialogs_replace.requery();
                         state_dialogs_replace.bindLong(1, key);
                         state_dialogs_replace.bindInteger(2, message != null && (!doNotUpdateDialogDate || dialog_date == 0) ? message.date : dialog_date);
@@ -14506,7 +14511,8 @@ public class MessagesStorage extends BaseController {
                             changedSavedMessages.add(message);
                         }
                     } else {
-                        state = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                        state = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                        ((SQLitePreparedStatementMultiple)state).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
                     }
                     state.requery();
 
@@ -14948,7 +14954,8 @@ public class MessagesStorage extends BaseController {
                                 state3.bindInteger(7, message.date);
                                 state3.bindLong(8, dialogId);
                             } else {
-                                state3 = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                state3 = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                ((SQLitePreparedStatementMultiple)state3).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialogId) ? -1 : 0);
                                 state3.bindLong(1, dialogId);
                                 state3.bindInteger(2, message.date);
                                 state3.bindInteger(3, 0);
@@ -15871,8 +15878,8 @@ public class MessagesStorage extends BaseController {
             }
 
             if (!dialogs.dialogs.isEmpty()) {
-                state_messages = database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)");
-                state_dialogs = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                state_messages = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)");
+                state_dialogs = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 state_media = database.executeFast("REPLACE INTO media_v4 VALUES(?, ?, ?, ?, ?)");
                 state_settings = database.executeFast("REPLACE INTO dialog_settings VALUES(?, ?)");
                 state_holes = database.executeFast("REPLACE INTO messages_holes VALUES(?, ?, ?)");
@@ -15921,6 +15928,7 @@ public class MessagesStorage extends BaseController {
 
                     TLRPC.Message message = new_dialogMessage.get(dialog.id);
                     if (message != null) {
+                        ((SQLitePreparedStatementMultiple)state_messages).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialog.id) ? -1 : 0);
                         messageDate = Math.max(message.date, messageDate);
 
                         if (isValidKeyboardToSave(message)) {
@@ -16025,6 +16033,7 @@ public class MessagesStorage extends BaseController {
                         }
                     }
 
+                    ((SQLitePreparedStatementMultiple)state_dialogs).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialog.id) ? -1 : 0);
                     state_dialogs.requery();
                     state_dialogs.bindLong(1, dialog.id);
                     state_dialogs.bindInteger(2, messageDate);

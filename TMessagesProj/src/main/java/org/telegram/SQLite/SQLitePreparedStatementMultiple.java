@@ -7,9 +7,14 @@ import java.util.List;
 
 public class SQLitePreparedStatementMultiple extends SQLitePreparedStatement {
     private final List<SQLitePreparedStatement> statements;
+    private int forceStatementIndex = -1;
 
     public SQLitePreparedStatementMultiple(List<SQLitePreparedStatement> statements) {
         this.statements = statements;
+    }
+
+    public void setForcedStatementIndex(int forceStatementIndex) {
+        this.forceStatementIndex = forceStatementIndex;
     }
 
     private interface StatementFunction<R> {
@@ -25,8 +30,12 @@ public class SQLitePreparedStatementMultiple extends SQLitePreparedStatement {
         if (statements.isEmpty()) {
             throw new RuntimeException();
         }
-        for (SQLitePreparedStatement statement : statements) {
-            result = function.apply(statement);
+        if (forceStatementIndex != -1) {
+            result = function.apply(statements.get(forceStatementIndex));
+        } else {
+            for (SQLitePreparedStatement statement : statements) {
+                result = function.apply(statement);
+            }
         }
         return result;
     }
