@@ -30421,10 +30421,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             int finalMessageIdForCell = messageIdForCell;
 
             if (added) {
-                 cell = findMessageCell(finalMessageIdForCell, true);
-                showMultipleReactionsPromo(cell, visibleReaction, currentChosenReactions);
+                ChatMessageCell tempCell = findMessageCell(finalMessageIdForCell, true);
+                showMultipleReactionsPromo(tempCell, visibleReaction, currentChosenReactions);
                 if (!fromDoubleTap) {
-                    ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, cell, fromView, x, y, visibleReaction, currentAccount, reactionsLayout != null ? (bigEmoji ? ReactionsEffectOverlay.LONG_ANIMATION : ReactionsEffectOverlay.ONLY_MOVE_ANIMATION) : ReactionsEffectOverlay.SHORT_ANIMATION);
+                    ReactionsEffectOverlay.show(ChatActivity.this, reactionsLayout, tempCell, fromView, x, y, visibleReaction, currentAccount, reactionsLayout != null ? (bigEmoji ? ReactionsEffectOverlay.LONG_ANIMATION : ReactionsEffectOverlay.ONLY_MOVE_ANIMATION) : ReactionsEffectOverlay.SHORT_ANIMATION);
                 }
             }
             if (added) {

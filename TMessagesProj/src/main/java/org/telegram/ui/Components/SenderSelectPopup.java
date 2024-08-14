@@ -82,8 +82,6 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
     protected List<SpringAnimation> springAnimations = new ArrayList<>();
     private boolean dismissed;
 
-    private final int currentAccount;
-
     private FrameLayout bulletinContainer;
     private Runnable bulletinHideCallback;
     private boolean isDismissingByBulletin;

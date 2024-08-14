@@ -641,7 +641,7 @@ public class SavedChannelCell extends BaseCell {
                     messageString = "";
                 }
             } else {
-                String restrictionReason = MessagesController.getRestrictionReason(adapter.getMessage(currentDialogId).messageOwner.restriction_reason);
+                String restrictionReason = MessagesController.getInstance(currentAccount).getRestrictionReason(adapter.getMessage(currentDialogId).messageOwner.restriction_reason);
                 TLRPC.User fromUser = null;
                 TLRPC.Chat fromChat = null;
                 long fromId = adapter.getMessage(currentDialogId).getFromChatId();
