@@ -5052,29 +5052,29 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
         if (currentDialogId == selfId) {
             if (fromUser != null) {
-                return AndroidUtilities.removeDiacritics(UserObject.getFirstName(fromUser).replace("\n", ""));
+                return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromUser.id, UserObject.getFirstName(fromUser).replace("\n", "")));
             } else if (fromChat != null) {
-                return AndroidUtilities.removeDiacritics(fromChat.title.replace("\n", ""));
+                return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromChat.id, fromChat.title.replace("\n", "")));
             }
             return null;
         } else if (message.isOutOwner()) {
             return LocaleController.getString("FromYou", R.string.FromYou);
         } else if (!isSavedDialog && message != null && message.messageOwner != null && message.messageOwner.from_id instanceof TLRPC.TL_peerUser && (user = MessagesController.getInstance(currentAccount).getUser(message.messageOwner.from_id.user_id)) != null) {
-            return AndroidUtilities.removeDiacritics(UserObject.getFirstName(user).replace("\n", ""));
+            return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, user.id, UserObject.getFirstName(user).replace("\n", "")));
         } else if (message != null && message.messageOwner != null && message.messageOwner.fwd_from != null && message.messageOwner.fwd_from.from_name != null) {
-            return AndroidUtilities.removeDiacritics(message.messageOwner.fwd_from.from_name);
+            return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, message.messageOwner.fwd_from.from_id, message.messageOwner.fwd_from.from_name));
         } else if (fromUser != null) {
             if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
                 if (UserObject.isDeleted(fromUser)) {
                     return LocaleController.getString("HiddenName", R.string.HiddenName);
                 } else {
-                    return AndroidUtilities.removeDiacritics(ContactsController.formatName(fromUser.first_name, fromUser.last_name).replace("\n", ""));
+                    return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromUser.id, ContactsController.formatName(fromUser.first_name, fromUser.last_name).replace("\n", "")));
                 }
             } else {
-                return AndroidUtilities.removeDiacritics(UserObject.getFirstName(fromUser).replace("\n", ""));
+                return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromUser.id, UserObject.getFirstName(fromUser).replace("\n", "")));
             }
         } else if (fromChat != null && fromChat.title != null) {
-            return AndroidUtilities.removeDiacritics(fromChat.title.replace("\n", ""));
+            return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromChat.id, fromChat.title.replace("\n", "")));
         } else {
             return "DELETED";
         }
