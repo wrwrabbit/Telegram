@@ -3114,7 +3114,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			}
 			NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.appDidLogout);
 			NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.dialogsHidingChanged);
-			NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.accountHidingChanged);
+			NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.accountHidingChanged);
 		}
 		SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
 		Sensor proximity = sm.getDefaultSensor(Sensor.TYPE_PROXIMITY);
@@ -3586,7 +3586,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 		updateServerConfig();
 		NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.appDidLogout);
 		NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.dialogsHidingChanged);
-		NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.accountHidingChanged);
+		NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.accountHidingChanged);
 		ConnectionsManager.getInstance(currentAccount).setAppPaused(false, false);
 	}
 

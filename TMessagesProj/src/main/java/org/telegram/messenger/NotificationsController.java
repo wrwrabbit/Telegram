@@ -506,7 +506,7 @@ public class NotificationsController extends BaseController {
     }
 
     public void removeAllNotifications() {
-        for (MessageObject message : pushMessages) {
+        for (MessageObject message : new ArrayList<>(pushMessages)) {
             if (message.messageOwner != null) {
                 removeNotificationsForDialog(message.messageOwner.dialog_id);
             }

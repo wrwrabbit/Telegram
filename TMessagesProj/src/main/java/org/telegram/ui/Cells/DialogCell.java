@@ -1296,7 +1296,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 updateMessageThumbs();
                 messageNameString = AndroidUtilities.removeDiacritics(getMessageNameString());
                 messageString = formatTopicsNames();
-                String restrictionReason = message != null ? MessagesController.getRestrictionReason(message.messageOwner.restriction_reason) : null;
+                String restrictionReason = message != null ? MessagesController.getInstance(message.currentAccount).getRestrictionReason(message.messageOwner.restriction_reason) : null;
                 buttonString = message != null ? getMessageStringFormatted(messageFormatType, restrictionReason, messageNameString, true) : "";
                 if (applyName && buttonString.length() >= 0 && messageNameString != null) {
                     SpannableStringBuilder spannableStringBuilder = SpannableStringBuilder.valueOf(buttonString);
@@ -1402,7 +1402,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             }
                         }
                     } else {
-                        String restrictionReason = MessagesController.getRestrictionReason(message.messageOwner.restriction_reason);
+                        String restrictionReason = MessagesController.getInstance(message.currentAccount).getRestrictionReason(message.messageOwner.restriction_reason);
                         TLRPC.User fromUser = null;
                         TLRPC.Chat fromChat = null;
                         long fromId = message.getFromChatId();
@@ -4204,9 +4204,40 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private PremiumGradient.PremiumGradientTools premiumGradient;
     private Drawable lockDrawable;
 
+    private int starBgColor;
+    private Drawable starFg, starBg;
+
     public boolean drawAvatarOverlays(Canvas canvas) {
-        boolean needInvalidate = false;
-        float lockT = premiumBlockedT.set(premiumBlocked);
+        boolean needInvalidate = false, stars = false;
+        if (chat != null && (chat.flags2 & 2048) != 0) {
+            stars = true;
+            float bottom =  avatarImage.getImageY2();
+            float right = avatarImage.getImageX2();
+            float checkProgress = checkBox != null && checkBox.isChecked() ? 1.0f - checkBox.getProgress() : 1.0f;
+
+            if (starBg == null) {
+                starBg = getContext().getResources().getDrawable(R.drawable.star_small_outline).mutate();
+            }
+            final int bg = Theme.getColor(Theme.key_windowBackgroundWhite);
+            if (starBgColor != bg) {
+                starBg.setColorFilter(new PorterDuffColorFilter(starBgColor = bg, PorterDuff.Mode.SRC_IN));
+            }
+            if (starFg == null) {
+                starFg = getContext().getResources().getDrawable(R.drawable.star_small_inner).mutate();
+            }
+
+            final int sz = dp(19.33f);
+            AndroidUtilities.rectTmp2.set((int) right + dp(1.66f) - sz, (int) bottom - sz, (int) right + dp(1.66f), (int) bottom);
+            AndroidUtilities.rectTmp2.inset(-dp(1), -dp(1));
+            starBg.setBounds(AndroidUtilities.rectTmp2);
+            starBg.setAlpha((int) (0xFF * checkProgress));
+            starBg.draw(canvas);
+            AndroidUtilities.rectTmp2.set((int) right + dp(1.66f) - sz, (int) bottom - sz, (int) right + dp(1.66f), (int) bottom);
+            starFg.setBounds(AndroidUtilities.rectTmp2);
+            starFg.setAlpha((int) (0xFF * checkProgress));
+            starFg.draw(canvas);
+        }
+        float lockT = premiumBlockedT.set(premiumBlocked && !stars);
         if (lockT > 0) {
             float top =  avatarImage.getCenterY() + dp(18);
             float left = avatarImage.getCenterX() + dp(18);
@@ -4234,7 +4265,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             canvas.restore();
             return false;
         }
-        if (isDialogCell && currentDialogFolderId == 0) {
+        if (isDialogCell && currentDialogFolderId == 0 && !stars) {
             showTtl = ttlPeriod > 0 && !isOnline() && !hasCall;
             if (rightFragmentOpenedProgress != 1f && (showTtl || ttlProgress > 0)) {
                 if (timerDrawable == null || (timerDrawable.getTime() != ttlPeriod && ttlPeriod > 0)) {
@@ -4876,7 +4907,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         if (message == null) {
             return;
         }
-        String restrictionReason = MessagesController.getRestrictionReason(message.messageOwner.restriction_reason);
+        String restrictionReason = MessagesController.getInstance(message.currentAccount).getRestrictionReason(message.messageOwner.restriction_reason);
         if (message != null && message.messageOwner != null && message.messageOwner.media instanceof TLRPC.TL_messageMediaPaidMedia) {
             thumbsCount = 0;
             hasVideoThumb = false;
@@ -5052,29 +5083,29 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
         if (currentDialogId == selfId) {
             if (fromUser != null) {
-                return AndroidUtilities.removeDiacritics(UserObject.getFirstName(fromUser).replace("\n", ""));
+                return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromUser.id, UserObject.getFirstName(fromUser).replace("\n", "")));
             } else if (fromChat != null) {
-                return AndroidUtilities.removeDiacritics(fromChat.title.replace("\n", ""));
+                return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromChat.id, fromChat.title.replace("\n", "")));
             }
             return null;
         } else if (message.isOutOwner()) {
             return LocaleController.getString("FromYou", R.string.FromYou);
         } else if (!isSavedDialog && message != null && message.messageOwner != null && message.messageOwner.from_id instanceof TLRPC.TL_peerUser && (user = MessagesController.getInstance(currentAccount).getUser(message.messageOwner.from_id.user_id)) != null) {
-            return AndroidUtilities.removeDiacritics(UserObject.getFirstName(user).replace("\n", ""));
+            return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, user.id, UserObject.getFirstName(user).replace("\n", "")));
         } else if (message != null && message.messageOwner != null && message.messageOwner.fwd_from != null && message.messageOwner.fwd_from.from_name != null) {
-            return AndroidUtilities.removeDiacritics(message.messageOwner.fwd_from.from_name);
+            return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, message.messageOwner.fwd_from.from_id, message.messageOwner.fwd_from.from_name));
         } else if (fromUser != null) {
             if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
                 if (UserObject.isDeleted(fromUser)) {
                     return LocaleController.getString("HiddenName", R.string.HiddenName);
                 } else {
-                    return AndroidUtilities.removeDiacritics(ContactsController.formatName(fromUser.first_name, fromUser.last_name).replace("\n", ""));
+                    return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromUser.id, ContactsController.formatName(fromUser.first_name, fromUser.last_name).replace("\n", "")));
                 }
             } else {
-                return AndroidUtilities.removeDiacritics(UserObject.getFirstName(fromUser).replace("\n", ""));
+                return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromUser.id, UserObject.getFirstName(fromUser).replace("\n", "")));
             }
         } else if (fromChat != null && fromChat.title != null) {
-            return AndroidUtilities.removeDiacritics(fromChat.title.replace("\n", ""));
+            return AndroidUtilities.removeDiacritics(UserConfig.getChatTitleOverride(currentAccount, fromChat.id, fromChat.title.replace("\n", "")));
         } else {
             return "DELETED";
         }

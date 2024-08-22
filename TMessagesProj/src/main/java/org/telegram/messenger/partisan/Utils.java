@@ -331,8 +331,8 @@ public class Utils {
             CharSequence endCharSequence = message.subSequence(lastEnd, message.length());
             if (builder.length() != 0 && endCharSequence.length() != 0) {
                 builder.append("\n\n");
-                builder.append(endCharSequence);
             }
+            builder.append(endCharSequence);
             if (builder.length() != 0) {
                 int end = builder.length() - 1;
                 while (end > 0 && Character.isWhitespace(builder.charAt(end))) {
