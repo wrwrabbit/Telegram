@@ -2993,6 +2993,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             if (historyPreloaded) {
                 lastLoadIndex++;
+            } else if (isEncryptedGroup()) {
+                waitingForLoad.remove(waitingForLoad.size() - 1);
+                for (TLRPC.EncryptedChat encryptedChat : currentEncryptedChatList) {
+                    waitingForLoad.add(lastLoadIndex);
+                    getMessagesController().loadMessages(DialogObject.makeEncryptedDialogId(encryptedChat.id), mergeDialogId, loadInfo, initialMessagesSize, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                }
             } else {
                 getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, initialMessagesSize, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
             }
@@ -19797,7 +19803,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (reversed || !addDateObjects) {
                         messages.add(obj);
                     } else {
-                        messages.add(messages.size() - 1, obj);
+                        if (isEncryptedGroup()) {
+                            final MessageObject finalObj = obj;
+                            boolean needAddMessage = !obj.isOut() || messages.stream().noneMatch(m -> m.isOut() && m.messageOwner.date == finalObj.messageOwner.date);
+                            if (needAddMessage) {
+                                messages.add(messages.size() - 1, obj);
+                            }
+                        } else {
+                            messages.add(messages.size() - 1, obj);
+                        }
                     }
                 }
                 MessageObject prevObj;
