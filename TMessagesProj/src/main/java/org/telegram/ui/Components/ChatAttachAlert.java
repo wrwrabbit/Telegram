@@ -2635,7 +2635,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             @Override
             protected void extendActionMode(ActionMode actionMode, Menu menu) {
                 if (baseFragment instanceof ChatActivity) {
-                    ChatActivity.fillActionModeMenu(menu, ((ChatActivity) baseFragment).getCurrentEncryptedChat(), true);
+                    ChatActivity.fillActionModeMenu(menu, ((ChatActivity) baseFragment).getCurrentEncryptedChatSingle(), true);
                 }
                 super.extendActionMode(actionMode, menu);
             }

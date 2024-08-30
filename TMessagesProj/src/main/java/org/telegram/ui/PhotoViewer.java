@@ -8740,7 +8740,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private boolean supportsSendingNewEntities() {
-        return parentChatActivity != null && (parentChatActivity.currentEncryptedChat == null || AndroidUtilities.getPeerLayerVersion(parentChatActivity.currentEncryptedChat.layer) >= 101);
+        return parentChatActivity != null && (!parentChatActivity.isEncryptedChat() || parentChatActivity.allCurrentEncryptedChatMatch(currentEncryptedChat -> AndroidUtilities.getPeerLayerVersion(currentEncryptedChat.layer) >= 101));
     }
 
     public boolean hasCaptionForAllMedia;
@@ -14822,7 +14822,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 }
                 if (!exists && a != 0 && messageObjectFinal != null && canStreamFinal) {
                     if (DownloadController.getInstance(currentAccount).canDownloadMedia(messageObjectFinal.messageOwner) != 0) {
-                        if ((parentChatActivity == null || parentChatActivity.getCurrentEncryptedChat() == null) && !messageObjectFinal.shouldEncryptPhotoOrVideo()) {
+                        if ((parentChatActivity == null || !parentChatActivity.isEncryptedChat()) && !messageObjectFinal.shouldEncryptPhotoOrVideo()) {
                             final TLRPC.Document document = messageObjectFinal.getDocument();
                             if (document != null) {
                                 FileLoader.getInstance(currentAccount).loadFile(document, messageObjectFinal, FileLoader.PRIORITY_LOW, 10);
@@ -15689,7 +15689,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             } else {
                 windowLayoutParams.flags = WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
             }
-            if (chatActivity != null && chatActivity.getCurrentEncryptedChat() != null ||
+            if (chatActivity != null && !chatActivity.isEncryptedChat() ||
                     avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isChatNoForwards(-avatarsDialogId) ||
                     messageObject != null && (MessagesController.getInstance(currentAccount).isChatNoForwards(messageObject.getChatId()) ||
                             (messageObject.messageOwner != null && messageObject.messageOwner.noforwards)) || messageObject != null && messageObject.hasRevealedExtendedMedia()) {

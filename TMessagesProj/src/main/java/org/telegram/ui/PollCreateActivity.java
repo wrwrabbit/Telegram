@@ -1426,7 +1426,7 @@ public class PollCreateActivity extends BaseFragment implements NotificationCent
                                 if (menu.findItem(android.R.id.copy) == null) {
                                     return;
                                 }
-                                ChatActivity.fillActionModeMenu(menu, parentFragment.getCurrentEncryptedChat(), false);
+                                ChatActivity.fillActionModeMenu(menu, parentFragment.getCurrentEncryptedChatSingle(), false);
                             }
                         }
 
@@ -1497,7 +1497,7 @@ public class PollCreateActivity extends BaseFragment implements NotificationCent
                                 if (menu.findItem(android.R.id.copy) == null) {
                                     return;
                                 }
-                                ChatActivity.fillActionModeMenu(menu, parentFragment.getCurrentEncryptedChat(), false);
+                                ChatActivity.fillActionModeMenu(menu, parentFragment.getCurrentEncryptedChatSingle(), false);
                             }
                         }
 

@@ -297,7 +297,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
             timeItem.setOnClickListener(v -> {
                 if (secretChatTimer) {
-                    parentFragment.showDialog(AlertsCreator.createTTLAlert(getContext(), parentFragment.getCurrentEncryptedChat(), resourcesProvider).create());
+                    parentFragment.showDialog(AlertsCreator.createTTLAlert(getContext(), parentFragment.getCurrentEncryptedChatSingle(), resourcesProvider).create());
                 } else {
                     openSetTimer();
                 }

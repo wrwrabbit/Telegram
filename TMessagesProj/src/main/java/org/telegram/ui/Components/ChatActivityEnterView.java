@@ -5109,7 +5109,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         } else {
             messageEditText.setWindowView(parentActivity.getWindow().getDecorView());
         }
-        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChat() : null;
+        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChatSingle() : null;
         messageEditText.setAllowTextEntitiesIntersection(supportsSendingNewEntities());
         int flags = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         if (isKeyboardSupportIncognitoMode() && encryptedChat != null) {
@@ -7015,7 +7015,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     }
 
     private boolean supportsSendingNewEntities() {
-        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChat() : null;
+        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChatSingle() : null;
         return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
     }
 
