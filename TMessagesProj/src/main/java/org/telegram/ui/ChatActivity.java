@@ -11,6 +11,8 @@ package org.telegram.ui;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
+import static java.util.stream.Collectors.toCollection;
+
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -289,6 +291,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -320,7 +323,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     protected TLRPC.User currentUser;
     //protected TLRPC.EncryptedChat currentEncryptedChat;
     protected TLRPC.EncryptedChat currentEncryptedChatSingle;
-    protected List<TLRPC.EncryptedChat> currentEncryptedChatList;
+    protected ArrayList<TLRPC.EncryptedChat> currentEncryptedChatList;
     private boolean userBlocked;
 
     private long chatInviterId;
@@ -2441,6 +2444,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final long chatId = arguments.getLong("chat_id", 0);
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
+        ArrayList<Integer> encIds = arguments.getIntegerArrayList("enc_ids");
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);
@@ -2588,6 +2592,39 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
             dialog_id = DialogObject.makeEncryptedDialogId(encId);
+            maxMessageId[0] = maxMessageId[1] = Integer.MIN_VALUE;
+            minMessageId[0] = minMessageId[1] = Integer.MAX_VALUE;
+        } else if (encIds != null) {
+            currentEncryptedChatList = encIds.stream()
+                    .map(id -> getMessagesController().getEncryptedChat(id))
+                    .filter(Objects::nonNull)
+                    .collect(toCollection(ArrayList::new));
+            final MessagesStorage messagesStorage = getMessagesStorage();
+            if (currentEncryptedChatList.isEmpty()) {
+                final CountDownLatch countDownLatch = new CountDownLatch(1);
+                messagesStorage.getStorageQueue().postRunnable(() -> {
+                    currentEncryptedChatList = encIds.stream()
+                            .map(id -> getMessagesController().getEncryptedChat(id))
+                            .filter(Objects::nonNull)
+                            .collect(toCollection(ArrayList::new));
+                    countDownLatch.countDown();
+                });
+                try {
+                    countDownLatch.await();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                if (!currentEncryptedChatList.isEmpty()) {
+                    for (TLRPC.EncryptedChat encryptedChat : currentEncryptedChatList) {
+                        getMessagesController().putEncryptedChat(encryptedChat, true);
+                    }
+                } else {
+                    currentEncryptedChatList = null;
+                    return false;
+                }
+            }
+            currentUser = null;
+            dialog_id = 0;
             maxMessageId[0] = maxMessageId[1] = Integer.MIN_VALUE;
             minMessageId[0] = minMessageId[1] = Integer.MAX_VALUE;
         } else if (chatMode == MODE_EDIT_BUSINESS_LINK) {
@@ -4219,6 +4256,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 did = dialog_id;
             } else if (currentUser != null && currentUser.id != 0) {
                 did = currentUser.id;
+            } else if (currentEncryptedChatList != null) {
+                did = 0;
             } else {
                 did = -currentChat.id;
             }
@@ -12368,6 +12407,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Bundle bundle = new Bundle();
         if (currentEncryptedChatSingle != null) {
             bundle.putInt("enc_id", currentEncryptedChatSingle.id);
+        } else if (currentEncryptedChatList != null) {
+            bundle.putIntegerArrayList("enc_ids", currentEncryptedChatList.stream().map(c -> c.id).collect(toCollection(ArrayList::new)));
         } else if (currentChat != null) {
             bundle.putLong("chat_id", currentChat.id);
         } else {
@@ -18433,6 +18474,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             avatarContainer.setTitle(LocaleController.formatPluralString("PinnedMessagesCount", getPinnedMessagesCount()));
         } else if (currentChat != null) {
             avatarContainer.setTitle(AndroidUtilities.removeDiacritics(getUserConfig().getChatTitleOverride(currentChat)), currentChat.isScam(), currentChat.isFake(), currentChat.isVerified(), false, currentChat.emoji_status, animated);
+        } else if (currentEncryptedChatList != null) {
+            avatarContainer.setTitle("Encrypted Group");
         } else if (currentUser != null) {
             if (currentUser.self) {
                 avatarContainer.setTitle(LocaleController.getString("SavedMessages", R.string.SavedMessages));
@@ -19270,6 +19313,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 Bundle bundle = new Bundle();
                                 if (currentEncryptedChatSingle != null) {
                                     bundle.putInt("enc_id", currentEncryptedChatSingle.id);
+                                } else if (currentEncryptedChatList != null) {
+                                    bundle.putIntegerArrayList("enc_ids", currentEncryptedChatList.stream().map(c -> c.id).collect(toCollection(ArrayList::new)));
                                 } else if (currentChat != null) {
                                     bundle.putLong("chat_id", currentChat.id);
                                 } else {
@@ -30240,8 +30285,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         } else {
             bigEmptyView = new ChatBigEmptyView(getContext(), contentView, ChatBigEmptyView.EMPTY_VIEW_TYPE_SECRET, themeDelegate);
-            if (currentEncryptedChatSingle.admin_id == getUserConfig().getClientUserId()) {
+            if (currentEncryptedChatSingle != null && currentEncryptedChatSingle.admin_id == getUserConfig().getClientUserId()) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, UserObject.getFirstName(currentUser)));
+            } else if (currentEncryptedChatList != null) {
+                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, "Encrypted Group"));
             } else {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleIncoming", R.string.EncryptedPlaceholderTitleIncoming, UserObject.getFirstName(currentUser)));
             }
@@ -40362,5 +40409,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             return false;
         }
+    }
+
+    public boolean isEncryptedGroup() {
+        return currentEncryptedChatList != null;
+    }
+
+    public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {
+        return currentEncryptedChatList;
     }
 }

@@ -8262,7 +8262,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else {
             Bundle args = new Bundle();
             if (DialogObject.isEncryptedDialog(dialogId)) {
-                args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
+                if (BuildVars.isAlphaApp() && adapter instanceof DialogsAdapter) {
+                    DialogsAdapter dialogsAdapter = (DialogsAdapter) adapter;
+                    ArrayList<Integer> ids = new ArrayList<>();
+                    for (int i = 0; i < dialogsAdapter.getItemCount(); i++) {
+                        TLObject object = dialogsAdapter.getItem(i);
+                        if (object instanceof TLRPC.TL_dialog) {
+                            TLRPC.TL_dialog dialog = (TLRPC.TL_dialog)object;
+                            if (DialogObject.isEncryptedDialog(dialog.id)) {
+                                ids.add(DialogObject.getEncryptedChatId(dialog.id));
+                            }
+                        }
+                    }
+
+                    args.putIntegerArrayList("enc_ids", ids);
+                } else {
+                    args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
+                }
             } else if (DialogObject.isUserDialog(dialogId)) {
                 args.putLong("user_id", dialogId);
             } else {

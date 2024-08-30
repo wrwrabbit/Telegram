@@ -6995,7 +6995,14 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     setWebPage(null, true);
                     parentFragment.fallbackFieldPanel();
                 }
-                SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                if (parentFragment != null && parentFragment.isEncryptedGroup()) {
+                    for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList()) {
+                        params.peer = DialogObject.makeEncryptedDialogId(chat.id);
+                        SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                    }
+                } else {
+                    SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                }
                 start = end + 1;
             } while (end != text.length());
             return true;
