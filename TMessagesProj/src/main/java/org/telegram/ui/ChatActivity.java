@@ -22747,7 +22747,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             final MessageObject finalObj = obj;
             boolean needAddMessage = !obj.isOut() || messages.stream().noneMatch(m -> m.isOut() && m.messageOwner.date == finalObj.messageOwner.date);
             if (needAddMessage) {
-                messages.add(pos, obj);
+                messages.add(obj);
+                messages.sort(Collections.reverseOrder(Comparator.comparingInt(m -> m.messageOwner.date)));
                 return true;
             } else {
                 return false;
