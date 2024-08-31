@@ -240,7 +240,6 @@ import org.telegram.ui.Components.StickersAlert;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.ViewPagerFixed;
-import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 import org.telegram.ui.Stories.DialogStoriesCell;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
@@ -255,6 +254,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class DialogsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, FloatingDebugProvider {
 
@@ -496,6 +496,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Nullable
     private ActionBarMenuSubItem readItem;
     @Nullable
+    private ActionBarMenuSubItem secretGroupDebugItem;
+    @Nullable
     private ActionBarMenuSubItem blockItem;
     private ActionBarMenuSubItem saveItem;
 
@@ -603,6 +605,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private int canUnarchiveCount;
     private int forumCount;
     private boolean canDeletePsaSelected;
+    private boolean secretChatsForDebugSecretGroupSelected;
 
     private int topPadding;
     private int lastMeasuredTopPadding;
@@ -621,6 +624,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private final static int add_to_folder = 109;
     private final static int remove_from_folder = 110;
     private final static int save = 400;
+    private final static int secret_group_debug = 401;
 
     private final static int ARCHIVE_ITEM_STATE_PINNED = 0;
     private final static int ARCHIVE_ITEM_STATE_SHOWED = 1;
@@ -3844,7 +3848,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         undoView.showWithAction(did, UndoView.ACTION_REMOVED_FROM_FOLDER, neverShow.size(), filter, null, null);
                     }
                     hideActionMode(false);
-                } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2 || id == save) {
+                } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2 || id == save || id == secret_group_debug) {
                     performSelectedDialogsAction(selectedDialogs, id, true, false);
                 }
             }
@@ -6648,6 +6652,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         addToFolderItem = otherItem.addSubItem(add_to_folder, R.drawable.msg_addfolder, LocaleController.getString("FilterAddTo", R.string.FilterAddTo));
         removeFromFolderItem = otherItem.addSubItem(remove_from_folder, R.drawable.msg_removefolder, LocaleController.getString("FilterRemoveFrom", R.string.FilterRemoveFrom));
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString("MarkAsRead", R.string.MarkAsRead));
+        if (BuildVars.isAlphaApp()) {
+            secretGroupDebugItem = otherItem.addSubItem(secret_group_debug, R.drawable.large_locked_post, "Open Secret Group");
+        }
         clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString("ClearHistory", R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString("BlockUser", R.string.BlockUser));
         saveItem = otherItem.addSubItem(save, R.drawable.msg_fave, LocaleController.getString("Save", R.string.Save));
@@ -8262,23 +8269,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else {
             Bundle args = new Bundle();
             if (DialogObject.isEncryptedDialog(dialogId)) {
-                if (BuildVars.isAlphaApp() && adapter instanceof DialogsAdapter) {
-                    DialogsAdapter dialogsAdapter = (DialogsAdapter) adapter;
-                    ArrayList<Integer> ids = new ArrayList<>();
-                    for (int i = 0; i < dialogsAdapter.getItemCount(); i++) {
-                        TLObject object = dialogsAdapter.getItem(i);
-                        if (object instanceof TLRPC.TL_dialog) {
-                            TLRPC.TL_dialog dialog = (TLRPC.TL_dialog)object;
-                            if (DialogObject.isEncryptedDialog(dialog.id)) {
-                                ids.add(DialogObject.getEncryptedChatId(dialog.id));
-                            }
-                        }
-                    }
-
-                    args.putIntegerArrayList("enc_ids", ids);
-                } else {
-                    args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
-                }
+                args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
             } else if (DialogObject.isUserDialog(dialogId)) {
                 args.putLong("user_id", dialogId);
             } else {
@@ -9495,6 +9486,28 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 } else {
                     markAsUnread(selectedDialog);
                 }
+            } else if (action == secret_group_debug) {
+                Bundle args = new Bundle();
+                ArrayList<Integer> ids = selectedDialogs.stream()
+                        .map(id -> DialogObject.getEncryptedChatId(dialog.id))
+                        .collect(Collectors.toCollection(ArrayList::new));
+                args.putIntegerArrayList("enc_ids", ids);
+
+                args.putInt("dialog_folder_id", folderId);
+                if (searchViewPager != null && searchViewPager.actionModeShowing()) {
+                    searchViewPager.hideActionMode();
+                }
+
+                slowedReloadAfterDialogClick = true;
+                if (getMessagesController().checkCanOpenChat(args, DialogsActivity.this)) {
+                    ChatActivity chatActivity = new ChatActivity(args);
+                    if (AndroidUtilities.isTablet()) {
+                        if (rightSlidingDialogContainer.currentFragment != null) {
+                            rightSlidingDialogContainer.finishPreview();
+                        }
+                    }
+                    presentFragment(chatActivity);
+                }
             } else if (action == delete || action == clear) {
                 if (count == 1) {
                     if (action == delete && canDeletePsaSelected) {
@@ -9822,6 +9835,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         canMuteCount = 0;
         canPinCount = 0;
         canReadCount = 0;
+        secretChatsForDebugSecretGroupSelected = true;
         forumCount = 0;
         canClearCacheCount = 0;
         int cantBlockCount = 0;
@@ -9853,6 +9867,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             if (hasUnread) {
                 canReadCount++;
+            }
+
+            if (!DialogObject.isEncryptedDialog(dialog.id) || count == 1) {
+                secretChatsForDebugSecretGroupSelected = false;
             }
 
             if (folderId == 1 || dialog.folder_id == 1) {
@@ -10044,6 +10062,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     readItem.setVisibility(View.GONE);
                 }
             }
+        }
+        if (secretGroupDebugItem != null) {
+            secretGroupDebugItem.setVisibility(secretChatsForDebugSecretGroupSelected ? View.VISIBLE : View.GONE);
         }
         if (pinItem != null && pin2Item != null) {
             if (canPinCount != 0) {
