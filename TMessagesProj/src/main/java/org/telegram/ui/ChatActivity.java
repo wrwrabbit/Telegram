@@ -278,7 +278,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.IDN;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19803,15 +19802,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (reversed || !addDateObjects) {
                         messages.add(obj);
                     } else {
-                        if (isEncryptedGroup()) {
-                            final MessageObject finalObj = obj;
-                            boolean needAddMessage = !obj.isOut() || messages.stream().noneMatch(m -> m.isOut() && m.messageOwner.date == finalObj.messageOwner.date);
-                            if (needAddMessage) {
-                                messages.add(messages.size() - 1, obj);
-                            }
-                        } else {
-                            messages.add(messages.size() - 1, obj);
-                        }
+                        addMessage(messages.size() - 1, obj);
                     }
                 }
                 MessageObject prevObj;
@@ -20449,7 +20440,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             long did = (Long) args[0];
             ArrayList<MessageObject> arr = (ArrayList<MessageObject>) args[1];
             if (isInsideContainer) return;
-            if (did == dialog_id) {
+            if (did == dialog_id || isEncryptedGroup() && currentEncryptedChatList.stream().anyMatch(c -> DialogObject.makeEncryptedDialogId(c.id) == did)) {
                 boolean scheduled = (Boolean) args[2];
                 int mode = (Integer) args[3];
                 if (mode != chatMode && chatMode != MODE_SAVED) {
@@ -22751,6 +22742,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    private boolean addMessage(int pos ,MessageObject obj) {
+        if (isEncryptedGroup()) {
+            final MessageObject finalObj = obj;
+            boolean needAddMessage = !obj.isOut() || messages.stream().noneMatch(m -> m.isOut() && m.messageOwner.date == finalObj.messageOwner.date);
+            if (needAddMessage) {
+                messages.add(pos, obj);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            messages.add(pos, obj);
+            return true;
+        }
+    }
+
     private AlertDialog quoteMessageUpdateAlert;
     public void showQuoteMessageUpdate() {
         if (quoteMessageUpdateAlert != null) {
@@ -23939,7 +23946,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 obj.stableId = lastStableId++;
                 getMessagesController().getTranslateController().checkTranslation(obj, false);
-                messages.add(placeToPaste, obj);
+                if (!addMessage(placeToPaste, obj)) {
+                    return;
+                }
                 if (placeToPaste == 0 && !obj.isSponsored()) {
                     needMoveScrollToLastMessage = true;
                 }
