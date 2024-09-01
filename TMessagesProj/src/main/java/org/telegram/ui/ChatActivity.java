@@ -12119,11 +12119,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     fillEditingMediaWithCaption(photos.get(0).caption, photos.get(0).entities);
                                     updateStickersOrder = photos.get(0).updateStickersOrder;
                                 }
-                                if (autoDeleteDelay != null) {
-                                    SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrder, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
-                                } else {
-                                    SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrder, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia);
-                                }
+                                final boolean updateStickersOrderFinal = updateStickersOrder;
+                                forEachDialogId(dialog_id -> {
+                                    if (autoDeleteDelay != null) {
+                                        SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrderFinal, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
+                                    } else {
+                                        SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrderFinal, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia);
+                                    }
+                                });
                             }
                             afterMessageSend();
                             chatActivityEnterView.setFieldText("");
