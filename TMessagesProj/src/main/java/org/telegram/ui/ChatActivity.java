@@ -3004,7 +3004,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         if ((chatMode == 0 || chatMode == MODE_SAVED && getSavedDialogId() == getUserConfig().getClientUserId()) && (!isThreadChat() || isTopic)) {
             waitingForLoad.add(lastLoadIndex);
-            getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 1, 0, 0, true, 0, classGuid, 2, 0, MODE_SCHEDULED, chatMode == MODE_SAVED ? 0 : threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+            if (isEncryptedGroup()) {
+                waitingForLoad.remove(waitingForLoad.size() - 1);
+                for (TLRPC.EncryptedChat encryptedChat : currentEncryptedChatList) {
+                    waitingForLoad.add(lastLoadIndex);
+                    getMessagesController().loadMessages(DialogObject.makeEncryptedDialogId(encryptedChat.id), mergeDialogId, false, 1, 0, 0, true, 0, classGuid, 2, 0, MODE_SCHEDULED, chatMode == MODE_SAVED ? 0 : threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                }
+            } else {
+                getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 1, 0, 0, true, 0, classGuid, 2, 0, MODE_SCHEDULED, chatMode == MODE_SAVED ? 0 : threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+            }
         }
 //        };
 //        getMessagesController().checkSensitive(this, dialog_id, load, this::finishFragment);
