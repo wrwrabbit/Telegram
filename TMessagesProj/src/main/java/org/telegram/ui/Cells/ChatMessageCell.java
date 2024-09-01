@@ -1247,6 +1247,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean invalidatesParent;
 
     public boolean isChat;
+    public boolean isEncryptedGroup;
     public boolean isSavedChat;
     public boolean isSavedPreviewChat;
     public boolean isBot;
@@ -16897,7 +16898,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         return (
             isPinnedChat && currentMessageObject.type == MessageObject.TYPE_TEXT ||
-            !pinnedTop && drawName && isChat && (!currentMessageObject.isOutOwner() || currentMessageObject.isSupergroup() && currentMessageObject.isFromGroup() || currentMessageObject.isRepostPreview) ||
+            !pinnedTop && drawName && (isChat || isEncryptedGroup) && (!currentMessageObject.isOutOwner() || currentMessageObject.isSupergroup() && currentMessageObject.isFromGroup() || currentMessageObject.isRepostPreview) ||
             currentMessageObject.isImportedForward() && currentMessageObject.messageOwner.fwd_from.from_id == null
         );
     }
@@ -17528,7 +17529,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 currentBackgroundShadowDrawable = currentBackgroundDrawable.getShadowDrawable();
             }
 
-            backgroundDrawableLeft = AndroidUtilities.dp(((isChat || currentMessageObject != null && (currentMessageObject.isRepostPreview || currentMessageObject.forceAvatar)) && isAvatarVisible ? 48 : 0) + (!mediaBackground ? 3 : 9));
+            backgroundDrawableLeft = AndroidUtilities.dp((((isChat || isEncryptedGroup) || currentMessageObject != null && (currentMessageObject.isRepostPreview || currentMessageObject.forceAvatar)) && isAvatarVisible ? 48 : 0) + (!mediaBackground ? 3 : 9));
             backgroundDrawableRight = backgroundWidth - (mediaBackground ? 0 : AndroidUtilities.dp(3));
             if (currentMessagesGroup != null && !currentMessagesGroup.isDocuments) {
                 if (!currentPosition.edge) {
@@ -24526,8 +24527,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public boolean needDrawAvatar() {
         return (
-            isChat && !isSavedPreviewChat && (!isThreadPost || isForum) && (
-                currentMessageObject != null && !currentMessageObject.isOutOwner() && currentMessageObject.needDrawAvatar()
+            (isChat || isEncryptedGroup) && !isSavedPreviewChat && (!isThreadPost || isForum) && (
+                currentMessageObject != null && !currentMessageObject.isOutOwner() && (currentMessageObject.needDrawAvatar() || isEncryptedGroup)
             ) ||
             currentMessageObject != null && currentMessageObject.forceAvatar
         );
