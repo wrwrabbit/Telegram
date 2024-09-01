@@ -232,7 +232,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         };
         if (baseFragment instanceof ChatActivity || baseFragment instanceof TopicsFragment) {
             if (parentFragment == null || (parentFragment.getChatMode() != ChatActivity.MODE_QUICK_REPLIES && parentFragment.getChatMode() != ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
-                sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
+                if (!parentFragment.isEncryptedChat()) {
+                    sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
+                }
             }
             if (parentFragment != null && (parentFragment.isThreadChat() || parentFragment.getChatMode() == ChatActivity.MODE_PINNED || parentFragment.getChatMode() == ChatActivity.MODE_QUICK_REPLIES || parentFragment.getChatMode() == ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
                 avatarImageView.setVisibility(GONE);
