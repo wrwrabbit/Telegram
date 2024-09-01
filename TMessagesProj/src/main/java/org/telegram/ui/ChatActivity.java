@@ -15385,7 +15385,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 } else {
                     inlineUpdate1();
                 }
-                getMessagesController().markDialogAsRead(dialog_id, maxPositiveUnreadId, maxNegativeUnreadId, maxUnreadDate, false, threadId, counterDecrement, maxPositiveUnreadId == minMessageId[0] || maxNegativeUnreadId == minMessageId[0], scheduledRead);
+                int finalMaxPositiveUnreadId = maxPositiveUnreadId;
+                int finalMaxNegativeUnreadId = maxNegativeUnreadId;
+                int finalMaxUnreadDate = maxUnreadDate;
+                int finalCounterDecrement = counterDecrement;
+                int finalMaxPositiveUnreadId1 = maxPositiveUnreadId;
+                int finalMaxNegativeUnreadId1 = maxNegativeUnreadId;
+                int finalScheduledRead = scheduledRead;
+                forEachDialogId(dialog_id -> {
+                    getMessagesController().markDialogAsRead(dialog_id, finalMaxPositiveUnreadId, finalMaxNegativeUnreadId, finalMaxUnreadDate, false, threadId, finalCounterDecrement, finalMaxPositiveUnreadId1 == minMessageId[0] || finalMaxNegativeUnreadId1 == minMessageId[0], finalScheduledRead);
+                });
                 firstUnreadSent = true;
             } else if (!firstUnreadSent && !isEncryptedChat()) {
                 if (chatLayoutManager.findFirstVisibleItemPosition() == 0 && !startLoadFromMessageRestored) {
