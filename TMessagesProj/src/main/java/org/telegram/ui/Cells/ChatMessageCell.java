@@ -11648,7 +11648,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         x = layoutWidth - backgroundWidth + AndroidUtilities.dp(6);
                     }
                 } else {
-                    if ((isChat || currentMessageObject.isRepostPreview) && isAvatarVisible && !isPlayingRound) {
+                    if (((isChat || isEncryptedGroup) || currentMessageObject.isRepostPreview) && isAvatarVisible && !isPlayingRound) {
                         x = AndroidUtilities.dp(63);
                     } else {
                         x = AndroidUtilities.dp(15);
