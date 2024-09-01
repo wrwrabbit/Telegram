@@ -291,6 +291,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -299,6 +300,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider, AllowShowingActivityInterface, InstantCameraView.Delegate {
@@ -759,6 +761,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private HashMap<String, ArrayList<MessageObject>> messagesByDays = new HashMap<>();
     private SparseArray<ArrayList<MessageObject>> messagesByDaysSorted = new SparseArray<>();
     public ArrayList<MessageObject> messages = new ArrayList<>();
+    public Map<Integer, List<MessageObject>> hiddenEncryptedGroupOutMessages = new HashMap<>();
     private SparseArray<MessageObject> waitingForReplies = new SparseArray<>();
     private LongSparseArray<ArrayList<MessageObject>> polls = new LongSparseArray<>();
     private LongSparseArray<MessageObject.GroupedMessages> groupedMessagesMap = new LongSparseArray<>();
@@ -22750,15 +22753,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
-    private boolean addMessage(int pos ,MessageObject obj) {
+    private boolean addMessage(int pos, MessageObject obj) {
         if (isEncryptedGroup()) {
-            final MessageObject finalObj = obj;
-            boolean needAddMessage = !obj.isOut() || messages.stream().noneMatch(m -> m.isOut() && m.messageOwner.date == finalObj.messageOwner.date);
+            boolean needAddMessage = !obj.isOut() || obj.getDialogId() == DialogObject.makeEncryptedDialogId(currentEncryptedChatList.get(0).id);
             if (needAddMessage) {
                 messages.add(obj);
                 messages.sort(Collections.reverseOrder(Comparator.comparingInt(m -> m.messageOwner.date)));
                 return true;
             } else {
+                Optional<Integer> visibleMessageId = messages.stream()
+                        .filter(m -> m.isOut())
+                        .min(Comparator.comparingInt(m -> m.messageOwner.date <= obj.messageOwner.date ? obj.messageOwner.date - m.messageOwner.date : Integer.MAX_VALUE))
+                        .map(m -> m.getId());
+                if (visibleMessageId.isPresent()) {
+                    List<MessageObject> massageCopies = hiddenEncryptedGroupOutMessages.computeIfAbsent(visibleMessageId.get(), k -> new ArrayList<>());
+                    massageCopies.add(obj);
+                }
                 return false;
             }
         } else {
@@ -28180,7 +28190,44 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         AlertsCreator.createDeleteMessagesAlert(this, currentUser, currentChat, currentEncryptedChatSingle, chatInfo, mergeDialogId, finalSelectedObject, selectedMessagesIds, finalSelectedGroup, (int) getTopicId(), chatMode, null, () -> {
             hideActionMode();
             updatePinnedMessageView(true);
-        }, hideDimAfter ? () -> dimBehindView(false) : null, themeDelegate);
+        }, hideDimAfter ? () -> dimBehindView(false) : null, themeDelegate, createEncryptedMessagesMapToDelete(finalSelectedObject));
+    }
+
+    private Map<TLRPC.EncryptedChat, List<MessageObject>> createEncryptedMessagesMapToDelete(MessageObject finalSelectedObject) {
+        if (currentEncryptedChatList == null) {
+            return null;
+        }
+        List<MessageObject> srcMessages;
+        if (finalSelectedObject != null) {
+            srcMessages = Collections.singletonList(finalSelectedObject);
+        } else {
+            srcMessages = new ArrayList<>();
+            for (int a = 1; a >= 0; a--) {
+                for (int b = 0; b < selectedMessagesIds[a].size(); b++) {
+                    srcMessages.add(selectedMessagesIds[a].valueAt(b));
+                }
+            }
+        }
+        Map<TLRPC.EncryptedChat, List<MessageObject>> encryptedGroupMessages = new HashMap<>();
+        for (MessageObject message : srcMessages) {
+            List<MessageObject> messageCopies;
+            if (message.isOut()) {
+                messageCopies = new ArrayList<>(hiddenEncryptedGroupOutMessages.get(message.getId()));
+                messageCopies.add(message);
+            } else {
+                messageCopies = Collections.singletonList(message);
+            }
+            for (MessageObject messageCopy : messageCopies) {
+                long dialogId = messageCopy.getDialogId();
+                TLRPC.EncryptedChat encryptedChat = currentEncryptedChatList.stream()
+                        .filter(c -> DialogObject.makeEncryptedDialogId(c.id) == dialogId)
+                        .findAny()
+                        .orElse(null);
+                List<MessageObject> dialogMessages = encryptedGroupMessages.computeIfAbsent(encryptedChat, k -> new ArrayList<>());
+                dialogMessages.add(messageCopy);
+            }
+        }
+        return encryptedGroupMessages;
     }
 
     private void hideActionMode() {

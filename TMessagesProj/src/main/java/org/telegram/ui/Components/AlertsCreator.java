@@ -11,6 +11,8 @@ package org.telegram.ui.Components;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
+import static java.util.stream.Collectors.toCollection;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -6201,11 +6203,11 @@ public class AlertsCreator {
         void didPressedNewCard();
     }
 
-    public static void createDeleteMessagesAlert(BaseFragment fragment, TLRPC.User user, TLRPC.Chat chat, TLRPC.EncryptedChat encryptedChat, TLRPC.ChatFull chatInfo, long mergeDialogId, MessageObject selectedMessage, SparseArray<MessageObject>[] selectedMessages, MessageObject.GroupedMessages selectedGroup, int topicId, int mode, TLRPC.ChannelParticipant[] channelParticipants, Runnable onDelete, Runnable hideDim, Theme.ResourcesProvider resourcesProvider) {
+    public static void createDeleteMessagesAlert(BaseFragment fragment, TLRPC.User user, TLRPC.Chat chat, TLRPC.EncryptedChat encryptedChat, TLRPC.ChatFull chatInfo, long mergeDialogId, MessageObject selectedMessage, SparseArray<MessageObject>[] selectedMessages, MessageObject.GroupedMessages selectedGroup, int topicId, int mode, TLRPC.ChannelParticipant[] channelParticipants, Runnable onDelete, Runnable hideDim, Theme.ResourcesProvider resourcesProvider, Map<TLRPC.EncryptedChat, List<MessageObject>> encryptedGroupMessages) {
         final boolean scheduled = mode == ChatActivity.MODE_SCHEDULED;
         final boolean isSavedMessages = mode == ChatActivity.MODE_SAVED;
         final boolean quickReplies = mode == ChatActivity.MODE_QUICK_REPLIES;
-        if (fragment == null || user == null && chat == null && encryptedChat == null) {
+        if (fragment == null || user == null && chat == null && encryptedChat == null && encryptedGroupMessages == null) {
             return;
         }
         Activity activity = fragment.getParentActivity();
@@ -6230,8 +6232,10 @@ public class AlertsCreator {
             dialogId = DialogObject.makeEncryptedDialogId(encryptedChat.id);
         } else if (user != null) {
             dialogId = user.id;
-        } else {
+        } else if (chat != null) {
             dialogId = -chat.id;
+        } else {
+            dialogId = 0;
         }
 
         int currentDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
@@ -6350,7 +6354,7 @@ public class AlertsCreator {
                                 }
                                 progressDialog[0] = null;
 
-                                createDeleteMessagesAlert(fragment, user, chat, encryptedChat, chatInfo, mergeDialogId, selectedMessage, selectedMessages, selectedGroup, topicId, mode, channelParticipantsLoad, onDelete, hideDim, resourcesProvider);
+                                createDeleteMessagesAlert(fragment, user, chat, encryptedChat, chatInfo, mergeDialogId, selectedMessage, selectedMessages, selectedGroup, topicId, mode, channelParticipantsLoad, onDelete, hideDim, resourcesProvider, encryptedGroupMessages);
                             }
                         }));
                     }
@@ -6462,7 +6466,7 @@ public class AlertsCreator {
             }
         }
 
-        DialogInterface.OnClickListener deleteAction = (dialogInterface, i) -> {
+        DialogInterface.OnClickListener originalDeleteAction = (dialogInterface, i) -> {
             ArrayList<Integer> ids = null;
             long thisDialogId = dialogId;
             if (isSavedMessages) {
@@ -6517,6 +6521,29 @@ public class AlertsCreator {
                 onDelete.run();
             }
         };
+
+        DialogInterface.OnClickListener encryptedGroupDeleteAction = (dialogInterface, i) -> {
+            for (Map.Entry<TLRPC.EncryptedChat, List<MessageObject>> dialogEntry : encryptedGroupMessages.entrySet()) {
+                TLRPC.EncryptedChat currentEncryptedChat = dialogEntry.getKey();
+                List<MessageObject> messages = dialogEntry.getValue();
+                ArrayList<Integer> ids = messages.stream()
+                        .map(MessageObject::getId)
+                        .collect(toCollection(ArrayList::new));
+                ArrayList<Long> random_ids = messages.stream()
+                        .filter(m -> m.messageOwner.random_id != 0 && m.type != 10)
+                        .map(m -> m.messageOwner.random_id)
+                        .collect(toCollection(ArrayList::new));
+                MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, currentEncryptedChat,
+                        DialogObject.makeEncryptedDialogId(currentEncryptedChat.id), topicId, deleteForAll[0], mode);
+            }
+            if (onDelete != null) {
+                onDelete.run();
+            }
+        };
+
+        DialogInterface.OnClickListener deleteAction = encryptedGroupMessages != null
+                ? encryptedGroupDeleteAction
+                : originalDeleteAction;
 
         if (isSavedMessages) {
             if (count == 1) {
