@@ -27669,7 +27669,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     }
                 }
-                if (messageId != 0) {
+                if (messageId != 0 && !isEncryptedGroup()) {
                     editor.putInt("diditem" + NotificationsController.getSharedPrefKey(dialog_id, getTopicId()), messageId);
                     editor.putInt("diditemo" + NotificationsController.getSharedPrefKey(dialog_id, getTopicId()), offset);
                 } else {
