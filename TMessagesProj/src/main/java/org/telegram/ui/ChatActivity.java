@@ -34314,10 +34314,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 } else {
                                     pinnedBottom = false;
                                 }
-                            } else if (currentChat != null) {
+                            } else if (currentChat != null || isEncryptedChat()) {
                                 long fromId = nextMessage.getFromChatId();
                                 pinnedBottom = fromId == message.getFromChatId();
-                                if (!pinnedBottomByGroup && pinnedBottom && fromId < 0 && currentChat.megagroup) {
+                                if (!pinnedBottomByGroup && pinnedBottom && fromId < 0 && currentChat != null && currentChat.megagroup) {
                                     pinnedBottom = false;
                                 }
                             } else if (UserObject.isUserSelf(currentUser) || UserObject.isReplyUser(currentUser)) {
@@ -34351,10 +34351,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 } else {
                                     pinnedTop = false;
                                 }
-                            } else if (currentChat != null) {
+                            } else if (currentChat != null || isEncryptedChat()) {
                                 long fromId = prevMessage.getFromChatId();
                                 pinnedTop = fromId == message.getFromChatId() && !message.isImportedForward() && !prevMessage.isImportedForward();
-                                if (!pinnedTopByGroup && pinnedTop && fromId < 0 && currentChat.megagroup) {
+                                if (!pinnedTopByGroup && pinnedTop && fromId < 0 && currentChat != null && currentChat.megagroup) {
                                     pinnedTop = false;
                                 }
                                 if (pinnedTop && isForumInViewAsMessagesMode()) {
