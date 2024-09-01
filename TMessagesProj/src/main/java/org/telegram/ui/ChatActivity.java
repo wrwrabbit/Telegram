@@ -2992,27 +2992,19 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             if (historyPreloaded) {
                 lastLoadIndex++;
-            } else if (isEncryptedGroup()) {
-                waitingForLoad.remove(waitingForLoad.size() - 1);
-                for (TLRPC.EncryptedChat encryptedChat : currentEncryptedChatList) {
-                    waitingForLoad.add(lastLoadIndex);
-                    getMessagesController().loadMessages(DialogObject.makeEncryptedDialogId(encryptedChat.id), mergeDialogId, loadInfo, initialMessagesSize, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
-                }
             } else {
-                getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, initialMessagesSize, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                waitingForLoad.remove(waitingForLoad.size() - 1);
+                forEachDialogId(dialog_id -> {
+                    waitingForLoad.add(lastLoadIndex);
+                    getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, initialMessagesSize, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                });
             }
         }
         if ((chatMode == 0 || chatMode == MODE_SAVED && getSavedDialogId() == getUserConfig().getClientUserId()) && (!isThreadChat() || isTopic)) {
-            waitingForLoad.add(lastLoadIndex);
-            if (isEncryptedGroup()) {
-                waitingForLoad.remove(waitingForLoad.size() - 1);
-                for (TLRPC.EncryptedChat encryptedChat : currentEncryptedChatList) {
-                    waitingForLoad.add(lastLoadIndex);
-                    getMessagesController().loadMessages(DialogObject.makeEncryptedDialogId(encryptedChat.id), mergeDialogId, false, 1, 0, 0, true, 0, classGuid, 2, 0, MODE_SCHEDULED, chatMode == MODE_SAVED ? 0 : threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
-                }
-            } else {
+            forEachDialogId(dialog_id -> {
+                waitingForLoad.add(lastLoadIndex);
                 getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 1, 0, 0, true, 0, classGuid, 2, 0, MODE_SCHEDULED, chatMode == MODE_SAVED ? 0 : threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
-            }
+            });
         }
 //        };
 //        getMessagesController().checkSensitive(this, dialog_id, load, this::finishFragment);
@@ -13189,7 +13181,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (messagesByDays.size() != 0) {
                         getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 50, maxMessageId[0], 0, !cacheEndReached[0], minDate[0], classGuid, 0, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                     } else {
-                        getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 50, 0, 0, !cacheEndReached[0], minDate[0], classGuid, 0, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                        waitingForLoad.remove(waitingForLoad.size() - 1);
+                        forEachDialogId(dialog_id -> {
+                            waitingForLoad.add(lastLoadIndex);
+                            getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 50, 0, 0, !cacheEndReached[0], minDate[0], classGuid, 0, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                        });
                     }
                 } else if (mergeDialogId != 0 && !endReached[1]) {
                     loading = true;
@@ -19264,7 +19260,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             loadsCount++;
             long did = (Long) args[0];
-            int loadIndex = did == dialog_id ? 0 : 1;
+            int loadIndex = isCurrentDialogId(did) ? 0 : 1;
             int count = (Integer) args[1];
             int fnid = (Integer) args[4];
             int last_unread_date = (Integer) args[7];
@@ -40451,5 +40447,25 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {
         return currentEncryptedChatList;
+    }
+
+    private void forEachDialogId(Consumer<Long> action) {
+        if (currentEncryptedChatList != null) {
+            currentEncryptedChatList.stream()
+                    .map(c -> DialogObject.makeEncryptedDialogId(c.id))
+                    .forEach(action);
+        } else {
+            action.accept(dialog_id);
+        }
+    }
+
+    public boolean isCurrentDialogId(long dialogId) {
+        if (currentEncryptedChatList != null) {
+            return currentEncryptedChatList.stream()
+                    .map(c -> DialogObject.makeEncryptedDialogId(c.id))
+                    .anyMatch(encryptedDialogId -> dialogId == encryptedDialogId);
+        } else {
+            return dialogId == dialog_id;
+        }
     }
 }
