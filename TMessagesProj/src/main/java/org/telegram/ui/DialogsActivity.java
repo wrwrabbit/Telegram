@@ -478,6 +478,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Nullable
     private ActionBarMenuItem deleteItem;
     @Nullable
+    private ActionBarMenuItem secretGroupDebugItem;
+    @Nullable
     private ActionBarMenuItem pinItem;
     @Nullable
     private ActionBarMenuItem muteItem;
@@ -495,8 +497,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private ActionBarMenuSubItem clearItem;
     @Nullable
     private ActionBarMenuSubItem readItem;
-    @Nullable
-    private ActionBarMenuSubItem secretGroupDebugItem;
     @Nullable
     private ActionBarMenuSubItem blockItem;
     private ActionBarMenuSubItem saveItem;
@@ -6646,15 +6646,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         muteItem = actionMode.addItemWithWidth(mute, R.drawable.msg_mute, dp(54));
         archive2Item = actionMode.addItemWithWidth(archive2, R.drawable.msg_archive, dp(54));
         deleteItem = actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(54), LocaleController.getString("Delete", R.string.Delete));
+        if (BuildVars.isAlphaApp()) {
+            secretGroupDebugItem = actionMode.addItemWithWidth(secret_group_debug, R.drawable.large_locked_post, dp(54));
+        }
         ActionBarMenuItem otherItem = actionMode.addItemWithWidth(0, R.drawable.ic_ab_other, dp(54), LocaleController.getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
         archiveItem = otherItem.addSubItem(archive, R.drawable.msg_archive, LocaleController.getString("Archive", R.string.Archive));
         pin2Item = otherItem.addSubItem(pin2, R.drawable.msg_pin, LocaleController.getString("DialogPin", R.string.DialogPin));
         addToFolderItem = otherItem.addSubItem(add_to_folder, R.drawable.msg_addfolder, LocaleController.getString("FilterAddTo", R.string.FilterAddTo));
         removeFromFolderItem = otherItem.addSubItem(remove_from_folder, R.drawable.msg_removefolder, LocaleController.getString("FilterRemoveFrom", R.string.FilterRemoveFrom));
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString("MarkAsRead", R.string.MarkAsRead));
-        if (BuildVars.isAlphaApp()) {
-            secretGroupDebugItem = otherItem.addSubItem(secret_group_debug, R.drawable.large_locked_post, "Open Secret Group");
-        }
         clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString("ClearHistory", R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString("BlockUser", R.string.BlockUser));
         saveItem = otherItem.addSubItem(save, R.drawable.msg_fave, LocaleController.getString("Save", R.string.Save));
@@ -6668,6 +6668,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         actionModeViews.add(archive2Item);
         actionModeViews.add(muteItem);
         actionModeViews.add(deleteItem);
+        actionModeViews.add(secretGroupDebugItem);
         actionModeViews.add(otherItem);
 
         updateCounters(false);
