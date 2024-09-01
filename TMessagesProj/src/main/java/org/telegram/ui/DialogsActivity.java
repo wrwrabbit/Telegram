@@ -9489,7 +9489,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else if (action == secret_group_debug) {
                 Bundle args = new Bundle();
                 ArrayList<Integer> ids = selectedDialogs.stream()
-                        .map(id -> DialogObject.getEncryptedChatId(dialog.id))
+                        .map(id -> DialogObject.getEncryptedChatId(id))
                         .collect(Collectors.toCollection(ArrayList::new));
                 args.putIntegerArrayList("enc_ids", ids);
 
