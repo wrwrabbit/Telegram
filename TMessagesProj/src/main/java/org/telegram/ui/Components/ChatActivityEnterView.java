@@ -4565,7 +4565,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         MessagesController messagesController = accountInstance.getMessagesController();
         TLRPC.Chat chat = messagesController.getChat(-dialog_id);
         TLRPC.User user = messagesController.getUser(dialog_id);
-        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat);
+        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat, parentFragment.isEncryptedGroup());
     }
 
     private void createBotCommandsMenuContainer() {
