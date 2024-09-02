@@ -377,7 +377,7 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
             locationType = LOCATION_TYPE_STORY;
         } else if (parentAlert.isBizLocationPicker) {
             locationType = LOCATION_TYPE_BIZ;
-        } else if (chatActivity.getCurrentEncryptedChatSingle() == null && !chatActivity.isInScheduleMode() && !UserObject.isUserSelf(chatActivity.getCurrentUser())) {
+        } else if (!chatActivity.isEncryptedChat() && !chatActivity.isInScheduleMode() && !UserObject.isUserSelf(chatActivity.getCurrentUser())) {
             locationType = LOCATION_TYPE_SEND_WITH_LIVE;
         } else {
             locationType = LOCATION_TYPE_SEND;
