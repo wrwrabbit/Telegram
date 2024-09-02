@@ -6996,8 +6996,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     parentFragment.fallbackFieldPanel();
                 }
                 if (parentFragment != null && parentFragment.isEncryptedGroup()) {
+                    MessageObject replyToMsg = params.replyToMsg;
                     for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList()) {
                         params.peer = DialogObject.makeEncryptedDialogId(chat.id);
+                        params.replyToMsg = parentFragment.fixEncryptedGroupMessageObjectIfNeed(replyToMsg, params.peer);
                         SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
                     }
                 } else {

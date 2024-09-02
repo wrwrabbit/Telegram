@@ -5600,7 +5600,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         boolean selected = true;
                         for (int a = 0, N = group.messages.size(); a < N; a++) {
                             MessageObject object = group.messages.get(a);
-                            int index = object.getDialogId() == dialog_id ? 0 : 1;
+                            int index = isCurrentDialogId(object.getDialogId()) ? 0 : 1;
                             if (selectedMessagesIds[index].indexOfKey(object.getId()) < 0) {
                                 selected = false;
                                 break;
@@ -16793,7 +16793,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             boolean selected = true;
                             for (int a = 0, N = scrimGroup.messages.size(); a < N; a++) {
                                 MessageObject object = scrimGroup.messages.get(a);
-                                int index = object.getDialogId() == dialog_id ? 0 : 1;
+                                int index = isCurrentDialogId(object.getDialogId()) ? 0 : 1;
                                 if (selectedMessagesIds[index].indexOfKey(object.getId()) < 0) {
                                     selected = false;
                                     break;
@@ -17957,7 +17957,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (threadMessageObjects != null && threadMessageObjects.contains(messageObject) && !isThreadChat()) {
                 return;
             }
-            int index = messageObject.getDialogId() == dialog_id ? 0 : 1;
+            int index = isCurrentDialogId(messageObject.getDialogId()) ? 0 : 1;
             if (outside && messageObject.getGroupId() != 0) {
                 boolean hasUnselected = false;
                 MessageObject.GroupedMessages groupedMessages = groupedMessagesMap.get(messageObject.getGroupId());
@@ -21481,7 +21481,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             long did = (Long) args[0];
             doOnIdle(() -> {
                 int msgId = (Integer) args[1];
-                MessageObject messageObject = messagesDict[did == dialog_id ? 0 : 1].get(msgId);
+                MessageObject messageObject = messagesDict[isCurrentDialogId(did) ? 0 : 1].get(msgId);
                 if (messageObject != null) {
                     messageObject.messageOwner.media.extended_media = (ArrayList<TLRPC.MessageExtendedMedia>) args[2];
                     messageObject.forceUpdate = true;
@@ -21504,7 +21504,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         messageObject.reactionsChanged = true;
                     }
                 }
-                MessageObject messageObject = messagesDict[did == dialog_id ? 0 : 1].get(msgId);
+                MessageObject messageObject = messagesDict[isCurrentDialogId(did) ? 0 : 1].get(msgId);
                 if (messageObject != null) {
                     MessageObject.updateReactions(messageObject.messageOwner, (TLRPC.TL_messageReactions) args[2]);
                     messageObject.forceUpdate = true;
@@ -21892,7 +21892,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (did != dialog_id && did != mergeDialogId) {
                     continue;
                 }
-                MessageObject currentMessage = messagesDict[did == dialog_id ? 0 : 1].get(message.id);
+                MessageObject currentMessage = messagesDict[isCurrentDialogId(did) ? 0 : 1].get(message.id);
                 if (currentMessage != null) {
                     currentMessage.messageOwner.media = new TLRPC.TL_messageMediaWebPage();
                     currentMessage.messageOwner.media.webpage = message.media.webpage;
@@ -32144,7 +32144,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     highlightMessageQuoteFirst = false;
                     highlightMessageQuote = null;
                     cell.setCheckBoxVisible(threadMessageObjects == null || !threadMessageObjects.contains(messageObject), true);
-                    int idx = messageObject.getDialogId() == dialog_id ? 0 : 1;
+                    int idx = isCurrentDialogId(messageObject.getDialogId()) ? 0 : 1;
                     if (selectedMessagesIds[idx].indexOfKey(messageObject.getId()) >= 0) {
                         setCellSelectionBackground(messageObject, cell, idx, true);
                         selected = true;
@@ -33591,7 +33591,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     EmbedBottomSheet.show(ChatActivity.this, messageObject, photoViewerProvider, webPage.site_name, webPage.title, webPage.url, webPage.embed_url, webPage.embed_width, webPage.embed_height, seekTime, isKeyboardVisible());
                 } else {
                     if (!messageObject.isVideo() && messageObject.replyMessageObject != null) {
-                        MessageObject obj = messagesDict[messageObject.replyMessageObject.getDialogId() == dialog_id ? 0 : 1].get(messageObject.replyMessageObject.getId());
+                        MessageObject obj = messagesDict[isCurrentDialogId(messageObject.replyMessageObject.getDialogId()) ? 0 : 1].get(messageObject.replyMessageObject.getId());
                         cell = null;
                         if (obj == null) {
                             messageObject = messageObject.replyMessageObject;
@@ -33605,7 +33605,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else if (messageObject != null && str.startsWith("audio")) {
                 int seekTime = Utilities.parseInt(str);
                 if (!messageObject.isMusic() && messageObject.replyMessageObject != null) {
-                    messageObject = messagesDict[messageObject.replyMessageObject.getDialogId() == dialog_id ? 0 : 1].get(messageObject.replyMessageObject.getId());
+                    messageObject = messagesDict[isCurrentDialogId(messageObject.replyMessageObject.getDialogId()) ? 0 : 1].get(messageObject.replyMessageObject.getId());
                 }
                 if (messageObject == null) {
                     return;
@@ -34813,7 +34813,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     highlightMessageQuoteFirst = false;
                     highlightMessageQuote = null;
                     messageCell.setCheckBoxVisible(threadMessageObjects == null || !threadMessageObjects.contains(message), false);
-                    int idx = message.getDialogId() == dialog_id ? 0 : 1;
+                    int idx = isCurrentDialogId(message.getDialogId()) ? 0 : 1;
                     if (selectedMessagesIds[idx].indexOfKey(message.getId()) >= 0) {
                         setCellSelectionBackground(message, messageCell, idx, false);
                         selected = true;
@@ -40548,5 +40548,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             return dialogId == dialog_id;
         }
+    }
+
+    public MessageObject fixEncryptedGroupMessageObjectIfNeed(MessageObject obj, long targetEncryptedDialogId) {
+        if (obj == null || !isEncryptedGroup() || !obj.isOut() || !hiddenEncryptedGroupOutMessages.containsKey(obj.getId())) {
+            return obj;
+        }
+        List<MessageObject> hiddenMessageCopies = hiddenEncryptedGroupOutMessages.get(obj.getId());
+        return hiddenMessageCopies.stream()
+                .filter(m -> m.getDialogId() == targetEncryptedDialogId)
+                .findAny()
+                .orElse(obj);
     }
 }
