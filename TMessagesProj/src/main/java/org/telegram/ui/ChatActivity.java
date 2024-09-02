@@ -3579,7 +3579,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     });
                 } else if (id == chat_enc_timer) {
-                    if (getParentActivity() == null) {
+                    if (getParentActivity() == null || isEncryptedGroup()) {
                         return;
                     }
                     showDialog(AlertsCreator.createTTLAlert(getParentActivity(), currentEncryptedChatSingle, themeDelegate).create());
@@ -3758,6 +3758,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         chatActivityEnterView.getEditField().makeSelectedRegular();
                     }
                 } else if (id == delete_messages) {
+                    if (isEncryptedGroup()) {
+                        return;
+                    }
                     final long did;
                     if (dialog_id != 0) {
                         did = dialog_id;
