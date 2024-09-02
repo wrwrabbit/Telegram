@@ -32619,43 +32619,50 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     public void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, long effectId, boolean invertMedia, Integer autoDeleteDelay) {
         if (checkSlowModeAlert()) {
             fillEditingMediaWithCaption(caption, null);
-            SendMessagesHelper.prepareSendingAudioDocuments(getAccountInstance(), audios, caption != null ? caption : null, dialog_id, replyingMessageObject, getThreadMessage(), null, notify, scheduleDate, editingMessageObject, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
+            forEachDialogId(dialog_id -> {
+                SendMessagesHelper.prepareSendingAudioDocuments(getAccountInstance(), audios, caption != null ? caption : null, dialog_id, replyingMessageObject, getThreadMessage(), null, notify, scheduleDate, editingMessageObject, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
+            });
             afterMessageSend();
         }
     }
 
     public void sendContact(TLRPC.User user, boolean notify, int scheduleDate, long effectId, boolean invertMedia) {
         if (checkSlowModeAlert()) {
-            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, replyingMessageObject, getThreadMessage(), null, null, notify, scheduleDate);
-            params.quick_reply_shortcut = quickReplyShortcut;
-            params.quick_reply_shortcut_id = getQuickReplyId();
-            params.effect_id = effectId;
-            params.invert_media = invertMedia;
-            getSendMessagesHelper().sendMessage(params);
-            afterMessageSend();
+            forEachDialogId(dialog_id -> {
+                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, replyingMessageObject, getThreadMessage(), null, null, notify, scheduleDate);
+                params.quick_reply_shortcut = quickReplyShortcut;
+                params.quick_reply_shortcut_id = getQuickReplyId();
+                params.effect_id = effectId;
+                params.invert_media = invertMedia;
+                getSendMessagesHelper().sendMessage(params);
+                afterMessageSend();
+            });
         }
     }
 
     public void sendContacts(ArrayList<TLRPC.User> users, String caption, boolean notify, int scheduleDate, long effectId, boolean invertMedia) {
         if (checkSlowModeAlert()) {
-            if (!TextUtils.isEmpty(caption)) {
-                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(caption, dialog_id, null, null, null, true, null, null, null, true, 0, null, false);
-                params.quick_reply_shortcut = quickReplyShortcut;
-                params.quick_reply_shortcut_id = getQuickReplyId();
-                params.effect_id = effectId;
-                params.invert_media = invertMedia;
-                effectId = 0;
-                SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
-            }
-            for (TLRPC.User user : users) {
-                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, null, null, null, null, notify, scheduleDate);
-                params.quick_reply_shortcut = quickReplyShortcut;
-                params.quick_reply_shortcut_id = getQuickReplyId();
-                params.effect_id = effectId;
-                params.invert_media = invertMedia;
-                effectId = 0;
-                getSendMessagesHelper().sendMessage(params);
-            }
+            forEachDialogId(dialog_id -> {
+                long localEffectId = effectId;
+                if (!TextUtils.isEmpty(caption)) {
+                    SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(caption, dialog_id, null, null, null, true, null, null, null, true, 0, null, false);
+                    params.quick_reply_shortcut = quickReplyShortcut;
+                    params.quick_reply_shortcut_id = getQuickReplyId();
+                    params.effect_id = localEffectId;
+                    params.invert_media = invertMedia;
+                    localEffectId = 0;
+                    SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                }
+                for (TLRPC.User user : users) {
+                    SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, null, null, null, null, notify, scheduleDate);
+                    params.quick_reply_shortcut = quickReplyShortcut;
+                    params.quick_reply_shortcut_id = getQuickReplyId();
+                    params.effect_id = localEffectId;
+                    params.invert_media = invertMedia;
+                    localEffectId = 0;
+                    getSendMessagesHelper().sendMessage(params);
+                }
+            });
             afterMessageSend();
         }
     }
