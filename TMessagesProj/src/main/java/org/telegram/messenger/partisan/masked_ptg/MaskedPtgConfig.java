@@ -2,31 +2,33 @@ package org.telegram.messenger.partisan.masked_ptg;
 
 import android.content.Context;
 
-import org.telegram.messenger.partisan.masked_ptg.calculator.CalculatorPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.calculator.CalculatorScreenFactory;
 
 public class MaskedPtgConfig {
+    private static IMaskedPasscodeScreenFactory FACTORY = new CalculatorScreenFactory();
+
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
-        return new CalculatorPasscodeScreen(context, delegate);
+        return new OriginalPasscodeScreen(context, delegate);
     }
 
     public static boolean allowAlphaNumericPassword() {
-        return false;
+        return FACTORY.allowAlphaNumericPassword();
     }
 
     public static boolean allowFingerprint() {
-        return false;
+        return FACTORY.allowFingerprint();
     }
 
     public static boolean allowIconShortcuts() {
-        return false;
+        return FACTORY.allowIconShortcuts();
     }
 
     public static boolean allowCallNotification() {
-        return false;
+        return FACTORY.allowCallNotification();
     }
 
     public static boolean allowNotHiddenNotifications() {
-        return false;
+        return FACTORY.allowNotHiddenNotifications();
     }
 
     public static int getNotificationsColor() {
