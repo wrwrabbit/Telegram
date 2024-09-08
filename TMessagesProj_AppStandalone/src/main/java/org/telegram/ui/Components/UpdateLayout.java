@@ -25,6 +25,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -259,19 +260,26 @@ public class UpdateLayout extends IUpdateLayout {
     }
 
     private void startUpdateDownloading(int currentAccount) {
+        PartisanLog.d("startUpdateDownloading");
         if (LaunchActivity.getUpdateAccountNum() != currentAccount || SharedConfig.pendingPtgAppUpdate.message == null) {
+            PartisanLog.d("The pending update is from another account or the update message is null");
             isUpdateChecking = true;
             UpdateChecker.checkUpdate(currentAccount, data -> {
+                PartisanLog.d("The update rechecked");
                 isUpdateChecking = false;
                 if (data != null) {
+                    PartisanLog.d("Correct update found");
                     SharedConfig.pendingPtgAppUpdate = data;
                     SharedConfig.saveConfig();
                     AndroidUtilities.runOnUIThread(() -> startUpdateDownloading(currentAccount));
                 }
             });
             return;
+        } else {
+            PartisanLog.d("The pending update is correct");
         }
         MessageObject messageObject = new MessageObject(LaunchActivity.getUpdateAccountNum(), SharedConfig.pendingPtgAppUpdate.message, (LongSparseArray<TLRPC.User>) null, null, false, true);
+        PartisanLog.d("Update file loading started");
         FileLoader.getInstance(currentAccount).loadFile(SharedConfig.pendingPtgAppUpdate.document, messageObject, FileLoader.PRIORITY_NORMAL, 1);
         updateAppUpdateViews(currentAccount, true);
     }
