@@ -361,6 +361,7 @@ public class SharedConfig {
     public static boolean showCallButton;
     public static boolean marketIcons;
     public static boolean additionalVerifiedBadges;
+    private static int sharedConfigMigrationVersion = 0;
 
     public static boolean clearAllDraftsOnScreenLock;
     public static boolean deleteMessagesForAllByDefault;
@@ -673,6 +674,7 @@ public class SharedConfig {
                 editor.apply();
 
                 editor = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Context.MODE_PRIVATE).edit();
+                editor.putInt("sharedConfigMigrationVersion", sharedConfigMigrationVersion);
                 editor.putBoolean("hasEmailLogin", hasEmailLogin);
                 editor.putBoolean("floatingDebugActive", isFloatingDebugActive);
                 editor.putBoolean("record_via_sco", recordViaSco);
@@ -717,6 +719,17 @@ public class SharedConfig {
             }
         }
         saveConfig();
+    }
+
+    private static void migrateSharedConfig() {
+        int prevMigrationVersion = sharedConfigMigrationVersion;
+        if (sharedConfigMigrationVersion == 0) {
+            inappBrowser = false;
+            sharedConfigMigrationVersion++;
+        }
+        if (prevMigrationVersion != sharedConfigMigrationVersion) {
+            saveConfig();
+        }
     }
 
     public static void reloadConfig() {
@@ -853,7 +866,7 @@ public class SharedConfig {
             nextMediaTap = preferences.getBoolean("next_media_on_tap", true);
             recordViaSco = preferences.getBoolean("record_via_sco", false);
             customTabs = preferences.getBoolean("custom_tabs", true);
-            inappBrowser = preferences.getBoolean("inapp_browser", true);
+            inappBrowser = preferences.getBoolean("inapp_browser", false);
             adaptableColorInBrowser = preferences.getBoolean("adaptableBrowser", false);
             directShare = preferences.getBoolean("direct_share", true);
             shuffleMusic = preferences.getBoolean("shuffleMusic", false);
@@ -908,6 +921,7 @@ public class SharedConfig {
             showCallButton = preferences.getBoolean("showCallButton", true);
             marketIcons = preferences.getBoolean("marketIcons", false);
             additionalVerifiedBadges = preferences.getBoolean("additionalVerifiedBadges", true);
+            sharedConfigMigrationVersion = preferences.getInt("sharedConfigMigrationVersion", 0);
             messageSeenHintCount = preferences.getInt("messageSeenCount", 3);
             emojiInteractionsHintCount = preferences.getInt("emojiInteractionsHintCount", 3);
             dayNightThemeSwitchHintCount = preferences.getInt("dayNightThemeSwitchHintCount", 3);
@@ -941,6 +955,7 @@ public class SharedConfig {
             configLoaded = true;
             migrateFakePasscode();
             migrateBadPasscodeAttempts();
+            migrateSharedConfig();
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && debugWebView) {
