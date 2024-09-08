@@ -2,31 +2,33 @@ package org.telegram.messenger.partisan.masked_ptg;
 
 import android.content.Context;
 
-import org.telegram.messenger.partisan.masked_ptg.note.NotePasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.note.NoteScreenFactory;
 
 public class MaskedPtgConfig {
+    private static IMaskedPasscodeScreenFactory FACTORY = new NoteScreenFactory();
+
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
-        return new NotePasscodeScreen(context, delegate);
+        return FACTORY.createScreen(context, delegate);
     }
 
     public static boolean allowAlphaNumericPassword() {
-        return true;
+        return FACTORY.allowAlphaNumericPassword();
     }
 
     public static boolean allowFingerprint() {
-        return false;
+        return FACTORY.allowFingerprint();
     }
 
     public static boolean allowIconShortcuts() {
-        return false;
+        return FACTORY.allowIconShortcuts();
     }
 
     public static boolean allowCallNotification() {
-        return false;
+        return FACTORY.allowCallNotification();
     }
 
     public static boolean allowNotHiddenNotifications() {
-        return false;
+        return FACTORY.allowNotHiddenNotifications();
     }
 
     public static int getNotificationsColor() {
