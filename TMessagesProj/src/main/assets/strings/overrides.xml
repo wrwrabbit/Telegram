@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <string name="AppName">Telegram</string>
+    <string name="AppNameBeta">Telegram</string>
+    <string name="NotificationHiddenName">Telegram</string>
+    <string name="NotificationHiddenChatName">Telegram</string>
+    <string name="SecretChatName">Telegram</string>
+    <string name="NotificationHiddenMessage">Update Available!</string>
 </resources>

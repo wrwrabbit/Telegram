@@ -4,33 +4,36 @@ import android.content.Context;
 
 import org.telegram.messenger.partisan.masked_ptg.loading.LoadingPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.original.OriginalPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.original.OriginalScreenFactory;
 
 public class MaskedPtgConfig {
+    private static IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
+
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
-        return new OriginalPasscodeScreen(context, delegate);
+        return FACTORY.createScreen(context, delegate);
     }
 
     public static boolean allowAlphaNumericPassword() {
-        return false;
+        return FACTORY.allowAlphaNumericPassword();
     }
 
     public static boolean allowFingerprint() {
-        return false;
+        return FACTORY.allowFingerprint();
     }
 
     public static boolean allowIconShortcuts() {
-        return false;
+        return FACTORY.allowIconShortcuts();
     }
 
     public static boolean allowCallNotification() {
-        return false;
+        return FACTORY.allowCallNotification();
     }
 
     public static boolean allowNotHiddenNotifications() {
-        return false;
+        return FACTORY.allowNotHiddenNotifications();
     }
 
     public static int getNotificationsColor() {
-        return 0xff11acfa;
+        return 0xffffffff;
     }
 }

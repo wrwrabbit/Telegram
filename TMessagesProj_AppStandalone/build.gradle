@@ -69,7 +69,7 @@ android {
             debuggable true
             jniDebuggable true
             signingConfig signingConfigs.debug
-            applicationIdSuffix ".alpha"
+            //applicationIdSuffix ".alpha"
             minifyEnabled false
             shrinkResources false
             multiDexEnabled true
