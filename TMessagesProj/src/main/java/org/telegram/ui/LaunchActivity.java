@@ -5704,6 +5704,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     public void checkAppUpdate(boolean force, Browser.Progress progress) {
+        checkAppUpdate(force, progress, null);
+    }
+
+    public void checkAppUpdate(boolean force, Browser.Progress progress, Runnable updateAlreadyShown) {
         if (!force && BuildVars.DEBUG_VERSION || !force && !BuildVars.CHECK_UPDATES) {
             return;
         }
@@ -5711,7 +5715,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return;
         }
         if (SharedConfig.isAppLocked() && !force) {
-            Utilities.globalQueue.postRunnable(() -> checkAppUpdate(force, progress), 1000);
+            Utilities.globalQueue.postRunnable(() -> checkAppUpdate(force, progress, updateAlreadyShown), 1000);
             return;
         }
         final int accountNum = currentAccount;
@@ -5723,6 +5727,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     if (SharedConfig.pendingPtgAppUpdate != null &&
                             (FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.pendingPtgAppUpdate.originalVersion.equals(data.originalVersion)
                                     || SharedConfig.pendingPtgAppUpdate.version.equals(data.version))) {
+                        if (updateAlreadyShown != null) {
+                            updateAlreadyShown.run();
+                        }
                         return;
                     }
                     final boolean newVersionAvailable = SharedConfig.setNewAppVersionAvailable(data);

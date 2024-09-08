@@ -37145,7 +37145,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 }
                             }
                         };
-                        LaunchActivity.instance.checkAppUpdate(true, progressDialogCurrent);
+                        Runnable onUpdateAlreadyShown = () -> {
+                            if (progressDialogCurrent != null) {
+                                progressDialogCurrent.end();
+                            }
+                            ApplicationLoader.applicationLoaderInstance.showUpdateAppPopup(getContext(), SharedConfig.pendingPtgAppUpdate, currentAccount);
+                        };
+                        LaunchActivity.instance.checkAppUpdate(true, progressDialogCurrent, !FakePasscodeUtils.isFakePasscodeActivated() ? onUpdateAlreadyShown : null);
                     }
                 } else if (BuildVars.isHuaweiStoreApp()){
                     Browser.openUrl(getContext(), BuildVars.HUAWEI_STORE_URL);
