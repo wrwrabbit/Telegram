@@ -3722,7 +3722,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     passcodeItem.getLocationInWindow(position);
                     ((LaunchActivity) getParentActivity()).showPasscodeActivity(false, true, position[0] + passcodeItem.getMeasuredWidth() / 2, position[1] + passcodeItem.getMeasuredHeight() / 2, () -> passcodeItem.setAlpha(1.0f), () -> passcodeItem.setAlpha(0.0f));
                     if (SharedConfig.isAppLocked() && !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.clearCacheOnLock) {
-                        Utils.clearCache(null);
+                        Utils.clearCache(getContext(), null);
                     }
                     getNotificationsController().showNotifications();
                     updatePasscodeButton();
