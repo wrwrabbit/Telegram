@@ -80,6 +80,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.WebFile;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -1140,6 +1141,9 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                 if (bot_id != 0) {
                     final BotStarsController c = BotStarsController.getInstance(currentAccount);
                     for (TLRPC.StarsTransaction t : c.getTransactions(bot_id, type)) {
+                        if (t.peer != null && FakePasscodeUtils.isHidePeer(t.peer.peer, currentAccount)) {
+                            continue;
+                        }
                         items.add(StarsTransactionView.Factory.asTransaction(t, true));
                     }
                     if (!c.didFullyLoadTransactions(bot_id, type)) {
@@ -1150,6 +1154,9 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                 } else {
                     final StarsController c = StarsController.getInstance(currentAccount);
                     for (TLRPC.StarsTransaction t : c.transactions[type]) {
+                        if (t.peer != null && FakePasscodeUtils.isHidePeer(t.peer.peer, currentAccount)) {
+                            continue;
+                        }
                         items.add(StarsTransactionView.Factory.asTransaction(t, false));
                     }
                     if (!c.didFullyLoadTransactions(type)) {
