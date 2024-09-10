@@ -1337,18 +1337,18 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                     TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);
                     deleted = user == null;
                     if (transaction.photo == null) {
-                        avatarDrawable.setInfo(user);
+                        avatarDrawable.setInfo(currentAccount, user);
                         imageView.setForUserOrChat(user, avatarDrawable);
                     }
-                    username = UserObject.getUserName(user);
+                    username = UserObject.getUserName(user, currentAccount);
                 } else {
                     TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-did);
                     deleted = chat == null;
                     if (transaction.photo == null) {
-                        avatarDrawable.setInfo(chat);
+                        avatarDrawable.setInfo(currentAccount, chat);
                         imageView.setForUserOrChat(chat, avatarDrawable);
                     }
-                    username = chat == null ? "" : chat.title;
+                    username = chat == null ? "" : UserConfig.getChatTitleOverride(currentAccount, chat);
                 }
                 if (transaction.subscription) {
                     titleTextView.setText(username);
