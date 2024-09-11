@@ -583,7 +583,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     if (SharedConfig.passcodeEnabled()) {
                         titleTextView.setText(LocaleController.getString("EnterNewPasscode", R.string.EnterNewPasscode));
                     } else {
-                        titleTextView.setText(LocaleController.getString("EnterNewFirstPasscode", R.string.EnterNewFirstPasscode));
+                        titleTextView.setText(LocaleController.getString("CreatePasscode", R.string.CreatePasscode));
                     }
                 } else {
                     titleTextView.setText(LocaleController.getString("EnterCurrentFakePasscode", R.string.EnterCurrentFakePasscode));
