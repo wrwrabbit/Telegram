@@ -1675,7 +1675,7 @@ public class StarsController {
         }
         final MessagesController messagesController = MessagesController.getInstance(currentAccount);
         Boolean anonymous = messagesController.arePaidReactionsAnonymous();
-        return anonymous != null ? anonymous : false;
+        return anonymous != null ? anonymous : !FakePasscodeUtils.isFakePasscodeActivated();
     }
 
     public boolean arePaidReactionsAnonymous(MessageId id, TLRPC.MessageReactions reactions) {
@@ -1688,7 +1688,7 @@ public class StarsController {
         }
         final MessagesController messagesController = MessagesController.getInstance(currentAccount);
         Boolean anonymous = messagesController.arePaidReactionsAnonymous();
-        return anonymous != null ? anonymous : false;
+        return anonymous != null ? anonymous : !FakePasscodeUtils.isFakePasscodeActivated();
     }
 
     public class PendingPaidReactions {
