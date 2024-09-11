@@ -10,7 +10,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaType
 
-class AccountActions : Action {
+class AccountActions7 : Action {
     @FakePasscodeSerializer.Ignore
     var accountNum: Int? = null
     var removeChatsAction = RemoveChatsAction()
@@ -189,7 +189,7 @@ class AccountActions : Action {
     }
 
     fun <T: AccountAction> setAction(action: T) {
-        for (property in AccountActions::class.memberProperties) {
+        for (property in AccountActions2::class.memberProperties) {
             if (property.returnType.javaType == action.javaClass && property is KMutableProperty<*>) {
                 property.isAccessible = true
                 property.setter.call(this, action)
