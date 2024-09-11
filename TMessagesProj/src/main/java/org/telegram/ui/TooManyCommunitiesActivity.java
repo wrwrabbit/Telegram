@@ -128,7 +128,7 @@ public class TooManyCommunitiesActivity extends BaseFragment {
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString("LimitReached", R.string.LimitReached));
+        actionBar.setTitle(LocaleController.getString(R.string.LimitReached));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -189,8 +189,8 @@ public class TooManyCommunitiesActivity extends BaseFragment {
                 }
             }
         });
-        searchItem.setContentDescription(LocaleController.getString("Search", R.string.Search));
-        searchItem.setSearchFieldHint(LocaleController.getString("Search", R.string.Search));
+        searchItem.setContentDescription(LocaleController.getString(R.string.Search));
+        searchItem.setSearchFieldHint(LocaleController.getString(R.string.Search));
 
         FrameLayout contentView = new FrameLayout(context);
         fragmentView = contentView;
@@ -216,7 +216,7 @@ public class TooManyCommunitiesActivity extends BaseFragment {
         });
         emptyView = new EmptyTextProgressView(context);
         emptyView.setShowAtCenter(true);
-        emptyView.setText(LocaleController.getString("NoResult", R.string.NoResult));
+        emptyView.setText(LocaleController.getString(R.string.NoResult));
         emptyView.showTextView();
 
 
@@ -450,11 +450,11 @@ public class TooManyCommunitiesActivity extends BaseFragment {
                     view = hintCell;
                     String message;
                     if (type == TYPE_JOIN) {
-                        message = LocaleController.getString("TooManyCommunitiesHintJoin", R.string.TooManyCommunitiesHintJoin);
+                        message = LocaleController.getString(R.string.TooManyCommunitiesHintJoin);
                     } else if (type == TYPE_EDIT) {
-                        message = LocaleController.getString("TooManyCommunitiesHintEdit", R.string.TooManyCommunitiesHintEdit);
+                        message = LocaleController.getString(R.string.TooManyCommunitiesHintEdit);
                     } else {
-                        message = LocaleController.getString("TooManyCommunitiesHintCreate", R.string.TooManyCommunitiesHintCreate);
+                        message = LocaleController.getString(R.string.TooManyCommunitiesHintCreate);
                     }
                     hintCell.setMessageText(message);
                     RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -474,7 +474,7 @@ public class TooManyCommunitiesActivity extends BaseFragment {
                     HeaderCell header = new HeaderCell(parent.getContext(), Theme.key_windowBackgroundWhiteBlueHeader, 21, 8, false);
                     view = header;
                     header.setHeight(54);
-                    header.setText(LocaleController.getString("InactiveChats", R.string.InactiveChats));
+                    header.setText(LocaleController.getString(R.string.InactiveChats));
                     break;
                 case 5:
                     view = new EmptyCell(parent.getContext(), AndroidUtilities.dp(12));
