@@ -9,10 +9,8 @@ import org.telegram.tgnet.TLRPC;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class AccountActions implements Action {
@@ -179,32 +177,18 @@ public class AccountActions implements Action {
     }
 
     @SuppressWarnings("unchecked")
-    private static class ActionReverser<T extends AccountAction> {
-        private final T action;
-
-        public ActionReverser(T action) {
-            this.action = action;
+    private <T extends AccountAction> void toggle(Class<T> clazz) {
+        Field field = getFieldByActionClass(clazz);
+        if (field == null) {
+            return;
         }
-
-        private Class<T> getGenericClass() {
-            ParameterizedType genericSuperclass = (ParameterizedType)getClass().getGenericSuperclass();
-            if (genericSuperclass == null || genericSuperclass.getActualTypeArguments().length == 0) {
-                return null;
+        try {
+            if (field.get(this) != null) {
+                field.set(this, null);
+                return;
             }
-            return (Class<T>) genericSuperclass.getActualTypeArguments()[0];
-        }
-
-
-        private T reverse() {
-            if (action != null) {
-                return null;
-            }
-            Class<T> cls = getGenericClass();
-            if (cls == null) {
-                return null;
-            }
-            cls.getConstructors()[0].getParameterTypes();
-            return Arrays.stream(cls.getConstructors())
+            clazz.getConstructors()[0].getParameterTypes();
+            T newValue = Arrays.stream(clazz.getConstructors())
                     .filter(constructor -> constructor.getParameterTypes().length == 0)
                     .findAny()
                     .map(constructor -> {
@@ -215,50 +199,59 @@ public class AccountActions implements Action {
                         }
                     })
                     .orElse(null);
+            field.set(this, newValue);
+        } catch (IllegalAccessException ignore) {
+
         }
     }
 
-    private <T extends AccountAction> T reverse(T action) {
-        return new ActionReverser<>(action).reverse();
+    private <T extends AccountAction> Field getFieldByActionClass(Class<T> clazz) {
+        for (Field field : AccountActions.class.getDeclaredFields()) {
+            if (field.getType() == clazz) {
+                field.setAccessible(true);
+                return field;
+            }
+        }
+        return null;
     }
 
     public void toggleDeleteContactsAction() {
-        deleteContactsAction = reverse(deleteContactsAction);
+        toggle(DeleteContactsAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleDeleteStickersAction() {
-        deleteStickersAction = reverse(deleteStickersAction);
+        toggle(DeleteStickersAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleClearSearchHistoryAction() {
-        clearSearchHistoryAction = reverse(clearSearchHistoryAction);
+        toggle(ClearSearchHistoryAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleClearBlackListAction() {
-        clearBlackListAction = reverse(clearBlackListAction);
+        toggle(ClearBlackListAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleClearSavedChannelsAction() {
-        clearSavedChannelsAction = reverse(clearSavedChannelsAction);
+        toggle(ClearSavedChannelsAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleClearDraftsAction() {
-        clearDraftsAction = reverse(clearDraftsAction);
+        toggle(ClearDraftsAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleLogOutAction() {
-        logOutAction = reverse(logOutAction);
+        toggle(LogOutAction.class);
         SharedConfig.saveConfig();
     }
 
     public void toggleHideAccountAction() {
-        hideAccountAction = reverse(hideAccountAction);
+        toggle(HideAccountAction.class);
         SharedConfig.saveConfig();
     }
 
@@ -321,18 +314,5 @@ public class AccountActions implements Action {
 
     public void removeFakePhone() {
         fakePhone = "";
-    }
-
-    <T extends AccountAction> void setAction(T action) {
-        for (Field field : AccountAction.class.getDeclaredFields()) {
-            if (field.getType() == action.getClass()) {
-                field.setAccessible(true);
-                try {
-                    field.set(this, action);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
     }
 }
