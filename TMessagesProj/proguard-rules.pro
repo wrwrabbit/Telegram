@@ -19,6 +19,13 @@
 -keep class org.telegram.tgnet.NativeByteBuffer { *; }
 -keep class org.telegram.tgnet.RequestTimeDelegate { *; }
 -keep class org.telegram.tgnet.RequestDelegate { *; }
+
+-keep class org.telegram.messenger.fakepasscode.* { *; }
+-keepclassmembers class org.telegram.messenger.fakepasscode.* { *; }
+-keepclassmembers class org.telegram.messenger.partisan.verification.VerificationChatInfo { *; }
+-keepclassmembers class org.telegram.messenger.partisan.verification.VerificationRepository$StoragesWrapper { *; }
+-keepclassmembers class org.telegram.messenger.partisan.verification.VerificationStorage { *; }
+
 -keep class com.google.android.exoplayer2.ext.** { *; }
 -keep class com.google.android.exoplayer2.extractor.FlacStreamMetadata { *; }
 -keep class com.google.android.exoplayer2.metadata.flac.PictureFrame { *; }

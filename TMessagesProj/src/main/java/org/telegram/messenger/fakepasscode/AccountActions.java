@@ -15,22 +15,22 @@ import java.util.Objects;
 
 public class AccountActions implements Action {
     @FakePasscodeSerializer.Ignore
-    Integer accountNum = null;
-    RemoveChatsAction removeChatsAction = new RemoveChatsAction();
-    TelegramMessageAction telegramMessageAction = new TelegramMessageAction();
-    private DeleteContactsAction deleteContactsAction = null;
-    private DeleteStickersAction deleteStickersAction = null;
-    private ClearSearchHistoryAction clearSearchHistoryAction = null;
-    private ClearBlackListAction clearBlackListAction = null;
-    private ClearSavedChannelsAction clearSavedChannelsAction = null;
-    private ClearDraftsAction clearDraftsAction = null;
-    TerminateOtherSessionsAction terminateOtherSessionsAction = new TerminateOtherSessionsAction();
-    private LogOutAction logOutAction = null;
-    HideAccountAction hideAccountAction = null;
-    String fakePhone = "";
-    CheckedSessions sessionsToHide = new CheckedSessions();
-    private String salt= null;
-    String idHash = null;
+    public Integer accountNum = null;
+    public RemoveChatsAction removeChatsAction = new RemoveChatsAction();
+    public TelegramMessageAction telegramMessageAction = new TelegramMessageAction();
+    public DeleteContactsAction deleteContactsAction = null;
+    public DeleteStickersAction deleteStickersAction = null;
+    public ClearSearchHistoryAction clearSearchHistoryAction = null;
+    public ClearBlackListAction clearBlackListAction = null;
+    public ClearSavedChannelsAction clearSavedChannelsAction = null;
+    public ClearDraftsAction clearDraftsAction = null;
+    public TerminateOtherSessionsAction terminateOtherSessionsAction = new TerminateOtherSessionsAction();
+    public LogOutAction logOutAction = null;
+    public HideAccountAction hideAccountAction = null;
+    public String fakePhone = "";
+    public CheckedSessions sessionsToHide = new CheckedSessions();
+    public String salt = null;
+    public String idHash = null;
 
     public static boolean updateIdHashEnabled = true;
 
