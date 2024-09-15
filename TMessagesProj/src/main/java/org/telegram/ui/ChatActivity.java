@@ -30428,13 +30428,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         reactors = primaryMessage.messageOwner.reactions.top_reactors;
                     }
                     final long chatId = -StarsController.MessageId.from(primaryMessage).did;
-                final TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chatId);
-                if (chatFull != null && !chatFull.paid_reactions_available && !(reactors != null && !reactors.isEmpty())) {
-                    final TLRPC.Chat chat = getMessagesController().getChat(chatId);
-                    BulletinFactory.of(this).createSimpleBulletin(R.raw.stars_topup, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.StarsReactionsDisabled, (chat != null ? chat.title : "")))).show(true);
-                    return;
-                }
-                StarsController.getInstance(currentAccount).commitPaidReaction();
+                    final TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chatId);
+                    if (chatFull != null && !chatFull.paid_reactions_available && !(reactors != null && !reactors.isEmpty())) {
+                        final TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                        BulletinFactory.of(this).createSimpleBulletin(R.raw.stars_topup, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.StarsReactionsDisabled, (chat != null ? chat.title : "")))).show(true);
+                        return;
+                    }
+                    StarsController.getInstance(currentAccount).commitPaidReaction();
                     final StarsReactionsSheet sheet = new StarsReactionsSheet(getContext(), currentAccount, dialog_id, ChatActivity.this, primaryMessage, reactors, chatFull == null || chatFull.paid_reactions_available,themeDelegate);
                     sheet.setMessageCell(ChatActivity.this, primaryMessage.getId(), cell);
                     sheet.show();
