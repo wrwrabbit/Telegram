@@ -660,7 +660,7 @@ public class WebBrowserSettings extends UniversalFragment implements Notificatio
         return size;
     }
 
-    private static boolean deleteDirectory(File dir, Boolean cookies) {
+    public static boolean deleteDirectory(File dir, Boolean cookies) {
         if (dir == null || !dir.exists()) {
             return false;
         }

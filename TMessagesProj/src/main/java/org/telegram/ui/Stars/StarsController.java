@@ -34,6 +34,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -1410,7 +1411,7 @@ public class StarsController {
         if (prefs.contains("anon_react_" + 0)) {
             return prefs.getBoolean("anon_react_" + 0, false);
         }
-        return false;
+        return !FakePasscodeUtils.isFakePasscodeActivated();
     }
 
     public boolean arePaidReactionsAnonymous(MessageId id, TLRPC.MessageReactions reactions) {
@@ -1428,7 +1429,7 @@ public class StarsController {
         if (prefs.contains("anon_react_" + 0)) {
             return prefs.getBoolean("anon_react_" + 0, false);
         }
-        return false;
+        return !FakePasscodeUtils.isFakePasscodeActivated();
     }
 
     public void saveAnonymous(MessageObject messageObject, boolean value) {

@@ -30357,50 +30357,54 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
-    public void selectReaction(ChatMessageCell cell, MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent, boolean withoutAnimation) {
+    public void selectReaction(ChatMessageCell cellArg, MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent, boolean withoutAnimation) {
         if (!SharedConfig.allowReactions && !FakePasscodeUtils.isFakePasscodeActivated()) {
             return;
         }
 
-        if (visibleReaction != null && visibleReaction.isStar) {
-            closeMenu();
-            if (cell == null) {
-                cell = findMessageCell(primaryMessage.getId(), true);
-            }
-            if (bigEmoji) {
-                if (cell != null) {
-                    cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        boolean dialogShowingAllowed = !ChatObject.isChannelAndNotMegaGroup(currentChat)
+                || visibleReaction != null && visibleReaction.isStar;
+        AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, dialogShowingAllowed, () -> {
+            ChatMessageCell cell = cellArg;
+            if (visibleReaction != null && visibleReaction.isStar) {
+                closeMenu();
+                if (cell == null) {
+                    cell = findMessageCell(primaryMessage.getId(), true);
                 }
-                ArrayList<TLRPC.MessageReactor> reactors = null;
-                if (primaryMessage != null && primaryMessage.messageOwner != null && primaryMessage.messageOwner.reactions != null) {
-                    reactors = primaryMessage.messageOwner.reactions.top_reactors;
+                if (bigEmoji) {
+                    if (cell != null) {
+                        cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                    }
+                    ArrayList<TLRPC.MessageReactor> reactors = null;
+                    if (primaryMessage != null && primaryMessage.messageOwner != null && primaryMessage.messageOwner.reactions != null) {
+                        reactors = primaryMessage.messageOwner.reactions.top_reactors;
+                    }
+                    StarsController.getInstance(currentAccount).commitPaidReaction();
+                    StarsReactionsSheet sheet = new StarsReactionsSheet(getContext(), currentAccount, dialog_id, ChatActivity.this, primaryMessage, reactors, themeDelegate);
+                    sheet.setMessageCell(ChatActivity.this, primaryMessage.getId(), cell);
+                    sheet.show();
+                    return;
                 }
-                StarsController.getInstance(currentAccount).commitPaidReaction();
-                StarsReactionsSheet sheet = new StarsReactionsSheet(getContext(), currentAccount, dialog_id, ChatActivity.this, primaryMessage, reactors, themeDelegate);
-                sheet.setMessageCell(ChatActivity.this, primaryMessage.getId(), cell);
-                sheet.show();
+                if (fragmentView != null) {
+                    try {
+                        fragmentView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                    } catch (Exception ignore) {}
+                }
+                StarsController.PendingPaidReactions pending = StarsController.getInstance(currentAccount).sendPaidReaction(primaryMessage, ChatActivity.this, +1, true, true, null);
+                if (pending != null && cell != null) {
+                    StarReactionsOverlay overlay = getStarReactionsOverlay();
+                    overlay.setMessageCell(cell);
+                    pending.setOverlay(overlay);
+                    overlay.show();
+                    int[] loc = new int[2], loc2 = new int[2];
+                    cell.getLocationInWindow(loc);
+                    overlay.getLocationInWindow(loc2);
+                    overlay.tap(loc[0] - loc2[0] + x, loc[1] - loc2[1] + y, false, true);
+                }
                 return;
             }
-            if (fragmentView != null) {
-                try {
-                    fragmentView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                } catch (Exception ignore) {}
-            }
-            StarsController.PendingPaidReactions pending = StarsController.getInstance(currentAccount).sendPaidReaction(primaryMessage, ChatActivity.this, +1, true, true, null);
-            if (pending != null && cell != null) {
-                StarReactionsOverlay overlay = getStarReactionsOverlay();
-                overlay.setMessageCell(cell);
-                pending.setOverlay(overlay);
-                overlay.show();
-                int[] loc = new int[2], loc2 = new int[2];
-                cell.getLocationInWindow(loc);
-                overlay.getLocationInWindow(loc2);
-                overlay.tap(loc[0] - loc2[0] + x, loc[1] - loc2[1] + y, false, true);
-            }
-            return;
-        }
 
-        AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, !ChatObject.isChannelAndNotMegaGroup(currentChat), () -> {
+
             if (getDialogId() == getUserConfig().getClientUserId() && !getUserConfig().isPremium() && primaryMessage.messageOwner != null && (primaryMessage.messageOwner.reactions == null || (primaryMessage.messageOwner.reactions.reactions_as_tags || primaryMessage.messageOwner.reactions.results.isEmpty()))) {
                 new PremiumFeatureBottomSheet(ChatActivity.this, PremiumPreviewFragment.PREMIUM_FEATURE_SAVED_TAGS, true).show();
                 return;
@@ -37145,7 +37149,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 }
                             }
                         };
-                        LaunchActivity.instance.checkAppUpdate(true, progressDialogCurrent);
+                        Runnable onUpdateAlreadyShown = () -> {
+                            if (progressDialogCurrent != null) {
+                                progressDialogCurrent.end();
+                            }
+                            ApplicationLoader.applicationLoaderInstance.showUpdateAppPopup(getContext(), SharedConfig.pendingPtgAppUpdate, currentAccount);
+                        };
+                        LaunchActivity.instance.checkAppUpdate(true, progressDialogCurrent, !FakePasscodeUtils.isFakePasscodeActivated() ? onUpdateAlreadyShown : null);
                     }
                 } else if (BuildVars.isHuaweiStoreApp()){
                     Browser.openUrl(getContext(), BuildVars.HUAWEI_STORE_URL);
