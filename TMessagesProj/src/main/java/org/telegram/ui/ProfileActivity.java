@@ -3863,18 +3863,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 AlertsCreator.showConfirmDangerousActionDialogIfNeed(this, () -> {
                     getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ProfileActivity.this, true, () -> {
                         updateRowsIds();
-                    if (listAdapter != null) {
-                        listAdapter.notifyDataSetChanged();
-                    }
+                        if (listAdapter != null) {
+                            listAdapter.notifyDataSetChanged();
+                        }
                     }, err -> {
                         if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
                             SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                             preferences.edit().putLong("dialog_join_requested_time_" + dialogId, System.currentTimeMillis()).commit();
                             JoinGroupAlert.showBulletin(context, ProfileActivity.this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
                             updateRowsIds();
-                        if (listAdapter != null) {
-                            listAdapter.notifyDataSetChanged();
-                        }
+                            if (listAdapter != null) {
+                                listAdapter.notifyDataSetChanged();
+                            }
                             if (lastFragment instanceof ChatActivity) {
                                 ((ChatActivity) lastFragment).showBottomOverlayProgress(false, true);
                             }

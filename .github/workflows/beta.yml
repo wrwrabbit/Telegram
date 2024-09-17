@@ -18,7 +18,7 @@ jobs:
       - name: Save artifact
         uses: actions/upload-artifact@master
         with:
-          name: PTelegramBeta-v1472.apk
+          name: PTelegramBeta-v1475.apk
           path: TMessagesProj/build/outputs/apk/afat/debug/app.apk
       - name: Create cleanup request
         run: touch delete_request

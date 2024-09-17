@@ -583,7 +583,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     if (SharedConfig.passcodeEnabled()) {
                         titleTextView.setText(LocaleController.getString("EnterNewPasscode", R.string.EnterNewPasscode));
                     } else {
-                        titleTextView.setText(LocaleController.getString("EnterNewFirstPasscode", R.string.EnterNewFirstPasscode));
+                        titleTextView.setText(LocaleController.getString("CreatePasscode", R.string.CreatePasscode));
                     }
                 } else {
                     titleTextView.setText(LocaleController.getString("EnterCurrentFakePasscode", R.string.EnterCurrentFakePasscode));
@@ -1218,7 +1218,7 @@ public class FakePasscodeActivity extends BaseFragment {
     }
 
     private void processDoneRestore() {
-        AccountActions.Companion.setUpdateIdHashEnabled(false);
+        AccountActions.updateIdHashEnabled = false;
         String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         FakePasscode passcode = FakePasscodeSerializer.deserializeEncrypted(encryptedPasscode, passcodeString);
         if (passcode == null) {
@@ -1236,7 +1236,7 @@ public class FakePasscodeActivity extends BaseFragment {
             }
             presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, passcode, false), true);
         }
-        AccountActions.Companion.setUpdateIdHashEnabled(true);
+        AccountActions.updateIdHashEnabled = true;
         if (passcode != null) {
             passcode.accountActions.stream().forEach(a ->
                     Utilities.globalQueue.postRunnable(new UpdateIdHashRunnable(a), 1000));
