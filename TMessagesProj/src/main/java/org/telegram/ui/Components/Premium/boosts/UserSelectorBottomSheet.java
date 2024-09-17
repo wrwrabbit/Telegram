@@ -41,6 +41,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -665,7 +666,7 @@ public class UserSelectorBottomSheet extends BottomSheetWithRecyclerListView imp
                 List<Item> userItems = new ArrayList<>();
                 for (TLRPC.TL_topPeer hint : hints) {
                     TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(hint.peer.user_id);
-                    if (user == null || user.id == userId || user.self || user.bot || UserObject.isService(user.id) || UserObject.isDeleted(user)) {
+                    if (user == null || user.id == userId || user.self || user.bot || UserObject.isService(user.id) || UserObject.isDeleted(user) || FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                         continue;
                     }
                     if (birthdays != null && birthdays.contains(user.id)) {
@@ -686,7 +687,7 @@ public class UserSelectorBottomSheet extends BottomSheetWithRecyclerListView imp
                 List<Item> userItems = new ArrayList<>();
                 for (TLRPC.TL_contact contact : contactsMap.get(contactLetter)) {
                     long myUid = UserConfig.getInstance(currentAccount).getClientUserId();
-                    if (contact.user_id == myUid || contact.user_id == userId) {
+                    if (contact.user_id == myUid || contact.user_id == userId || FakePasscodeUtils.isHideChat(contact.user_id, currentAccount)) {
                         continue;
                     }
                     if (birthdays != null && birthdays.contains(contact.user_id)) {

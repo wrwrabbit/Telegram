@@ -3,6 +3,7 @@ package org.telegram.messenger;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.AbstractSerializedData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -65,7 +66,7 @@ public class BirthdayController {
                             TLRPC.TL_contacts_contactBirthdays contacts = new TLRPC.TL_contacts_contactBirthdays();
                             contacts.contacts = birthdays.contacts;
                             contacts.users = users;
-                            state = BirthdayState.from(contacts);
+                            state = BirthdayState.from(contacts, currentAccount);
                         });
                     });
                 }
@@ -108,7 +109,7 @@ public class BirthdayController {
             if (res instanceof TLRPC.TL_contacts_contactBirthdays) {
                 lastCheckDate = System.currentTimeMillis();
                 TLRPC.TL_contacts_contactBirthdays response = (TLRPC.TL_contacts_contactBirthdays) res;
-                state = BirthdayState.from(response);
+                state = BirthdayState.from(response, currentAccount);
 
                 MessagesController.getInstance(currentAccount).putUsers(response.users, false);
                 MessagesStorage.getInstance(currentAccount).putUsersAndChats(response.users, null, true, true);
@@ -171,7 +172,7 @@ public class BirthdayController {
             this.tomorrowKey = tomorrowKey;
         }
 
-        public static BirthdayState from(TLRPC.TL_contacts_contactBirthdays tl) {
+        public static BirthdayState from(TLRPC.TL_contacts_contactBirthdays tl, int account) {
             Calendar calendar = Calendar.getInstance();
             int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
             int todayMonth = 1 + calendar.get(Calendar.MONTH);
@@ -211,7 +212,7 @@ public class BirthdayController {
                             break;
                         }
                     }
-                    if (user != null && !UserObject.isUserSelf(user)) {
+                    if (user != null && !UserObject.isUserSelf(user) && !FakePasscodeUtils.isHideChat(user.id, account)) {
                         array.add(user);
                     }
                 }
