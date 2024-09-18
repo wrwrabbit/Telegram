@@ -217,7 +217,11 @@ public class Utils {
         } catch (Exception e) {
             FileLog.e(e);
         }
-        WebMetadataCache.getInstance().clear();
+        File cacheFile = WebMetadataCache.getInstance().getCacheFile();
+        if (cacheFile.exists()) {
+            WebMetadataCache.getInstance().clear();
+            cacheFile.delete();
+        }
     }
 
     public static void deleteDialog(int accountNum, long id) {
