@@ -123,6 +123,7 @@ class UpdateMessageParser {
         lang = "en";
         langInaccuracy = Integer.MAX_VALUE;
         for (int pos = 0; pos <= text.length(); pos++) {
+
             boolean textEnd = pos == text.length();
             char currentChar = !textEnd ? text.charAt(pos) : '\0';
             boolean lineEnd = currentChar == '\n';
@@ -133,7 +134,7 @@ class UpdateMessageParser {
                 processDescription(text, blockStart, pos);
             }
             if (controlLineEnding) {
-                PartisanLog.d("UpdateChecker: process control line start - " + blockStart + ", pos - " + pos);
+                PartisanLog.d("UpdateChecker: process control line start - " + blockStart + ", pos - " + pos + ", text.length() - " + text.length());
                 processControlLine(text.subSequence(blockStart, pos).toString());
             }
             if (controlLineBeginning || controlLineEnding) {
