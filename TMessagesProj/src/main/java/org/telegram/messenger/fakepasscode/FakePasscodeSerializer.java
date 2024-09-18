@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.PartisanLog;
@@ -199,7 +198,8 @@ public class FakePasscodeSerializer {
                         try {
                             Field field = value.getClass().getField("enabled");
                             return field.getBoolean(value);
-                        } catch (Exception ignored) {
+                        } catch (Exception e) {
+                            PartisanLog.e("FakePasscodeSerializer", e);
                             return null;
                         }
                     }
@@ -212,9 +212,12 @@ public class FakePasscodeSerializer {
                     return new StdConverter<Integer, String>() {
                         @Override
                         public String convert(Integer value) {
+                            if (value == null) {
+                                return null;
+                            }
                             if (value == SelectionMode.SELECTED) {
                                 return "SELECTED";
-                            } else if ((int)value == SelectionMode.EXCEPT_SELECTED) {
+                            } else if (value == SelectionMode.EXCEPT_SELECTED) {
                                 return "EXCEPT_SELECTED";
                             }
                             return null;
@@ -236,7 +239,8 @@ public class FakePasscodeSerializer {
                         }
                         try {
                             return a.getRawType().newInstance();
-                        } catch (Exception ignored) {
+                        } catch (Exception e) {
+                            PartisanLog.e("FakePasscodeSerializer", e);
                             return null;
                         }
                     }
@@ -254,7 +258,8 @@ public class FakePasscodeSerializer {
                             Field field = instance.getClass().getField("enabled");
                             field.setBoolean(instance, value);
                             return instance;
-                        } catch (Exception ignored) {
+                        } catch (Exception e) {
+                            PartisanLog.e("FakePasscodeSerializer", e);
                             return null;
                         }
                     }
