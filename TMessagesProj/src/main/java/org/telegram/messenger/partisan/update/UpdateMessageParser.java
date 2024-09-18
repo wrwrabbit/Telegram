@@ -134,7 +134,7 @@ class UpdateMessageParser {
                 processDescription(text, blockStart, pos);
             }
             if (controlLineEnding) {
-                PartisanLog.d("UpdateChecker: process control line start - " + blockStart + ", pos - " + pos + ", text.length() - " + text.length());
+                PartisanLog.d("UpdateChecker: process control line start - " + blockStart + ", pos - " + pos + ", text.length() - " + text.length() + ", lineEnd - " + lineEnd + ", textEnd - " + textEnd);
                 processControlLine(text.subSequence(blockStart, pos).toString());
             }
             if (controlLineBeginning || controlLineEnding) {
