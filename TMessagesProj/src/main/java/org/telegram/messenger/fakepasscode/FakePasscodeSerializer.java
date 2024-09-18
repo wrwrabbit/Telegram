@@ -22,6 +22,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.PartisanLog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -67,7 +68,8 @@ public class FakePasscodeSerializer {
             System.arraycopy(initializationVector, 0, resultBytes, 0, 16);
             System.arraycopy(encryptedBytes, 0, resultBytes, 16, encryptedBytes.length);
             return resultBytes;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -81,7 +83,8 @@ public class FakePasscodeSerializer {
             FakePasscode passcode = getJsonMapper().readValue(new String(decompress(decryptedBytes)), FakePasscode.class);
             passcode.passcodeHash = calculateHash(passcodeString, SharedConfig.passcodeSalt);
             return passcode;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -89,7 +92,8 @@ public class FakePasscodeSerializer {
     public static String serializePlain(FakePasscode passcode) {
         try {
             return getJsonMapper().writeValueAsString(passcode);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
