@@ -204,6 +204,9 @@ class UpdateMessageParser {
         String[] parts = command.split("=");
         String name = parts[0];
         String value = parts.length == 2 ? parts[1] : null;
+        if (name != null) {
+            PartisanLog.d("UpdateChecker: parse tag - " + name);
+        }
         if (name.equals("version") || name.equals("appVersion")) {
             currentUpdate.version = AppVersion.parseVersion(value);
         } else if (name.equals("originalVersion")) {
