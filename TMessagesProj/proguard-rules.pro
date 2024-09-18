@@ -25,6 +25,7 @@
 -keepclassmembers class org.telegram.messenger.partisan.verification.VerificationChatInfo { *; }
 -keepclassmembers class org.telegram.messenger.partisan.verification.VerificationRepository$StoragesWrapper { *; }
 -keepclassmembers class org.telegram.messenger.partisan.verification.VerificationStorage { *; }
+-keepclassmembers class org.telegram.messenger.fakepasscode.FakePasscodeSerializer$FakePasscodeAnnotationIntrospector$2 { *; }
 
 -keep class com.google.android.exoplayer2.ext.** { *; }
 -keep class com.google.android.exoplayer2.extractor.FlacStreamMetadata { *; }
