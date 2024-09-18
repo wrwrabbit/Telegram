@@ -191,7 +191,7 @@ public class Utils {
         });
     }
 
-    private static void clearWebBrowserCache(Context context) {
+    public static void clearWebBrowserCache(Context context) {
         ApplicationLoader.applicationContext.deleteDatabase("webview.db");
         ApplicationLoader.applicationContext.deleteDatabase("webviewCache.db");
         WebStorage.getInstance().deleteAllData();

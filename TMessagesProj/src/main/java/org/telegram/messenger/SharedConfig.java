@@ -43,6 +43,7 @@ import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.update.UpdateApkRemoveRunnable;
 import org.telegram.messenger.partisan.update.AppVersion;
 import org.telegram.messenger.partisan.SecurityIssue;
@@ -57,6 +58,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
 import org.telegram.ui.LaunchActivity;
+import org.telegram.ui.web.BrowserHistory;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -726,6 +728,8 @@ public class SharedConfig {
         int prevMigrationVersion = sharedConfigMigrationVersion;
         if (sharedConfigMigrationVersion == 0) {
             inappBrowser = false;
+            Utils.clearWebBrowserCache(ApplicationLoader.applicationContext);
+            BrowserHistory.clearHistory();
             sharedConfigMigrationVersion++;
         }
         if (prevMigrationVersion != sharedConfigMigrationVersion) {
