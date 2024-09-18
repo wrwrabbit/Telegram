@@ -66,7 +66,7 @@ public class UpdateChecker extends AbstractChannelChecker {
         UpdateMessageParser parser = new UpdateMessageParser(currentAccount);
         for (MessageObject message : sortMessageById(messages)) {
             CharSequence messageText = message.messageText != null ? message.messageText : "<empty>";
-            PartisanLog.d("UpdateChecker: process message\n" + messageText);
+            PartisanLog.d("UpdateChecker: process message\n" + messageText + ", messageText.length() - " + messageText.length());
             UpdateData currentUpdate = parser.processMessage(message);
             if (currentUpdate != null) {
                 PartisanLog.d("UpdateChecker: current update version is " + currentUpdate.version + ", app version is " + AppVersion.getCurrentVersion());
