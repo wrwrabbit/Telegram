@@ -115,7 +115,7 @@ public class FakePasscodeSerializer {
             System.arraycopy(salt, 0, bytes, passcodeBytes.length + 16, 16);
             return Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
         } catch (Exception e) {
-            FileLog.e(e);
+            PartisanLog.e("FakePasscodeSerializer", e);
         }
         return null;
     }
@@ -130,6 +130,7 @@ public class FakePasscodeSerializer {
 
             return out.toByteArray();
         } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -144,6 +145,7 @@ public class FakePasscodeSerializer {
 
             return out.toByteArray();
         } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
