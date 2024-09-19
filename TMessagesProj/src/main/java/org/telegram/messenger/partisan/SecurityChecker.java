@@ -36,7 +36,7 @@ public class SecurityChecker {
         if (!config.isClientActivated()) {
             return;
         }
-        if ((System.currentTimeMillis() - config.lastSecuritySuggestionsShow < (30L * 24L * 60L * 60L * 1000L) || !config.showSecuritySuggestions) && !force) {
+        if (System.currentTimeMillis() - config.lastSecuritySuggestionsShow < (30L * 24L * 60L * 60L * 1000L) && !force) {
             return;
         }
 
