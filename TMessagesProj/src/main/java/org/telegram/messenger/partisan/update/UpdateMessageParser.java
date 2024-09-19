@@ -126,8 +126,8 @@ class UpdateMessageParser {
 
             boolean textEnd = pos == text.length();
             char currentChar = !textEnd ? text.charAt(pos) : '\0';
-            boolean lineEnd = currentChar == '\n';
             boolean controlLineBeginning = isFirstCharInNewLine && currentChar == '#';
+            boolean lineEnd = currentChar == '\n';
             boolean controlLineEnding = (lineEnd || textEnd) && controlLine;
             boolean descriptionEnding = (controlLineBeginning || textEnd && !controlLine) && blockStart < pos;
             if (descriptionEnding) {
