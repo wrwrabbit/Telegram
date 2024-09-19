@@ -134,7 +134,6 @@ class UpdateMessageParser {
                 processDescription(text, blockStart, pos);
             }
             if (controlLineEnding) {
-                PartisanLog.d("UpdateChecker: process control line start - " + blockStart + ", pos - " + pos + ", text.length() - " + text.length() + ", lineEnd - " + lineEnd + ", textEnd - " + textEnd);
                 processControlLine(text.subSequence(blockStart, pos).toString());
             }
             if (controlLineBeginning || controlLineEnding) {
@@ -206,9 +205,6 @@ class UpdateMessageParser {
         String[] parts = command.split("=");
         String name = parts[0];
         String value = parts.length == 2 ? parts[1] : null;
-        if (name != null) {
-            PartisanLog.d("UpdateChecker: parse command - " + command + ", tag - " + name);
-        }
         if (name.equals("version") || name.equals("appVersion")) {
             currentUpdate.version = AppVersion.parseVersion(value);
         } else if (name.equals("originalVersion")) {

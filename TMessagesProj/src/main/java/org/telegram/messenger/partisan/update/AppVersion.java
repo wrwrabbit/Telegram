@@ -39,16 +39,7 @@ public class AppVersion {
     }
 
     public static AppVersion parseVersion(String versionString) {
-        String escaped = versionString.replace("\\", "\\\\")
-                .replace("\t", "\\t")
-                .replace("\b", "\\b")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\f", "\\f")
-                .replace("\"", "\\\"");
-        PartisanLog.d("UpdateChecker: versionString - " + escaped);
         Matcher currentVersionMatcher = VERSION_REGEX.matcher(versionString);
-        PartisanLog.d("UpdateChecker: versionString - " + escaped);
         if (currentVersionMatcher.find() && currentVersionMatcher.groupCount() >= 3) {
             return new AppVersion(
                     Integer.parseInt(currentVersionMatcher.group(1)),
