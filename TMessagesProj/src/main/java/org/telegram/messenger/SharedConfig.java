@@ -728,8 +728,10 @@ public class SharedConfig {
         int prevMigrationVersion = sharedConfigMigrationVersion;
         if (sharedConfigMigrationVersion == 0) {
             inappBrowser = false;
-            Utils.clearWebBrowserCache(ApplicationLoader.applicationContext);
-            BrowserHistory.clearHistory();
+            Utilities.globalQueue.postRunnable(() -> {
+                Utils.clearWebBrowserCache(ApplicationLoader.applicationContext);
+                BrowserHistory.clearHistory();
+            }, 1000);
             sharedConfigMigrationVersion++;
         }
         if (prevMigrationVersion != sharedConfigMigrationVersion) {
