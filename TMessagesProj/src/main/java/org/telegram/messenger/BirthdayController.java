@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class BirthdayController {
@@ -140,6 +141,11 @@ public class BirthdayController {
             return null;
         if (hiddenDays.contains(state.todayKey))
             return null;
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            state.today.removeIf(u -> FakePasscodeUtils.isHideChat(u.id, currentAccount));
+            state.yesterday.removeIf(u -> FakePasscodeUtils.isHideChat(u.id, currentAccount));
+            state.tomorrow.removeIf(u -> FakePasscodeUtils.isHideChat(u.id, currentAccount));
+        }
         return state;
     }
 
