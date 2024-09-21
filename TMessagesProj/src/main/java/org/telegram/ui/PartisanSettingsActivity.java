@@ -211,6 +211,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     for (UserConfig.ChatInfoOverride override : config.chatInfoOverrides.values()) {
                         override.avatarEnabled = true;
                     }
+                    config.saveConfig(false);
                 };
                 switcher.switchSetting();
             } else if (position == renameChatRow) {
@@ -228,6 +229,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     for (UserConfig.ChatInfoOverride override : config.chatInfoOverrides.values()) {
                         override.title = null;
                     }
+                    config.saveConfig(false);
                 };
                 switcher.switchSetting();
             } else if (position == deleteMyMessagesRow) {
@@ -263,6 +265,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     List<String> savedChannels = Arrays.asList(config.defaultChannels.split(","));
                     config.savedChannels = new HashSet<>(savedChannels);
                     config.pinnedSavedChannels = new ArrayList<>(savedChannels);
+                    config.saveConfig(false);
                 };
                 switcher.switchSetting();
             } else if (position == reactionsRow) {

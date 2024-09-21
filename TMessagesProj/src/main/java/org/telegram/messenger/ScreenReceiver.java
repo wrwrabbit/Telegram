@@ -36,7 +36,7 @@ public class ScreenReceiver extends BroadcastReceiver {
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.screenStateChanged);
         if (!FakePasscodeUtils.isFakePasscodeActivated() && intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
             if (SharedConfig.onScreenLockActionClearCache) {
-                Utils.clearCache(this::executeOnScreenLockAction);
+                Utils.clearCache(context, this::executeOnScreenLockAction);
             } else {
                 executeOnScreenLockAction();
             }

@@ -68,6 +68,7 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
 
     private TLRPC.ChatFull chatFull;
     private TLRPC.TL_channels_sendAsPeers sendAsPeers;
+    private final int currentAccount;
 
     private FrameLayout scrimPopupContainerLayout;
     private View headerShadow;
@@ -80,8 +81,6 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
 
     protected List<SpringAnimation> springAnimations = new ArrayList<>();
     private boolean dismissed;
-
-    private final int currentAccount;
 
     private FrameLayout bulletinContainer;
     private Runnable bulletinHideCallback;
@@ -96,7 +95,7 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
 
         this.chatFull = chatFull;
         this.sendAsPeers = sendAsPeers;
-        this.currentAccount = parentFragment.getCurrentAccount();
+        this.currentAccount = parentFragment == null ? UserConfig.selectedAccount : parentFragment.getCurrentAccount();
 
         scrimPopupContainerLayout = new BackButtonFrameLayout(context);
         scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
@@ -135,7 +134,7 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
         headerText = new TextView(context);
         headerText.setTextColor(Theme.getColor(Theme.key_dialogTextBlue));
         headerText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        headerText.setText(LocaleController.getString("SendMessageAsTitle", R.string.SendMessageAsTitle));
+        headerText.setText(LocaleController.getString(R.string.SendMessageAsTitle));
         headerText.setTypeface(AndroidUtilities.bold(), Typeface.BOLD);
         int dp = AndroidUtilities.dp(18);
         headerText.setPadding(dp, AndroidUtilities.dp(12), dp, AndroidUtilities.dp(12));
@@ -199,7 +198,7 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
                     TLRPC.User user = messagesController.getUser(peerId);
                     if (user != null) {
                         senderView.title.setText(UserObject.getUserName(user, currentAccount));
-                        senderView.subtitle.setText(LocaleController.getString("VoipGroupPersonalAccount", R.string.VoipGroupPersonalAccount));
+                        senderView.subtitle.setText(LocaleController.getString(R.string.VoipGroupPersonalAccount));
                         senderView.avatar.setAvatar(user);
                     }
                     senderView.avatar.setSelected(chatFull.default_send_as != null ? chatFull.default_send_as.user_id == peer.user_id : position == 0, false);
@@ -277,10 +276,13 @@ public class SenderSelectPopup extends ActionBarPopupWindow {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
                     }
+                    AndroidUtilities.setPreferredMaxRefreshRate(windowManager, bulletinContainer, params);
                     windowManager.addView(bulletinContainer, params);
                 }
 
-                Bulletin bulletin = Bulletin.make(bulletinContainer, new SelectSendAsPremiumHintBulletinLayout(context, parentFragment.themeDelegate, ()->{
+                final TLRPC.Chat chat = chatFull == null ? null : MessagesController.getInstance(currentAccount).getChat(chatFull.id);
+                final boolean toChannel = ChatObject.isChannelAndNotMegaGroup(chat);
+                Bulletin bulletin = Bulletin.make(bulletinContainer, new SelectSendAsPremiumHintBulletinLayout(context, parentFragment.themeDelegate, toChannel, () -> {
                     if (parentFragment != null) {
                         parentFragment.presentFragment(new PremiumPreviewFragment("select_sender"));
                         dismiss();

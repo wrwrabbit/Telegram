@@ -210,7 +210,7 @@ public class SessionCell extends FrameLayout {
             String timeText;
             if ((session.flags & 1) != 0) {
                 setTag(Theme.key_windowBackgroundWhiteValueText);
-                timeText = LocaleController.getString("Online", R.string.Online);
+                timeText = LocaleController.getString(R.string.Online);
             } else {
                 setTag(Theme.key_windowBackgroundWhiteGrayText3);
                 timeText = LocaleController.stringForMessageListDate(session.date_active);
@@ -289,7 +289,7 @@ public class SessionCell extends FrameLayout {
         }
     }
 
-    public static Drawable createDrawable(int sz, String platform) {
+    public static CombinedDrawable createDrawable(int sz, String platform) {
         TLRPC.TL_authorization auth = new TLRPC.TL_authorization();
         auth.device_model = platform;
         auth.platform = platform;
@@ -297,7 +297,7 @@ public class SessionCell extends FrameLayout {
         return createDrawable(sz, auth);
     }
 
-    public static Drawable createDrawable(int sz, TLRPC.TL_authorization session) {
+    public static CombinedDrawable createDrawable(int sz, TLRPC.TL_authorization session) {
         String platform = session.platform.toLowerCase();
         if (platform.isEmpty()) {
             platform = session.system_version.toLowerCase();

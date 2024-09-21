@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.PartisanVersion;
 
 import java.util.regex.Matcher;
@@ -45,6 +46,7 @@ public class AppVersion {
                     Integer.parseInt(currentVersionMatcher.group(2)),
                     Integer.parseInt(currentVersionMatcher.group(3)));
         }
+        PartisanLog.d("UpdateChecker: version is null");
         return null;
     }
 

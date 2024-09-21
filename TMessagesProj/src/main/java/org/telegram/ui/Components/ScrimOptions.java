@@ -27,10 +27,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.style.CharacterStyle;
+import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -373,6 +376,7 @@ public class ScrimOptions extends Dialog {
         float x = 0, y = 0;
         float rtloffset = 0;
         StaticLayout layout = null;
+        int layoutOriginalWidth = 0;
 
         MessageObject messageObject = cell.getMessageObject();
         ArrayList<MessageObject.TextLayoutBlock> textblocks = null;
@@ -384,7 +388,7 @@ public class ScrimOptions extends Dialog {
         }
         if (textblocks == null) {
             x = cell.getTextX();
-            y = cell.getTextY();
+            y = cell.getTextY() + cell.transitionYOffsetForDrawables;
             textblocks = messageObject.textLayoutBlocks;
             rtloffset = messageObject.textXOffset;
         }
@@ -415,6 +419,37 @@ public class ScrimOptions extends Dialog {
 
             x += (textblock.isRtl() ? (int) Math.ceil(rtloffset) : 0);
             y += textblock.padTop + textblock.textYOffset(textblocks, cell.transitionParams);
+
+            layoutOriginalWidth = textblock.originalWidth;
+        }
+
+        if (blockNum == -1 && cell.getDescriptionlayout() != null) {
+            StaticLayout textlayout = cell.getDescriptionlayout();
+            for (int i = 0; i == 0; ++i) {
+                if (textlayout == null) continue;
+                if (!(textlayout.getText() instanceof Spanned)) continue;
+
+                CharacterStyle[] spans = ((Spanned) textlayout.getText()).getSpans(0, textlayout.getText().length(), CharacterStyle.class);
+                if (spans == null) continue;
+                boolean found = false;
+                for (int j = 0; j < spans.length; ++j) {
+                    if (spans[j] == link) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) continue;
+
+                layout = textlayout;
+
+                start = ((Spanned) textlayout.getText()).getSpanStart(link);
+                end = ((Spanned) textlayout.getText()).getSpanEnd(link);
+
+                x = cell.getDescriptionLayoutX();
+                y = cell.getDescriptionLayoutY();
+
+                layoutOriginalWidth = textlayout.getWidth();
+            }
         }
 
         if (layout == null) return;
@@ -432,7 +467,7 @@ public class ScrimOptions extends Dialog {
             realPathBounds = new RectF();
             path.computeBounds(realPathBounds, true);
 
-            layout = MessageObject.makeStaticLayout(replaceText, layout.getPaint(), layout.getWidth(), 1f, 0f, true);
+            layout = MessageObject.makeStaticLayout(replaceText, layout.getPaint(), layout.getWidth(), 1f, 0f, false);
             start = 0;
             end = replaceText.length();
             float l = layout.getWidth(), r = 0;
@@ -483,19 +518,29 @@ public class ScrimOptions extends Dialog {
         paint.setTextSize(layout.getPaint().getTextSize());
         paint.setTextAlign(layout.getPaint().getTextAlign());
         paint.setTypeface(layout.getPaint().getTypeface());
-        final StaticLayout finalLayout;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            StaticLayout.Builder builder =
-                StaticLayout.Builder.obtain(layout.getText(), 0, layout.getText().length(), paint, layout.getWidth())
-                    .setLineSpacing(0f, 1f)
-                    .setBreakStrategy(StaticLayout.BREAK_STRATEGY_HIGH_QUALITY)
-                    .setHyphenationFrequency(StaticLayout.HYPHENATION_FREQUENCY_NONE)
-                    .setAlignment(Layout.Alignment.ALIGN_NORMAL);
-            finalLayout = builder.build();
-        } else {
-            finalLayout = new StaticLayout(layout.getText(), paint, layout.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1f, 0f, false);
+        paint.setLinearText(layout.getPaint().isLinearText());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            paint.setLetterSpacing(layout.getPaint().getLetterSpacing());
+            paint.setFontFeatureSettings(layout.getPaint().getFontFeatureSettings());
+            paint.setElegantTextHeight(layout.getPaint().isElegantTextHeight());
         }
-        final int finalBlockNum = blockNum;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            paint.setFontVariationSettings(layout.getPaint().getFontVariationSettings());
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            paint.setEndHyphenEdit(layout.getPaint().getEndHyphenEdit());
+        }
+        CharSequence text = new SpannableStringBuilder(AnimatedEmojiSpan.cloneSpans(layout.getText(), -1, paint.getFontMetricsInt()));
+        if (text instanceof Spannable) {
+            Spannable spannable = (Spannable) text;
+            if (start > 0) {
+                spannable.setSpan(new ForegroundColorSpan(0), 0, start, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            if (end < spannable.length()) {
+                spannable.setSpan(new ForegroundColorSpan(0), end, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        final StaticLayout finalLayout = MessageObject.makeStaticLayout(text, paint, layoutOriginalWidth, 1f, messageObject.totalAnimatedEmojiCount >= 4 ? -1 : 0, false);
         final int[] pos = new int[2];
         cell.getLocationOnScreen(pos);
         final int[] pos2 = new int[2];
@@ -511,6 +556,7 @@ public class ScrimOptions extends Dialog {
 
                 AndroidUtilities.rectTmp.set(getBounds());
                 AndroidUtilities.rectTmp.left -= path.getRadius() / 2f;
+                canvas.save();
                 canvas.saveLayerAlpha(AndroidUtilities.rectTmp, alpha, Canvas.ALL_SAVE_FLAG);
                 canvas.translate(pos2[0], pos2[1]);
 
@@ -537,13 +583,7 @@ public class ScrimOptions extends Dialog {
                 }
                 canvas.clipPath(path);
 
-                canvas.save();
                 finalLayout.draw(canvas);
-//                if (cell != null && cell.linkBlockNum == finalBlockNum) {
-//                    cell.links.draw(canvas);
-//                }
-//                cell.drawProgressLoadingLink(canvas, finalBlockNum);
-                canvas.restore();
 
                 canvas.restore();
             }
@@ -568,8 +608,8 @@ public class ScrimOptions extends Dialog {
             if (left + pathBounds.width() > AndroidUtilities.displaySize.x - dp(8)) {
                 scrimDrawableTx2 -= (left + pathBounds.width()) - (AndroidUtilities.displaySize.x - dp(8));
             }
-            if (top + pathBounds.height() > AndroidUtilities.displaySize.y - AndroidUtilities.navigationBarHeight - dp(8)) {
-                scrimDrawableTy2 -= (top + pathBounds.height()) - (AndroidUtilities.displaySize.y - AndroidUtilities.navigationBarHeight - dp(8));
+            if (top + pathBounds.height() > AndroidUtilities.displaySize.y - AndroidUtilities.statusBarHeight - AndroidUtilities.navigationBarHeight - dp(8)) {
+                scrimDrawableTy2 -= (top + pathBounds.height()) - (AndroidUtilities.displaySize.y - AndroidUtilities.statusBarHeight - AndroidUtilities.navigationBarHeight - dp(8));
             }
             if (realPathBounds != null) {
                 scrimDrawableSw = realPathBounds.width() / pathBounds.width();
