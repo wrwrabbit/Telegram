@@ -123,7 +123,6 @@ class UpdateMessageParser {
         lang = "en";
         langInaccuracy = Integer.MAX_VALUE;
         for (int pos = 0; pos <= text.length(); pos++) {
-
             boolean textEnd = pos == text.length();
             char currentChar = !textEnd ? text.charAt(pos) : '\0';
             boolean controlLineBeginning = isFirstCharInNewLine && currentChar == '#';
