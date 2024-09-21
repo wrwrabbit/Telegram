@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.util.Pair;
 import android.util.SparseArray;
 
@@ -335,7 +336,11 @@ public class DownloadController extends BaseController implements NotificationCe
             }
         };
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        ApplicationLoader.applicationContext.registerReceiver(networkStateReceiver, filter);
+        if (Build.VERSION.SDK_INT >= 33) {
+            ApplicationLoader.applicationContext.registerReceiver(networkStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            ApplicationLoader.applicationContext.registerReceiver(networkStateReceiver, filter);
+        }
 
         if (getUserConfig().isClientActivated()) {
             checkAutodownloadSettings();
@@ -610,6 +615,11 @@ public class DownloadController extends BaseController implements NotificationCe
             }
             return true;
         }
+        if (messageObject.sponsoredMedia != null) {
+            return true;
+        }
+        if (messageObject.isHiddenSensitive())
+            return false;
         return canDownloadMedia(messageObject.messageOwner) == 1;
     }
 
@@ -636,6 +646,24 @@ public class DownloadController extends BaseController implements NotificationCe
         int mask = preset.mask[1];
         long maxSize = preset.sizes[typeToIndex(type)];
         return (type == AUTODOWNLOAD_TYPE_PHOTO || size != 0 && size <= maxSize) && (type == AUTODOWNLOAD_TYPE_AUDIO || (mask & type) != 0);
+    }
+
+    public int canDownloadMediaType(MessageObject messageObject) {
+        if (messageObject.type == MessageObject.TYPE_STORY) {
+            if (!SharedConfig.isAutoplayVideo()) return 0;
+            TLRPC.TL_messageMediaStory mediaStory = (TLRPC.TL_messageMediaStory) MessageObject.getMedia(messageObject);
+            TL_stories.StoryItem storyItem = mediaStory.storyItem;
+            if (storyItem == null || storyItem.media == null || storyItem.media.document == null || !storyItem.isPublic) {
+                return 0;
+            }
+            return 2;
+        }
+        if (messageObject.sponsoredMedia != null) {
+            return 2;
+        }
+        if (messageObject.isHiddenSensitive())
+            return 0;
+        return canDownloadMedia(messageObject.messageOwner);
     }
 
     public int canDownloadMedia(TLRPC.Message message) {
@@ -793,7 +821,7 @@ public class DownloadController extends BaseController implements NotificationCe
         } else {
             maxSize = preset.sizes[typeToIndex(type)];
         }
-        long size = MessageObject.getMessageSize(message);
+        long size = MessageObject.getMediaSize(media);
         if (isVideo && preset.preloadVideo && size > maxSize && maxSize > 2 * 1024 * 1024) {
             return (mask & type) != 0 ? 2 : 0;
         } else {

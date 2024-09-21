@@ -48,8 +48,6 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
     private ListAdapter listAdapter;
     private RecyclerListView listView;
     private ImageView imageView;
-    private TextView textView1;
-    private TextView textView2;
     private EmptyTextProgressView emptyView;
     private FlickerLoadingView globalFlickerLoadingView;
 
@@ -137,22 +135,6 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
         imageView.setImageResource(R.drawable.devices);
         imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_sessions_devicesImage), PorterDuff.Mode.MULTIPLY));
         emptyLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-
-        textView1 = new TextView(context);
-        textView1.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
-        textView1.setGravity(Gravity.CENTER);
-        textView1.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
-        textView1.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
-        textView1.setText(LocaleController.getString("NoOtherSessions", R.string.NoOtherSessions));
-        emptyLayout.addView(textView1, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 16, 0, 0));
-
-        textView2 = new TextView(context);
-        textView2.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
-        textView2.setGravity(Gravity.CENTER);
-        textView2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
-        textView2.setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
-        textView2.setText(LocaleController.getString("NoOtherSessionsInfo", R.string.NoOtherSessionsInfo));
-        emptyLayout.addView(textView2, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 14, 0, 0));
 
         emptyView = new EmptyTextProgressView(context);
         emptyView.showProgress();
@@ -476,8 +458,6 @@ public abstract class CheckableSessionsActivity extends BaseFragment implements 
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
 
         themeDescriptions.add(new ThemeDescription(imageView, ThemeDescription.FLAG_IMAGECOLOR, null, null, null, null, Theme.key_sessions_devicesImage));
-        themeDescriptions.add(new ThemeDescription(textView1, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-        themeDescriptions.add(new ThemeDescription(textView2, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
         themeDescriptions.add(new ThemeDescription(emptyView, ThemeDescription.FLAG_PROGRESSBAR, null, null, null, null, Theme.key_progressCircle));
 
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_color_red));

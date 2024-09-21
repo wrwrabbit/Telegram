@@ -34,7 +34,6 @@ import android.provider.OpenableColumns;
 import android.text.Spannable;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -88,12 +87,12 @@ import org.telegram.ui.TwoStepVerificationSetupActivity;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,6 +102,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class SendMessagesHelper extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
@@ -3115,7 +3116,15 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return voteSendTime.get(pollId, 0L);
     }
 
-    public void sendReaction(MessageObject messageObject, ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions, ReactionsLayoutInBubble.VisibleReaction addedReaction, boolean big, boolean addToRecent, BaseFragment parentFragment, Runnable callback) {
+    public void sendReaction(
+        MessageObject messageObject,
+        ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions,
+        ReactionsLayoutInBubble.VisibleReaction addedReaction,
+        boolean big,
+        boolean addToRecent,
+        BaseFragment parentFragment,
+        Runnable callback
+    ) {
         if (messageObject == null || parentFragment == null) {
             return;
         }
@@ -3165,7 +3174,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         TLRPC.TL_messages_requestUrlAuth req = new TLRPC.TL_messages_requestUrlAuth();
         req.url = url;
         req.flags |= 4;
-        getConnectionsManager().sendRequest(req, (response, error) -> {
+        getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
                 if (response instanceof TLRPC.TL_urlAuthResultRequest) {
                     TLRPC.TL_urlAuthResultRequest res = (TLRPC.TL_urlAuthResultRequest) response;
@@ -3179,7 +3188,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             } else {
                 AlertsCreator.showOpenUrlAlert(parentFragment, url, false, ask);
             }
-        }, ConnectionsManager.RequestFlagFailOnServerErrors);
+        }), ConnectionsManager.RequestFlagFailOnServerErrors);
     }
 
     public void sendCallback(final boolean cache, final MessageObject messageObject, final TLRPC.KeyboardButton button, final ChatActivity parentFragment) {
@@ -3288,7 +3297,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             }
                             AlertDialog.Builder builder = new AlertDialog.Builder(parentFragment.getParentActivity());
                             builder.setTitle(name);
-                            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+                            builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                             builder.setMessage(res.message);
                             parentFragment.showDialog(builder.create());
                         } else {
@@ -3318,14 +3327,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 if ("PASSWORD_HASH_INVALID".equals(error.text)) {
                     if (srp == null) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(parentFragment.getParentActivity());
-                        builder.setTitle(LocaleController.getString("BotOwnershipTransfer", R.string.BotOwnershipTransfer));
+                        builder.setTitle(LocaleController.getString(R.string.BotOwnershipTransfer));
                         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("BotOwnershipTransferReadyAlertText", R.string.BotOwnershipTransferReadyAlertText)));
-                        builder.setPositiveButton(LocaleController.getString("BotOwnershipTransferChangeOwner", R.string.BotOwnershipTransferChangeOwner), (dialogInterface, i) -> {
+                        builder.setPositiveButton(LocaleController.getString(R.string.BotOwnershipTransferChangeOwner), (dialogInterface, i) -> {
                             TwoStepVerificationActivity fragment = new TwoStepVerificationActivity();
                             fragment.setDelegate(0, password -> sendCallback(cache, messageObject, button, password, fragment, parentFragment));
                             parentFragment.presentFragment(fragment);
                         });
-                        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                         parentFragment.showDialog(builder.create());
                     }
                 } else if ("PASSWORD_MISSING".equals(error.text) || error.text.startsWith("PASSWORD_TOO_FRESH_") || error.text.startsWith("SESSION_TOO_FRESH_")) {
@@ -3333,7 +3342,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         passwordFragment.needHideProgress();
                     }
                     AlertDialog.Builder builder = new AlertDialog.Builder(parentFragment.getParentActivity());
-                    builder.setTitle(LocaleController.getString("EditAdminTransferAlertTitle", R.string.EditAdminTransferAlertTitle));
+                    builder.setTitle(LocaleController.getString(R.string.EditAdminTransferAlertTitle));
 
                     LinearLayout linearLayout = new LinearLayout(parentFragment.getParentActivity());
                     linearLayout.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(2), AndroidUtilities.dp(24), 0);
@@ -3360,7 +3369,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                     messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
-                    messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString("EditAdminTransferAlertText1", R.string.EditAdminTransferAlertText1)));
+                    messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.EditAdminTransferAlertText1)));
                     if (LocaleController.isRTL) {
                         linearLayout2.addView(messageTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
                         linearLayout2.addView(dotImageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.RIGHT));
@@ -3382,7 +3391,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                     messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
-                    messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString("EditAdminTransferAlertText2", R.string.EditAdminTransferAlertText2)));
+                    messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.EditAdminTransferAlertText2)));
                     if (LocaleController.isRTL) {
                         linearLayout2.addView(messageTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
                         linearLayout2.addView(dotImageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.RIGHT));
@@ -3392,17 +3401,17 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     }
 
                     if ("PASSWORD_MISSING".equals(error.text)) {
-                        builder.setPositiveButton(LocaleController.getString("EditAdminTransferSetPassword", R.string.EditAdminTransferSetPassword), (dialogInterface, i) -> parentFragment.presentFragment(new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_INTRO, null)));
-                        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                        builder.setPositiveButton(LocaleController.getString(R.string.EditAdminTransferSetPassword), (dialogInterface, i) -> parentFragment.presentFragment(new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_INTRO, null)));
+                        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                     } else {
                         messageTextView = new TextView(parentFragment.getParentActivity());
                         messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                         messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                         messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
-                        messageTextView.setText(LocaleController.getString("EditAdminTransferAlertText3", R.string.EditAdminTransferAlertText3));
+                        messageTextView.setText(LocaleController.getString(R.string.EditAdminTransferAlertText3));
                         linearLayout.addView(messageTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 11, 0, 0));
 
-                        builder.setNegativeButton(LocaleController.getString("OK", R.string.OK), null);
+                        builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
                     }
                     parentFragment.showDialog(builder.create());
                 } else if ("SRP_ID_INVALID".equals(error.text)) {
@@ -3678,7 +3687,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         user.phone = newMsg.media.phone_number;
                         user.first_name = newMsg.media.first_name;
                         user.last_name = newMsg.media.last_name;
-                        TLRPC.TL_restrictionReason reason = new TLRPC.TL_restrictionReason();
+                        TLRPC.RestrictionReason reason = new TLRPC.RestrictionReason();
                         reason.platform = "";
                         reason.reason = "";
                         reason.text = newMsg.media.vcard;
@@ -3960,7 +3969,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 }
                 newMsg.local_id = newMsg.id = getUserConfig().getNewMessageId();
                 newMsg.out = true;
-                if (isChannel && sendToPeer != null) {
+                TLRPC.Chat chat = sendToPeer != null ? getMessagesController().getChat(sendToPeer.channel_id) : null;
+                if (isChannel && sendToPeer != null && (chat == null || !chat.signatures)) {
                     newMsg.from_id = new TLRPC.TL_peerChannel();
                     newMsg.from_id.channel_id = sendToPeer.channel_id;
                 } else if (fromPeer != null) {
@@ -4030,10 +4040,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             newMsg.unread = true;
                         } else {
                             newMsg.post = true;
-                            if (chat.signatures) {
-                                newMsg.from_id = new TLRPC.TL_peerUser();
-                                newMsg.from_id.user_id = myId;
-                            }
+//                            if (chat.signatures && !chat.signature_profiles) {
+//                                newMsg.from_id = new TLRPC.TL_peerUser();
+//                                newMsg.from_id.user_id = myId;
+//                            }
                         }
                     }
                 } else {
@@ -7063,7 +7073,46 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     continue;
                 }
 
-                String path = MediaController.copyFileToCache(mediaUri, "txt");
+                String ext = "txt";
+                String filename = FileLoader.fixFileName(MediaController.getFileName(uri));
+                if (filename != null && filename.endsWith(".zip")) {
+                    ext = "zip";
+                }
+
+                String path = MediaController.copyFileToCache(mediaUri, ext);
+                if ("zip".equals(ext)) {
+                    File zipfile = new File(path);
+                    try {
+                        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipfile))) {
+                            ZipEntry zipEntry = zis.getNextEntry();
+                            while (zipEntry != null) {
+                                if (zipEntry.getName().endsWith(".txt")) {
+                                    File newFile = MediaController.createFileInCache(zipEntry.getName(), "txt");
+                                    path = newFile.getAbsolutePath();
+                                    FileOutputStream fos = new FileOutputStream(newFile);
+                                    byte[] buffer = new byte[1024];
+                                    int len;
+                                    while ((len = zis.read(buffer)) > 0) {
+                                        fos.write(buffer, 0, len);
+                                    }
+                                    fos.close();
+                                    break;
+                                }
+                                zipEntry = zis.getNextEntry();
+                            }
+                            zis.closeEntry();
+                        } catch (IOException e) {
+                            FileLog.e(e);
+                        }
+                    } catch (Exception e2) {
+                        FileLog.e(e2);
+                    }
+                    try {
+                        zipfile.delete();
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                }
                 if (path == null) {
                     continue;
                 }
@@ -7083,7 +7132,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     if (size > 32 * 1024 * 1024) {
                         f.delete();
                         AndroidUtilities.runOnUIThread(() -> {
-                            Toast.makeText(ApplicationLoader.applicationContext, LocaleController.getString("ImportFileTooLarge", R.string.ImportFileTooLarge), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ApplicationLoader.applicationContext, LocaleController.getString(R.string.ImportFileTooLarge), Toast.LENGTH_SHORT).show();
                             onStartImport.run(0);
                         });
                         return;
@@ -7260,6 +7309,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         String title = null;
         boolean isVoice = false;
         int duration = 0;
+        Bitmap cover = null;
         if (extL.equals("mp3") || extL.equals("m4a")) {
             AudioInfo audioInfo = AudioInfo.getAudioInfo(f);
             if (audioInfo != null) {
@@ -7269,6 +7319,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     title = audioInfo.getTitle();
                     duration = (int) (d / 1000);
                 }
+                cover = audioInfo.getCover();
             }
         } else if (extL.equals("opus") || extL.equals("ogg") || extL.equals("flac")) {
             MediaMetadataRetriever mediaMetadataRetriever = null;
@@ -7280,6 +7331,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     duration = (int) Math.ceil(Long.parseLong(d) / 1000.0f);
                     title = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                     permormer = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                }
+                byte[] art = mediaMetadataRetriever.getEmbeddedPicture();
+                if (art != null) {
+                    cover = BitmapFactory.decodeByteArray(art, 0, art.length);
                 }
                 if (editingMessageObject == null && extL.equals("ogg") && MediaController.isOpusFile(f.getAbsolutePath()) == 1) {
                     isVoice = true;
@@ -7403,14 +7458,23 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     FileLog.e(e);
                 }
             }
+            if (cover != null) {
+                TLRPC.PhotoSize thumb = ImageLoader.scaleAndSaveImage(cover, 132, 132, 55, isEncrypted);
+                if (thumb != null) {
+                    document.thumbs.add(thumb);
+                    document.flags |= 1;
+                }
+                cover.recycle();
+            }
             if (document.mime_type.equals("image/webp") && editingMessageObject == null) {
                 BitmapFactory.Options bmOptions = new BitmapFactory.Options();
                 try {
                     bmOptions.inJustDecodeBounds = true;
-                    RandomAccessFile file = new RandomAccessFile(path, "r");
-                    ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, path.length());
-                    Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
-                    file.close();
+//                    RandomAccessFile file = new RandomAccessFile(path, "r");
+//                    ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, path.length());
+//                    Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
+                    BitmapFactory.decodeFile(path, bmOptions);
+//                    file.close();
                 } catch (Exception e) {
                     FileLog.e(e);
                 }
@@ -7710,7 +7774,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             AndroidUtilities.runOnUIThread(() -> {
                 try {
                     if (finalError == ERROR_TYPE_UNSUPPORTED) {
-                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_ERROR, LocaleController.getString("UnsupportedAttachment", R.string.UnsupportedAttachment));
+                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_ERROR, LocaleController.getString(R.string.UnsupportedAttachment));
                     } else if (finalError == ERROR_TYPE_FILE_TOO_LARGE) {
                         NotificationCenter.getInstance(accountInstance.getCurrentAccount()).postNotificationName(NotificationCenter.currentUserShowLimitReachedDialog, LimitReachedBottomSheet.TYPE_LARGE_FILE);
                     }
@@ -8105,7 +8169,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             user.phone = result.send_message.phone_number;
             user.first_name = result.send_message.first_name;
             user.last_name = result.send_message.last_name;
-            TLRPC.TL_restrictionReason reason = new TLRPC.TL_restrictionReason();
+            TLRPC.RestrictionReason reason = new TLRPC.RestrictionReason();
             reason.text = result.send_message.vcard;
             reason.platform = "";
             reason.reason = "";
@@ -8300,10 +8364,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         bmOptions.inJustDecodeBounds = true;
         try {
             if (path != null) {
-                RandomAccessFile file = new RandomAccessFile(path, "r");
-                ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, path.length());
-                Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
-                file.close();
+//                RandomAccessFile file = new RandomAccessFile(path, "r");
+//                ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, path.length());
+//                Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
+                BitmapFactory.decodeFile(path, bmOptions);
+//                file.close();
             } else {
                 try (InputStream inputStream = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri)) {
                     BitmapFactory.decodeStream(inputStream, null, bmOptions);

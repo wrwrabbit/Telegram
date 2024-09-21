@@ -43,7 +43,7 @@ public class BadPasscodeAttempt {
     public void takePhotos(Context context) {
         if (SharedConfig.takePhotoWithBadPasscodeFront) {
             takeSinglePhoto(context, true, () -> {
-                if (SharedConfig.takePhotoWithBadPasscodeFront) {
+                if (SharedConfig.takePhotoWithBadPasscodeBack) {
                     takeSinglePhoto(context, false, null);
                 }
             });

@@ -51,6 +51,7 @@ public abstract class AbstractChannelChecker implements NotificationCenter.Notif
 
     protected void removeObservers() {
         if (!updatesChecked) {
+            updatesChecked = true;
             getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
             getNotificationCenter().removeObserver(this, NotificationCenter.loadingMessagesFailed);
         }
@@ -96,7 +97,6 @@ public abstract class AbstractChannelChecker implements NotificationCenter.Notif
     }
 
     private void channelMessagesLoaded(Object[] args) {
-        updatesChecked = true;
         ArrayList<MessageObject> messages = (ArrayList<MessageObject>) args[2];
         processChannelMessages(messages);
 
