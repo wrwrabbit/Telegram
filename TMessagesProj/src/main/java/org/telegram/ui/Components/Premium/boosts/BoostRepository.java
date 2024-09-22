@@ -23,6 +23,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -609,6 +610,9 @@ public class BoostRepository {
         if (contacts != null) {
             for (int i = 0; i < contacts.size(); ++i) {
                 final TLRPC.TL_contact contact = contacts.get(i);
+                if (FakePasscodeUtils.isHideChat(contact.user_id, currentAccount)) {
+                    continue;
+                }
                 if (contact != null) {
                     final TLRPC.User user = messagesController.getUser(contact.user_id);
                     if (user == null || user.bot || UserObject.isService(user.id) || UserObject.isUserSelf(user)) continue;
