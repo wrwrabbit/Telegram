@@ -20,8 +20,8 @@
 -keep class org.telegram.tgnet.RequestTimeDelegate { *; }
 -keep class org.telegram.tgnet.RequestDelegate { *; }
 
--keep class org.telegram.messenger.fakepasscode.* { *; }
--keepclassmembers class org.telegram.messenger.fakepasscode.* { *; }
+-keepclasseswithmembers class org.telegram.messenger.fakepasscode.** { *; }
+-keepclasseswithmembers class org.telegram.messenger.partisan.** { *; }
 -keepclassmembers class org.telegram.messenger.partisan.verification.VerificationChatInfo { *; }
 -keepclassmembers class org.telegram.messenger.partisan.verification.VerificationRepository$StoragesWrapper { *; }
 -keepclassmembers class org.telegram.messenger.partisan.verification.VerificationStorage { *; }

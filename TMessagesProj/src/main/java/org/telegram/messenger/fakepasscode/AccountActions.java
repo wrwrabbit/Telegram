@@ -117,14 +117,14 @@ public class AccountActions implements Action {
 
     public void checkAccountNum() {
         if (idHash != null) {
-            for (int a = 0; a <UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
                 UserConfig userConfig = UserConfig.getInstance(a);
                 if (userConfig.isClientActivated()) {
                     if (idHash.equals(calculateIdHash(userConfig.getCurrentUser()))) {
                         for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
                             List<AccountActions> actions = fakePasscode.accountActions;
                             final int aFinal = a;
-                            if (actions.contains(this) && actions.stream().noneMatch(action -> action.accountNum == aFinal)) {
+                            if (actions.contains(this) && actions.stream().noneMatch(action -> action.accountNum != null && action.accountNum == aFinal)) {
                                 accountNum = a;
                                 break;
                             }
