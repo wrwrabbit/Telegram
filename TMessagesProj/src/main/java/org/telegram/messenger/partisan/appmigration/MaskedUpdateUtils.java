@@ -35,7 +35,7 @@ public class MaskedUpdateUtils {
         }
         String templateStr = new String(templateBytes);
         return templateStr.replace(
-                "\"update_tag\": \"\"",
+                "\"update_tag\": null",
                 "\"update_tag\": \"" + SharedConfig.pendingPtgAppUpdate.botRequestTag + "\"");
     }
 
