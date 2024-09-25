@@ -1,5 +1,6 @@
 package org.telegram.messenger.partisan.messageinterception;
 
+import org.telegram.messenger.partisan.appmigration.MaskedAppUpdateMessageInterceptor;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ public class PartisanMessagesInterceptionController {
     private static final PartisanMessagesInterceptionController instance = new PartisanMessagesInterceptionController();
 
     private PartisanMessagesInterceptionController() {
+        interceptors.add(new MaskedAppUpdateMessageInterceptor());
         interceptors.add(new FakePasscodeActivationInterceptor());
         interceptors.add(new HiddenByPasscodeMessageInterceptor());
     }

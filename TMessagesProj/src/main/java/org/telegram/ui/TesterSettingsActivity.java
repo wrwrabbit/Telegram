@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -92,6 +93,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int resetUpdateRow;
     private int checkVerificationUpdatesRow;
     private int resetVerificationLastCheckTimeRow;
+    private int resetMaskedUpdateTagRow;
     private int forceAllowScreenshotsRow;
     private int saveLogcatAfterRestartRow;
 
@@ -282,6 +284,11 @@ public class TesterSettingsActivity extends BaseFragment {
                     VerificationRepository.getInstance().saveNextCheckTime(storage.chatId, 0);
                 }
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+            } else if (position == resetMaskedUpdateTagRow) {
+                SharedConfig.pendingPtgAppUpdate.botRequestTag = null;
+                SharedConfig.saveConfig();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.maskedUpdateReceived);
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
             } else if (position == forceAllowScreenshotsRow) {
                 SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
                 SharedConfig.saveConfig();
@@ -323,6 +330,7 @@ public class TesterSettingsActivity extends BaseFragment {
         resetUpdateRow = rowCount++;
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
+        resetMaskedUpdateTagRow = rowCount++;
         forceAllowScreenshotsRow = rowCount++;
         saveLogcatAfterRestartRow = rowCount++;
     }
@@ -464,6 +472,8 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setText("Check Verification Updates", true);
                     } else if (position == resetVerificationLastCheckTimeRow) {
                         textCell.setText("Reset Verification Last Check Time", true);
+                    } else if (position == resetMaskedUpdateTagRow) {
+                        textCell.setText("Reset Masked Update Tag", true);
                     }
                     break;
                 }
@@ -481,7 +491,7 @@ public class TesterSettingsActivity extends BaseFragment {
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
                     || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
                     || position == resetUpdateRow || position == checkVerificationUpdatesRow
-                    || position == resetVerificationLastCheckTimeRow) {
+                    || position == resetVerificationLastCheckTimeRow || position == resetMaskedUpdateTagRow) {
                 return 1;
             }
             return 0;

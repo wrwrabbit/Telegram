@@ -19,6 +19,8 @@ public class UpdateData {
     public String url;
     public int accountNum;
 
+    public String botRequestTag;
+
     @JsonIgnore
     public String stickerPackName;
     @JsonIgnore

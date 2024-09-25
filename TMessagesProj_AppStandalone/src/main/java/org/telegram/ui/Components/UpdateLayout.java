@@ -26,9 +26,12 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.appmigration.MaskedUpdateUtils;
 import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -39,7 +42,7 @@ import org.telegram.ui.LaunchActivity;
 import java.io.File;
 import java.util.ArrayList;
 
-public class UpdateLayout extends IUpdateLayout {
+public class UpdateLayout extends IUpdateLayout implements NotificationCenter.NotificationCenterDelegate {
 
     private FrameLayout updateLayout;
     private RadialProgress2 updateLayoutIcon;
@@ -59,6 +62,7 @@ public class UpdateLayout extends IUpdateLayout {
         this.activity = activity;
         this.sideMenu = sideMenu;
         this.sideMenuContainer = sideMenuContainer;
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.maskedUpdateReceived);
     }
 
     public void updateFileProgress(Object[] args) {
@@ -125,7 +129,12 @@ public class UpdateLayout extends IUpdateLayout {
                 onUpdateLayoutClicked.run();
             }
             if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_DOWNLOAD) {
-                startUpdateDownloading(currentAccount);
+                String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
+                if (botRequestTag == null) {
+                    MaskedUpdateUtils.requestMaskedUpdateBuild(currentAccount, activity);
+                } else if (SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag)) {
+                    startUpdateDownloading(currentAccount);
+                }
                 updateAppUpdateViews(currentAccount,  true);
             } else if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL) {
                 FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
@@ -178,7 +187,9 @@ public class UpdateLayout extends IUpdateLayout {
                 setUpdateText(LocaleController.getString(R.string.AppUpdateNow), animated);
                 showSize = false;
             } else {
-                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking) {
+                String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
+                boolean isWaitingMaskedUpdateBuild = botRequestTag != null && !SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag);
+                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking || isWaitingMaskedUpdateBuild) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, animated);
                     updateLayoutIcon.setProgress(0, false);
                     Float p = ImageLoader.getInstance().getFileProgress(fileName);
@@ -249,6 +260,13 @@ public class UpdateLayout extends IUpdateLayout {
     @Override
     public void setOnUpdateLayoutClicked(Runnable onUpdateLayoutClicked) {
         this.onUpdateLayoutClicked = onUpdateLayoutClicked;
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.maskedUpdateReceived) {
+            updateAppUpdateViews(UserConfig.selectedAccount, true);
+        }
     }
 
     @Override
