@@ -330,7 +330,11 @@ public class TesterSettingsActivity extends BaseFragment {
         resetUpdateRow = rowCount++;
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
-        resetMaskedUpdateTagRow = rowCount++;
+        if (SharedConfig.pendingPtgAppUpdate != null && SharedConfig.pendingPtgAppUpdate.botRequestTag != null) {
+            resetMaskedUpdateTagRow = rowCount++;
+        } else {
+            resetMaskedUpdateTagRow = 0;
+        }
         forceAllowScreenshotsRow = rowCount++;
         saveLogcatAfterRestartRow = rowCount++;
     }
