@@ -548,6 +548,7 @@ public class Utils {
     }
 
     private static File createFileForSending(String fileName, byte[] data) {
+        AndroidUtilities.getSharingDirectory().mkdirs();
         File f = new File(AndroidUtilities.getSharingDirectory(), fileName);
         FileOutputStream output = null;
         try {
