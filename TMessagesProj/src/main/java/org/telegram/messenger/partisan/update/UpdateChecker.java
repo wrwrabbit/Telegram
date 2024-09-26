@@ -10,13 +10,11 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.AbstractChannelChecker;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class UpdateChecker extends AbstractChannelChecker {
     public interface UpdateCheckedDelegate {
@@ -33,8 +31,14 @@ public class UpdateChecker extends AbstractChannelChecker {
     }
 
     public static void checkUpdate(int currentAccount, UpdateCheckedDelegate delegate) {
+        PartisanLog.d("UpdateChecker: checkUpdate");
         UpdateChecker checker = new UpdateChecker(currentAccount);
         checker.delegate = (data) -> {
+            if (data != null) {
+                PartisanLog.d("UpdateChecker: update found: " + data.version.toString());
+            } else {
+                PartisanLog.d("UpdateChecker: update not found");
+            }
             checker.removeObservers();
             delegate.onUpdateResult(data);
         };
@@ -43,9 +47,12 @@ public class UpdateChecker extends AbstractChannelChecker {
 
     @Override
     protected void processChannelMessages(List<MessageObject> messages) {
+        PartisanLog.d("UpdateChecker: processChannelMessages " + messages.size());
         UpdateData update = getMaxUpdateDataFromMessages(messages);
         if (update != null && update.stickerPackName != null && update.stickerEmoji != null) {
+            PartisanLog.d("UpdateChecker: load sticker");
             loadStickerByEmoji(update.stickerPackName, update.stickerEmoji, sticker -> {
+                PartisanLog.d("UpdateChecker: sticker loaded");
                 update.sticker = sticker;
                 AndroidUtilities.runOnUIThread(() -> delegate.onUpdateResult(update));
             });
@@ -58,8 +65,16 @@ public class UpdateChecker extends AbstractChannelChecker {
         UpdateData update = null;
         UpdateMessageParser parser = new UpdateMessageParser(currentAccount);
         for (MessageObject message : sortMessageById(messages)) {
+            CharSequence messageText = message.messageText != null ? message.messageText : "<empty>";
+            PartisanLog.d("UpdateChecker: process message, messageText.length() - " + messageText.length());
             UpdateData currentUpdate = parser.processMessage(message);
+            if (currentUpdate != null) {
+                PartisanLog.d("UpdateChecker: current update version is " + currentUpdate.version + ", app version is " + AppVersion.getCurrentVersion());
+            } else {
+                PartisanLog.d("UpdateChecker: current update is null");
+            }
             if (isCurrentUpdateBetterThenPrevious(currentUpdate, update)) {
+                PartisanLog.d("UpdateChecker: current update is greater than previous");
                 update = currentUpdate;
             }
         }
@@ -124,6 +139,7 @@ public class UpdateChecker extends AbstractChannelChecker {
 
     @Override
     protected void messagesLoadingError() {
+        PartisanLog.d("Update messagesLoadingError");
         delegate.onUpdateResult(null);
     }
 

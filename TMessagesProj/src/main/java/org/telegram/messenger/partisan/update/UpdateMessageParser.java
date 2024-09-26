@@ -3,6 +3,7 @@ package org.telegram.messenger.partisan.update;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 
 import java.lang.reflect.Field;
@@ -35,6 +36,7 @@ class UpdateMessageParser {
         if (message.getGroupId() == 0) {
             return;
         }
+        PartisanLog.d("UpdateChecker: save message by group id");
         if (!messagesByGroupId.containsKey(message.getGroupId())) {
             messagesByGroupId.put(message.getGroupId(), new ArrayList<>());
         }
@@ -46,6 +48,7 @@ class UpdateMessageParser {
 
     private UpdateData parseUpdateData(MessageObject message) {
         if (!isUpdateSpecificationMessage(message)) {
+            PartisanLog.d("UpdateChecker: don't need to parse message");
             return null;
         }
         MessageObject fileMessage = findFileMessage(message);
@@ -53,6 +56,7 @@ class UpdateMessageParser {
             createUpdateData(message, fileMessage);
             return tryParseText(message.messageText);
         } else {
+            PartisanLog.d("UpdateChecker: file message was null");
             return null;
         }
     }
@@ -106,7 +110,8 @@ class UpdateMessageParser {
     private UpdateData tryParseText(CharSequence text) {
         try {
             return parseText(text);
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            PartisanLog.e("UpdateChecker: message parsing error", e);
             return null;
         }
     }
@@ -120,8 +125,8 @@ class UpdateMessageParser {
         for (int pos = 0; pos <= text.length(); pos++) {
             boolean textEnd = pos == text.length();
             char currentChar = !textEnd ? text.charAt(pos) : '\0';
-            boolean lineEnd = currentChar == '\n';
             boolean controlLineBeginning = isFirstCharInNewLine && currentChar == '#';
+            boolean lineEnd = currentChar == '\n';
             boolean controlLineEnding = (lineEnd || textEnd) && controlLine;
             boolean descriptionEnding = (controlLineBeginning || textEnd && !controlLine) && blockStart < pos;
             if (descriptionEnding) {

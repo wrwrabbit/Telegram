@@ -3,6 +3,7 @@ package org.telegram.messenger.fakepasscode;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanProperty;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
@@ -15,13 +16,14 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.StdConverter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.PartisanLog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -67,7 +69,8 @@ public class FakePasscodeSerializer {
             System.arraycopy(initializationVector, 0, resultBytes, 0, 16);
             System.arraycopy(encryptedBytes, 0, resultBytes, 16, encryptedBytes.length);
             return resultBytes;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -81,7 +84,8 @@ public class FakePasscodeSerializer {
             FakePasscode passcode = getJsonMapper().readValue(new String(decompress(decryptedBytes)), FakePasscode.class);
             passcode.passcodeHash = calculateHash(passcodeString, SharedConfig.passcodeSalt);
             return passcode;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -89,7 +93,8 @@ public class FakePasscodeSerializer {
     public static String serializePlain(FakePasscode passcode) {
         try {
             return getJsonMapper().writeValueAsString(passcode);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -111,7 +116,7 @@ public class FakePasscodeSerializer {
             System.arraycopy(salt, 0, bytes, passcodeBytes.length + 16, 16);
             return Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
         } catch (Exception e) {
-            FileLog.e(e);
+            PartisanLog.e("FakePasscodeSerializer", e);
         }
         return null;
     }
@@ -126,6 +131,7 @@ public class FakePasscodeSerializer {
 
             return out.toByteArray();
         } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -140,6 +146,7 @@ public class FakePasscodeSerializer {
 
             return out.toByteArray();
         } catch (Exception e) {
+            PartisanLog.e("FakePasscodeSerializer", e);
             return null;
         }
     }
@@ -178,6 +185,16 @@ public class FakePasscodeSerializer {
             if (a.getRawType().isAnnotationPresent(ToggleSerialization.class)) {
                 return new StdConverter<Object, Boolean>() {
                     @Override
+                    public JavaType getInputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Object.class);
+                    }
+
+                    @Override
+                    public JavaType getOutputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Boolean.class);
+                    }
+
+                    @Override
                     public Boolean convert(Object value) {
                         return value != null;
                     }
@@ -186,6 +203,16 @@ public class FakePasscodeSerializer {
             if (a.getRawType().isAnnotationPresent(EnabledSerialization.class)) {
                 return new StdConverter<Object, Boolean>() {
                     @Override
+                    public JavaType getInputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Object.class);
+                    }
+
+                    @Override
+                    public JavaType getOutputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Boolean.class);
+                    }
+
+                    @Override
                     public Boolean convert(Object value) {
                         if (value == null) {
                             return null;
@@ -193,7 +220,8 @@ public class FakePasscodeSerializer {
                         try {
                             Field field = value.getClass().getField("enabled");
                             return field.getBoolean(value);
-                        } catch (Exception ignored) {
+                        } catch (Exception e) {
+                            PartisanLog.e("FakePasscodeSerializer", e);
                             return null;
                         }
                     }
@@ -205,10 +233,23 @@ public class FakePasscodeSerializer {
                     || CheckedSessions.class.isAssignableFrom(declaringClass)) {
                     return new StdConverter<Integer, String>() {
                         @Override
+                        public JavaType getInputType(TypeFactory typeFactory) {
+                            return typeFactory.constructType(Integer.class);
+                        }
+
+                        @Override
+                        public JavaType getOutputType(TypeFactory typeFactory) {
+                            return typeFactory.constructType(String.class);
+                        }
+
+                        @Override
                         public String convert(Integer value) {
+                            if (value == null) {
+                                return null;
+                            }
                             if (value == SelectionMode.SELECTED) {
                                 return "SELECTED";
-                            } else if ((int)value == SelectionMode.EXCEPT_SELECTED) {
+                            } else if (value == SelectionMode.EXCEPT_SELECTED) {
                                 return "EXCEPT_SELECTED";
                             }
                             return null;
@@ -224,13 +265,24 @@ public class FakePasscodeSerializer {
             if (a.getRawType().isAnnotationPresent(ToggleSerialization.class)) {
                 return new StdConverter<Boolean, Object>() {
                     @Override
+                    public JavaType getInputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Boolean.class);
+                    }
+
+                    @Override
+                    public JavaType getOutputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Object.class);
+                    }
+
+                    @Override
                     public Object convert(Boolean value) {
                         if (value == null || !value) {
                             return null;
                         }
                         try {
                             return a.getRawType().newInstance();
-                        } catch (Exception ignored) {
+                        } catch (Exception e) {
+                            PartisanLog.e("FakePasscodeSerializer", e);
                             return null;
                         }
                     }
@@ -238,6 +290,16 @@ public class FakePasscodeSerializer {
             }
             if (a.getRawType().isAnnotationPresent(EnabledSerialization.class)) {
                 return new StdConverter<Boolean, Object>() {
+                    @Override
+                    public JavaType getInputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Boolean.class);
+                    }
+
+                    @Override
+                    public JavaType getOutputType(TypeFactory typeFactory) {
+                        return typeFactory.constructType(Object.class);
+                    }
+
                     @Override
                     public Object convert(Boolean value) {
                         if (value == null) {
@@ -248,7 +310,8 @@ public class FakePasscodeSerializer {
                             Field field = instance.getClass().getField("enabled");
                             field.setBoolean(instance, value);
                             return instance;
-                        } catch (Exception ignored) {
+                        } catch (Exception e) {
+                            PartisanLog.e("FakePasscodeSerializer", e);
                             return null;
                         }
                     }
@@ -259,6 +322,16 @@ public class FakePasscodeSerializer {
                 if (TerminateOtherSessionsAction.class.isAssignableFrom(declaringClass)
                         || CheckedSessions.class.isAssignableFrom(declaringClass)) {
                     return new StdConverter<String, Integer>() {
+                        @Override
+                        public JavaType getInputType(TypeFactory typeFactory) {
+                            return typeFactory.constructType(String.class);
+                        }
+
+                        @Override
+                        public JavaType getOutputType(TypeFactory typeFactory) {
+                            return typeFactory.constructType(Integer.class);
+                        }
+
                         @Override
                         public Integer convert(String value) {
                             if (value == null) {

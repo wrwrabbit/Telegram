@@ -19,7 +19,7 @@ public class VerificationStorage {
     public long lastCheckTime;
     public long nextCheckTime;
     public int lastCheckedMessageId;
-    List<VerificationChatInfo> chats = new ArrayList<>();
+    public List<VerificationChatInfo> chats = new ArrayList<>();
     public int version = 0;
 
     public VerificationStorage() {}
