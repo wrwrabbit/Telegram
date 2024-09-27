@@ -232,7 +232,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         };
         if (baseFragment instanceof ChatActivity || baseFragment instanceof TopicsFragment) {
             if (parentFragment == null || (parentFragment.getChatMode() != ChatActivity.MODE_QUICK_REPLIES && parentFragment.getChatMode() != ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
-                if (!parentFragment.isEncryptedChat()) {
+                if (parentFragment == null || !parentFragment.isEncryptedGroup()) {
                     sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
                 }
             }
@@ -298,7 +298,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             secretChatTimer = needTime;
 
             timeItem.setOnClickListener(v -> {
-                if (parentFragment.isEncryptedGroup()) {
+                if (parentFragment != null && parentFragment.isEncryptedGroup()) {
                     return;
                 }
                 if (secretChatTimer) {
@@ -1253,7 +1253,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     avatarImageView.imageReceiver.setForUserOrChat(user, avatarDrawable,  null, true, VectorAvatarThumbDrawable.TYPE_STATIC, false);
                 }
             }
-        } else if (parentFragment.isEncryptedGroup()) {
+        } else if (parentFragment != null && parentFragment.isEncryptedGroup()) {
             avatarDrawable.setScaleSize(.8f);
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
             if (avatarImageView != null) {
