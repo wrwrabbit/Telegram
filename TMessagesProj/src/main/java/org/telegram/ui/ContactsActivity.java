@@ -586,6 +586,8 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
                                 presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANNEL_CREATE));
                                 preferences.edit().putBoolean("channel_intro", true).commit();
                             }
+                        } else if (row == 4) {
+                            presentFragment(new SecretGroupCreateActivity(), false);
                         }
                     }
                 } else {

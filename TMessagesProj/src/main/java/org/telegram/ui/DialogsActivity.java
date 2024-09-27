@@ -136,6 +136,7 @@ import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -8314,7 +8315,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else {
             Bundle args = new Bundle();
             if (DialogObject.isEncryptedDialog(dialogId)) {
-                args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
+                EncryptedGroup encryptedGroup = getMessagesController()
+                        .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
+                if (encryptedGroup != null) {
+                    args.putIntegerArrayList("enc_ids", new ArrayList<>(encryptedGroup.encryptedChatsIds));
+                } else {
+                    args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
+                }
             } else if (DialogObject.isUserDialog(dialogId)) {
                 args.putLong("user_id", dialogId);
             } else {

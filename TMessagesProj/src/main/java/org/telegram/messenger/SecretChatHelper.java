@@ -15,6 +15,8 @@ import android.text.TextUtils;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
+import com.google.android.exoplayer2.util.Consumer;
+
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.AbstractSerializedData;
@@ -1917,6 +1919,10 @@ public class SecretChatHelper extends BaseController {
     }
 
     public void startSecretChat(Context context, TLRPC.User user) {
+        startSecretChat(context, user, null);
+    }
+
+    public void startSecretChat(Context context, TLRPC.User user, Consumer<TLRPC.EncryptedChat> onComplete) {
         if (user == null || context == null) {
             return;
         }
@@ -1998,6 +2004,9 @@ public class SecretChatHelper extends BaseController {
                                     delayedEncryptedChatUpdates.clear();
                                 }
                             });
+                            if (onComplete != null) {
+                                onComplete.accept(chat);
+                            }
                         });
                     } else {
                         delayedEncryptedChatUpdates.clear();
@@ -2016,6 +2025,9 @@ public class SecretChatHelper extends BaseController {
                                 builder.show().setCanceledOnTouchOutside(true);
                             }
                         });
+                        if (onComplete != null) {
+                            onComplete.accept(null);
+                        }
                     }
                 }, ConnectionsManager.RequestFlagFailOnServerErrors);
             } else {

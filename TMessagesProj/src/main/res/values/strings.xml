@@ -8280,4 +8280,5 @@
     <string name="MigrationErrorSrcVersionOldDescription">The current app is out of date and cannot transfer data to the new app. Please update it and try again.</string>
     <string name="MigrationErrorUnknownDescription">An unknown error has occurred. Please update both apps and try again. %1$s</string>
     <string name="MigrationContactPtgSupport">If the error persists, please contact technical Partisan Telegram support.</string>
+    <string name="NewEncryptedGroup">New Encrypted Group</string>
 </resources>

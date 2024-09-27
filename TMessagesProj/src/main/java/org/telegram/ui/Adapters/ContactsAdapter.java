@@ -285,7 +285,7 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else if (needPhonebook) {
                     return row != 1;
                 } else {
-                    return row != 3;
+                    return row != (3 + (FakePasscodeUtils.isFakePasscodeActivated() ? 0 : 2));
                 }
             } else {
                 if (isEmpty) {
@@ -373,7 +373,7 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else if (needPhonebook) {
                     return 2;
                 } else {
-                    return 4;
+                    return 4 + (FakePasscodeUtils.isFakePasscodeActivated() ? 0 : 2);
                 }
             } else {
                 if (isEmpty) {
@@ -616,6 +616,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                             textCell.setTextAndIcon(LocaleController.getString(R.string.NewContact), R.drawable.msg_addcontact, false);
                         } else if (position == 2) {
                             textCell.setTextAndIcon(LocaleController.getString(R.string.NewChannel), R.drawable.msg_channel, false);
+                        } else if (position == 4) {
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewEncryptedGroup), R.drawable.msg_groups, false);
                         }
                     }
                 } else {
@@ -675,8 +677,18 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                     if (position == 1) {
                         return isEmpty ? 5 : 2;
                     }
-                } else if (position == 3) {
-                    return isEmpty ? 5 : 2;
+                } else {
+                    if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                        if (position == 3) {
+                            return isEmpty ? 5 : 2;
+                        }
+                    } else {
+                        if (position == 3) {
+                            return 5;
+                        } else if (position == 5) {
+                            return isEmpty ? 5 : 2;
+                        }
+                    }
                 }
             } else {
                 if (isEmpty) {

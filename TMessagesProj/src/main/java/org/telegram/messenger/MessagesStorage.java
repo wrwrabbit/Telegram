@@ -37,6 +37,7 @@ import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -53,6 +54,7 @@ import org.telegram.ui.EditWidgetActivity;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -473,6 +475,7 @@ public class MessagesStorage extends BaseController {
             "users",
             "chats",
             "enc_chats",
+            "enc_groups",
             "channel_users_v2",
             "channel_admins_v3",
             "contacts",
@@ -608,6 +611,7 @@ public class MessagesStorage extends BaseController {
         database.executeFast("CREATE TABLE users(uid INTEGER PRIMARY KEY, name TEXT, status INTEGER, data BLOB)").stepThis().dispose();
         database.executeFast("CREATE TABLE chats(uid INTEGER PRIMARY KEY, name TEXT, data BLOB)").stepThis().dispose();
         database.executeFast("CREATE TABLE enc_chats(uid INTEGER PRIMARY KEY, user INTEGER, name TEXT, data BLOB, g BLOB, authkey BLOB, ttl INTEGER, layer INTEGER, seq_in INTEGER, seq_out INTEGER, use_count INTEGER, exchange_id INTEGER, key_date INTEGER, fprint INTEGER, fauthkey BLOB, khash BLOB, in_seq_no INTEGER, admin_id INTEGER, mtproto_seq INTEGER)").stepThis().dispose();
+        database.executeFast("CREATE TABLE enc_groups(uid INTEGER PRIMARY KEY, encrypted_chats TEXT, name TEXT)").stepThis().dispose();
         database.executeFast("CREATE TABLE channel_users_v2(did INTEGER, uid INTEGER, date INTEGER, data BLOB, PRIMARY KEY(did, uid))").stepThis().dispose();
         database.executeFast("CREATE TABLE channel_admins_v3(did INTEGER, uid INTEGER, data BLOB, PRIMARY KEY(did, uid))").stepThis().dispose();
         database.executeFast("CREATE TABLE contacts(uid INTEGER PRIMARY KEY, mutual INTEGER)").stepThis().dispose();
@@ -4168,6 +4172,7 @@ public class MessagesStorage extends BaseController {
                         }
                     } else {
                         database.executeFast("DELETE FROM enc_chats WHERE uid = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
+                        database.executeFast("DELETE FROM enc_groups WHERE uid = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
                     }
                 } else if (messagesOnly == 2) {
                     cursor = database.queryFinalized("SELECT last_mid_i, last_mid FROM dialogs WHERE did = " + did);
@@ -9993,6 +9998,59 @@ public class MessagesStorage extends BaseController {
         });
     }
 
+    public void putEncryptedGroup(EncryptedGroup encryptedGroup, TLRPC.Dialog dialog) {
+        if (encryptedGroup == null) {
+            return;
+        }
+        storageQueue.postRunnable(() -> {
+            SQLitePreparedStatement state = null;
+            try {
+                state = database.executeFast("REPLACE INTO enc_groups VALUES(?, ?, ?)");
+                String chatIdsStr = encryptedGroup.encryptedChatsIds.stream()
+                        .map(id -> Integer.toString(id))
+                        .reduce((str1, str2) -> str1 + "," + str2)
+                        .orElse("");
+
+                state.bindInteger(1, encryptedGroup.id);
+                state.bindString(2, chatIdsStr);
+                state.bindString(3, encryptedGroup.name);
+
+                state.step();
+                state.dispose();
+                state = null;
+                if (dialog != null) {
+                    state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    state.bindLong(1, dialog.id);
+                    state.bindInteger(2, dialog.last_message_date);
+                    state.bindInteger(3, dialog.unread_count);
+                    state.bindInteger(4, dialog.top_message);
+                    state.bindInteger(5, dialog.read_inbox_max_id);
+                    state.bindInteger(6, dialog.read_outbox_max_id);
+                    state.bindInteger(7, 0);
+                    state.bindInteger(8, dialog.unread_mentions_count);
+                    state.bindInteger(9, dialog.pts);
+                    state.bindInteger(10, 0);
+                    state.bindInteger(11, dialog.pinnedNum);
+                    state.bindInteger(12, dialog.flags);
+                    state.bindInteger(13, dialog.folder_id);
+                    state.bindNull(14);
+                    state.bindInteger(15, dialog.unread_reactions_count);
+                    state.bindInteger(16, 0);
+                    state.bindInteger(17, dialog.ttl_period);
+                    state.step();
+                    state.dispose();
+                    state = null;
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (state != null) {
+                    state.dispose();
+                }
+            }
+        });
+    }
+
     private String formatUserSearchName(TLRPC.User user) {
         StringBuilder str = new StringBuilder();
         if (user.first_name != null && user.first_name.length() > 0) {
@@ -10378,6 +10436,28 @@ public class MessagesStorage extends BaseController {
                         result.add(chat);
                     }
                 }
+            } catch (Exception e) {
+                checkSQLException(e);
+            }
+        }
+        cursor.dispose();
+    }
+
+    public void getEncryptedGroupsInternal(String chatsToLoad, ArrayList<EncryptedGroup> result) throws Exception {
+        if (chatsToLoad == null || chatsToLoad.length() == 0 || result == null) {
+            return;
+        }
+        SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, encrypted_chats, name FROM enc_groups WHERE uid IN(%s)", chatsToLoad));
+        while (cursor.next()) {
+            try {
+                EncryptedGroup encryptedGroup = new EncryptedGroup();
+                encryptedGroup.id= cursor.intValue(0);
+                String encryptedChatsIdsStr = cursor.stringValue(1);
+                encryptedGroup.encryptedChatsIds = Arrays.stream(encryptedChatsIdsStr.split(","))
+                        .map(Integer::parseInt)
+                        .collect(Collectors.toList());
+                encryptedGroup.name = cursor.stringValue(2);
+                result.add(encryptedGroup);
             } catch (Exception e) {
                 checkSQLException(e);
             }
@@ -15483,6 +15563,7 @@ public class MessagesStorage extends BaseController {
         storageQueue.postRunnable(() -> {
             TLRPC.messages_Dialogs dialogs = new TLRPC.TL_messages_dialogs();
             ArrayList<TLRPC.EncryptedChat> encryptedChats = new ArrayList<>();
+            ArrayList<EncryptedGroup> encryptedGroups = new ArrayList<>();
             SQLiteCursor cursor = null;
             try {
                 ArrayList<Long> usersToLoad = new ArrayList<>();
@@ -15768,6 +15849,7 @@ public class MessagesStorage extends BaseController {
 
                 if (!encryptedToLoad.isEmpty()) {
                     getEncryptedChatsInternal(TextUtils.join(",", encryptedToLoad), encryptedChats, usersToLoad);
+                    getEncryptedGroupsInternal(TextUtils.join(",", encryptedToLoad), encryptedGroups);
                 }
                 if (!chatsToLoad.isEmpty()) {
                     getChatsInternal(TextUtils.join(",", chatsToLoad), dialogs.chats);
@@ -15789,14 +15871,15 @@ public class MessagesStorage extends BaseController {
                         fullUsers = loadUserInfos(fullUsersToLoad);
                     }
                 }
-                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, fullUsers, folderId, offset, count, 1, false, false, true);
+                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, fullUsers, folderId, offset, count, 1, false, false, true, encryptedGroups);
             } catch (Exception e) {
                 dialogs.dialogs.clear();
                 dialogs.users.clear();
                 dialogs.chats.clear();
                 encryptedChats.clear();
+                encryptedGroups.clear();
                 checkSQLException(e);
-                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, null, folderId, 0, 100, 1, true, false, true);
+                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, null, folderId, 0, 100, 1, true, false, true, encryptedGroups);
             } finally {
                 if (cursor != null) {
                     cursor.dispose();

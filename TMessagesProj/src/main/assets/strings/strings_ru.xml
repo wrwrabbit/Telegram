@@ -262,4 +262,5 @@
     <string name="MigrationErrorSrcVersionOldDescription">Текущее приложение устарело и не может передать данные в новое приложение. Обновите его и повторите попытку.</string>
     <string name="MigrationErrorUnknownDescription">Произошла неизвестная ошибка. Обновите оба приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Если ошибка остаётся, пожалуйста, свяжитесь с техподдержкой Партизанского Телеграма.</string>
+    <string name="NewEncryptedGroup">Создать секретную группу</string>
 </resources>

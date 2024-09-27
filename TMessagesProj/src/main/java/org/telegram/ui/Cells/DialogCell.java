@@ -77,7 +77,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -410,6 +410,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private TLRPC.User user;
     private TLRPC.Chat chat;
     private TLRPC.EncryptedChat encryptedChat;
+    private EncryptedGroup encryptedGroup;
     private CharSequence lastPrintString;
     private int printingStringType;
     private boolean draftVoice;
@@ -1894,6 +1895,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     } else {
                         nameString = AndroidUtilities.removeDiacritics(UserObject.getUserName(user, currentAccount));
                     }
+                } else if (encryptedGroup != null) {
+                    nameString = encryptedGroup.name;
                 }
                 if (nameString != null && nameString.length() == 0) {
                     nameString = LocaleController.getString(R.string.HiddenName);
@@ -3022,6 +3025,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     encryptedChat = MessagesController.getInstance(currentAccount).getEncryptedChat(DialogObject.getEncryptedChatId(dialogId));
                     if (encryptedChat != null) {
                         user = MessagesController.getInstance(currentAccount).getUser(encryptedChat.user_id);
+                    } else {
+                        encryptedGroup = MessagesController.getInstance(currentAccount).getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                     }
                 } else if (DialogObject.isUserDialog(dialogId)) {
                     user = MessagesController.getInstance(currentAccount).getUser(dialogId);
@@ -3067,6 +3072,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 } else if (chat != null) {
                     avatarDrawable.setInfo(currentAccount, chat);
                     avatarImage.setForUserOrChat(chat, avatarDrawable);
+                } else if (encryptedGroup != null) {
+                    avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
+                    avatarImage.setImage(null, null, avatarDrawable, null, user, 0);
                 }
             }
 

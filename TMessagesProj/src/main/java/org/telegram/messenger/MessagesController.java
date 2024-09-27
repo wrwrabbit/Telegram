@@ -60,6 +60,7 @@ import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
 import org.telegram.messenger.voip.VoIPPreNotificationService;
@@ -135,6 +136,7 @@ public class MessagesController extends BaseController implements NotificationCe
     public int lastKnownSessionsCount;
     private final ConcurrentHashMap<Long, TLRPC.Chat> chats = new ConcurrentHashMap<>(100, 1.0f, 2);
     private final ConcurrentHashMap<Integer, TLRPC.EncryptedChat> encryptedChats = new ConcurrentHashMap<>(10, 1.0f, 2);
+    private final ConcurrentHashMap<Integer, EncryptedGroup> encryptedGroups = new ConcurrentHashMap<>(10, 1.0f, 2);
     private final ConcurrentHashMap<Long, TLRPC.User> users = new ConcurrentHashMap<>(100, 1.0f, 3);
     private final ConcurrentHashMap<String, TLObject> objectsByUsernames = new ConcurrentHashMap<>(100, 1.0f, 2);
     public static int stableIdPointer = 100;
@@ -6018,6 +6020,10 @@ public class MessagesController extends BaseController implements NotificationCe
         return encryptedChats.get(id);
     }
 
+    public EncryptedGroup getEncryptedGroup(Integer id) {
+        return encryptedGroups.get(id);
+    }
+
     public TLRPC.EncryptedChat getEncryptedChatDB(int chatId, boolean created) {
         TLRPC.EncryptedChat chat = encryptedChats.get(chatId);
         if (chat == null || created && (chat instanceof TLRPC.TL_encryptedChatWaiting || chat instanceof TLRPC.TL_encryptedChatRequested)) {
@@ -6447,6 +6453,21 @@ public class MessagesController extends BaseController implements NotificationCe
         } else {
             encryptedChats.put(encryptedChat.id, encryptedChat);
         }
+    }
+
+    public void putEncryptedGroup(EncryptedGroup encryptedGroup, boolean fromCache) {
+        if (encryptedGroup == null) {
+            return;
+        }
+        if (fromCache) {
+            encryptedGroups.putIfAbsent(encryptedGroup.id, encryptedGroup);
+        } else {
+            encryptedGroups.put(encryptedGroup.id, encryptedGroup);
+        }
+    }
+
+    public void addDialog(TLRPC.Dialog dialog) {
+        allDialogs.add(dialog);
     }
 
     public void putEncryptedChats(ArrayList<TLRPC.EncryptedChat> encryptedChats, boolean fromCache) {
@@ -12076,6 +12097,10 @@ public class MessagesController extends BaseController implements NotificationCe
     private int DIALOGS_LOAD_TYPE_UNKNOWN = 3;
 
     public void processLoadedDialogs(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, ArrayList<TLRPC.UserFull> fullUsers, int folderId, int offset, int count, int loadType, boolean resetEnd, boolean migrate, boolean fromCache) {
+        processLoadedDialogs(dialogsRes, encChats, fullUsers, folderId, offset, count, loadType, resetEnd, migrate, fromCache, null);
+    }
+
+    public void processLoadedDialogs(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, ArrayList<TLRPC.UserFull> fullUsers, int folderId, int offset, int count, int loadType, boolean resetEnd, boolean migrate, boolean fromCache, ArrayList<EncryptedGroup> encGroups) {
         Utilities.stageQueue.postRunnable(() -> {
             if (!firstGettingTask) {
                 getNewDeleteTask(null, null);
@@ -12113,6 +12138,7 @@ public class MessagesController extends BaseController implements NotificationCe
 
             LongSparseArray<TLRPC.Dialog> new_dialogs_dict = new LongSparseArray<>();
             SparseArray<TLRPC.EncryptedChat> enc_chats_dict;
+            SparseArray<EncryptedGroup> enc_groups_dict;
             LongSparseArray<ArrayList<MessageObject>> new_dialogMessage = new LongSparseArray<>();
             LongSparseArray<TLRPC.User> usersDict = new LongSparseArray<>();
             LongSparseArray<TLRPC.Chat> chatsDict = new LongSparseArray<>();
@@ -12133,6 +12159,15 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             } else {
                 enc_chats_dict = null;
+            }
+            if (encGroups != null) {
+                enc_groups_dict = new SparseArray<>();
+                for (int a = 0, N = encGroups.size(); a < N; a++) {
+                    EncryptedGroup encryptedGroup = encGroups.get(a);
+                    enc_groups_dict.put(encryptedGroup.id, encryptedGroup);
+                }
+            } else {
+                enc_groups_dict = null;
             }
             if (loadType == DIALOGS_LOAD_TYPE_CACHE) {
                 nextDialogsCacheOffset.put(folderId, offset + count);
@@ -12168,6 +12203,19 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 arrayList.add(messageObject);
                 new_dialogMessage.put(did, arrayList);
+                if (encGroups != null && !encGroups.isEmpty() && DialogObject.isEncryptedDialog(did)) {
+                    EncryptedGroup encryptedGroup = encGroups.stream()
+                            .filter(g -> g.encryptedChatsIds.contains(DialogObject.getEncryptedChatId(did)))
+                            .findAny()
+                            .orElse(null);
+                    if (encryptedGroup != null) {
+                        long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.id);
+                        ArrayList<MessageObject> prevMessage = new_dialogMessage.get(encryptedGroupDialogId);
+                        if (prevMessage == null || arrayList.get(0).messageOwner.date > prevMessage.get(0).messageOwner.date) {
+                            new_dialogMessage.put(encryptedGroupDialogId, arrayList);
+                        }
+                    }
+                }
             }
             if (!fromCache && !migrate && dialogsLoadOffset[UserConfig.i_dialogsLoadOffsetId] != -1 && loadType == 0) {
                 int totalDialogsLoadCount = getUserConfig().getTotalDialogsCount(folderId);
@@ -12240,8 +12288,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (removeChatsResult != null && removeChatsResult.isRemovedChat(d.id)) {
                     continue;
                 }
-                if (DialogObject.isEncryptedDialog(d.id) && enc_chats_dict != null) {
-                    if (enc_chats_dict.get(DialogObject.getEncryptedChatId(d.id)) == null) {
+                if (DialogObject.isEncryptedDialog(d.id) && (enc_chats_dict != null || enc_groups_dict != null)) {
+                    if (enc_chats_dict.get(DialogObject.getEncryptedChatId(d.id)) == null
+                        && enc_groups_dict.get(DialogObject.getEncryptedChatId(d.id)) == null) {
                         continue;
                     }
                 }
@@ -12363,6 +12412,11 @@ public class MessagesController extends BaseController implements NotificationCe
                             getSecretChatHelper().sendNotifyLayerMessage(encryptedChat, null);
                         }
                         putEncryptedChat(encryptedChat, true);
+                    }
+                }
+                if (encGroups != null) {
+                    for (EncryptedGroup encryptedGroup : encGroups) {
+                        putEncryptedGroup(encryptedGroup, true);
                     }
                 }
                 if (!migrate && loadType != DIALOGS_LOAD_TYPE_UNKNOWN && loadType != DIALOGS_LOAD_TYPE_CHANNEL) {
