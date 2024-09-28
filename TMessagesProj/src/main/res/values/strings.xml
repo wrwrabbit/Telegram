@@ -8281,4 +8281,6 @@
     <string name="MigrationErrorUnknownDescription">An unknown error has occurred. Please update both apps and try again. %1$s</string>
     <string name="MigrationContactPtgSupport">If the error persists, please contact technical Partisan Telegram support.</string>
     <string name="NewEncryptedGroup">New Encrypted Group</string>
+    <string name="AreYouSureClearHistoryWithSecretGroup">Are you sure you want to clear the secret group history in **%1$s** for all users?</string>
+    <string name="AreYouSureDeleteThisSecretGroup">Are you sure you want to delete this secret group: **%1$s**?</string>
 </resources>
