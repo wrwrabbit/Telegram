@@ -2633,7 +2633,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
             currentUser = null;
-            dialog_id = 0;
+            dialog_id = encGroupId != 0
+                    ? DialogObject.makeEncryptedDialogId(encGroupId)
+                    : 0;
             maxMessageId[0] = maxMessageId[1] = Integer.MIN_VALUE;
             minMessageId[0] = minMessageId[1] = Integer.MAX_VALUE;
         } else if (chatMode == MODE_EDIT_BUSINESS_LINK) {

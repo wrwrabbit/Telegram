@@ -8716,6 +8716,9 @@ public class MessagesController extends BaseController implements NotificationCe
     public void removeDraftDialogIfNeed(long dialogId) {
         TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
         if (dialog != null && dialog.top_message == 0) {
+            if (DialogObject.isEncryptedDialog(dialogId) && getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId)) != null) {
+                return;
+            }
             dialogs_dict.remove(dialog.id);
             allDialogs.remove(dialog);
         }
@@ -10212,7 +10215,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 return false;
             }
             TLRPC.EncryptedChat chat = getEncryptedChat(DialogObject.getEncryptedChatId(dialogId));
-            if (chat.auth_key != null && chat.auth_key.length > 1 && chat instanceof TLRPC.TL_encryptedChat) {
+            if (chat != null && chat.auth_key != null && chat.auth_key.length > 1 && chat instanceof TLRPC.TL_encryptedChat) {
                 TLRPC.TL_messages_setEncryptedTyping req = new TLRPC.TL_messages_setEncryptedTyping();
                 req.peer = new TLRPC.TL_inputEncryptedChat();
                 req.peer.chat_id = chat.id;
