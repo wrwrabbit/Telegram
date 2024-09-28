@@ -945,7 +945,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     title = AndroidUtilities.removeDiacritics(ContactsController.formatName(currentUser.first_name, currentUser.last_name).replace('\n', ' '));
                 }
             } else {
-                continue;
+                EncryptedGroup currentEncryptedGroup = messagesController.getEncryptedGroup(DialogObject.getEncryptedChatId(dialog.id));
+                if (currentEncryptedGroup != null) {
+                    title = currentEncryptedGroup.name;
+                } else {
+                    continue;
+                }
             }
             if (builder.length() > 0) {
                 builder.append(", ");
