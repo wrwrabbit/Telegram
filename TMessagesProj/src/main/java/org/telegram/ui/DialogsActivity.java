@@ -8318,7 +8318,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 EncryptedGroup encryptedGroup = getMessagesController()
                         .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                 if (encryptedGroup != null) {
-                    args.putIntegerArrayList("enc_ids", new ArrayList<>(encryptedGroup.encryptedChatsIds));
+                    args.putInt("enc_group_id", encryptedGroup.id);
                 } else {
                     args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
                 }

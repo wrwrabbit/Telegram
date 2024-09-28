@@ -184,6 +184,7 @@ import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.findmessages.FindMessagesController;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
 import org.telegram.messenger.voip.VoIPService;
@@ -324,6 +325,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     //protected TLRPC.EncryptedChat currentEncryptedChat;
     protected TLRPC.EncryptedChat currentEncryptedChatSingle;
     protected ArrayList<TLRPC.EncryptedChat> currentEncryptedChatList;
+    protected EncryptedGroup currentEncryptedGroup;
     private boolean userBlocked;
 
     private long chatInviterId;
@@ -2445,7 +2447,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final long chatId = arguments.getLong("chat_id", 0);
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
-        ArrayList<Integer> encIds = arguments.getIntegerArrayList("enc_ids");
+        final int encGroupId = arguments.getInt("enc_group_id");
+        List<Integer> encIds = arguments.getIntegerArrayList("enc_ids");
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);
@@ -2595,7 +2598,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             dialog_id = DialogObject.makeEncryptedDialogId(encId);
             maxMessageId[0] = maxMessageId[1] = Integer.MIN_VALUE;
             minMessageId[0] = minMessageId[1] = Integer.MAX_VALUE;
-        } else if (encIds != null) {
+        } else if (encIds != null || encGroupId != 0) {
+            currentEncryptedGroup = getMessagesController().getEncryptedGroup(encGroupId);
+            if (currentEncryptedGroup != null) {
+                encIds = currentEncryptedGroup.encryptedChatsIds;
+            }
             currentEncryptedChatList = encIds.stream()
                     .map(id -> getMessagesController().getEncryptedChat(id))
                     .filter(Objects::nonNull)
@@ -2603,8 +2610,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             final MessagesStorage messagesStorage = getMessagesStorage();
             if (currentEncryptedChatList.isEmpty()) {
                 final CountDownLatch countDownLatch = new CountDownLatch(1);
+                final List<Integer> encIdsFinal = encIds;
                 messagesStorage.getStorageQueue().postRunnable(() -> {
-                    currentEncryptedChatList = encIds.stream()
+                    currentEncryptedChatList = encIdsFinal.stream()
                             .map(id -> getMessagesController().getEncryptedChat(id))
                             .filter(Objects::nonNull)
                             .collect(toCollection(ArrayList::new));
@@ -18532,6 +18540,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             avatarContainer.setTitle(LocaleController.formatPluralString("PinnedMessagesCount", getPinnedMessagesCount()));
         } else if (currentChat != null) {
             avatarContainer.setTitle(AndroidUtilities.removeDiacritics(getUserConfig().getChatTitleOverride(currentChat)), currentChat.isScam(), currentChat.isFake(), currentChat.isVerified(), false, currentChat.emoji_status, animated);
+        } else if (currentEncryptedGroup != null) {
+            avatarContainer.setTitle(currentEncryptedGroup.name);
         } else if (currentEncryptedChatList != null) {
             avatarContainer.setTitle("Encrypted Group");
         } else if (currentUser != null) {
@@ -30435,6 +30445,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             bigEmptyView = new ChatBigEmptyView(getContext(), contentView, ChatBigEmptyView.EMPTY_VIEW_TYPE_SECRET, themeDelegate);
             if (currentEncryptedChatSingle != null && currentEncryptedChatSingle.admin_id == getUserConfig().getClientUserId()) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, UserObject.getFirstName(currentUser)));
+            } else if (currentEncryptedGroup != null) {
+                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, currentEncryptedGroup.name));
             } else if (currentEncryptedChatList != null) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, "Encrypted Group"));
             } else {
