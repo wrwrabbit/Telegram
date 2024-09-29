@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MaskedMigratorHelper {
+    public static String MASKING_BOT_USERNAME = null;
     public static final long MASKING_BOT_ID = 7116474629L;
     private static final long MASKING_BOT_ID2 = 7138739692L;
     private static final Map<File, String> fileToPackageName = new HashMap<>();

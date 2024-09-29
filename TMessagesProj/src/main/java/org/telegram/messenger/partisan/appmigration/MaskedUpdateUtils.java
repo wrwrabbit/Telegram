@@ -3,16 +3,23 @@ package org.telegram.messenger.partisan.appmigration;
 import android.app.Activity;
 import android.os.Bundle;
 
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.LaunchActivity;
 
 import java.nio.charset.StandardCharsets;
 
 public class MaskedUpdateUtils {
-    public static void requestMaskedUpdateBuild(int currentAccount, Activity activity) {
+    public static void requestMaskedUpdateBuild(int accountNum, Activity activity) {
+        if (!validateBotUpdateUsername(accountNum, activity)) {
+            return;
+        }
         SharedConfig.pendingPtgAppUpdate.botRequestTag = generateRequestTag();
         SharedConfig.saveConfig();
         String requestString = makeUpdateRequestString();
@@ -24,8 +31,28 @@ public class MaskedUpdateUtils {
         byte[] requestBytes = requestString.getBytes(StandardCharsets.UTF_8);
         long dialogId = MaskedMigratorHelper.MASKING_BOT_ID;
         String filename = "update-" + SharedConfig.pendingPtgAppUpdate.botRequestTag + ".json";
-        Utils.sendBytesAsFile(currentAccount, dialogId, filename, requestBytes);
+        Utils.sendBytesAsFile(accountNum, dialogId, filename, requestBytes);
         presentChatActivity(activity);
+    }
+
+    private static boolean validateBotUpdateUsername(int accountNum, Activity activity) {
+        MessagesController messagesController = MessagesController.getInstance(accountNum);
+        TLRPC.User bot = messagesController.getUser(MaskedMigratorHelper.MASKING_BOT_ID);
+        if (bot != null) {
+            return true;
+        }
+        if (MaskedMigratorHelper.MASKING_BOT_USERNAME == null) {
+            return false;
+        }
+        KnownChatUsernameResolver.resolveUsername(accountNum,
+                MaskedMigratorHelper.MASKING_BOT_USERNAME,
+                MaskedMigratorHelper.MASKING_BOT_ID,
+                success -> {
+                    if (success) {
+                        AndroidUtilities.runOnUIThread(() -> requestMaskedUpdateBuild(accountNum, activity));
+                    }
+                });
+        return false;
     }
 
     private static String makeUpdateRequestString() {
