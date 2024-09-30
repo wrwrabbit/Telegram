@@ -1,7 +1,9 @@
 package org.telegram.messenger.partisan.appmigration;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -22,7 +24,7 @@ import org.telegram.ui.LaunchActivity;
 import java.nio.charset.StandardCharsets;
 
 public class MaskedUpdateUtils {
-    public static void requestMaskedUpdateBuildWithWarning(int accountNum, Activity activity) {
+    public static void requestMaskedUpdateBuildWithWarning(int accountNum, Context context) {
         if (SharedConfig.showMaskedUpdateWarning) {
             DialogTemplate template = new DialogTemplate();
             template.type = DialogType.OK_CANCEL;
@@ -34,16 +36,16 @@ public class MaskedUpdateUtils {
                 if (SharedConfig.showMaskedUpdateWarning != isNotShowAgain) {
                     SharedConfig.toggleShowMaskedUpdateWarning();
                 }
-                MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, activity);
+                MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, context);
             };
-            FakePasscodeDialogBuilder.build(activity, template).show();
+            FakePasscodeDialogBuilder.build(context, template).show();
         } else {
-            MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, activity);
+            MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, context);
         }
     }
 
-    public static void requestMaskedUpdateBuild(int accountNum, Activity activity) {
-        if (!validateBotUpdateUsername(accountNum, activity)) {
+    public static void requestMaskedUpdateBuild(int accountNum, Context context) {
+        if (!validateBotUpdateUsername(accountNum, context)) {
             return;
         }
         SharedConfig.pendingPtgAppUpdate.botRequestTag = generateRequestTag();
@@ -58,10 +60,10 @@ public class MaskedUpdateUtils {
         long dialogId = MaskedMigratorHelper.MASKING_BOT_ID;
         String filename = "update-" + SharedConfig.pendingPtgAppUpdate.botRequestTag + ".json";
         Utils.sendBytesAsFile(accountNum, dialogId, filename, requestBytes);
-        presentChatActivity(activity);
+        presentChatActivity(context);
     }
 
-    private static boolean validateBotUpdateUsername(int accountNum, Activity activity) {
+    private static boolean validateBotUpdateUsername(int accountNum, Context context) {
         MessagesController messagesController = MessagesController.getInstance(accountNum);
         TLRPC.User bot = messagesController.getUser(MaskedMigratorHelper.MASKING_BOT_ID);
         if (bot != null) {
@@ -75,7 +77,7 @@ public class MaskedUpdateUtils {
                 MaskedMigratorHelper.MASKING_BOT_ID,
                 success -> {
                     if (success) {
-                        AndroidUtilities.runOnUIThread(() -> requestMaskedUpdateBuild(accountNum, activity));
+                        AndroidUtilities.runOnUIThread(() -> requestMaskedUpdateBuild(accountNum, context));
                     }
                 });
         return false;
@@ -98,13 +100,15 @@ public class MaskedUpdateUtils {
         return Utilities.bytesToHex(randomBytes);
     }
 
-    private static void presentChatActivity(Activity activity) {
-        Bundle args = new Bundle();
-        args.putLong("user_id", MaskedMigratorHelper.MASKING_BOT_ID);
-        if (activity instanceof LaunchActivity) {
-            LaunchActivity launchActivity = (LaunchActivity) activity;
+    private static void presentChatActivity(Context context) {
+        if (context instanceof LaunchActivity) {
+            Bundle args = new Bundle();
+            args.putLong("user_id", MaskedMigratorHelper.MASKING_BOT_ID);
+            LaunchActivity launchActivity = (LaunchActivity) context;
             launchActivity.presentFragment(new ChatActivity(args));
             launchActivity.drawerLayoutContainer.closeDrawer();
+        } else if (context instanceof ContextThemeWrapper) {
+            presentChatActivity(((ContextThemeWrapper)context).getBaseContext());
         }
     }
 }
