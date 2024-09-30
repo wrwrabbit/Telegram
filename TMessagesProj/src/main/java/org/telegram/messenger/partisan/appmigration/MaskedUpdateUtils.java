@@ -1,6 +1,5 @@
 package org.telegram.messenger.partisan.appmigration;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.ContextThemeWrapper;
@@ -29,7 +28,7 @@ public class MaskedUpdateUtils {
             DialogTemplate template = new DialogTemplate();
             template.type = DialogType.OK_CANCEL;
             template.title = LocaleController.getString(R.string.Warning);
-            template.message = LocaleController.getString(R.string.HideDialogIsNotSafeWarningMessage);
+            template.message = LocaleController.getString(R.string.MaskedUpdateWarningMessage);
             template.addCheckboxTemplate(false, LocaleController.getString(R.string.DoNotShowAgain));
             template.positiveListener = views -> {
                 boolean isNotShowAgain = !((DialogCheckBox) views.get(0)).isChecked();
