@@ -428,6 +428,7 @@ public class SharedConfig {
     public static boolean onScreenLockActionClearCache;
     public static boolean showSessionsTerminateActionWarning;
     public static boolean showHideDialogIsNotSafeWarning;
+    public static boolean showMaskedUpdateWarning;
     public static int activatedTesterSettingType;
     public static long updateChannelIdOverride;
     public static String updateChannelUsernameOverride;
@@ -826,6 +827,7 @@ public class SharedConfig {
             onScreenLockActionClearCache = preferences.getBoolean("onScreenLockActionClearCache", false);
             showSessionsTerminateActionWarning = preferences.getBoolean("showSessionsTerminateActionWarning", true);
             showHideDialogIsNotSafeWarning = preferences.getBoolean("showHideDialogIsNotSafeWarning", true);
+            showMaskedUpdateWarning = preferences.getBoolean("showMaskedUpdateWarning", true);
             activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
@@ -1033,6 +1035,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("deleteMessagesForAllByDefault", deleteMessagesForAllByDefault);
+        editor.commit();
+    }
+
+    public static void toggleShowMaskedUpdateWarning() {
+        showMaskedUpdateWarning = !showMaskedUpdateWarning;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("showMaskedUpdateWarning", showMaskedUpdateWarning);
         editor.commit();
     }
 
@@ -1321,6 +1331,7 @@ public class SharedConfig {
         stealthModeSendMessageConfirm = 2;
         showSessionsTerminateActionWarning = true;
         showHideDialogIsNotSafeWarning = true;
+        showMaskedUpdateWarning = true;
         dayNightWallpaperSwitchHint = 0;
         saveConfig();
     }

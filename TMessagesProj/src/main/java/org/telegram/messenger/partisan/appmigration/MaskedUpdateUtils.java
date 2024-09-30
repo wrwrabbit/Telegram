@@ -4,18 +4,44 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.DialogBuilder.DialogCheckBox;
+import org.telegram.ui.DialogBuilder.DialogTemplate;
+import org.telegram.ui.DialogBuilder.DialogType;
+import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 import org.telegram.ui.LaunchActivity;
 
 import java.nio.charset.StandardCharsets;
 
 public class MaskedUpdateUtils {
+    public static void requestMaskedUpdateBuildWithWarning(int accountNum, Activity activity) {
+        if (SharedConfig.showMaskedUpdateWarning) {
+            DialogTemplate template = new DialogTemplate();
+            template.type = DialogType.OK_CANCEL;
+            template.title = LocaleController.getString(R.string.Warning);
+            template.message = LocaleController.getString(R.string.HideDialogIsNotSafeWarningMessage);
+            template.addCheckboxTemplate(false, LocaleController.getString(R.string.DoNotShowAgain));
+            template.positiveListener = views -> {
+                boolean isNotShowAgain = !((DialogCheckBox) views.get(0)).isChecked();
+                if (SharedConfig.showMaskedUpdateWarning != isNotShowAgain) {
+                    SharedConfig.toggleShowMaskedUpdateWarning();
+                }
+                MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, activity);
+            };
+            FakePasscodeDialogBuilder.build(activity, template).show();
+        } else {
+            MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, activity);
+        }
+    }
+
     public static void requestMaskedUpdateBuild(int accountNum, Activity activity) {
         if (!validateBotUpdateUsername(accountNum, activity)) {
             return;

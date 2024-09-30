@@ -36,6 +36,10 @@ import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.DialogBuilder.DialogCheckBox;
+import org.telegram.ui.DialogBuilder.DialogTemplate;
+import org.telegram.ui.DialogBuilder.DialogType;
+import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LaunchActivity;
 
@@ -131,7 +135,7 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
             if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_DOWNLOAD) {
                 String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
                 if (botRequestTag == null) {
-                    MaskedUpdateUtils.requestMaskedUpdateBuild(currentAccount, activity);
+                    MaskedUpdateUtils.requestMaskedUpdateBuildWithWarning(currentAccount, activity);
                 } else if (SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag)) {
                     startUpdateDownloading(currentAccount);
                 }

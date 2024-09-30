@@ -42,6 +42,9 @@ public class FakePasscodeDialogBuilder {
         } else if (template.type == DialogType.ONLY_SAVE) {
             dialogBuilder.setPositiveButton(LocaleController.getString("Save", R.string.Save), null);
             dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        } else if (template.type == DialogType.OK_CANCEL) {
+            dialogBuilder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+            dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
         } else if (template.type == DialogType.OK) {
             dialogBuilder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
         }

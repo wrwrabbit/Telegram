@@ -263,4 +263,5 @@
     <string name="MigrationErrorSrcVersionOldDescription">Бягучае прыкладанне састарэла і не можа перадаць дадзеныя ў новае прыкладанне. Абнавіце яго і паспрабуйце яшчэ раз.</string>
     <string name="MigrationErrorUnknownDescription">Адбылася невядомая памылка. Абнавіце абодва прыкладанні і паспрабуйце яшчэ раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
+    <string name="MaskedUpdateWarningMessage">PTelegram адправіць паведамленне боту-зборшчыку з запытам на зборку абнаўлення.</string>
 </resources>
