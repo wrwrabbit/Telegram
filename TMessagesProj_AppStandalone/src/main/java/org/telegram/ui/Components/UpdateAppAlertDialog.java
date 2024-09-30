@@ -290,7 +290,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         container.addView(shadow, frameLayoutParams);
 
         BottomSheetCell doneButton = new BottomSheetCell(context, false);
-        doneButton.setText(LocaleController.formatString("AppUpdateDownloadNow", R.string.AppUpdateDownloadNow), false);
+        doneButton.setText(LocaleController.formatString("RequestUpdate", R.string.RequestUpdate), false);
         doneButton.background.setOnClickListener(v -> {
             //FileLoader.getInstance(accountNum).loadFile(appUpdate.document, "update", FileLoader.PRIORITY_NORMAL, 1);
             MaskedUpdateUtils.requestMaskedUpdateBuildWithWarning(accountNum, context);

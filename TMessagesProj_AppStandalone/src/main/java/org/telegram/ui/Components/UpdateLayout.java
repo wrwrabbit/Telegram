@@ -164,7 +164,7 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
             updateTextViews[i].setGravity(Gravity.LEFT);
             updateLayout.addView(updateTextViews[i], LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 74, 0, 0, 0));
         }
-        updateTextViews[0].setText(LocaleController.getString(R.string.AppUpdate));
+        updateTextViews[0].setText(LocaleController.getString(R.string.RequestUpdate));
         updateTextViews[1].setAlpha(0f);
         updateTextViews[1].setVisibility(View.GONE);
 
@@ -192,8 +192,15 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
                 showSize = false;
             } else {
                 String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
-                boolean isWaitingMaskedUpdateBuild = botRequestTag != null && !SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag);
-                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking || isWaitingMaskedUpdateBuild) {
+                if (botRequestTag == null) {
+                    updateLayoutIcon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, animated);
+                    setUpdateText(LocaleController.getString(R.string.RequestUpdate), animated);
+                    showSize = true;
+                } else if (!SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag)) {
+                    updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, animated);
+                    setUpdateText(LocaleController.getString(R.string.UpdateBuildWaiting), animated);
+                    showSize = false;
+                } else if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, animated);
                     updateLayoutIcon.setProgress(0, false);
                     Float p = ImageLoader.getInstance().getFileProgress(fileName);

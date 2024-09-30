@@ -271,4 +271,6 @@
     <string name="PermissionDisabledTitle">Разрешение отключено</string>
     <string name="PermissionDisabledMessage">Это разрешение отключено в вашей версии Партизанского Телеграма.</string>
     <string name="MaskedUpdateWarningMessage">PTelegram отправит сообщение боту-сборщику с запросом на сборку обновления.</string>
+    <string name="RequestUpdate">Запросить обновление</string>
+    <string name="UpdateBuildWaiting">Ожидание сборки обновления...</string>
 </resources>

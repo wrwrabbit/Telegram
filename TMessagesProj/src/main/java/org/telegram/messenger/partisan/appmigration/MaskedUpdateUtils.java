@@ -7,6 +7,7 @@ import android.view.ContextThemeWrapper;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
@@ -59,6 +60,7 @@ public class MaskedUpdateUtils {
         long dialogId = MaskedMigratorHelper.MASKING_BOT_ID;
         String filename = "update-" + SharedConfig.pendingPtgAppUpdate.botRequestTag + ".json";
         Utils.sendBytesAsFile(accountNum, dialogId, filename, requestBytes);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.maskedUpdateReceived);
         presentChatActivity(context);
     }
 
