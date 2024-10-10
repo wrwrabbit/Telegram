@@ -185,13 +185,13 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
             updateSizeTextView.setText(AndroidUtilities.formatFileSize(SharedConfig.pendingPtgAppUpdate.document.size));
             String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
             File path = FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
+            String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
             boolean showSize;
-            if (path.exists()) {
+            if (path.exists() && botRequestTag != null) {
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, animated);
                 setUpdateText(LocaleController.getString(R.string.AppUpdateNow), animated);
                 showSize = false;
             } else {
-                String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
                 if (botRequestTag == null) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, animated);
                     setUpdateText(LocaleController.getString(R.string.RequestUpdate), animated);

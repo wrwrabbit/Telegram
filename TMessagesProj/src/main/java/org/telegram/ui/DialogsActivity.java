@@ -6376,7 +6376,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (SharedConfig.isAppUpdateAvailable()) {
             String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
             File path = getFileLoader().getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
-            show = path.exists();
+            show = SharedConfig.pendingPtgAppUpdate.botRequestTag != null && path.exists();
         } else {
             show = false;
         }
