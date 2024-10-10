@@ -136,6 +136,7 @@ import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -2791,6 +2792,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didSetPasscode);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appUpdateAvailable);
+            NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.maskedUpdateReceived);
         }
         getNotificationCenter().addObserver(this, NotificationCenter.messagesDeleted);
 
@@ -2960,6 +2962,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didSetPasscode);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appUpdateAvailable);
+            NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.maskedUpdateReceived);
         }
         getNotificationCenter().removeObserver(this, NotificationCenter.messagesDeleted);
 
@@ -5202,7 +5205,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (!SharedConfig.isAppUpdateAvailable()) {
                     return;
                 }
-                AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, getParentActivity());
+                File path = getFileLoader().getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
+                if (!path.exists()) {
+                    UpdateChecker.startUpdateDownloading(currentAccount);
+                } else {
+                    AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, getParentActivity());
+                }
             });
 
             updateLayoutIcon = new RadialProgress2(updateLayout);
@@ -6374,15 +6382,26 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         boolean show;
         if (SharedConfig.isAppUpdateAvailable()) {
-            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
-            File path = getFileLoader().getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
-            show = SharedConfig.pendingPtgAppUpdate.botRequestTag != null && path.exists();
+            if (SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument()) {
+                String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
+                show = !FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName);
+            } else {
+                show = false;
+            }
         } else {
             show = false;
         }
         if (show) {
             if (updateLayout.getTag() != null) {
                 return;
+            }
+            File path = getFileLoader().getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
+            if (path.exists()) {
+                updateTextView.setText(LocaleController.getString(R.string.AppUpdateNow).toUpperCase());
+                updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, false);
+            } else {
+                updateTextView.setText(LocaleController.getString(R.string.AppUpdateDownloadNow).toUpperCase());
+                updateLayoutIcon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, false);
             }
             if (updateLayoutAnimator != null) {
                 updateLayoutAnimator.cancel();
@@ -10954,6 +10973,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             SuggestClearDatabaseBottomSheet.dismissDialog();
         } else if (id == NotificationCenter.appUpdateAvailable) {
+            updateMenuButton(true);
+        } else if (id == NotificationCenter.maskedUpdateReceived) {
             updateMenuButton(true);
         } else if (id == NotificationCenter.fileLoaded || id == NotificationCenter.fileLoadFailed || id == NotificationCenter.fileLoadProgressChanged) {
             String name = (String) args[0];
