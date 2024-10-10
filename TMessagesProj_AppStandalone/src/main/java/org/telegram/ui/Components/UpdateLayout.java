@@ -136,14 +136,14 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
                 String botRequestTag = SharedConfig.pendingPtgAppUpdate.botRequestTag;
                 if (botRequestTag == null) {
                     MaskedUpdateUtils.requestMaskedUpdateBuildWithWarning(currentAccount, activity);
-                } else if (SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag)) {
+                } else if (SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument()) {
                     startUpdateDownloading(currentAccount);
                 }
                 updateAppUpdateViews(currentAccount,  true);
             } else if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL) {
                 FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
                 updateAppUpdateViews(currentAccount, true);
-            } else {
+            } else if (SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument()) {
                 if (!AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, activity)) {
                     startUpdateDownloading(currentAccount);
                 }
@@ -196,7 +196,7 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, animated);
                     setUpdateText(LocaleController.getString(R.string.RequestUpdate), animated);
                     showSize = true;
-                } else if (!SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag)) {
+                } else if (!SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument()) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_WAIT_BUILD_MASKED_UPDATE, true, animated);
                     setUpdateText(LocaleController.getString(R.string.UpdateBuildWaiting), animated);
                     showSize = false;

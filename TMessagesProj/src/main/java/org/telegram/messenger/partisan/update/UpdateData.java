@@ -2,6 +2,7 @@ package org.telegram.messenger.partisan.update;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.telegram.messenger.SharedConfig;
 import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
@@ -25,4 +26,11 @@ public class UpdateData {
     public String stickerPackName;
     @JsonIgnore
     public String stickerEmoji;
+
+    public boolean isMaskedUpdateDocument() {
+        return botRequestTag != null
+                && document != null
+                && document.file_name_fixed != null
+                && document.file_name_fixed.contains(botRequestTag);
+    }
 }

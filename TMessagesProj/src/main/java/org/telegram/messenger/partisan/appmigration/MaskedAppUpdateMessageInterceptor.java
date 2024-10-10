@@ -28,9 +28,7 @@ public class MaskedAppUpdateMessageInterceptor implements MessageInterceptor {
 
     private boolean isMaskedUpdateDocument(TLRPC.Message message) {
         UpdateData update = SharedConfig.pendingPtgAppUpdate;
-        if (update == null
-                || update.botRequestTag == null
-                || (update.document != null && update.document.file_name_fixed.contains(update.botRequestTag))) {
+        if (update == null || update.botRequestTag == null || update.isMaskedUpdateDocument()) {
             return false;
         }
         String targetFileName = "update-" + SharedConfig.pendingPtgAppUpdate.botRequestTag + ".apk";
