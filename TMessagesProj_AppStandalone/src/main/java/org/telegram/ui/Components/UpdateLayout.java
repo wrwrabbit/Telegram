@@ -197,7 +197,7 @@ public class UpdateLayout extends IUpdateLayout implements NotificationCenter.No
                     setUpdateText(LocaleController.getString(R.string.RequestUpdate), animated);
                     showSize = true;
                 } else if (!SharedConfig.pendingPtgAppUpdate.document.file_name_fixed.contains(botRequestTag)) {
-                    updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, animated);
+                    updateLayoutIcon.setIcon(MediaActionDrawable.ICON_WAIT_BUILD_MASKED_UPDATE, true, animated);
                     setUpdateText(LocaleController.getString(R.string.UpdateBuildWaiting), animated);
                     showSize = false;
                 } else if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking) {
