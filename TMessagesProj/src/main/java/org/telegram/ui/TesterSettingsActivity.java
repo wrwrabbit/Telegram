@@ -278,6 +278,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.pendingPtgAppUpdate = null;
                 SharedConfig.saveConfig();
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
             } else if (position == checkVerificationUpdatesRow) {
                 VerificationUpdatesChecker.checkUpdate(currentAccount, true);
                 Toast.makeText(getParentActivity(), "Check started", Toast.LENGTH_SHORT).show();
