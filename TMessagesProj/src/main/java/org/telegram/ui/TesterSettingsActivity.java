@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
@@ -274,6 +275,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.pendingPtgAppUpdate = null;
                 SharedConfig.saveConfig();
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
             } else if (position == checkVerificationUpdatesRow) {
                 VerificationUpdatesChecker.checkUpdate(currentAccount, true);
                 Toast.makeText(getParentActivity(), "Check started", Toast.LENGTH_SHORT).show();
