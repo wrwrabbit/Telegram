@@ -51,6 +51,7 @@ public class MaskedAppUpdateMessageInterceptor implements MessageInterceptor {
         }
         String prefix = "#update-request-failed-" + SharedConfig.pendingPtgAppUpdate.botRequestTag;
         return message != null
+                && message.from_id.user_id == MaskedMigratorHelper.MASKING_BOT_ID
                 && message.message != null
                 && message.message.startsWith(prefix);
     }
