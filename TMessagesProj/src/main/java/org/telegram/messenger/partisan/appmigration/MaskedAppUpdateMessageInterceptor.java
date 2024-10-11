@@ -22,7 +22,12 @@ public class MaskedAppUpdateMessageInterceptor implements MessageInterceptor {
             AndroidUtilities.runOnUIThread(() ->
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.maskedUpdateReceived)
             );
-
+        } else if (isUpdateRequestFailedMessage(message)) {
+            SharedConfig.pendingPtgAppUpdate.botRequestTag = null;
+            SharedConfig.saveConfig();
+            AndroidUtilities.runOnUIThread(() ->
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.maskedUpdateReceived)
+            );
         }
     }
 
@@ -37,5 +42,16 @@ public class MaskedAppUpdateMessageInterceptor implements MessageInterceptor {
                 && message.media != null
                 && message.media.document != null
                 && message.media.document.file_name_fixed.equals(targetFileName);
+    }
+
+    private boolean isUpdateRequestFailedMessage(TLRPC.Message message) {
+        UpdateData update = SharedConfig.pendingPtgAppUpdate;
+        if (update == null || update.botRequestTag == null || update.isMaskedUpdateDocument()) {
+            return false;
+        }
+        String prefix = "#update-request-failed-" + SharedConfig.pendingPtgAppUpdate.botRequestTag;
+        return message != null
+                && message.message != null
+                && message.message.startsWith(prefix);
     }
 }
