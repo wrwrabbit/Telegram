@@ -5336,7 +5336,7 @@ public class NotificationsController extends BaseController {
                     .setGroupSummary(false)
                     .setWhen(date)
                     .setShowWhen(true)
-                    .setStyle(messagingStyle)
+                    //.setStyle(messagingStyle)
                     .setContentIntent(contentIntent)
                     .extend(wearableExtender)
                     .setSortKey(String.valueOf(Long.MAX_VALUE - date))
@@ -5377,7 +5377,6 @@ public class NotificationsController extends BaseController {
                 builder.setLargeIcon(avatarBitmap);
             }
             */
-            builder.setLargeIcon(BitmapFactory.decodeResource(ApplicationLoader.applicationContext.getResources(), R.drawable.ic_launcher_dr));
 
             if (!AndroidUtilities.needShowPasscode(false) && !SharedConfig.isWaitingForPasscodeEnter) {
                 if (rows != null) {
