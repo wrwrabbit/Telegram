@@ -29,6 +29,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SvgHelper;
+import org.telegram.messenger.partisan.appmigration.MaskedUpdateUtils;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BottomSheet;
@@ -253,7 +254,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         textView.setSingleLine(true);
         textView.setEllipsize(TextUtils.TruncateAt.END);
-        textView.setText(LocaleController.getString("AppUpdate", R.string.AppUpdate));
+        textView.setText(LocaleController.getString(R.string.AppUpdate));
         linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 23, 16, 23, 0));
 
         TextView messageTextView = new TextView(getContext());
@@ -271,7 +272,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         changelogTextView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         changelogTextView.setLinkTextColor(Theme.getColor(Theme.key_dialogTextLink));
         if (TextUtils.isEmpty(appUpdate.text)) {
-            changelogTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString("AppUpdateChangelogEmpty", R.string.AppUpdateChangelogEmpty)));
+            changelogTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.AppUpdateChangelogEmpty)));
         } else {
             SpannableStringBuilder builder = new SpannableStringBuilder(appUpdate.text);
             MessageObject.addEntitiesToText(builder, update.entities, false, false, false, false);
@@ -289,15 +290,16 @@ public class UpdateAppAlertDialog extends BottomSheet {
         container.addView(shadow, frameLayoutParams);
 
         BottomSheetCell doneButton = new BottomSheetCell(context, false);
-        doneButton.setText(LocaleController.formatString("AppUpdateDownloadNow", R.string.AppUpdateDownloadNow), false);
+        doneButton.setText(LocaleController.formatString("RequestUpdate", R.string.RequestUpdate), false);
         doneButton.background.setOnClickListener(v -> {
-            FileLoader.getInstance(accountNum).loadFile(appUpdate.document, "update", FileLoader.PRIORITY_NORMAL, 1);
+            //FileLoader.getInstance(accountNum).loadFile(appUpdate.document, "update", FileLoader.PRIORITY_NORMAL, 1);
+            MaskedUpdateUtils.requestMaskedUpdateBuildWithWarning(accountNum, context);
             dismiss();
         });
         container.addView(doneButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 50, Gravity.LEFT | Gravity.BOTTOM, 0, 0, 0, 50));
 
         BottomSheetCell scheduleButton = new BottomSheetCell(context, true);
-        scheduleButton.setText(LocaleController.getString("AppUpdateRemindMeLater", R.string.AppUpdateRemindMeLater), false);
+        scheduleButton.setText(LocaleController.getString(R.string.AppUpdateRemindMeLater), false);
         scheduleButton.background.setOnClickListener(v -> dismiss());
         container.addView(scheduleButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 50, Gravity.LEFT | Gravity.BOTTOM, 0, 0, 0, 0));
     }

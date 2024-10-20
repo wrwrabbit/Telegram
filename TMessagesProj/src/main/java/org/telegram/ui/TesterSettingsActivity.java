@@ -14,12 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.SecurityIssue;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.messenger.partisan.verification.VerificationRepository;
 import org.telegram.messenger.partisan.verification.VerificationStorage;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -92,6 +94,8 @@ public class TesterSettingsActivity extends BaseFragment {
     private int resetUpdateRow;
     private int checkVerificationUpdatesRow;
     private int resetVerificationLastCheckTimeRow;
+    private int resetMaskedUpdateTagRow;
+    private int maskingBotUsernameRow;
     private int forceAllowScreenshotsRow;
     private int saveLogcatAfterRestartRow;
 
@@ -274,6 +278,7 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.pendingPtgAppUpdate = null;
                 SharedConfig.saveConfig();
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
             } else if (position == checkVerificationUpdatesRow) {
                 VerificationUpdatesChecker.checkUpdate(currentAccount, true);
                 Toast.makeText(getParentActivity(), "Check started", Toast.LENGTH_SHORT).show();
@@ -282,6 +287,32 @@ public class TesterSettingsActivity extends BaseFragment {
                     VerificationRepository.getInstance().saveNextCheckTime(storage.chatId, 0);
                 }
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+            } else if (position == resetMaskedUpdateTagRow) {
+                SharedConfig.pendingPtgAppUpdate.botRequestTag = null;
+                SharedConfig.saveConfig();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.maskedUpdateReceived);
+                Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
+            } else if (position == maskingBotUsernameRow) {
+                DialogTemplate template = new DialogTemplate();
+                template.type = DialogType.EDIT;
+                String title = "Masking Bot Username";
+                template.title = title;
+                String value = MaskedMigratorHelper.MASKING_BOT_USERNAME;
+                template.addEditTemplate(value, "Masking Bot Username", true);
+                template.positiveListener = views -> {
+                    String username = ((EditTextCaption)views.get(0)).getText().toString();
+                    username = Utils.removeUsernamePrefixed(username);
+                    MaskedMigratorHelper.MASKING_BOT_USERNAME = username;
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    cell.setTextAndValue(title, username, false);
+                };
+                template.negativeListener = (dlg, whichButton) -> {
+                    MaskedMigratorHelper.MASKING_BOT_USERNAME = null;
+                    TextSettingsCell cell = (TextSettingsCell) view;
+                    cell.setTextAndValue(title, "", false);
+                };
+                AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
+                showDialog(dialog);
             } else if (position == forceAllowScreenshotsRow) {
                 SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
                 SharedConfig.saveConfig();
@@ -323,6 +354,12 @@ public class TesterSettingsActivity extends BaseFragment {
         resetUpdateRow = rowCount++;
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
+        if (SharedConfig.pendingPtgAppUpdate != null && SharedConfig.pendingPtgAppUpdate.botRequestTag != null) {
+            resetMaskedUpdateTagRow = rowCount++;
+        } else {
+            resetMaskedUpdateTagRow = -1;
+        }
+        maskingBotUsernameRow = rowCount++;
         forceAllowScreenshotsRow = rowCount++;
         saveLogcatAfterRestartRow = rowCount++;
     }
@@ -464,6 +501,10 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setText("Check Verification Updates", true);
                     } else if (position == resetVerificationLastCheckTimeRow) {
                         textCell.setText("Reset Verification Last Check Time", true);
+                    } else if (position == resetMaskedUpdateTagRow) {
+                        textCell.setText("Reset Masked Update Tag", true);
+                    } else if (position == maskingBotUsernameRow) {
+                        textCell.setTextAndValue("Masking Bot Username", MaskedMigratorHelper.MASKING_BOT_USERNAME, true);
                     }
                     break;
                 }
@@ -481,7 +522,7 @@ public class TesterSettingsActivity extends BaseFragment {
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
                     || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
                     || position == resetUpdateRow || position == checkVerificationUpdatesRow
-                    || position == resetVerificationLastCheckTimeRow) {
+                    || position == resetVerificationLastCheckTimeRow || position == resetMaskedUpdateTagRow || position == maskingBotUsernameRow) {
                 return 1;
             }
             return 0;

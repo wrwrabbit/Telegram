@@ -47,7 +47,7 @@ public class UserObject {
     @NonNull
     public static String getUserName(TLRPC.User user) {
         if (user == null || isDeleted(user)) {
-            return LocaleController.getString("HiddenName", R.string.HiddenName);
+            return LocaleController.getString(R.string.HiddenName);
         }
         String name = ContactsController.formatName(user.first_name, user.last_name);
         return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
@@ -133,7 +133,7 @@ public class UserObject {
         if (name == null) {
             return LocaleController.getString(R.string.HiddenName);
         }
-        int index = name.indexOf(" ");
+        int index = name.indexOf(" ", 2);
         if (index >= 0) {
             name = name.substring(0, index);
         }

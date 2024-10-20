@@ -1,5 +1,6 @@
 package org.telegram.messenger.fakepasscode;
 
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.partisan.Utils;
 
 @FakePasscodeSerializer.EnabledSerialization
@@ -9,7 +10,7 @@ public class ClearCacheAction implements Action {
     @Override
     public void execute(FakePasscode fakePasscode) {
         if (enabled) {
-            Utils.clearCache(null);
+            Utils.clearCache(ApplicationLoader.applicationContext, null);
         }
     }
 }

@@ -4,17 +4,16 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.webkit.WebStorage;
+import android.webkit.WebView;
 
 import androidx.core.content.ContextCompat;
 
@@ -25,12 +24,15 @@ import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
@@ -38,10 +40,15 @@ import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
+import org.telegram.ui.web.BrowserHistory;
+import org.telegram.ui.web.WebBrowserSettings;
+import org.telegram.ui.web.WebMetadataCache;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -86,8 +93,11 @@ public class Utils {
         }
     }
 
-    public static void clearCache(Runnable callback) {
+    public static void clearCache(Context context, Runnable callback) {
         Utilities.globalQueue.postRunnable(() -> {
+            AndroidUtilities.runOnUIThread(() -> clearWebBrowserCache(context));
+            BrowserHistory.clearHistory();
+
             for (int a = 0; a < 8; a++) {
                 int type = -1;
                 int documentsMusicType = 0;
@@ -185,6 +195,39 @@ public class Utils {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.cacheClearedByPtg);
             });
         });
+    }
+
+    public static void clearWebBrowserCache(Context context) {
+        ApplicationLoader.applicationContext.deleteDatabase("webview.db");
+        ApplicationLoader.applicationContext.deleteDatabase("webviewCache.db");
+        WebStorage.getInstance().deleteAllData();
+        try {
+            WebView webView = new WebView(context);
+            webView.clearCache(true);
+            webView.clearHistory();
+            webView.destroy();
+        } catch (Exception e) {}
+        try {
+            File dir = new File(ApplicationLoader.applicationContext.getApplicationInfo().dataDir, "app_webview");
+            if (dir.exists()) {
+                WebBrowserSettings.deleteDirectory(dir, false);
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        try {
+            File dir = new File(ApplicationLoader.applicationContext.getApplicationInfo().dataDir, "cache/WebView");
+            if (dir.exists()) {
+                WebBrowserSettings.deleteDirectory(dir, null);
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        File cacheFile = WebMetadataCache.getInstance().getCacheFile();
+        if (cacheFile.exists()) {
+            WebMetadataCache.getInstance().clear();
+            cacheFile.delete();
+        }
     }
 
     public static void deleteDialog(int accountNum, long id) {
@@ -331,8 +374,8 @@ public class Utils {
             CharSequence endCharSequence = message.subSequence(lastEnd, message.length());
             if (builder.length() != 0 && endCharSequence.length() != 0) {
                 builder.append("\n\n");
-                builder.append(endCharSequence);
             }
+            builder.append(endCharSequence);
             if (builder.length() != 0) {
                 int end = builder.length() - 1;
                 while (end > 0 && Character.isWhitespace(builder.charAt(end))) {
@@ -482,6 +525,79 @@ public class Utils {
             runnable.run();
         } else {
             ApplicationLoader.applicationHandler.postAtFrontOfQueue(runnable);
+        }
+    }
+
+    public static boolean sendBytesAsFile(int accountNum, long dialog_id, String fileName, byte[] data) {
+        if (fileAlreadySent(accountNum, fileName, data.length)) {
+            return false;
+        }
+
+        File f = createFileForSending(fileName, data);
+        String tempPath = f.getAbsolutePath();
+        String originalPath = f.getAbsolutePath();
+
+        SendMessagesHelper.prepareSendingDocument(AccountInstance.getInstance(accountNum), tempPath, originalPath, null, null, null, dialog_id, null, null, null, null, null, true, 0, null, null, 0, false);
+        return true;
+    }
+
+    private static boolean fileAlreadySent(int accountNum, String fileName, long fileSize) {
+        String path = fileName + fileSize;
+        Object[] sentDocuments = MessagesStorage.getInstance(accountNum).getSentFile(path, /*!isEncrypted ? 1 : */4);
+        return sentDocuments != null;
+    }
+
+    private static File createFileForSending(String fileName, byte[] data) {
+        AndroidUtilities.getSharingDirectory().mkdirs();
+        File f = new File(AndroidUtilities.getSharingDirectory(), fileName);
+        FileOutputStream output = null;
+        try {
+            output = new FileOutputStream(f);
+            output.write(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            } catch (Exception e2) {
+                PartisanLog.e("sendBytesAsFile", e2);
+            }
+        }
+        return f;
+    }
+
+    public static byte[] readAssetBytes(String fileName) {
+        InputStream stream = null;
+        ByteArrayOutputStream bos = null;
+        try {
+            stream = ApplicationLoader.applicationContext.getAssets().open(fileName);
+            bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = stream.read(buf, 0, 1024)) != -1) {
+                bos.write(buf, 0, len);
+            }
+            return bos.toByteArray();
+        } catch (Exception e) {
+            PartisanLog.e("readAssetBytes", e);
+            return null;
+        } finally {
+            try {
+                if (bos != null) {
+                    bos.close();
+                }
+            } catch (Exception e) {
+                PartisanLog.e("readAssetBytes", e);
+            }
+            try {
+                if (stream != null) {
+                    stream.close();
+                }
+            } catch (Exception e) {
+                PartisanLog.e("readAssetBytes", e);
+            }
         }
     }
 

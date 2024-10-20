@@ -2,6 +2,7 @@ package org.telegram.ui.Components;
 
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.LongSparseArray;
 import android.util.SparseIntArray;
@@ -56,6 +57,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
     public View.OnClickListener clickCallback;
 
     public Object object;
+    public Object object2;
 
     public boolean withUsername = true;
 
@@ -148,6 +150,14 @@ public class UItem extends AdapterWithDiffUtils.Item {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TEXT, false);
         i.id = id;
         i.iconResId = iconResId;
+        i.text = text;
+        return i;
+    }
+
+    public static UItem asButton(int id, Drawable icon, CharSequence text) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_TEXT, false);
+        i.id = id;
+        i.object = icon;
         i.text = text;
         return i;
     }
@@ -566,7 +576,8 @@ public class UItem extends AdapterWithDiffUtils.Item {
             view == item.view &&
             intValue == item.intValue &&
             longValue == item.longValue &&
-            Objects.equals(object, item.object)
+            Objects.equals(object, item.object) &&
+            Objects.equals(object2, item.object2)
         );
     }
 
@@ -577,6 +588,16 @@ public class UItem extends AdapterWithDiffUtils.Item {
     public static int factoryViewTypeStartsWith = 10_000;
     private static int factoryViewType = 10_000;
     public static abstract class UItemFactory<V extends View> {
+        public static void setup(UItemFactory factory) {
+            if (factoryInstances == null) factoryInstances = new HashMap<>();
+            if (factories == null) factories = new LongSparseArray<>();
+            final Class factoryClass = factory.getClass();
+            if (!factoryInstances.containsKey(factoryClass)) {
+                factoryInstances.put(factoryClass, factory);
+                factories.put(factory.viewType, factory);
+            }
+        };
+
         public final int viewType;
 
         private ArrayList<V> cache;
@@ -645,15 +666,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
         if (factoryInstances == null) factoryInstances = new HashMap<>();
         if (factories == null) factories = new LongSparseArray<>();
         UItemFactory<?> factory = factoryInstances.get(factoryClass);
-        if (factory == null) {
-            try {
-                factoryInstances.put(factoryClass, factory = factoryClass.getDeclaredConstructor().newInstance());
-                factories.put(factory.viewType, factory);
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-        if (factory == null) throw new RuntimeException("couldnt create factory of " + factoryClass);
+        if (factory == null) throw new RuntimeException("UItemFactory was not setuped: " + factoryClass);
         return factory;
     }
 }

@@ -51,7 +51,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
 
         setWillNotDraw(false);
-        setVisibility(View.GONE);
+        setVisibility(GONE);
 
         screen = MaskedPtgConfig.createScreen(context, password -> processDone(false, password));
         addView(screen.createView());

@@ -54,6 +54,7 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.ui.ArticleViewer;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.StoryViewer;
@@ -84,6 +85,7 @@ public abstract class BaseFragment {
     private boolean removingFromStack;
     private PreviewDelegate previewDelegate;
     protected Theme.ResourcesProvider resourceProvider;
+    private boolean isFullyVisible;
 //    public ArrayList<StoryViewer> storyViewerStack;
 //    public ArrayList<BotWebViewAttachedSheet> botsStack;
 //
@@ -100,14 +102,17 @@ public abstract class BaseFragment {
 
         public boolean attachedToParent();
 
-        public boolean onBackPressed();
+        public boolean onAttachedBackPressed();
         public boolean showDialog(Dialog dialog);
 
         public void setKeyboardHeightFromParent(int keyboardHeight);
 
+        public boolean isAttachedLightStatusBar();
         public int getNavigationBarColor(int color);
 
         public void setOnDismissListener(Runnable onDismiss);
+
+        default void setLastVisible(boolean lastVisible) {};
     }
 
     public static interface AttachedSheetWindow {}
@@ -141,6 +146,24 @@ public abstract class BaseFragment {
 
     public boolean hasSheet() {
         return sheetsStack != null && !sheetsStack.isEmpty();
+    }
+
+    public boolean hasShownSheet() {
+        if (!hasSheet()) return false;
+        for (int i = sheetsStack.size() - 1; i >= 0; --i) {
+            if (sheetsStack.get(i).isShown()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasSheets(BaseFragment fragment) {
+        if (fragment == null) return false;
+        if (fragment.hasShownSheet()) return true;
+        if (!(fragment.getParentLayout() instanceof ActionBarLayout)) return false;
+        final BaseFragment sheetFragment = ((ActionBarLayout) fragment.getParentLayout()).getSheetFragment(false);
+        return sheetFragment != null && sheetFragment.hasShownSheet();
     }
 
     public void clearSheets() {
@@ -287,7 +310,9 @@ public abstract class BaseFragment {
     }
 
     public void onRemoveFromParent() {
-        clearSheets();
+        if (sheetsStack == null || sheetsStack.isEmpty())
+            return;
+        updateSheetsVisibility();
     }
 
     public void setParentFragment(BaseFragment fragment) {
@@ -426,6 +451,15 @@ public abstract class BaseFragment {
         if (hasForceLightStatusBar() && !AndroidUtilities.isTablet() && getParentLayout() != null && getParentLayout().getLastFragment() == this && getParentActivity() != null && !finishing) {
             AndroidUtilities.setLightStatusBar(getParentActivity().getWindow(), Theme.getColor(Theme.key_actionBarDefault) == Color.WHITE);
         }
+
+        if (sheetsStack != null) {
+            for (int i = sheetsStack.size() - 1; i >= 0; --i) {
+                AttachedSheet sheet = sheetsStack.get(i);
+                sheet.setLastVisible(false);
+                sheet.dismiss(true);
+                sheetsStack.remove(i);
+            }
+        }
     }
 
     public boolean needDelayOpenAnimation() {
@@ -510,7 +544,7 @@ public abstract class BaseFragment {
         if (sheetsStack != null) {
             for (int i = sheetsStack.size() - 1; i >= 0; --i) {
                 if (sheetsStack.get(i).isShown()) {
-                    return sheetsStack.get(i).onBackPressed();
+                    return sheetsStack.get(i).onAttachedBackPressed();
                 }
             }
         }
@@ -657,6 +691,7 @@ public abstract class BaseFragment {
     }
 
     public void onBecomeFullyVisible() {
+        isFullyVisible = true;
         AccessibilityManager mgr = (AccessibilityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACCESSIBILITY_SERVICE);
         if (mgr.isEnabled()) {
             ActionBar actionBar = getActionBar();
@@ -672,6 +707,15 @@ public abstract class BaseFragment {
             fullyVisibleListener = null;
             c.run();
         }
+        updateSheetsVisibility();
+    }
+
+    private void updateSheetsVisibility() {
+        if (sheetsStack == null) return;
+        for (int i = 0; i < sheetsStack.size(); ++i) {
+            AttachedSheet sheet = sheetsStack.get(i);
+            sheet.setLastVisible(i == sheetsStack.size() - 1 && isFullyVisible);
+        }
     }
 
     private Runnable fullyVisibleListener;
@@ -684,7 +728,8 @@ public abstract class BaseFragment {
     }
 
     public void onBecomeFullyHidden() {
-
+        isFullyVisible = false;
+        updateSheetsVisibility();
     }
 
     public AnimatorSet onCustomTransitionAnimation(boolean isOpen, Runnable callback) {
@@ -1195,8 +1240,27 @@ public abstract class BaseFragment {
                 storyViewer.fromBottomSheet = true;
             }
             sheetsStack.add(storyViewer);
+            updateSheetsVisibility();
         }
         return storyViewer;
+    }
+
+    public void removeSheet(BaseFragment.AttachedSheet sheet) {
+        if (sheetsStack == null) return;
+        sheetsStack.remove(sheet);
+        updateSheetsVisibility();
+    }
+
+    public void addSheet(BaseFragment.AttachedSheet sheet) {
+        if (sheetsStack == null) {
+            sheetsStack = new ArrayList<>();
+        }
+        StoryViewer storyViewer = getLastStoryViewer();
+        if (storyViewer != null) {
+            storyViewer.listenToAttachedSheet(sheet);
+        }
+        sheetsStack.add(sheet);
+        updateSheetsVisibility();
     }
 
     public StoryViewer createOverlayStoryViewer() {
@@ -1208,19 +1272,39 @@ public abstract class BaseFragment {
             storyViewer.fromBottomSheet = true;
         }
         sheetsStack.add(storyViewer);
+        updateSheetsVisibility();
         return storyViewer;
     }
 
-    public BotWebViewAttachedSheet createBotViewer() {
+    public ArticleViewer createArticleViewer(boolean forceRecreate) {
         if (sheetsStack == null) {
             sheetsStack = new ArrayList<>();
         }
-        BotWebViewAttachedSheet botViewer = new BotWebViewAttachedSheet(this);
-        StoryViewer storyViewer = getLastStoryViewer();
-        if (storyViewer != null) {
-            storyViewer.listenToAttachedSheet(botViewer);
+        if (!forceRecreate) {
+            if (getLastSheet() instanceof ArticleViewer.Sheet && getLastSheet().isShown()) {
+                return ((ArticleViewer.Sheet) getLastSheet()).getArticleViewer();
+            }
+            if (
+                parentLayout instanceof ActionBarLayout &&
+                ((ActionBarLayout) parentLayout).getSheetFragment(false) != null &&
+                ((ActionBarLayout) parentLayout).getSheetFragment(false).getLastSheet() instanceof ArticleViewer.Sheet
+            ) {
+                ArticleViewer.Sheet lastSheet = (ArticleViewer.Sheet) ((ActionBarLayout) parentLayout).getSheetFragment(false).getLastSheet();
+                if (lastSheet.isShown()) {
+                    return lastSheet.getArticleViewer();
+                }
+            }
         }
-        sheetsStack.add(botViewer);
+        ArticleViewer articleViewer = ArticleViewer.makeSheet(this);
+        addSheet(articleViewer.sheet);
+        BottomSheetTabDialog.checkSheet(articleViewer.sheet);
+        return articleViewer;
+    }
+
+    public BotWebViewAttachedSheet createBotViewer() {
+        BotWebViewAttachedSheet botViewer = new BotWebViewAttachedSheet(this);
+        addSheet(botViewer);
+        BottomSheetTabDialog.checkSheet(botViewer);
         return botViewer;
     }
 
