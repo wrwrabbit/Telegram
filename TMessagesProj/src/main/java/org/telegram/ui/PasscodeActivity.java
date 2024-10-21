@@ -70,6 +70,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -128,6 +129,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private final static int ID_SWITCH_TYPE = 1;
 
     private RLottieImageView lockImageView;
+
+    private MaskedPasscodeScreen screen;
+    private View maskedScreenView;
+    private FrameLayout frameLayout;
 
     private ListAdapter listAdapter;
     private RecyclerListView listView;
@@ -246,7 +251,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         });
 
         View fragmentContentView;
-        FrameLayout frameLayout = new FrameLayout(context);
+        frameLayout = new FrameLayout(context);
         if (type == TYPE_MANAGE_CODE_SETTINGS) {
             fragmentContentView = frameLayout;
         } else {
@@ -256,6 +261,22 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             fragmentContentView = scrollView;
         }
         SizeNotifierFrameLayout contentView = new SizeNotifierFrameLayout(context) {
+            @Override
+            protected void onAttachedToWindow() {
+                super.onAttachedToWindow();
+                if (screen != null) {
+                    screen.onAttachedToWindow();
+                }
+            }
+
+            @Override
+            protected void onDetachedFromWindow() {
+                super.onDetachedFromWindow();
+                if (screen != null) {
+                    screen.onDetachedFromWindow();
+                }
+            }
+
             @Override
             protected void onLayout(boolean changed, int l, int t, int r, int b) {
                 int frameBottom;
@@ -512,7 +533,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         @Override
                         public void onItemClick(int id) {
                             if (id == -1) {
-                                finishFragment();
+                                if (screen == null || screen.onBackPressed()) {
+                                    finishFragment();
+                                }
                             } else if (id == ID_SWITCH_TYPE) {
                                 currentPasswordType = currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? SharedConfig.PASSCODE_TYPE_PASSWORD : SharedConfig.PASSCODE_TYPE_PIN;
                                 if (!SharedConfig.fakePasscodes.isEmpty() && SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD && currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN) {
@@ -816,6 +839,12 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             }
         }
 
+        if (type == TYPE_SETUP_CODE) {
+            screen = MaskedPtgConfig.createScreen(getContext(), this::processDone);
+            maskedScreenView = screen.createView();
+            maskedScreenView.setVisibility(View.GONE);
+            frameLayout.addView(maskedScreenView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        }
         return fragmentView;
     }
 
@@ -1050,6 +1079,16 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }
     }
 
+    @Override
+    public boolean onBackPressed() {
+        if (screen != null) {
+            return screen.onBackPressed();
+        } else {
+            return true;
+        }
+    }
+
+
     private void updateRows() {
         fingerprintRow = -1;
         rowCount = 0;
@@ -1218,6 +1257,17 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         for (CodeNumberField f : codeFieldContainer.codeField) f.setText("");
         showKeyboard();
         passcodeSetStep = 1;
+
+        if (screen != null) {
+            for (int i = 0; i < frameLayout.getChildCount(); i++) {
+                View child = frameLayout.getChildAt(i);
+                child.setVisibility(View.GONE);
+            }
+            keyboardView.setVisibility(View.GONE);
+            maskedScreenView.setVisibility(View.VISIBLE);
+            setCustomKeyboardVisible(false, false);
+            screen.onShow(false, true);
+        }
     }
 
     private boolean checkPasscodeInUse() {
@@ -1246,11 +1296,14 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     }
 
     private void processDone() {
+        processDone(isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString());
+    }
+
+    private void processDone(String password) {
         if (isPassword() && passwordEditText.getText().length() == 0) {
             onPasscodeError();
             return;
         }
-        String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_CODE) {
             if (!firstPassword.equals(password) || isNewPasscodeIdenticalOtherPasscode(password)) {
                 showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);

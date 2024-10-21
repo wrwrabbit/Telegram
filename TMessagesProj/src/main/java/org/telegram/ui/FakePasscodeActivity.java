@@ -60,6 +60,8 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeSerializer;
 import org.telegram.messenger.fakepasscode.SelectionMode;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -117,6 +119,10 @@ public class FakePasscodeActivity extends BaseFragment {
     }
 
     private RLottieImageView lockImageView;
+
+    private MaskedPasscodeScreen screen;
+    private View maskedScreenView;
+    private FrameLayout frameLayout;
 
     private TextSettingsCell changeNameCell;
 
@@ -231,7 +237,9 @@ public class FakePasscodeActivity extends BaseFragment {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
-                    finishFragment();
+                    if (screen == null || screen.onBackPressed()) {
+                        finishFragment();
+                    }
                 } else if (id == done_button) {
                     if (type == TYPE_SETUP_FAKE_PASSCODE) {
                         if (passcodeSetStep == 0) {
@@ -247,7 +255,7 @@ public class FakePasscodeActivity extends BaseFragment {
         });
 
         View fragmentContentView;
-        FrameLayout frameLayout = new FrameLayout(context);
+        frameLayout = new FrameLayout(context);
         if (type == TYPE_FAKE_PASSCODE_SETTINGS) {
             fragmentContentView = frameLayout;
         } else {
@@ -257,6 +265,22 @@ public class FakePasscodeActivity extends BaseFragment {
             fragmentContentView = scrollView;
         }
         SizeNotifierFrameLayout contentView = new SizeNotifierFrameLayout(context) {
+            @Override
+            protected void onAttachedToWindow() {
+                super.onAttachedToWindow();
+                if (screen != null) {
+                    screen.onAttachedToWindow();
+                }
+            }
+
+            @Override
+            protected void onDetachedFromWindow() {
+                super.onDetachedFromWindow();
+                if (screen != null) {
+                    screen.onDetachedFromWindow();
+                }
+            }
+
             @Override
             protected void onLayout(boolean changed, int l, int t, int r, int b) {
                 int frameBottom;
@@ -828,6 +852,13 @@ public class FakePasscodeActivity extends BaseFragment {
             }
         }
 
+        if (type == TYPE_SETUP_FAKE_PASSCODE) {
+            screen = MaskedPtgConfig.createScreen(getContext(), this::processDoneSetup);
+            maskedScreenView = screen.createView();
+            maskedScreenView.setVisibility(View.GONE);
+            frameLayout.addView(maskedScreenView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        }
+
         return fragmentView;
     }
 
@@ -991,6 +1022,16 @@ public class FakePasscodeActivity extends BaseFragment {
         AndroidUtilities.removeAltFocusable(getParentActivity(), classGuid);
     }
 
+
+    @Override
+    public boolean onBackPressed() {
+        if (screen != null) {
+            return screen.onBackPressed();
+        } else {
+            return true;
+        }
+    }
+
     private void updateRows() {
         rowCount = 0;
 
@@ -1144,6 +1185,17 @@ public class FakePasscodeActivity extends BaseFragment {
         for (CodeNumberField f : codeFieldContainer.codeField) f.setText("");
         showKeyboard();
         passcodeSetStep = 1;
+
+        if (screen != null) {
+            for (int i = 0; i < frameLayout.getChildCount(); i++) {
+                View child = frameLayout.getChildAt(i);
+                child.setVisibility(View.GONE);
+            }
+            keyboardView.setVisibility(View.GONE);
+            maskedScreenView.setVisibility(View.VISIBLE);
+            setCustomKeyboardVisible(false, false);
+            screen.onShow(false, true);
+        }
     }
 
     private boolean checkPasscodeInUse() {
@@ -1181,7 +1233,10 @@ public class FakePasscodeActivity extends BaseFragment {
     }
 
     private void processDoneSetup() {
-        String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
+        processDoneSetup(isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString());
+    }
+
+    private void processDoneSetup(String password) {
         if (!firstPassword.equals(password)) {
             showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
             return;
