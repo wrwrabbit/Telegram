@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class FakePasscode {
     @JsonIgnore
-    private final int CURRENT_PASSCODE_VERSION = 3;
+    private final int CURRENT_PASSCODE_VERSION = 4;
     private int passcodeVersion = 0;
 
     @JsonProperty(value = "PLATFORM", access = JsonProperty.Access.READ_ONLY)
@@ -237,6 +237,11 @@ public class FakePasscode {
         actions().stream().forEach(Action::migrate);
         if (actionsResult != null) {
             actionsResult.migrate();
+        }
+        if (passcodeVersion < 4) {
+            if (SharedConfig.fakePasscodeActivatedIndex == SharedConfig.fakePasscodes.indexOf(this)) {
+                activated = true;
+            }
         }
         passcodeVersion = CURRENT_PASSCODE_VERSION;
     }

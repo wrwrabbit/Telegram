@@ -19,18 +19,15 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import androidx.collection.LongSparseArray;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.update.UpdateChecker;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.IUpdateLayout;
@@ -39,7 +36,7 @@ import org.telegram.ui.LaunchActivity;
 import java.io.File;
 import java.util.ArrayList;
 
-public class UpdateLayout extends IUpdateLayout {
+public class UpdateLayout extends IUpdateLayout implements NotificationCenter.NotificationCenterDelegate {
 
     private FrameLayout updateLayout;
     private RadialProgress2 updateLayoutIcon;
@@ -52,13 +49,13 @@ public class UpdateLayout extends IUpdateLayout {
     private ViewGroup sideMenuContainer;
 
     private Runnable onUpdateLayoutClicked;
-    private volatile boolean isUpdateChecking = false;
 
     public UpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
         super(activity, sideMenu, sideMenuContainer);
         this.activity = activity;
         this.sideMenu = sideMenu;
         this.sideMenuContainer = sideMenuContainer;
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.updateDownloadingStarted);
     }
 
     public void updateFileProgress(Object[] args) {
@@ -125,14 +122,14 @@ public class UpdateLayout extends IUpdateLayout {
                 onUpdateLayoutClicked.run();
             }
             if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_DOWNLOAD) {
-                startUpdateDownloading(currentAccount);
+                UpdateChecker.startUpdateDownloading(currentAccount);
                 updateAppUpdateViews(currentAccount,  true);
             } else if (updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL) {
                 FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
                 updateAppUpdateViews(currentAccount, true);
             } else {
                 if (!AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, activity)) {
-                    startUpdateDownloading(currentAccount);
+                    UpdateChecker.startUpdateDownloading(currentAccount);
                 }
             }
         });
@@ -178,7 +175,7 @@ public class UpdateLayout extends IUpdateLayout {
                 setUpdateText(LocaleController.getString(R.string.AppUpdateNow), animated);
                 showSize = false;
             } else {
-                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || isUpdateChecking) {
+                if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName) || UpdateChecker.isUpdateChecking) {
                     updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, animated);
                     updateLayoutIcon.setProgress(0, false);
                     Float p = ImageLoader.getInstance().getFileProgress(fileName);
@@ -252,33 +249,15 @@ public class UpdateLayout extends IUpdateLayout {
     }
 
     @Override
-    public boolean isCancelIcon() {
-        return updateLayoutIcon != null && updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL;
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.updateDownloadingStarted) {
+            updateAppUpdateViews(UserConfig.selectedAccount, true);
+        }
     }
 
-    private void startUpdateDownloading(int currentAccount) {
-        PartisanLog.d("startUpdateDownloading");
-        if (LaunchActivity.getUpdateAccountNum() != currentAccount || SharedConfig.pendingPtgAppUpdate.message == null) {
-            PartisanLog.d("The pending update is from another account or the update message is null");
-            isUpdateChecking = true;
-            UpdateChecker.checkUpdate(currentAccount, data -> {
-                PartisanLog.d("The update rechecked");
-                isUpdateChecking = false;
-                if (data != null) {
-                    PartisanLog.d("Correct update found");
-                    SharedConfig.pendingPtgAppUpdate = data;
-                    SharedConfig.saveConfig();
-                    AndroidUtilities.runOnUIThread(() -> startUpdateDownloading(currentAccount));
-                }
-            });
-            return;
-        } else {
-            PartisanLog.d("The pending update is correct");
-        }
-        MessageObject messageObject = new MessageObject(LaunchActivity.getUpdateAccountNum(), SharedConfig.pendingPtgAppUpdate.message, (LongSparseArray<TLRPC.User>) null, null, false, true);
-        PartisanLog.d("Update file loading started");
-        FileLoader.getInstance(currentAccount).loadFile(SharedConfig.pendingPtgAppUpdate.document, messageObject, FileLoader.PRIORITY_NORMAL, 1);
-        updateAppUpdateViews(currentAccount, true);
+    @Override
+    public boolean isCancelIcon() {
+        return updateLayoutIcon != null && updateLayoutIcon.getIcon() == MediaActionDrawable.ICON_CANCEL;
     }
 
     private void setUpdateText(String text, boolean animate) {
