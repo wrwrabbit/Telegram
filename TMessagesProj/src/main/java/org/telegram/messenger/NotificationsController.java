@@ -5153,8 +5153,8 @@ public class NotificationsController extends BaseController {
                             File avatar = null;
                             if ((DialogObject.isUserDialog(dialogId) || isChannel)) {
                                 if (getUserConfig().isAvatarEnabled(dialogId)) {
-                                avatar = avatarFile;
-                            }
+                                    avatar = avatarFile;
+                                }
                             } else {
                                 long fromId = messageObject.getSenderId();
                                 TLRPC.User sender = getMessagesController().getUser(fromId);
@@ -5165,10 +5165,10 @@ public class NotificationsController extends BaseController {
                                     }
                                 }
                                 if (sender != null && getUserConfig().isAvatarEnabled(sender.id) && sender.photo != null && sender.photo.photo_small != null && sender.photo.photo_small.volume_id != 0 && sender.photo.photo_small.local_id != 0) {
-                                avatar = getFileLoader().getPathToAttach(sender.photo.photo_small, true);
+                                    avatar = getFileLoader().getPathToAttach(sender.photo.photo_small, true);
+                                }
                             }
-                        }
-                        if (avatar == null && dialogId == UserObject.VERIFY && messageObject.getForwardedFromId() != null) {
+                            if (avatar == null && dialogId == UserObject.VERIFY && messageObject.getForwardedFromId() != null) {
                                 if (uid >= 0) {
                                     TLRPC.User sender = getMessagesController().getUser(uid);
                                     if (sender != null && sender.photo != null && sender.photo.photo_small != null && sender.photo.photo_small.volume_id != 0 && sender.photo.photo_small.local_id != 0) {
@@ -5180,11 +5180,12 @@ public class NotificationsController extends BaseController {
                                         avatar = getFileLoader().getPathToAttach(sender.photo.photo_small, true);
                                     }
                                 }
-                            }loadRoundAvatar(avatar, personBuilder);
+                            }
+                            loadRoundAvatar(avatar, personBuilder);
+                        }
+                        person = personBuilder.build();
+                        personCache.put(uid, person);
                     }
-                    person = personBuilder.build();
-                    personCache.put(uid, person);
-                }
 
 
                     if (!DialogObject.isEncryptedDialog(dialogId)) {
