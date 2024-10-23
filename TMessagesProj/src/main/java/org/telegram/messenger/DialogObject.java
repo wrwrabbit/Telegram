@@ -177,6 +177,9 @@ public class DialogObject {
     }
 
     public static long getEmojiStatusDocumentId(TLRPC.EmojiStatus emojiStatus) {
+        if (MessagesController.getInstance(UserConfig.selectedAccount).premiumFeaturesBlocked()) {
+            return 0;
+        }
         if (emojiStatus instanceof TLRPC.TL_emojiStatus) {
             return ((TLRPC.TL_emojiStatus) emojiStatus).document_id;
         } else if (emojiStatus instanceof TLRPC.TL_emojiStatusUntil && ((TLRPC.TL_emojiStatusUntil) emojiStatus).until > (int) (System.currentTimeMillis() / 1000)) {
