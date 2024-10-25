@@ -963,7 +963,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     @Override
-    public void onShow(boolean fingerprint, boolean animated) {
+    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
         showed = false;
         checkFingerprintButton();
         Activity parentActivity = AndroidUtilities.findActivity(context);

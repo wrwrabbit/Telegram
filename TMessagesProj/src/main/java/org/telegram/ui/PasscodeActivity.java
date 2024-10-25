@@ -1266,7 +1266,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             keyboardView.setVisibility(View.GONE);
             maskedScreenView.setVisibility(View.VISIBLE);
             setCustomKeyboardVisible(false, false);
-            screen.onShow(false, true);
+            screen.onShow(false, true, true);
         }
     }
 

@@ -8290,5 +8290,9 @@
     <string name="PermissionDisabledMessage">The permission is disabled in your version of Partisan Telegram.</string>
     <string name="MaskedUpdateWarningMessage">PTelegram will send a message to the builder bot with a request to build the update.</string>
     <string name="RequestUpdate">Request Update</string>
-    <string name="UpdateBuildWaiting">Update Build Waiting...</string>
+    <string name="UpdateBuildWaiting">Update Build Waiting…</string>
+    <string name="MaskedPasscodeScreenInstructionTitle">Instruction</string>
+    <string name="LoadingPasscodeScreen_Instruction">Enter the passcode by tapping on different parts of the screen.\n\nRemember the location of the numbers that are currently appearing on the screen. You will need to tap the corresponding places on the screen when unlocking the application. There will be NO number hints and you will need to remember where the number was.\n\nThere is no "clear" button here. If you made a mistake when entering the passcode, wait %1$d seconds. After that, the entered numbers will be reset and you can try to enter the code again.\n\nDuring training, a pop-up hint with the entered passcode will be displayed. This hint will NOT be shown when unlocking the application.</string>
+    <string name="LoadingPasscodeScreen_PasscodeReset">The passcode has been reset after %1$d seconds of waiting.</string>
+    <string name="LoadingPasscodeScreen_Loading">Loading…</string>
 </resources>

@@ -279,7 +279,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         setTranslationY(0);
         setVisibility(View.VISIBLE);
         if (screen != null) {
-            screen.onShow(fingerprint, animated);
+            screen.onShow(fingerprint, animated, false);
         }
         checkRetryTextView();
         if (animated) {

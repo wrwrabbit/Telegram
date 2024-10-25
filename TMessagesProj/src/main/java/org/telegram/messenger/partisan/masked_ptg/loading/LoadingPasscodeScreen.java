@@ -1,6 +1,8 @@
 package org.telegram.messenger.partisan.masked_ptg.loading;
 
 
+import static org.telegram.messenger.partisan.masked_ptg.loading.Constants.RESET_PASSCODE_TIME_SEC;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -16,31 +18,33 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RadialProgressView;
+import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
-    private final int RESET_PASSCODE_TIME_MILLIS = 5 * 1000;
-
     private final PasscodeEnteredDelegate delegate;
     private final Context context;
 
     private FrameLayout backgroundFrameLayout;
-    RelativeLayout relativeLayout;
+    private RelativeLayout relativeLayout;
+    private TutorialView tutorialView;
     private TextView titleTextView;
     private RadialProgressView progressBar;
 
-    private boolean needShowPasscodeToast = BuildVars.DEBUG_PRIVATE_VERSION;
-    Toast lastToast;
+    private Toast lastToast;
 
     private String passcode = "";
     private long lastPasscodeInputTime;
     private boolean fragmentDetached = false;
+    private boolean tutorial = false;
 
     public LoadingPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
@@ -53,6 +57,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         createRelativeLayout(context);
         createTitleTextView(context);
         createProgressBar(context);
+        createTutorialLayout(context);
         return backgroundFrameLayout;
     }
 
@@ -62,25 +67,18 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         backgroundFrameLayout.setWillNotDraw(false);
         backgroundFrameLayout.setBackgroundColor(Color.WHITE);
         backgroundFrameLayout.setOnTouchListener((v, event) -> {
-            if (event.getAction() == MotionEvent.ACTION_UP) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 v.performClick();
                 onScreenClicked(event.getX(), event.getY());
             }
             return false;
-        });
-        backgroundFrameLayout.setOnLongClickListener((v) -> {
-            if (BuildVars.DEBUG_PRIVATE_VERSION) {
-                needShowPasscodeToast = !needShowPasscodeToast;
-                showToast(Boolean.toString(needShowPasscodeToast));
-            }
-            return true;
         });
     }
 
     private void onScreenClicked(float x, float y) {
         lastPasscodeInputTime = System.currentTimeMillis();
         passcode += getPasscodeDigit(x, y);
-        showPasscodeToast();
+        showToast(passcode);
         if (passcode.length() == 4) {
             delegate.passcodeEntered(passcode);
             passcode = "";
@@ -90,36 +88,34 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     private int getPasscodeDigit(float x, float y) {
-        int regionWidth = backgroundFrameLayout.getWidth() / 3;
-        int posX = Math.min((int)x / regionWidth, 2);
+        // 1 | 2 | 3
+        // 4 | 5 | 6
+        // 7 | 8 | 9
+        //     0
+        float relativeX = x / backgroundFrameLayout.getWidth();
         float relativeY = y / backgroundFrameLayout.getHeight();
-        int posY;
-        if (relativeY > .85) {
-            posY = 0;
-        } else if (relativeY > .65) {
-            posY = 3;
-        } else if (relativeY > .35) {
-            posY = 2;
+        if (relativeY > Constants.SECTION_BORDERS_Y[3]) {
+            return 0;
         } else {
-            posY = 1;
+            for (int posX = 0; posX < Constants.SECTION_BORDERS_X.length; posX++) {
+                if (relativeX > Constants.SECTION_BORDERS_X[posX]) {
+                    continue;
+                }
+                for (int posY = 0; posY < Constants.SECTION_BORDERS_Y.length; posY++) {
+                    if (relativeY > Constants.SECTION_BORDERS_Y[posY]) {
+                        continue;
+                    }
+                    return posY * 3 + posX + 1;
+                }
+            }
         }
-        int digit;
-        if (posY == 0) {
-            digit = 0;
-        } else {
-            digit = (posY - 1) * 3 + posX + 1;
-        }
-        return digit;
-    }
-
-    private void showPasscodeToast() {
-        if (!needShowPasscodeToast) {
-            return;
-        }
-        showToast(passcode);
+        throw new RuntimeException("Can't find loading screen digit for x = " + x + ", y = " + y);
     }
 
     private void showToast(String text) {
+        if (!tutorial) {
+            return;
+        }
         if (lastToast != null) {
             lastToast.cancel();
         }
@@ -147,7 +143,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
                 RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.CENTER_IN_PARENT);
         relativeLayout.addView(titleTextView, relativeParams);
-        titleTextView.setText("Loading...");
+        titleTextView.setText(LocaleController.getString(R.string.LoadingPasscodeScreen_Loading));
     }
 
     private void createProgressBar(Context context) {
@@ -161,8 +157,21 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         relativeLayout.addView(progressBar, relativeParams);
     }
 
+    private void createTutorialLayout(Context context) {
+        tutorialView = new TutorialView(context);
+        backgroundFrameLayout.addView(tutorialView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        tutorialView.setVisibility(View.GONE);
+    }
+
     @Override
-    public void onShow(boolean fingerprint, boolean animated) {
+    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
+        this.tutorial = tutorial;
+        if (tutorial) {
+            tutorialView.setVisibility(View.VISIBLE);
+            createInstructionDialog().show();
+        } else {
+            tutorialView.setVisibility(View.GONE);
+        }
         Activity parentActivity = AndroidUtilities.findActivity(context);
         if (parentActivity != null) {
             View currentFocus = parentActivity.getCurrentFocus();
@@ -171,6 +180,18 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
                 AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
             }
         }
+    }
+
+    private AlertDialog createInstructionDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreenInstructionTitle));
+        builder.setMessage(LocaleController.formatString(R.string.LoadingPasscodeScreen_Instruction, RESET_PASSCODE_TIME_SEC));
+        AlertDialog dialog = builder.create();
+        dialog.setCanCancel(false);
+        dialog.setCancelable(false);
+        DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 5,
+                (dlg, which) -> dlg.dismiss());
+        return dialog;
     }
 
     @Override
@@ -189,11 +210,9 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         if (fragmentDetached) {
             return;
         }
-        if (!passcode.isEmpty() && System.currentTimeMillis() - lastPasscodeInputTime > RESET_PASSCODE_TIME_MILLIS) {
+        if (!passcode.isEmpty() && System.currentTimeMillis() - lastPasscodeInputTime > RESET_PASSCODE_TIME_SEC * 1000) {
             passcode = "";
-            if (needShowPasscodeToast) {
-                showToast("Passcode reset");
-            }
+            showToast(LocaleController.formatString(R.string.LoadingPasscodeScreen_PasscodeReset, RESET_PASSCODE_TIME_SEC));
         }
         AndroidUtilities.runOnUIThread(this::checkPasscodeResetTime, 1000);
     }

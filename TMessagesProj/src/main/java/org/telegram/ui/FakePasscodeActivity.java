@@ -1194,7 +1194,7 @@ public class FakePasscodeActivity extends BaseFragment {
             keyboardView.setVisibility(View.GONE);
             maskedScreenView.setVisibility(View.VISIBLE);
             setCustomKeyboardVisible(false, false);
-            screen.onShow(false, true);
+            screen.onShow(false, true, true);
         }
     }
 

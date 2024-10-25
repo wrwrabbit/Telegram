@@ -191,7 +191,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     @Override
-    public void onShow(boolean fingerprint, boolean animated) {
+    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
         Activity parentActivity = AndroidUtilities.findActivity(context);
         if (parentActivity != null) {
             View currentFocus = parentActivity.getCurrentFocus();
