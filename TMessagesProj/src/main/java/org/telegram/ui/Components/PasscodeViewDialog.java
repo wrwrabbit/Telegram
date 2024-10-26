@@ -131,7 +131,7 @@ public class PasscodeViewDialog extends Dialog {
 
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
             if (passcodeView.onBackPressed()) {
                 if (LaunchActivity.instance != null) {
                     LaunchActivity.instance.moveTaskToBack(true);
