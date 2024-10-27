@@ -432,6 +432,7 @@ public class SharedConfig {
     public static int activatedTesterSettingType;
     public static long updateChannelIdOverride;
     public static String updateChannelUsernameOverride;
+    public static boolean needShowMaskedPasscodeScreenTutorial;
     public static boolean filesCopiedFromOldTelegram;
     public static boolean oldTelegramRemoved;
     public static int runNumber;
@@ -658,6 +659,7 @@ public class SharedConfig {
                 editor.putInt("activatedTesterSettingType", activatedTesterSettingType);
                 editor.putLong("updateChannelIdOverride", updateChannelIdOverride);
                 editor.putString("updateChannelUsernameOverride", updateChannelUsernameOverride);
+                editor.putBoolean("needShowMaskedPasscodeScreenTutorial", needShowMaskedPasscodeScreenTutorial);
                 editor.putBoolean("filesCopiedFromOldTelegram", filesCopiedFromOldTelegram);
                 editor.putBoolean("oldTelegramRemoved", oldTelegramRemoved);
                 editor.putInt("runNumber", runNumber);
@@ -831,6 +833,7 @@ public class SharedConfig {
             activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
+            needShowMaskedPasscodeScreenTutorial = preferences.getBoolean("needShowMaskedPasscodeScreenTutorial", false);
             filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
             oldTelegramRemoved = preferences.getBoolean("oldTelegramRemoved", false);
             runNumber = preferences.getInt("runNumber", 0);
@@ -1291,6 +1294,10 @@ public class SharedConfig {
         }
     }
 
+    public static String getPasscodeHash() {
+        return passcodeHash;
+    }
+
     public static void setPasscode(String passcode) {
         passcodeHash = passcode;
     }
@@ -1310,6 +1317,7 @@ public class SharedConfig {
             fakePasscodes.clear();
             fakePasscodeActivatedIndex = -1;
         }
+        needShowMaskedPasscodeScreenTutorial = false;
         filesCopiedFromOldTelegram = false;
         passcodeSalt = new byte[0];
         autoLockIn = 60 * 60;

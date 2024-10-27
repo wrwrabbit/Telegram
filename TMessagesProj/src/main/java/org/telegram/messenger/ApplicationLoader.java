@@ -281,6 +281,10 @@ public class ApplicationLoader extends Application {
     private static void checkFiledCopiedFromOldTelegram() {
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
             SharedConfig.filesCopiedFromOldTelegram = true;
+            if (SharedConfig.getPasscodeHash() != null) {
+                SharedConfig.needShowMaskedPasscodeScreenTutorial = true;
+                SharedConfig.lastPauseTime = 0; // Force passcode entering after migration
+            }
             applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()
                     .remove("ptgMigrationStep")
                     .remove("ptgMigrationMaxCancelledInstallationDate")

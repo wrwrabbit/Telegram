@@ -130,6 +130,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             }
         }
         SharedConfig.badPasscodeTries = 0;
+        SharedConfig.needShowMaskedPasscodeScreenTutorial = false;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && FingerprintController.isKeyReady() && FingerprintController.checkDeviceFingerprintsChanged()) {
             FingerprintController.deleteInvalidKey();
@@ -279,7 +280,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         setTranslationY(0);
         setVisibility(View.VISIBLE);
         if (screen != null) {
-            screen.onShow(fingerprint, animated, false);
+            screen.onShow(fingerprint, animated, SharedConfig.needShowMaskedPasscodeScreenTutorial);
         }
         checkRetryTextView();
         if (animated) {
