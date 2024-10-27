@@ -8,9 +8,12 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.StateSet;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
@@ -18,7 +21,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.EditTextBoldCursor;
 
-public class EditNoteSubcreen extends RelativeLayout {
+class EditNoteSubcreen extends RelativeLayout {
     interface NoteListSubscreenDelegate {
         void onNoteEdited(Note note);
     }
@@ -30,12 +33,18 @@ public class EditNoteSubcreen extends RelativeLayout {
     private EditTextBoldCursor descriptionEditText;
     private Button acceptButton;
 
+    private boolean tutorial;
+    private View titleTutorialArrow;
+    private View acceptButtonTutorialArrow;
+
     EditNoteSubcreen(Context context, NoteListSubscreenDelegate delegate) {
         super(context);
         this.delegate = delegate;
 
         createAcceptButton();
+        createAcceptButtonTipArrow();
         createTitleEditText();
+        createTitleTipArrow();
         createDescriptionEditText();
     }
 
@@ -63,6 +72,17 @@ public class EditNoteSubcreen extends RelativeLayout {
         addView(acceptButton, relativeParams);
     }
 
+    private void createAcceptButtonTipArrow() {
+        LayoutParams relativeParams = new LayoutParams(dp(48), dp(48));
+        relativeParams.addRule(BELOW, acceptButton.getId());
+        relativeParams.addRule(LEFT_OF, acceptButton.getId());
+
+        acceptButtonTutorialArrow = new TutorialArrow(getContext(), 45, 0, dp(22));
+        acceptButtonTutorialArrow.setLayoutParams(relativeParams);
+        acceptButtonTutorialArrow.setVisibility(View.GONE);
+        addView(acceptButtonTutorialArrow);
+    }
+
     private void createTitleEditText() {
         titleEditText = new EditTextBoldCursor(getContext());
         titleEditText.setTextColor(Colors.noteTitleColor);
@@ -81,11 +101,41 @@ public class EditNoteSubcreen extends RelativeLayout {
         titleEditText.setMaxLines(1);
         titleEditText.setSingleLine();
         titleEditText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 32);
+        titleEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() == 0) {
+                    titleTutorialArrow.setVisibility(View.VISIBLE);
+                    acceptButtonTutorialArrow.setVisibility(View.GONE);
+
+                } else {
+                    titleTutorialArrow.setVisibility(View.GONE);
+                    acceptButtonTutorialArrow.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         LayoutParams relativeParams = new LayoutParams(MATCH_PARENT, dp(48));
         relativeParams.addRule(ALIGN_PARENT_TOP);
         relativeParams.addRule(ALIGN_PARENT_START);
         relativeParams.addRule(LEFT_OF, acceptButton.getId());
         addView(titleEditText, relativeParams);
+    }
+
+    private void createTitleTipArrow() {
+        LayoutParams relativeParams = new LayoutParams(dp(48), dp(48));
+        relativeParams.addRule(BELOW, titleEditText.getId());
+        relativeParams.addRule(ALIGN_START, titleEditText.getId());
+        relativeParams.addRule(ALIGN_END, titleEditText.getId());
+
+        titleTutorialArrow = new TutorialArrow(getContext(), 90, -dp(11), dp(11));
+        titleTutorialArrow.setLayoutParams(relativeParams);
+        addView(titleTutorialArrow);
     }
 
     private void createDescriptionEditText() {
@@ -122,5 +172,11 @@ public class EditNoteSubcreen extends RelativeLayout {
         } else {
             acceptButton.setText("+");
         }
+    }
+
+    void setTutorial(boolean tutorial) {
+        this.tutorial = tutorial;
+        titleTutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
+        acceptButtonTutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
     }
 }

@@ -12,4 +12,5 @@ class Colors {
     @ColorInt static int cellBackgroundColor = 0xff121212;
     @ColorInt static int cellBackgroundRippleColor = 0xff666666;
     @ColorInt static int dialogBackgroundColor = 0xff373737;
+    @ColorInt static int tipColor = 0xffff0000;
 }

@@ -89,6 +89,22 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
                 AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
             }
         }
+        noteListSubscreen.setTutorial(tutorial);
+        editNoteSubscreen.setTutorial(tutorial);
+        if (tutorial) {
+            createInstructionDialog().show();
+        }
+    }
+
+    private AlertDialog createInstructionDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreenInstructionTitle));
+        builder.setMessage(LocaleController.getString(R.string.NotePasscodeScreen_Instruction));
+        AlertDialog dialog = builder.create();
+        dialog.setCanCancel(false);
+        dialog.setCancelable(false);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        return dialog;
     }
 
     @Override
@@ -100,18 +116,15 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
 
     @Override
     public void onNoteSelected(int pos) {
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context, new Theme.ResourcesProvider() {
-            @Override
-            public int getColor(int key) {
-                if (key == Theme.key_dialogBackground) {
-                    return Colors.dialogBackgroundColor;
-                } else if (key == Theme.key_dialogTextBlack) {
-                    return Colors.noteTitleColor;
-                } else if (key == Theme.key_dialogButton) {
-                    return Colors.primaryColor;
-                }
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context, key -> {
+            if (key == Theme.key_dialogBackground) {
+                return Colors.dialogBackgroundColor;
+            } else if (key == Theme.key_dialogTextBlack) {
+                return Colors.noteTitleColor;
+            } else if (key == Theme.key_dialogButton) {
                 return Colors.primaryColor;
             }
+            return Colors.primaryColor;
         });
         dialogBuilder.setTitle(LocaleController.getString(R.string.AppName));
         dialogBuilder.setMessage("Delete the note?");
@@ -127,8 +140,6 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
         backgroundDrawable.getPaint().setColor(Colors.cellBackgroundColor);
         dialog.getWindow().setBackgroundDrawable(backgroundDrawable);
         dialog.show();
-        //dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Colors.primaryColor);
-        //dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Colors.primaryColor);
     }
 
     @Override

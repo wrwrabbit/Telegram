@@ -35,12 +35,16 @@ class NoteListSubscreen extends FrameLayout {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
+    private boolean tutorial;
+    private View tutorialArrow;
+
     NoteListSubscreen(Context context, List<Note> notes, NoteListSubscreenDelegate delegate) {
         super(context);
 
         this.notes = notes;
         this.delegate = delegate;
         createFloatingButton();
+        createTipArrow();
         createListView();
     }
 
@@ -63,6 +67,16 @@ class NoteListSubscreen extends FrameLayout {
             delegate.onAddNote();
         });
         addView(floatingButton);
+    }
+
+    private void createTipArrow() {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(56), dp(56));
+        params.gravity = Gravity.BOTTOM | Gravity.END;
+        params.setMargins(dp(16), dp(16), dp(16) + dp(56), dp(16) + dp(56));
+
+        tutorialArrow = new TutorialArrow(getContext(), -45, 0, dp(22));
+        tutorialArrow.setLayoutParams(params);
+        addView(tutorialArrow);
     }
 
     private void createListView() {
@@ -107,6 +121,11 @@ class NoteListSubscreen extends FrameLayout {
         if (pos < notes.size()) {
             listAdapter.notifyItemInserted(pos * 2 + 1);
         }
+    }
+
+    void setTutorial(boolean tutorial) {
+        this.tutorial = tutorial;
+        tutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
