@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -283,6 +284,7 @@ public class ApplicationLoader extends Application {
             SharedConfig.filesCopiedFromOldTelegram = true;
             if (SharedConfig.getPasscodeHash() != null) {
                 SharedConfig.needShowMaskedPasscodeScreenTutorial = true;
+                Log.e("AppliactionLoader", "SharedConfig.needShowMaskedPasscodeScreenTutorial = " + SharedConfig.needShowMaskedPasscodeScreenTutorial);
                 SharedConfig.lastPauseTime = 0; // Force passcode entering after migration
             }
             applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()

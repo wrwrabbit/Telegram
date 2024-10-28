@@ -20,6 +20,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
@@ -834,6 +835,7 @@ public class SharedConfig {
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
             needShowMaskedPasscodeScreenTutorial = preferences.getBoolean("needShowMaskedPasscodeScreenTutorial", false);
+            Log.e("SharedConfig", "SharedConfig.needShowMaskedPasscodeScreenTutorial = " + SharedConfig.needShowMaskedPasscodeScreenTutorial);
             filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
             oldTelegramRemoved = preferences.getBoolean("oldTelegramRemoved", false);
             runNumber = preferences.getInt("runNumber", 0);
@@ -1318,6 +1320,7 @@ public class SharedConfig {
             fakePasscodeActivatedIndex = -1;
         }
         needShowMaskedPasscodeScreenTutorial = false;
+        Log.e("SharedConfig", "clear SharedConfig.needShowMaskedPasscodeScreenTutorial = " + SharedConfig.needShowMaskedPasscodeScreenTutorial);
         filesCopiedFromOldTelegram = false;
         passcodeSalt = new byte[0];
         autoLockIn = 60 * 60;
