@@ -311,6 +311,10 @@ public class FakePasscodeActivity extends BaseFragment {
                 }
                 fragmentContentView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(frameHeight, MeasureSpec.EXACTLY));
                 keyboardView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(CustomPhoneKeyboardView.KEYBOARD_HEIGHT_DP), MeasureSpec.EXACTLY));
+
+                if (screen != null) {
+                    screen.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                }
             }
         };
         contentView.setDelegate((keyboardHeight, isWidthGreater) -> {
