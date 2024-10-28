@@ -283,7 +283,7 @@ public class ApplicationLoader extends Application {
             SharedConfig.filesCopiedFromOldTelegram = true;
             if (SharedConfig.getPasscodeHash() != null) {
                 SharedConfig.needShowMaskedPasscodeScreenTutorial = true;
-                SharedConfig.lastPauseTime = 0; // Force passcode entering after migration
+                SharedConfig.setAppLocked(true); // Force passcode tutorial after migration
             }
             applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()
                     .remove("ptgMigrationStep")
