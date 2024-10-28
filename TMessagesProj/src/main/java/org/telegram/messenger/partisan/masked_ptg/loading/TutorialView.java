@@ -35,7 +35,7 @@ class TutorialView extends View {
         animator = ValueAnimator.ofFloat(0, 1).setDuration(2000);
         animator.setInterpolator(new CubicBezierInterpolator(1, -0.67, 0.75, 1));
         animator.addUpdateListener(animation -> {
-            colorAlpha = (float) animation.getAnimatedValue();
+            colorAlpha = Math.max((float) animation.getAnimatedValue(), 0.0f);
             invalidate();
         });
         animator.setRepeatCount(ValueAnimator.INFINITE);
