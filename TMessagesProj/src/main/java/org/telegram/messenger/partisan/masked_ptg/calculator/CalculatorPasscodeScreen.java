@@ -16,9 +16,12 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.ScaleStateListAnimator;
@@ -210,6 +213,20 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         inputTextView.setText("");
         outputTextView.setText("");
         inputString = "";
+        if (tutorial) {
+            createInstructionDialog().show();
+        }
+    }
+
+    private AlertDialog createInstructionDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreenInstructionTitle));
+        builder.setMessage(LocaleController.getString(R.string.CalculatorPasscodeScreen_Instruction));
+        AlertDialog dialog = builder.create();
+        dialog.setCanCancel(false);
+        dialog.setCancelable(false);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        return dialog;
     }
 
     @Override

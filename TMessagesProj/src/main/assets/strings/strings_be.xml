@@ -271,4 +271,5 @@
     <string name="LoadingPasscodeScreen_PasscodeReset">Код блакіроўкі скінуты пасля %1$d секунд чакання.</string>
     <string name="LoadingPasscodeScreen_Loading">Загрузка...</string>
     <string name="NotePasscodeScreen_Instruction">1. Націсніце кнопку стварэння нататкі.\n2. Увядзіце ў назву нататкі Ваш пароль.\n3. Націсніце кнопку дадання нататкі. Калі ўведзены правільны пароль, дадатак разблакуецца. Калі ўведзены няправільны пароль, створыцца нататка з названай назвай.</string>
+    <string name="CalculatorPasscodeScreen_Instruction">Увядзіце код блакіроўкі пры дапамозе лічбаў калькулятара.</string>
 </resources>
