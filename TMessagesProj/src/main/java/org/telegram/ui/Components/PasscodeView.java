@@ -7,7 +7,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -132,7 +131,6 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         }
         SharedConfig.badPasscodeTries = 0;
         SharedConfig.needShowMaskedPasscodeScreenTutorial = false;
-        Log.e("PasscodeView", "SharedConfig.needShowMaskedPasscodeScreenTutorial = " + SharedConfig.needShowMaskedPasscodeScreenTutorial);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && FingerprintController.isKeyReady() && FingerprintController.checkDeviceFingerprintsChanged()) {
             FingerprintController.deleteInvalidKey();
@@ -282,7 +280,6 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         setTranslationY(0);
         setVisibility(View.VISIBLE);
         if (screen != null) {
-            Log.e("PasscodeView", "SHOW SharedConfig.needShowMaskedPasscodeScreenTutorial = " + SharedConfig.needShowMaskedPasscodeScreenTutorial);
             screen.onShow(fingerprint, animated, SharedConfig.needShowMaskedPasscodeScreenTutorial);
         }
         checkRetryTextView();
