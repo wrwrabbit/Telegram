@@ -110,13 +110,15 @@ class EditNoteSubcreen extends RelativeLayout {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.length() == 0) {
-                    titleTutorialArrow.setVisibility(View.VISIBLE);
-                    acceptButtonTutorialArrow.setVisibility(View.GONE);
+                if (tutorial) {
+                    if (s.length() == 0) {
+                        titleTutorialArrow.setVisibility(View.VISIBLE);
+                        acceptButtonTutorialArrow.setVisibility(View.GONE);
 
-                } else {
-                    titleTutorialArrow.setVisibility(View.GONE);
-                    acceptButtonTutorialArrow.setVisibility(View.VISIBLE);
+                    } else {
+                        titleTutorialArrow.setVisibility(View.GONE);
+                        acceptButtonTutorialArrow.setVisibility(View.VISIBLE);
+                    }
                 }
             }
         });
@@ -177,6 +179,6 @@ class EditNoteSubcreen extends RelativeLayout {
     void setTutorial(boolean tutorial) {
         this.tutorial = tutorial;
         titleTutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
-        acceptButtonTutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
+        acceptButtonTutorialArrow.setVisibility(View.GONE);
     }
 }
