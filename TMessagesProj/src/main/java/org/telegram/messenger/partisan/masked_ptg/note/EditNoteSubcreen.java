@@ -122,6 +122,9 @@ class EditNoteSubcreen extends RelativeLayout {
                         titleTutorialArrow.setVisibility(View.GONE);
                         acceptButtonTutorialArrow.setVisibility(View.VISIBLE);
                     }
+                } else {
+                    acceptButtonTutorialArrow.setVisibility(View.GONE);
+                    titleTutorialArrow.setVisibility(View.GONE);
                 }
             }
         });
