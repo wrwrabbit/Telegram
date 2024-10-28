@@ -17,8 +17,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.EditTextBoldCursor;
@@ -112,7 +110,6 @@ class EditNoteSubcreen extends RelativeLayout {
 
             @Override
             public void afterTextChanged(Editable s) {
-                Log.e("EditNoteSubscreen", "tutorial = "+ tutorial);
                 if (tutorial) {
                     if (s.length() == 0) {
                         titleTutorialArrow.setVisibility(View.VISIBLE);
