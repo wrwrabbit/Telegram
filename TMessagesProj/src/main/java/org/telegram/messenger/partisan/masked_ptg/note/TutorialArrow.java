@@ -38,7 +38,9 @@ class TutorialArrow extends AppCompatImageView {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        startAnimation(animation);
+        if (getVisibility() == View.VISIBLE) {
+            startAnimation(animation);
+        }
     }
 
     @Override
