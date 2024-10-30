@@ -94,7 +94,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         //     0
         float relativeX = x / backgroundFrameLayout.getWidth();
         float relativeY = y / backgroundFrameLayout.getHeight();
-        if (relativeY > Constants.SECTION_BORDERS_Y[3]) {
+        if (relativeY > Constants.SECTION_BORDERS_Y[2]) {
             return 0;
         } else {
             for (int posX = 0; posX < Constants.SECTION_BORDERS_X.length; posX++) {
