@@ -1304,7 +1304,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     }
 
     private void processDone(String password) {
-        if (isPassword() && passwordEditText.getText().length() == 0) {
+        if (isPassword() && password.length() == 0) {
             onPasscodeError();
             return;
         }
