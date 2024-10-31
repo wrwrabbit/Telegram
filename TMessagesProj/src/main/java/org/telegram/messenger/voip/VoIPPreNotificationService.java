@@ -167,7 +167,7 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
             } catch (Exception e) {
                 FileLog.e(e);
             }
-            chan.setDescription(LocaleController.getString(R.string.IncomingCallsSystemSettingDescription));
+            //chan.setDescription(LocaleController.getString(R.string.IncomingCallsSystemSettingDescription));
             chan.enableVibration(false);
             chan.enableLights(false);
             chan.setBypassDnd(true);
