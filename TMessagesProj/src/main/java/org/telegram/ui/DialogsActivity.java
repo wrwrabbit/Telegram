@@ -6692,7 +6692,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         actionModeViews.add(archive2Item);
         actionModeViews.add(muteItem);
         actionModeViews.add(deleteItem);
-        actionModeViews.add(secretGroupDebugItem);
+        if (BuildVars.isAlphaApp()) {
+            actionModeViews.add(secretGroupDebugItem);
+        }
         actionModeViews.add(otherItem);
 
         updateCounters(false);
