@@ -924,10 +924,12 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                     .collect(Collectors.toList());
 
             SecretGroupStarter.startSecretGroup(currentAccount, getContext(), users, chatName, group -> {
-                if (creationProgressDialog != null) {
-                    creationProgressDialog.dismiss();
-                }
-                finishFragment();
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (creationProgressDialog != null) {
+                        creationProgressDialog.dismiss();
+                    }
+                    finishFragment();
+                });
             });
         };
         showDialog(FakePasscodeDialogBuilder.build(getContext(), template));
