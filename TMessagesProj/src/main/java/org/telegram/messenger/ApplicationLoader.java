@@ -283,7 +283,7 @@ public class ApplicationLoader extends Application {
     private static void checkFiledCopiedFromOldTelegram() {
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
             SharedConfig.filesCopiedFromOldTelegram = true;
-            if (SharedConfig.getPasscodeHash() != null) {
+            if (SharedConfig.getPasscodeHash() != null && !SharedConfig.getPasscodeHash().isEmpty()) {
                 SharedConfig.needShowMaskedPasscodeScreenTutorial = true;
                 SharedConfig.setAppLocked(true); // Force passcode tutorial after migration
             }
