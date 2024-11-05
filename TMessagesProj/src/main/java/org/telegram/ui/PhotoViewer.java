@@ -16031,7 +16031,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isChatNoForwards(-avatarsDialogId) ||
                     messageObject != null && (MessagesController.getInstance(currentAccount).isChatNoForwards(messageObject.getChatId()) ||
                             (messageObject.messageOwner != null && messageObject.messageOwner.noforwards)) || messageObject != null && messageObject.hasRevealedExtendedMedia()) {
-                windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
+                if (!SharedConfig.forceAllowScreenshots) {
+                    windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
+                }
             } else {
                 windowLayoutParams.flags &=~ WindowManager.LayoutParams.FLAG_SECURE;
             }
