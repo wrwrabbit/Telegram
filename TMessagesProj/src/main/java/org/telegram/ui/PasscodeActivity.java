@@ -1421,6 +1421,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     }
 
     private void showPasscodeError(ErrorType errorType) {
+        if (screen != null) {
+            screen.onPasscodeError();
+        }
+
         if (errorType == ErrorType.PASSCODES_DO_NOT_MATCH) {
             passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
         } else if (errorType == ErrorType.PASSCODE_IN_USE) {
