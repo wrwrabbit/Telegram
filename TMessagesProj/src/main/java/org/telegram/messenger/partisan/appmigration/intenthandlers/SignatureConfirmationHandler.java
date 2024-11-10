@@ -17,7 +17,7 @@ public class SignatureConfirmationHandler extends AbstractIntentHandler {
     }
 
     private static boolean allowResponseSignatureConfirmation() {
-        final boolean isThisAppMasked = false;
+        final boolean isThisAppMasked = true;
         return isThisAppMasked && !AppMigrator.appAlreadyHasAccounts();
     }
 

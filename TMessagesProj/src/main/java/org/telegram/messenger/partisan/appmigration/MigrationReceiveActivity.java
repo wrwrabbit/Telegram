@@ -106,8 +106,8 @@ public class MigrationReceiveActivity extends BaseFragment {
         super.onActivityResultFragment(requestCode, resultCode, data);
         if (requestCode == AppMigrator.CONFIRM_SIGNATURE_CODE) {
             if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("zipPassword")) {
-                MigrationZipReceiver.receiveZip(getParentActivity(), data, error -> {
-                    Intent intent = ZipHandler.createZipReceivingResultIntent(error);
+                MigrationZipReceiver.receiveZip(getParentActivity(), data, (error, issues) -> {
+                    Intent intent = ZipHandler.createZipReceivingResultIntent(error, issues);
                     intent.setAction(Intent.ACTION_MAIN);
                     String packageName = getParentActivity().getIntent().getStringExtra("packageName");
                     String activityName = getParentActivity().getIntent().getStringExtra("activityName");

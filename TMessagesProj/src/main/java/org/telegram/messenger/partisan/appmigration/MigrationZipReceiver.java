@@ -49,7 +49,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class MigrationZipReceiver {
     public interface ZipReceiverDelegate {
-        void onFinish(String error);
+        void onFinish(String error, Set<String> issues);
     }
 
     private final Activity activity;
@@ -328,8 +328,12 @@ public class MigrationZipReceiver {
     }
 
     private void finishReceivingMigration(String error) {
+        finishReceivingMigration(error, null);
+    }
+
+    private void finishReceivingMigration(String error, Set<String> issues) {
         if (delegate != null) {
-            delegate.onFinish(error);
+            delegate.onFinish(error, issues);
         }
     }
 
