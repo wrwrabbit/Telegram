@@ -20,7 +20,7 @@ public class AppMigrationDialogs {
 
     private static boolean targetPtgPackageInstalled(Context context) {
         return AppMigrator.isNewerPtgInstalled(context, true)
-                || AppMigrator.getInstalledMaskedPtgPackageName() != null;
+                || AppMigratorPreferences.isMigrationToMaskedPtg();
     }
 
     public static AlertDialog createNewerPtgInstalledDialog(BaseFragment fragment) {
@@ -28,7 +28,7 @@ public class AppMigrationDialogs {
         builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));
         builder.setMessage(LocaleController.getString(R.string.OtherPTelegramAlert));
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) ->
-                AppMigrator.updateMaxCancelledInstallationDate());
+                AppMigratorPreferences.updateMaxCancelledInstallationDate());
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->
                 fragment.presentFragment(new AppMigrationActivity()));
         return builder.create();
