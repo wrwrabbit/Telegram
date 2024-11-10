@@ -39,15 +39,19 @@ public class AppMigrator {
     public static final int MIGRATE_TO_REGULAR_PTG_CODE = 20202020;
     public static final int CONFIRM_SIGNATURE_CODE = 20202021;
 
-    private static final String PTG_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
+    private static final String PTG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
     private static final String PTG_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
     private static final List<String> PTG_PACKAGE_NAMES = Arrays.asList(
+            "org.telegram.messenger.alpha",
+            "org.telegram.messenger.beta",
             "org.telegram.messenger.web",
             "org.telegram.messenger"
     );
     private static final List<String> PTG_DEBUG_PACKAGE_NAMES = Arrays.asList(
             "org.telegram.messenger.alpha",
-            "org.telegram.messenger.beta"
+            "org.telegram.messenger.beta",
+            "org.telegram.messenger.web",
+            "org.telegram.messenger"
     );
 
     public static boolean startNewTelegram(Activity activity) {
