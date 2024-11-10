@@ -1176,6 +1176,10 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         }
     }
 
+    public void setOnPreDismissListener(OnDismissListener onDismissListener) {
+        this.onDismissListener = onDismissListener;
+    }
+
     public void setFocusable(boolean value) {
         if (focusable == value) {
             return;
