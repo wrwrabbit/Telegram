@@ -2,10 +2,10 @@ package org.telegram.messenger.partisan.masked_ptg;
 
 import android.content.Context;
 
-import org.telegram.messenger.partisan.masked_ptg.original.OriginalScreenFactory;
+import org.telegram.messenger.partisan.masked_ptg.note.NoteScreenFactory;
 
 public class MaskedPtgConfig {
-    private static IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
+    private static IMaskedPasscodeScreenFactory FACTORY = new NoteScreenFactory();
 
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
         return FACTORY.createScreen(context, delegate);

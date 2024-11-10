@@ -36,6 +36,8 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
     private NoteListSubscreen noteListSubscreen;
     private EditNoteSubcreen editNoteSubscreen;
 
+    private boolean tutorial;
+
     public NotePasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
         this.delegate = delegate;
@@ -89,6 +91,11 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
                 AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
             }
         }
+        setTutorial(tutorial);
+    }
+
+    private void setTutorial(boolean tutorial) {
+        this.tutorial = tutorial;
         noteListSubscreen.setTutorial(tutorial);
         editNoteSubscreen.setTutorial(tutorial);
         if (tutorial) {
@@ -177,6 +184,13 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
         } else {
             notes.add(currentNote);
             noteListSubscreen.notifyNoteAdded();
+        }
+        if (tutorial) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
+            builder.setMessage(LocaleController.getString(R.string.MaskedPasscodeScreen_WrongPasscode));
+            builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
+            builder.create().show();
         }
     }
 

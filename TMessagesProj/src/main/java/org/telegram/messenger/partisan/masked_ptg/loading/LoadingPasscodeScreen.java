@@ -216,4 +216,15 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         }
         AndroidUtilities.runOnUIThread(this::checkPasscodeResetTime, 1000);
     }
+
+    @Override
+    public void onPasscodeError() {
+        if (tutorial) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
+            builder.setMessage(LocaleController.getString(R.string.MaskedPasscodeScreen_WrongPasscode));
+            builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
+            builder.create().show();
+        }
+    }
 }

@@ -279,4 +279,6 @@
     <string name="LoadingPasscodeScreen_Loading">Загрузка...</string>
     <string name="NotePasscodeScreen_Instruction">1. Нажмите кнопку создания заметки.\n2. Введите в название заметки Ваш пароль.\n3. Нажмите кнопку добавления заметки. Если введён правильный пароль, приложение разблокируется. Если введён неправильный пароль, создастся заметка с указанным названием.</string>
     <string name="CalculatorPasscodeScreen_Instruction">Введите код-пароль при помощи цифр калькулятора.</string>
+    <string name="MaskedPasscodeScreen_Tutorial">Обучение</string>
+    <string name="MaskedPasscodeScreen_WrongPasscode">Вы ввели неправильный код-пароль. Попробуйте ещё раз.</string>
 </resources>

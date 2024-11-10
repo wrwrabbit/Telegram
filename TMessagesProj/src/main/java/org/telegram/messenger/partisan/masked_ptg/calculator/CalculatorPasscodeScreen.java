@@ -49,6 +49,8 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     private FrameLayout buttonsFrameLayout;
     private ArrayList<Button> buttons;
 
+    private boolean tutorial;
+
     public CalculatorPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
         this.delegate = delegate;
@@ -213,6 +215,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         inputTextView.setText("");
         outputTextView.setText("");
         inputString = "";
+        this.tutorial = tutorial;
         if (tutorial) {
             createInstructionDialog().show();
         }
@@ -434,5 +437,16 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
     private Locale getLocale() {
         return context.getResources().getConfiguration().locale;
+    }
+
+    @Override
+    public void onPasscodeError() {
+        if (tutorial) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
+            builder.setMessage(LocaleController.getString(R.string.MaskedPasscodeScreen_WrongPasscode));
+            builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
+            builder.create().show();
+        }
     }
 }
