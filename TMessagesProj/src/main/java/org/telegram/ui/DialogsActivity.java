@@ -7254,6 +7254,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         anyPtgDialogShown = true;
         dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
+        dialog.setOnPreDismissListener((dlg) -> anyPtgDialogShown = false);
         if (showUsingFragmentMethod) {
             showDialog(dialog);
         } else {
