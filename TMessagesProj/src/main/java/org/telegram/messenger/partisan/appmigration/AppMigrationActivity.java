@@ -93,6 +93,9 @@ public class AppMigrationActivity extends BaseFragment implements MigrationZipBu
     }
 
     private void cancelMigration() {
+        if (AppMigratorPreferences.getStep() != Step.UNINSTALL_SELF) {
+            AppMigratorPreferences.updateMaxCancelledInstallationDate();
+        }
         AppMigratorPreferences.setInstalledMaskedPtgPackageName(null);
         AppMigratorPreferences.setInstalledMaskedPtgPackageSignature(null);
         setStep(Step.NOT_STARTED);
