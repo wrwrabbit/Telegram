@@ -18,7 +18,7 @@ public class PackageUtils {
         if (packageInfo == null) {
             return null;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && packageInfo.signingInfo != null) {
             return packageInfo.signingInfo.getApkContentsSigners();
         } else {
             return packageInfo.signatures;
@@ -58,21 +58,23 @@ public class PackageUtils {
 
     public static PackageInfo extractPackageInfoFromFile(File f) {
         PackageManager pm = ApplicationLoader.applicationContext.getPackageManager();
-        return pm.getPackageArchiveInfo(f.getPath(), PackageManager.GET_SIGNATURES);
+        return pm.getPackageArchiveInfo(f.getPath(), getSignatureFlags());
     }
 
     public static PackageInfo getPackageInfoWithCertificates(Context context, String packageName) {
-        int flags;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            flags = PackageManager.GET_SIGNING_CERTIFICATES;
-        } else {
-            flags = PackageManager.GET_SIGNATURES;
-        }
         try {
             PackageManager pm = context.getPackageManager();
-            return pm.getPackageInfo(packageName, flags);
+            return pm.getPackageInfo(packageName, getSignatureFlags());
         } catch (PackageManager.NameNotFoundException ignored) {
             return null;
+        }
+    }
+
+    private static int getSignatureFlags() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return PackageManager.GET_SIGNING_CERTIFICATES;
+        } else {
+            return PackageManager.GET_SIGNATURES;
         }
     }
 }
