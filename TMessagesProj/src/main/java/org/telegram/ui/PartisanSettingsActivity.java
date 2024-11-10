@@ -28,6 +28,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.appmigration.AppMigratorPreferences;
 import org.telegram.messenger.partisan.verification.VerificationRepository;
 import org.telegram.messenger.partisan.verification.VerificationStorage;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -390,7 +391,7 @@ public class PartisanSettingsActivity extends BaseFragment {
         confirmDangerousActionRow = rowCount++;
         confirmDangerousActionDetailRow = rowCount++;
         if (AppMigrator.isNewerPtgInstalled(ApplicationLoader.applicationContext, false)
-                || AppMigrator.getInstalledMaskedPtgPackageName() != null) {
+                || AppMigratorPreferences.isMigrationToMaskedPtg()) {
             transferDataToOtherPtgRow = rowCount++;
             transferDataToOtherPtgDetailRow = rowCount++;
         } else {

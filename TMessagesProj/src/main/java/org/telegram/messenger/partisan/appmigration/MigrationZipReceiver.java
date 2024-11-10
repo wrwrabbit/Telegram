@@ -13,7 +13,6 @@ import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
@@ -31,7 +30,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -49,15 +47,23 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-class ZipReceiver {
-    private final Activity activity;
-
-    private ZipReceiver(Activity activity) {
-        this.activity = activity;
+public class MigrationZipReceiver {
+    public interface ZipReceiverDelegate {
+        void onFinish(String error);
     }
 
-    static void receiveZip(Activity activity) {
-        new Thread(() -> new ZipReceiver(activity).receiveZipInternal()).start();
+    private final Activity activity;
+    private final Intent intent;
+    private final ZipReceiverDelegate delegate;
+
+    private MigrationZipReceiver(Activity activity, Intent intent, ZipReceiverDelegate delegate) {
+        this.activity = activity;
+        this.intent = intent;
+        this.delegate = delegate;
+    }
+
+    public static void receiveZip(Activity activity, Intent intent, ZipReceiverDelegate delegate) {
+        new Thread(() -> new MigrationZipReceiver(activity, intent, delegate).receiveZipInternal()).start();
     }
 
     private void receiveZipInternal() {
@@ -69,7 +75,7 @@ class ZipReceiver {
             ZipInputStream zipStream = createZipStream();
             unpackZip(zipStream);
             zipStream.close();
-            //noinspection ResultOfMethodCallIgnored
+            //noinspection ResultOfrttMethodCallIgnored
             new File(activity.getFilesDir(), "updater_files_copied").createNewFile();
             finishReceivingMigration(null);
         } catch (Exception e) {
@@ -79,7 +85,7 @@ class ZipReceiver {
     }
 
     private boolean finishReceivingMigrationIfNeed() {
-        if (appAlreadyHasAccounts()) {
+        if (AppMigrator.appAlreadyHasAccounts()) {
             if (SharedConfig.filesCopiedFromOldTelegram) { // already migrated
                 finishReceivingMigration(null);
             } else {
@@ -98,12 +104,8 @@ class ZipReceiver {
         return false;
     }
 
-    private static boolean appAlreadyHasAccounts() {
-        return UserConfig.getActivatedAccountsCount(true) > 0;
-    }
-
     private boolean isSourceAppVersionGreater() {
-        String srcVersionString = activity.getIntent().getStringExtra("version");
+        String srcVersionString = intent.getStringExtra("version");
         AppVersion srcVersion = AppVersion.parseVersion(srcVersionString);
         return srcVersion == null || srcVersion.greater(AppVersion.getCurrentVersion());
     }
@@ -254,7 +256,7 @@ class ZipReceiver {
     }
 
     private @NonNull ZipInputStream createZipStream() throws FileNotFoundException, GeneralSecurityException {
-        InputStream inputStream = createInputStream(activity.getIntent());
+        InputStream inputStream = createInputStream(intent);
         BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
         CipherInputStream cipherStream = new CipherInputStream(bufferedStream, createCipher());
         return new ZipInputStream(cipherStream);
@@ -271,7 +273,7 @@ class ZipReceiver {
     }
 
     private Cipher createCipher() throws GeneralSecurityException {
-        byte[] passwordBytes = activity.getIntent().getByteArrayExtra("zipPassword");
+        byte[] passwordBytes = intent.getByteArrayExtra("zipPassword");
         SecretKey key = new SecretKeySpec(passwordBytes, "AES");
 
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
@@ -326,23 +328,9 @@ class ZipReceiver {
     }
 
     private void finishReceivingMigration(String error) {
-        finishReceivingMigration(error, null);
-    }
-
-    private void finishReceivingMigration(String error, Set<String> issues) {
-        AndroidUtilities.runOnUIThread(() -> {
-            Intent data = new Intent();
-            data.putExtra("success", error == null);
-            data.putExtra("error", error);
-            data.putExtra("packageName", activity.getPackageName());
-            if (issues != null) {
-                data.putExtra("issues", issues.toArray(new String[0]));
-            }
-            activity.setResult(Activity.RESULT_OK, data);
-
-            activity.finish();
-            android.os.Process.killProcess(android.os.Process.myPid());
-        });
+        if (delegate != null) {
+            delegate.onFinish(error);
+        }
     }
 
     private void showMigrationReceiveError(Exception ex) {

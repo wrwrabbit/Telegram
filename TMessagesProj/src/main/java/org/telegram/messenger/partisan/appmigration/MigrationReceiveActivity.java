@@ -1,6 +1,8 @@
 package org.telegram.messenger.partisan.appmigration;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -12,6 +14,7 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.partisan.appmigration.intenthandlers.ZipHandler;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -21,7 +24,7 @@ import org.telegram.ui.Components.RadialProgressView;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class MigrationReceiveActivity  extends BaseFragment {
+public class MigrationReceiveActivity extends BaseFragment {
     RelativeLayout relativeLayout;
     private TextView titleTextView;
     private TextView descriptionText;
@@ -96,6 +99,27 @@ public class MigrationReceiveActivity  extends BaseFragment {
         relativeParams.addRule(RelativeLayout.CENTER_IN_PARENT);
         relativeLayout.addView(descriptionText, relativeParams);
         descriptionText.setText(LocaleController.getString(R.string.MigrationDescription));
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        super.onActivityResultFragment(requestCode, resultCode, data);
+        if (requestCode == AppMigrator.CONFIRM_SIGNATURE_CODE) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("zipPassword")) {
+                MigrationZipReceiver.receiveZip(getParentActivity(), data, error -> {
+                    Intent intent = ZipHandler.createZipReceivingResultIntent(error);
+                    intent.setAction(Intent.ACTION_MAIN);
+                    String packageName = getParentActivity().getIntent().getStringExtra("packageName");
+                    String activityName = getParentActivity().getIntent().getStringExtra("activityName");
+                    intent.setClassName(packageName, activityName);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getParentActivity().startActivity(intent);
+
+                    getParentActivity().finish();
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                });
+            }
+        }
     }
 
     @Override
