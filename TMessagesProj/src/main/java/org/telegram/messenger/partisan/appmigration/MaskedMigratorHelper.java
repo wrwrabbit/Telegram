@@ -43,6 +43,9 @@ public class MaskedMigratorHelper {
     }
 
     public static String getInstallingPackageName() {
+        if (installingPackageInfo == null) {
+            return null;
+        }
         return installingPackageInfo.applicationInfo.packageName;
     }
 }

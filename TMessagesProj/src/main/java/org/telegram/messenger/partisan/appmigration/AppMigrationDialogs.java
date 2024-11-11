@@ -27,8 +27,14 @@ public class AppMigrationDialogs {
         AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
         builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));
         builder.setMessage(LocaleController.getString(R.string.OtherPTelegramAlert));
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) ->
-                AppMigratorPreferences.updateMaxCancelledInstallationDate());
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) -> {
+            if (AppMigratorPreferences.isMigrationToMaskedPtg()) {
+                AppMigratorPreferences.setInstalledMaskedPtgPackageName(null);
+                AppMigratorPreferences.setInstalledMaskedPtgPackageSignature(null);
+            } else {
+                AppMigratorPreferences.updateMaxCancelledInstallationDate();
+            }
+        });
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->
                 fragment.presentFragment(new AppMigrationActivity()));
         return builder.create();
