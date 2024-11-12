@@ -8332,7 +8332,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 EncryptedGroup encryptedGroup = getMessagesController()
                         .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                 if (encryptedGroup != null) {
-                    args.putInt("enc_group_id", encryptedGroup.id);
+                    args.putInt("enc_group_id", encryptedGroup.getId());
                 } else {
                     args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
                 }
@@ -9606,7 +9606,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         showDialog(builder.create());
                     } else {
                         EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(DialogObject.getEncryptedChatId(dialog.id));
-                        AlertsCreator.createClearOrDeleteDialogAlert(DialogsActivity.this, action == clear, chat, user, DialogObject.isEncryptedDialog(dialog.id), action == delete, encryptedGroup != null ? encryptedGroup.id : null, (param) -> {
+                        AlertsCreator.createClearOrDeleteDialogAlert(DialogsActivity.this, action == clear, chat, user, DialogObject.isEncryptedDialog(dialog.id), action == delete, encryptedGroup != null ? encryptedGroup.getId() : null, (param) -> {
                             hideActionMode(false);
                             if (action == clear && ChatObject.isChannel(chat) && (!chat.megagroup || ChatObject.isPublic(chat))) {
                                 getMessagesController().deleteDialog(selectedDialog, 2, param);

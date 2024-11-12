@@ -6511,9 +6511,9 @@ public class MessagesController extends BaseController implements NotificationCe
             return;
         }
         if (fromCache) {
-            encryptedGroups.putIfAbsent(encryptedGroup.id, encryptedGroup);
+            encryptedGroups.putIfAbsent(encryptedGroup.getId(), encryptedGroup);
         } else {
-            encryptedGroups.put(encryptedGroup.id, encryptedGroup);
+            encryptedGroups.put(encryptedGroup.getId(), encryptedGroup);
         }
     }
 
@@ -12222,7 +12222,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 enc_groups_dict = new SparseArray<>();
                 for (int a = 0, N = encGroups.size(); a < N; a++) {
                     EncryptedGroup encryptedGroup = encGroups.get(a);
-                    enc_groups_dict.put(encryptedGroup.id, encryptedGroup);
+                    enc_groups_dict.put(encryptedGroup.getId(), encryptedGroup);
                 }
             } else {
                 enc_groups_dict = null;
@@ -12263,11 +12263,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 new_dialogMessage.put(did, arrayList);
                 if (encGroups != null && !encGroups.isEmpty() && DialogObject.isEncryptedDialog(did)) {
                     EncryptedGroup encryptedGroup = encGroups.stream()
-                            .filter(g -> g.encryptedChatsIds.contains(DialogObject.getEncryptedChatId(did)))
+                            .filter(g -> g.getEncryptedChatsIds().contains(DialogObject.getEncryptedChatId(did)))
                             .findAny()
                             .orElse(null);
                     if (encryptedGroup != null) {
-                        long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.id);
+                        long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getId());
                         ArrayList<MessageObject> prevMessage = new_dialogMessage.get(encryptedGroupDialogId);
                         if (prevMessage == null || arrayList.get(0).messageOwner.date > prevMessage.get(0).messageOwner.date) {
                             new_dialogMessage.put(encryptedGroupDialogId, arrayList);

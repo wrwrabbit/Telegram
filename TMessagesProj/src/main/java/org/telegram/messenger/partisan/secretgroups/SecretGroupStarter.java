@@ -76,20 +76,19 @@ public class SecretGroupStarter {
 
     private void onAllEncryptedChatsCreated() {
         AndroidUtilities.runOnUIThread(() -> {
-            EncryptedGroup encryptedGroup = new EncryptedGroup();
-            encryptedGroup.id = Utilities.random.nextInt();
-            encryptedGroup.encryptedChatsIds = encryptedChats.stream()
+            int id = Utilities.random.nextInt();
+            List<Integer> encryptedChatsIds = encryptedChats.stream()
                     .filter(Objects::nonNull)
                     .map(encryptedChat -> encryptedChat.id)
                     .collect(Collectors.toList());
-            if (encryptedGroup.encryptedChatsIds.isEmpty()) {
+            if (encryptedChatsIds.isEmpty()) {
                 callback.accept(null);
                 return;
             }
-            encryptedGroup.name = name;
+            EncryptedGroup encryptedGroup = new EncryptedGroup(id, encryptedChatsIds, name);
 
             TLRPC.Dialog dialog = new TLRPC.TL_dialog();
-            dialog.id = DialogObject.makeEncryptedDialogId(encryptedGroup.id);
+            dialog.id = DialogObject.makeEncryptedDialogId(encryptedGroup.getId());
             dialog.unread_count = 0;
             dialog.top_message = 0;
             dialog.last_message_date = getConnectionsManager().getCurrentTime();

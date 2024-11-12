@@ -947,7 +947,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             } else {
                 EncryptedGroup currentEncryptedGroup = messagesController.getEncryptedGroup(DialogObject.getEncryptedChatId(dialog.id));
                 if (currentEncryptedGroup != null) {
-                    title = currentEncryptedGroup.name;
+                    title = currentEncryptedGroup.getName();
                 } else {
                     continue;
                 }
@@ -1906,7 +1906,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         nameString = AndroidUtilities.removeDiacritics(UserObject.getUserName(user, currentAccount));
                     }
                 } else if (encryptedGroup != null) {
-                    nameString = encryptedGroup.name;
+                    nameString = encryptedGroup.getName();
                 }
                 if (nameString != null && nameString.length() == 0) {
                     nameString = LocaleController.getString(R.string.HiddenName);

@@ -2608,7 +2608,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (encIds != null || encGroupId != 0) {
             currentEncryptedGroup = getMessagesController().getEncryptedGroup(encGroupId);
             if (currentEncryptedGroup != null) {
-                encIds = currentEncryptedGroup.encryptedChatsIds;
+                encIds = currentEncryptedGroup.getEncryptedChatsIds();
             }
             currentEncryptedChatList = encIds.stream()
                     .map(id -> getMessagesController().getEncryptedChat(id))
@@ -18579,7 +18579,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (currentChat != null) {
             avatarContainer.setTitle(AndroidUtilities.removeDiacritics(getUserConfig().getChatTitleOverride(currentChat)), currentChat.isScam(), currentChat.isFake(), currentChat.isVerified(), false, currentChat.emoji_status, animated);
         } else if (currentEncryptedGroup != null) {
-            avatarContainer.setTitle(currentEncryptedGroup.name);
+            avatarContainer.setTitle(currentEncryptedGroup.getName());
         } else if (currentEncryptedChatList != null) {
             avatarContainer.setTitle("Encrypted Group");
         } else if (currentUser != null) {
@@ -30508,7 +30508,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (currentEncryptedChatSingle != null && currentEncryptedChatSingle.admin_id == getUserConfig().getClientUserId()) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, UserObject.getFirstName(currentUser)));
             } else if (currentEncryptedGroup != null) {
-                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, currentEncryptedGroup.name));
+                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, currentEncryptedGroup.getName()));
             } else if (currentEncryptedChatList != null) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, "Encrypted Group"));
             } else {

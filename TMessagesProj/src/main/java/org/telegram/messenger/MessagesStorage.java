@@ -10009,14 +10009,14 @@ public class MessagesStorage extends BaseController {
             SQLitePreparedStatement state = null;
             try {
                 state = database.executeFast("REPLACE INTO enc_groups VALUES(?, ?, ?)");
-                String chatIdsStr = encryptedGroup.encryptedChatsIds.stream()
+                String chatIdsStr = encryptedGroup.getEncryptedChatsIds().stream()
                         .map(id -> Integer.toString(id))
                         .reduce((str1, str2) -> str1 + "," + str2)
                         .orElse("");
 
-                state.bindInteger(1, encryptedGroup.id);
+                state.bindInteger(1, encryptedGroup.getId());
                 state.bindString(2, chatIdsStr);
-                state.bindString(3, encryptedGroup.name);
+                state.bindString(3, encryptedGroup.getName());
 
                 state.step();
                 state.dispose();
@@ -10453,13 +10453,13 @@ public class MessagesStorage extends BaseController {
         SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, encrypted_chats, name FROM enc_groups WHERE uid IN(%s)", chatsToLoad));
         while (cursor.next()) {
             try {
-                EncryptedGroup encryptedGroup = new EncryptedGroup();
-                encryptedGroup.id= cursor.intValue(0);
+                int id = cursor.intValue(0);
                 String encryptedChatsIdsStr = cursor.stringValue(1);
-                encryptedGroup.encryptedChatsIds = Arrays.stream(encryptedChatsIdsStr.split(","))
+                List<Integer> encryptedChatsIds = Arrays.stream(encryptedChatsIdsStr.split(","))
                         .map(Integer::parseInt)
                         .collect(Collectors.toList());
-                encryptedGroup.name = cursor.stringValue(2);
+                String name = cursor.stringValue(2);
+                EncryptedGroup encryptedGroup = new EncryptedGroup(id, encryptedChatsIds, name);
                 result.add(encryptedGroup);
             } catch (Exception e) {
                 checkSQLException(e);

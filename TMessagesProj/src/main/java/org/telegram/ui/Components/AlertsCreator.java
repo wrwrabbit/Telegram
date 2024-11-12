@@ -1941,7 +1941,7 @@ public class AlertsCreator {
                 if (user != null) {
                     if (secretGroupId != null) {
                         EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(secretGroupId);
-                        messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretGroup", R.string.AreYouSureClearHistoryWithSecretGroup, encryptedGroup != null ? encryptedGroup.name : "")));
+                        messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretGroup", R.string.AreYouSureClearHistoryWithSecretGroup, encryptedGroup != null ? encryptedGroup.getName() : "")));
                     } else if (secret) {
                         messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretUser", R.string.AreYouSureClearHistoryWithSecretUser, UserObject.getUserName(user, account))));
                     } else {
@@ -1975,7 +1975,7 @@ public class AlertsCreator {
                     if (user != null) {
                         if (secretGroupId != null) {
                             EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(secretGroupId);
-                            messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisSecretGroup", R.string.AreYouSureDeleteThisSecretGroup, encryptedGroup != null ? encryptedGroup.name : "")));
+                            messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisSecretGroup", R.string.AreYouSureDeleteThisSecretGroup, encryptedGroup != null ? encryptedGroup.getName() : "")));
                         } else if (secret) {
                             messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisChatWithSecretUser", R.string.AreYouSureDeleteThisChatWithSecretUser, UserObject.getUserName(user, account))));
                         } else {
