@@ -98,7 +98,7 @@ public class SecretGroupStarter {
 
 
             MessagesStorage.getInstance(accountNum)
-                    .putEncryptedGroup(encryptedGroup, dialog);
+                    .addEncryptedGroup(encryptedGroup, dialog);
             getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
             getMessagesController().putEncryptedGroup(encryptedGroup, false);
             callback.accept(encryptedGroup);

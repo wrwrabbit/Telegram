@@ -476,6 +476,7 @@ public class MessagesStorage extends BaseController {
             "chats",
             "enc_chats",
             "enc_groups",
+            "enc_group_inner_chats",
             "enc_group_virtual_messages",
             "enc_group_virtual_messages_to_messages_v2",
             "channel_users_v2",
@@ -614,9 +615,18 @@ public class MessagesStorage extends BaseController {
         database.executeFast("CREATE TABLE chats(uid INTEGER PRIMARY KEY, name TEXT, data BLOB)").stepThis().dispose();
         database.executeFast("CREATE TABLE enc_chats(uid INTEGER PRIMARY KEY, user INTEGER, name TEXT, data BLOB, g BLOB, authkey BLOB, ttl INTEGER, layer INTEGER, seq_in INTEGER, seq_out INTEGER, use_count INTEGER, exchange_id INTEGER, key_date INTEGER, fprint INTEGER, fauthkey BLOB, khash BLOB, in_seq_no INTEGER, admin_id INTEGER, mtproto_seq INTEGER)").stepThis().dispose();
 
-        database.executeFast("CREATE TABLE enc_groups(uid INTEGER PRIMARY KEY, encrypted_chats TEXT, name TEXT)").stepThis().dispose();
-        database.executeFast("CREATE TABLE enc_group_virtual_messages(encrypted_group_id INTEGER, virtual_message_id INTEGER, PRIMARY KEY(encrypted_group_id, virtual_message_id), FOREIGN KEY (encrypted_group_id) REFERENCES enc_groups(uid) ON DELETE CASCADE)").stepThis().dispose();
-        database.executeFast("CREATE TABLE enc_group_virtual_messages_to_messages_v2(encrypted_group_id INTEGER, virtual_message_id INTEGER, encrypted_chat_id INTEGER, real_message_id INTEGER PRIMARY KEY(encrypted_group_id, virtual_message_id, encrypted_chat_id), FOREIGN KEY (encrypted_group_id, virtual_message_id) REFERENCES enc_group_virtual_messages(encrypted_group_id, virtual_message_id) ON DELETE CASCADE)").stepThis().dispose();
+        database.executeFast("CREATE TABLE enc_groups(encrypted_group_id INTEGER PRIMARY KEY, name TEXT)").stepThis().dispose();
+        database.executeFast("CREATE TABLE enc_group_inner_chats(encrypted_group_id INTEGER, encrypted_chat_id INTEGER, " +
+                "PRIMARY KEY(encrypted_group_id, encrypted_chat_id), " +
+                "FOREIGN KEY (encrypted_chat_id) REFERENCES enc_chats(uid) ON DELETE CASCADE)").stepThis().dispose();
+
+        database.executeFast("CREATE TABLE enc_group_virtual_messages(encrypted_group_id INTEGER, virtual_message_id INTEGER, " +
+                "PRIMARY KEY(encrypted_group_id, virtual_message_id), " +
+                "FOREIGN KEY (encrypted_group_id) REFERENCES enc_groups(encrypted_group_id) ON DELETE CASCADE)").stepThis().dispose();
+        database.executeFast("CREATE TABLE enc_group_virtual_messages_to_messages_v2(encrypted_group_id INTEGER, virtual_message_id INTEGER, encrypted_chat_id INTEGER, real_message_id INTEGER, " +
+                "PRIMARY KEY(encrypted_group_id, virtual_message_id, encrypted_chat_id), " +
+                "FOREIGN KEY (encrypted_group_id, virtual_message_id) REFERENCES enc_group_virtual_messages(encrypted_group_id, virtual_message_id) ON DELETE CASCADE," +
+                "FOREIGN KEY (encrypted_group_id, encrypted_chat_id) REFERENCES enc_group_inner_chats(encrypted_group_id, encrypted_chat_id) ON DELETE CASCADE)").stepThis().dispose();
         database.executeFast("CREATE INDEX IF NOT EXISTS enc_group_virtual_messages_to_messages_v2_idx ON enc_group_virtual_messages_to_messages_v2(encrypted_group_id, encrypted_chat_id, real_message_id);").stepThis().dispose();
 
         database.executeFast("CREATE TABLE channel_users_v2(did INTEGER, uid INTEGER, date INTEGER, data BLOB, PRIMARY KEY(did, uid))").stepThis().dispose();
@@ -4182,7 +4192,7 @@ public class MessagesStorage extends BaseController {
                         }
                     } else {
                         database.executeFast("DELETE FROM enc_chats WHERE uid = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
-                        database.executeFast("DELETE FROM enc_groups WHERE uid = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
+                        database.executeFast("DELETE FROM enc_groups WHERE encrypted_group_id = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
                     }
                 } else if (messagesOnly == 2) {
                     cursor = database.queryFinalized("SELECT last_mid_i, last_mid FROM dialogs WHERE did = " + did);
@@ -10008,26 +10018,30 @@ public class MessagesStorage extends BaseController {
         });
     }
 
-    public void putEncryptedGroup(EncryptedGroup encryptedGroup, TLRPC.Dialog dialog) {
+    public void addEncryptedGroup(EncryptedGroup encryptedGroup, TLRPC.Dialog dialog) {
         if (encryptedGroup == null) {
             return;
         }
         storageQueue.postRunnable(() -> {
             SQLitePreparedStatement state = null;
             try {
-                state = database.executeFast("REPLACE INTO enc_groups VALUES(?, ?, ?)");
-                String chatIdsStr = encryptedGroup.getEncryptedChatsIds().stream()
-                        .map(id -> Integer.toString(id))
-                        .reduce((str1, str2) -> str1 + "," + str2)
-                        .orElse("");
+                state = database.executeFast("INSERT INTO enc_groups VALUES(?, ?)");
 
                 state.bindInteger(1, encryptedGroup.getId());
-                state.bindString(2, chatIdsStr);
-                state.bindString(3, encryptedGroup.getName());
-
+                state.bindString(2, encryptedGroup.getName());
                 state.step();
                 state.dispose();
+
+                state = database.executeFast("INSERT INTO enc_group_inner_chats VALUES(?, ?)");
+                for (int encryptedChatId : encryptedGroup.getEncryptedChatsIds()) {
+                    state.requery();
+                    state.bindInteger(1, encryptedGroup.getId());
+                    state.bindInteger(2, encryptedChatId);
+                    state.step();
+                }
+                state.dispose();
                 state = null;
+
                 if (dialog != null) {
                     state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     state.bindLong(1, dialog.id);
@@ -10453,26 +10467,28 @@ public class MessagesStorage extends BaseController {
         cursor.dispose();
     }
 
-    public void getEncryptedGroupsInternal(String chatsToLoad, ArrayList<EncryptedGroup> result) throws Exception {
+    private void getEncryptedGroupsInternal(String chatsToLoad, ArrayList<EncryptedGroup> result) throws Exception {
         if (chatsToLoad == null || chatsToLoad.length() == 0 || result == null) {
             return;
         }
-        SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, encrypted_chats, name FROM enc_groups WHERE uid IN(%s)", chatsToLoad));
+        Map<Integer, EncryptedGroup.EncryptedGroupBuilder> builders = new HashMap<>();
+        SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT g.encrypted_group_id, g.name, c.encrypted_chat_id FROM enc_groups as g " +
+                "LEFT JOIN enc_group_inner_chats as c ON c.encrypted_group_id = g.encrypted_group_id WHERE g.encrypted_group_id IN(%s)", chatsToLoad));
         while (cursor.next()) {
             try {
                 int id = cursor.intValue(0);
-                String encryptedChatsIdsStr = cursor.stringValue(1);
-                List<Integer> encryptedChatsIds = Arrays.stream(encryptedChatsIdsStr.split(","))
-                        .map(Integer::parseInt)
-                        .collect(Collectors.toList());
-                String name = cursor.stringValue(2);
-                EncryptedGroup encryptedGroup = new EncryptedGroup(id, encryptedChatsIds, name);
-                result.add(encryptedGroup);
+                String name = cursor.stringValue(1);
+                int encryptedChatId = cursor.intValue(2);
+                EncryptedGroup.EncryptedGroupBuilder builder = builders.computeIfAbsent(id, key -> new EncryptedGroup.EncryptedGroupBuilder(id, name));
+                builder.addEncryptedChatId(encryptedChatId);
             } catch (Exception e) {
                 checkSQLException(e);
             }
         }
         cursor.dispose();
+        for (EncryptedGroup.EncryptedGroupBuilder builder : builders.values()) {
+            result.add(builder.create());
+        }
     }
 
     public Integer getEncryptedGroupVirtualMessageId(int encryptedGroupId, int encryptedChatId, int realMessageId) throws Exception {
