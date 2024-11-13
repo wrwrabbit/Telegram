@@ -8,13 +8,16 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 
 import org.telegram.messenger.AppStartReceiver;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.fakepasscode.results.TelegramMessageResult;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -25,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -113,7 +117,23 @@ public class FakePasscodeUtils {
     }
 
     public static List<TLRPC.Dialog> filterDialogs(List<TLRPC.Dialog> dialogs, Optional<Integer> account) {
-        return filterItems(dialogs, account, (dialog, filter) -> !filter.isHideChat(Utils.getChatOrUserId(dialog.id, account)));
+        List<TLRPC.Dialog> filteredDialogs = filterItems(dialogs, account, (dialog, filter) -> !filter.isHideChat(Utils.getChatOrUserId(dialog.id, account)));
+        if (!isFakePasscodeActivated() || !account.isPresent()) {
+            return filteredDialogs;
+        }
+
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
+        List<TLRPC.Dialog> filteredDialogsWithoutEncryptedGroups = filteredDialogs.stream()
+                .filter(d -> {
+                    try {
+                        return !messagesStorage.isEncryptedGroup(d.id);
+                    } catch (Exception e) {
+                        PartisanLog.handleException(e);
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+        return new FilteredArrayList<>(filteredDialogsWithoutEncryptedGroups, filteredDialogs);
     }
 
     public static List<TLRPC.TL_topPeer> filterHints(List<TLRPC.TL_topPeer> hints, int account) {

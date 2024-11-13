@@ -10493,6 +10493,25 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    public boolean isEncryptedGroup(long dialogId) throws Exception {
+        if (!DialogObject.isEncryptedDialog(dialogId)) {
+            return false;
+        }
+        int encryptedGroupId = DialogObject.getEncryptedChatId(dialogId);
+        SQLiteCursor cursor = database.queryFinalized("SELECT EXISTS(SELECT 1 FROM enc_groups WHERE encrypted_group_id=? LIMIT 1)", encryptedGroupId);
+
+        boolean encryptedGroupExists = false;
+        if (cursor.next()) {
+            try {
+                encryptedGroupExists = cursor.intValue(0) == 1;
+            } catch (Exception e) {
+                checkSQLException(e);
+            }
+        }
+        cursor.dispose();
+        return encryptedGroupExists;
+    }
+
     public Set<Integer> getAllInnerChatIdsFromEncryptedGroups() throws Exception {
         Set<Integer> encryptedChatIds = new HashSet<>();
         SQLiteCursor cursor = database.queryFinalized("SELECT DISTINCT encrypted_chat_id FROM enc_group_inner_chats");
