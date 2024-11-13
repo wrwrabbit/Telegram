@@ -620,6 +620,7 @@ public class MessagesStorage extends BaseController {
         database.executeFast("CREATE TABLE enc_group_inner_chats(encrypted_group_id INTEGER, encrypted_chat_id INTEGER, " +
                 "PRIMARY KEY(encrypted_group_id, encrypted_chat_id), " +
                 "FOREIGN KEY (encrypted_chat_id) REFERENCES enc_chats(uid) ON DELETE CASCADE)").stepThis().dispose();
+        database.executeFast("CREATE INDEX IF NOT EXISTS enc_group_inner_chats_idx ON enc_group_inner_chats(encrypted_chat_id);").stepThis().dispose();
 
         database.executeFast("CREATE TABLE enc_group_virtual_messages(encrypted_group_id INTEGER, virtual_message_id INTEGER, " +
                 "PRIMARY KEY(encrypted_group_id, virtual_message_id), " +
