@@ -22864,6 +22864,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private boolean addMessage(int pos, MessageObject obj) {
         if (isEncryptedGroup()) {
+            updateMessageVirtualId(obj);
             boolean needAddMessage = !obj.isOut() || obj.getDialogId() == DialogObject.makeEncryptedDialogId(currentEncryptedChatList.get(0).id);
             if (needAddMessage) {
                 messages.add(obj);
@@ -22871,9 +22872,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 return true;
             } else {
                 Optional<Integer> visibleMessageId = messages.stream()
-                        .filter(m -> m.isOut())
-                        .min(Comparator.comparingInt(m -> m.messageOwner.date <= obj.messageOwner.date ? obj.messageOwner.date - m.messageOwner.date : Integer.MAX_VALUE))
-                        .map(m -> m.getId());
+                        .filter(m -> m.encryptedGroupVirtualMessageId != null && m.encryptedGroupVirtualMessageId.equals(obj.encryptedGroupVirtualMessageId))
+                        .map(m -> m.getId())
+                        .findAny();
                 if (visibleMessageId.isPresent()) {
                     List<MessageObject> massageCopies = hiddenEncryptedGroupOutMessages.computeIfAbsent(visibleMessageId.get(), k -> new ArrayList<>());
                     massageCopies.add(obj);
@@ -22883,6 +22884,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             messages.add(pos, obj);
             return true;
+        }
+    }
+
+    private void updateMessageVirtualId(MessageObject obj) {
+        if (currentEncryptedGroup == null) {
+            return;
+        }
+        try {
+            int encryptedGroupId = currentEncryptedGroup.getId();
+            int encryptedChatId = DialogObject.getEncryptedChatId(obj.getDialogId());
+            obj.encryptedGroupVirtualMessageId = getMessagesStorage()
+                    .getEncryptedGroupVirtualMessageId(encryptedGroupId, encryptedChatId, obj.getId());
+        } catch (Exception e) {
+            PartisanLog.handleException(e);
         }
     }
 
@@ -40694,6 +40709,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     public boolean isEncryptedGroup() {
         return currentEncryptedChatList != null;
+    }
+
+    public Integer getEncryptedGroupId() {
+        if (currentEncryptedGroup == null) {
+            return null;
+        }
+        return currentEncryptedGroup.getId();
     }
 
     public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {

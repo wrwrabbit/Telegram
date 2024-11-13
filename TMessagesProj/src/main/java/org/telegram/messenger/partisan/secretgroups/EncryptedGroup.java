@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class EncryptedGroup {
-    private int id;
-    private List<Integer> encryptedChatsIds;
-    private String name;
+    private final int id;
+    private final List<Integer> encryptedChatsIds;
+    private final String name;
 
     public EncryptedGroup(int id, List<Integer> encryptedChatsIds, String name) {
         this.id = id;

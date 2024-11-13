@@ -52,6 +52,7 @@ import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -4266,6 +4267,17 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 videoEditedInfo = newMsgObj.videoEditedInfo;
             } else if (videoEditedInfo != null && videoEditedInfo.notReadyYet) {
                 newMsgObj.videoEditedInfo.notReadyYet = videoEditedInfo.notReadyYet;
+            }
+
+            if (sendMessageParams.encryptedGroupId != null && sendMessageParams.encryptedGroupVirtualMessageId != null) {
+                try {
+                    int encryptedGroupId = sendMessageParams.encryptedGroupId;
+                    int virtualMessageId = sendMessageParams.encryptedGroupVirtualMessageId;
+                    int encryptedChatId = DialogObject.getEncryptedChatId(peer);
+                    getMessagesStorage().addEncryptedVirtualMessageMapping(encryptedGroupId, virtualMessageId, encryptedChatId, newMsg.id);
+                } catch (Exception e) {
+                    PartisanLog.handleException(e);
+                }
             }
 
             if (groupId == 0) {
@@ -9600,6 +9612,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         public TL_stories.StoryItem replyToStoryItem;
         public TL_stories.StoryItem sendingStory;
         public Integer autoDeleteDelay;
+        public Integer encryptedGroupId;
+        public Integer encryptedGroupVirtualMessageId;
         public ChatActivity.ReplyQuote replyQuote;
         public boolean invert_media;
         public String quick_reply_shortcut;

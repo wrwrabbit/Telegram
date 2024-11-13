@@ -112,7 +112,7 @@ public class MessagesStorage extends BaseController {
         }
     }
 
-    public final static int LAST_DB_VERSION = 159;
+    public final static int LAST_DB_VERSION = 160;// = 159;
     private boolean databaseMigrationInProgress;
     public boolean showClearDatabaseAlert;
     private LongSparseIntArray dialogIsForum = new LongSparseIntArray();
@@ -476,6 +476,8 @@ public class MessagesStorage extends BaseController {
             "chats",
             "enc_chats",
             "enc_groups",
+            "enc_group_virtual_messages",
+            "enc_group_virtual_messages_to_messages_v2",
             "channel_users_v2",
             "channel_admins_v3",
             "contacts",
@@ -611,7 +613,12 @@ public class MessagesStorage extends BaseController {
         database.executeFast("CREATE TABLE users(uid INTEGER PRIMARY KEY, name TEXT, status INTEGER, data BLOB)").stepThis().dispose();
         database.executeFast("CREATE TABLE chats(uid INTEGER PRIMARY KEY, name TEXT, data BLOB)").stepThis().dispose();
         database.executeFast("CREATE TABLE enc_chats(uid INTEGER PRIMARY KEY, user INTEGER, name TEXT, data BLOB, g BLOB, authkey BLOB, ttl INTEGER, layer INTEGER, seq_in INTEGER, seq_out INTEGER, use_count INTEGER, exchange_id INTEGER, key_date INTEGER, fprint INTEGER, fauthkey BLOB, khash BLOB, in_seq_no INTEGER, admin_id INTEGER, mtproto_seq INTEGER)").stepThis().dispose();
+
         database.executeFast("CREATE TABLE enc_groups(uid INTEGER PRIMARY KEY, encrypted_chats TEXT, name TEXT)").stepThis().dispose();
+        database.executeFast("CREATE TABLE enc_group_virtual_messages(encrypted_group_id INTEGER, virtual_message_id INTEGER, PRIMARY KEY(encrypted_group_id, virtual_message_id), FOREIGN KEY (encrypted_group_id) REFERENCES enc_groups(uid) ON DELETE CASCADE)").stepThis().dispose();
+        database.executeFast("CREATE TABLE enc_group_virtual_messages_to_messages_v2(encrypted_group_id INTEGER, virtual_message_id INTEGER, encrypted_chat_id INTEGER, real_message_id INTEGER PRIMARY KEY(encrypted_group_id, virtual_message_id, encrypted_chat_id), FOREIGN KEY (encrypted_group_id, virtual_message_id) REFERENCES enc_group_virtual_messages(encrypted_group_id, virtual_message_id) ON DELETE CASCADE)").stepThis().dispose();
+        database.executeFast("CREATE INDEX IF NOT EXISTS enc_group_virtual_messages_to_messages_v2_idx ON enc_group_virtual_messages_to_messages_v2(encrypted_group_id, encrypted_chat_id, real_message_id);").stepThis().dispose();
+
         database.executeFast("CREATE TABLE channel_users_v2(did INTEGER, uid INTEGER, date INTEGER, data BLOB, PRIMARY KEY(did, uid))").stepThis().dispose();
         database.executeFast("CREATE TABLE channel_admins_v3(did INTEGER, uid INTEGER, data BLOB, PRIMARY KEY(did, uid))").stepThis().dispose();
         database.executeFast("CREATE TABLE contacts(uid INTEGER PRIMARY KEY, mutual INTEGER)").stepThis().dispose();
@@ -10466,6 +10473,49 @@ public class MessagesStorage extends BaseController {
             }
         }
         cursor.dispose();
+    }
+
+    public Integer getEncryptedGroupVirtualMessageId(int encryptedGroupId, int encryptedChatId, int realMessageId) throws Exception {
+        SQLiteCursor cursor = database.queryFinalized("SELECT virtual_message_id " +
+                "FROM enc_group_virtual_messages_to_messages_v2 " +
+                "WHERE encrypted_group_id = ? AND encrypted_chat_id = ? AND real_message_id = ?",
+                encryptedGroupId, encryptedChatId, realMessageId);
+        Integer virtualMessageId = null;
+        if (cursor.next()) {
+            try {
+                virtualMessageId = cursor.intValue(0);
+            } catch (Exception e) {
+                checkSQLException(e);
+            }
+        }
+        cursor.dispose();
+        return virtualMessageId;
+    }
+
+    public int createEncryptedVirtualMessage(int encryptedGroupId) throws Exception {
+        int virtualMessageId = getUserConfig().getNewEncryptedGroupVirtualMessageId();
+
+        SQLitePreparedStatement state = database.executeFast("INSERT INTO enc_group_virtual_messages VALUES(?, ?)");
+        state.requery();
+        int pointer = 1;
+        state.bindInteger(pointer++, encryptedGroupId);
+        state.bindInteger(pointer++, virtualMessageId);
+        state.step();
+        state.dispose();
+
+        return virtualMessageId;
+    }
+
+    public void addEncryptedVirtualMessageMapping(int encryptedGroupId, int virtualMessageId, int encryptedChatId, int realMessageId) throws Exception {
+        SQLitePreparedStatement state = database.executeFast("INSERT INTO enc_group_virtual_messages_to_messages_v2 VALUES(?, ?, ?, ?)");
+        state.requery();
+        int pointer = 1;
+        state.bindInteger(pointer++, encryptedGroupId);
+        state.bindInteger(pointer++, virtualMessageId);
+        state.bindInteger(pointer++, encryptedChatId);
+        state.bindInteger(pointer++, realMessageId);
+        state.step();
+        state.dispose();
     }
 
     private void putUsersAndChatsInternal(List<TLRPC.User> users, List<TLRPC.Chat> chats, boolean withTransaction) {

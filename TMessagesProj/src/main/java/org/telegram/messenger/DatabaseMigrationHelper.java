@@ -1535,6 +1535,14 @@ public class DatabaseMigrationHelper {
             version = 159;
         }
 
+        if (version == 159) {
+            database.executeFast("CREATE TABLE IF NOT EXISTS enc_groups(uid INTEGER PRIMARY KEY, encrypted_chats TEXT, name TEXT)").stepThis().dispose();
+            database.executeFast("CREATE TABLE IF NOT EXISTS enc_group_virtual_messages(encrypted_group_id INTEGER, virtual_message_id INTEGER, PRIMARY KEY(encrypted_group_id, virtual_message_id), FOREIGN KEY (encrypted_group_id) REFERENCES enc_groups(uid) ON DELETE CASCADE)").stepThis().dispose();
+            database.executeFast("CREATE TABLE IF NOT EXISTS enc_group_virtual_messages_to_messages_v2(encrypted_group_id INTEGER, virtual_message_id INTEGER, encrypted_chat_id INTEGER, real_message_id INTEGER, PRIMARY KEY(encrypted_group_id, virtual_message_id, encrypted_chat_id), FOREIGN KEY (encrypted_group_id, virtual_message_id) REFERENCES enc_group_virtual_messages(encrypted_group_id, virtual_message_id) ON DELETE CASCADE)").stepThis().dispose();
+            database.executeFast("CREATE INDEX IF NOT EXISTS enc_group_virtual_messages_to_messages_v2_idx ON enc_group_virtual_messages_to_messages_v2(encrypted_group_id, encrypted_chat_id, real_message_id);").stepThis().dispose();
+            version = 160;
+        }
+
         return version;
     }
 
