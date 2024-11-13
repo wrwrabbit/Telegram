@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -10489,6 +10490,21 @@ public class MessagesStorage extends BaseController {
         for (EncryptedGroup.EncryptedGroupBuilder builder : builders.values()) {
             result.add(builder.create());
         }
+    }
+
+    public Set<Integer> getAllInnerChatIdsFromEncryptedGroups() throws Exception {
+        Set<Integer> encryptedChatIds = new HashSet<>();
+        SQLiteCursor cursor = database.queryFinalized("SELECT DISTINCT encrypted_chat_id FROM enc_group_inner_chats");
+        while (cursor.next()) {
+            try {
+                int id = cursor.intValue(0);
+                encryptedChatIds.add(id);
+            } catch (Exception e) {
+                checkSQLException(e);
+            }
+        }
+        cursor.dispose();
+        return encryptedChatIds;
     }
 
     public Integer getEncryptedGroupVirtualMessageId(int encryptedGroupId, int encryptedChatId, int realMessageId) throws Exception {

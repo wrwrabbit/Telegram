@@ -440,6 +440,7 @@ public class SharedConfig {
     public static boolean forceAllowScreenshots = false;
     public static boolean saveLogcatAfterRestart = false;
     public static boolean confirmDangerousActions;
+    public static boolean showEncryptedChatsFromEncryptedGroups = false;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -944,6 +945,7 @@ public class SharedConfig {
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
             confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", false);
+            showEncryptedChatsFromEncryptedGroups = preferences.getBoolean("showEncryptedChatsFromEncryptedGroups", false);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useNewBlur = preferences.getBoolean("useNewBlur", true);
@@ -1037,6 +1039,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("confirmDangerousActions", confirmDangerousActions);
+        editor.commit();
+    }
+
+    public static void toggleShowEncryptedChatsFromEncryptedGroups() {
+        showEncryptedChatsFromEncryptedGroups = !showEncryptedChatsFromEncryptedGroups;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("showEncryptedChatsFromEncryptedGroups", showEncryptedChatsFromEncryptedGroups);
         editor.commit();
     }
 

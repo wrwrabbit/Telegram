@@ -29,12 +29,14 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.FilteredArrayList;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -527,5 +529,23 @@ public class Utils {
         System.arraycopy(first, 0, combined, 0, first.length);
         System.arraycopy(second, 0, combined, first.length, second.length);
         return combined;
+    }
+
+    public static List<TLRPC.Dialog> filterDialogs(List<TLRPC.Dialog> dialogs, Optional<Integer> account) {
+        List<TLRPC.Dialog> filteredDialogsByPasscode = FakePasscodeUtils.filterDialogs(dialogs, account);
+        if (!account.isPresent() || SharedConfig.showEncryptedChatsFromEncryptedGroups) {
+            return filteredDialogsByPasscode;
+        }
+        try {
+            MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
+            Set<Integer> innerChatIdsFromEncryptedGroups = messagesStorage.getAllInnerChatIdsFromEncryptedGroups();
+            List<TLRPC.Dialog> filteredDialogs = filteredDialogsByPasscode.stream()
+                    .filter(d -> !DialogObject.isEncryptedDialog(d.id) || !innerChatIdsFromEncryptedGroups.contains(DialogObject.getEncryptedChatId(d.id)))
+                    .collect(Collectors.toList());
+            return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
+        } catch (Exception e) {
+            PartisanLog.handleException(e);
+            return filteredDialogsByPasscode;
+        }
     }
 }
