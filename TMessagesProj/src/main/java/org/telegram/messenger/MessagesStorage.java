@@ -35,6 +35,7 @@ import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
+import org.telegram.messenger.partisan.PartisanDatabaseMigrationHelper;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
@@ -373,6 +374,7 @@ public class MessagesStorage extends BaseController {
                     }
                 }
             }
+            PartisanDatabaseMigrationHelper.updateDb(database);
             databaseCreated = true;
         } catch (Exception e) {
             FileLog.e(e);
