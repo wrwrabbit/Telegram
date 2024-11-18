@@ -14,7 +14,6 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -61,6 +60,7 @@ public class StoryLinkSheet extends BottomSheetWithRecyclerListView implements N
     private ButtonWithCounterView button;
 
     private boolean ignoreUrlEdit;
+    private boolean needRemoveDefPrefix;
 
     private Utilities.Callback<LinkPreview.WebPagePreview> whenDone;
 
@@ -73,7 +73,7 @@ public class StoryLinkSheet extends BottomSheetWithRecyclerListView implements N
         headerPaddingTop = dp(4);
         headerPaddingBottom = dp(-15);
 
-        urlEditText = new EditTextCell(context, getString(R.string.StoryLinkURLPlaceholder), true, -1, resourcesProvider);
+        urlEditText = new EditTextCell(context, getString(R.string.StoryLinkURLPlaceholder), true, false, -1, resourcesProvider);
         urlEditText.whenHitEnter(this::processDone);
 
         String def = "https://";
@@ -122,18 +122,41 @@ public class StoryLinkSheet extends BottomSheetWithRecyclerListView implements N
         urlEditText.editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (ignoreUrlEdit) {
+                    return;
+                }
+                needRemoveDefPrefix = s != null
+                        && start == def.length()
+                        && s.subSequence(0, start).toString().equals(def)
+                        && s.length() >= start + count
+                        && s.subSequence(start, start + count).toString().startsWith(def);
+            }
+
             @Override
             public void afterTextChanged(Editable s) {
                 checkPaste.run();
-                if (!ignoreUrlEdit) {
-                    checkEditURL(s == null ? null : s.toString());
+                if (ignoreUrlEdit) {
+                    return;
                 }
+                if (needRemoveDefPrefix && s != null) {
+                    String text = s.toString();
+                    String fixedLink = text.substring(def.length());
+                    ignoreUrlEdit = true;
+                    urlEditText.editText.setText(fixedLink);
+                    urlEditText.editText.setSelection(0, urlEditText.editText.getText().length());
+                    ignoreUrlEdit = false;
+                    needRemoveDefPrefix = false;
+                    checkEditURL(fixedLink);
+                    return;
+                }
+                checkEditURL(s == null ? null : s.toString());
             }
         });
 
-        nameEditText = new EditTextCell(context, getString(R.string.StoryLinkNamePlaceholder), true, -1, resourcesProvider);
+        nameEditText = new EditTextCell(context, getString(R.string.StoryLinkNamePlaceholder), true, false, -1, resourcesProvider);
         nameEditText.whenHitEnter(this::processDone);
 
         buttonContainer = new FrameLayout(context);
@@ -498,6 +521,7 @@ public class StoryLinkSheet extends BottomSheetWithRecyclerListView implements N
         }
 
         public static class Factory extends UItem.UItemFactory<WebpagePreviewView> {
+            static { setup(new Factory()); }
             @Override
             public WebpagePreviewView createView(Context context, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
                 return new WebpagePreviewView(context);

@@ -8,9 +8,7 @@
 
 package org.telegram.ui.Adapters;
 
-import static org.telegram.messenger.AndroidUtilities.checkAndroidTheme;
 import static org.telegram.messenger.AndroidUtilities.dp;
-import static org.telegram.messenger.AndroidUtilities.statusBarHeight;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -86,8 +84,8 @@ public class MessagesSearchAdapter extends RecyclerListView.SelectionAdapter imp
     };
 
     public void searchStories(String hashtag, boolean instant) {
-        if (hashtag.startsWith("$")) hashtag = "";
-        if (hashtag.startsWith("#")) hashtag = hashtag.substring(1);
+//        if (hashtag.startsWith("$")) hashtag = hashtag.substring(1);
+//        if (hashtag.startsWith("#")) hashtag = hashtag.substring(1);
 
         final String currentHashtag = storiesList == null ? "" : storiesList.query;
         if (TextUtils.equals(currentHashtag, hashtag)) return;
@@ -317,7 +315,7 @@ public class MessagesSearchAdapter extends RecyclerListView.SelectionAdapter imp
             avatarsDrawable.setCount(actualCount);
             avatarsDrawable.commitTransition(false);
 
-            titleTextView.setText(LocaleController.formatPluralString("HashtagStoriesFound", list.getCount()));
+            titleTextView.setText(LocaleController.formatPluralStringSpaced("HashtagStoriesFound", list.getCount()));
             subtitleTextView.setText(LocaleController.formatString(R.string.HashtagStoriesFoundSubtitle, list.query));
         }
 

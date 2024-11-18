@@ -1,5 +1,6 @@
 package org.telegram.messenger.camera;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
@@ -49,6 +50,9 @@ public class HiddenCameraManager implements Camera.PictureCallback, Camera.Previ
 
     private boolean isCameraAvailable(int facing) {
         try {
+            if (Build.VERSION.SDK_INT >= 23 && context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
             boolean result = false;
             if (context != null && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
                 int numberOfCameras = Camera.getNumberOfCameras();

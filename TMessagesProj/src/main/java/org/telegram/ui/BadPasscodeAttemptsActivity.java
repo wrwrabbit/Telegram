@@ -60,9 +60,7 @@ public class BadPasscodeAttemptsActivity extends BaseFragment {
                     builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
                     builder.setMessage(LocaleController.getString("ClearBadPasscodeAttempts", R.string.ClearBadPasscodeAttempts));
                     builder.setPositiveButton(LocaleController.getString("ClearButton", R.string.ClearButton).toUpperCase(), (dialogInterface, i) -> {
-                        SharedConfig.badPasscodeAttemptList.stream().forEach(BadPasscodeAttempt::clear);
-                        SharedConfig.badPasscodeAttemptList.clear();
-                        SharedConfig.saveConfig();
+                        SharedConfig.clearBadPasscodeAttemptList();
                         listView.getAdapter().notifyDataSetChanged();
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
@@ -103,8 +101,8 @@ public class BadPasscodeAttemptsActivity extends BaseFragment {
 
         @Override
         public int getItemCount() {
-            if (SharedConfig.badPasscodeAttemptList.size() != 0) {
-                return SharedConfig.badPasscodeAttemptList.size();
+            if (SharedConfig.getBadPasscodeAttemptList().size() != 0) {
+                return SharedConfig.getBadPasscodeAttemptList().size();
             } else {
                 return 1;
             }
@@ -125,8 +123,8 @@ public class BadPasscodeAttemptsActivity extends BaseFragment {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             if (holder.getItemViewType() == 0) {
                 BadPasscodeCell cell = (BadPasscodeCell) holder.itemView;
-                int index = SharedConfig.badPasscodeAttemptList.size() - 1 - position;
-                BadPasscodeAttempt attempt = SharedConfig.badPasscodeAttemptList.get(index);
+                int index = SharedConfig.getBadPasscodeAttemptList().size() - 1 - position;
+                BadPasscodeAttempt attempt = SharedConfig.getBadPasscodeAttemptList().get(index);
                 cell.setBadPasscodeAttempt(attempt);
                 cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (holder.getItemViewType() == 1) {
@@ -137,7 +135,7 @@ public class BadPasscodeAttemptsActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (SharedConfig.badPasscodeAttemptList.size() != 0) {
+            if (SharedConfig.getBadPasscodeAttemptList().size() != 0) {
                 return 0;
             } else {
                 return 1;
