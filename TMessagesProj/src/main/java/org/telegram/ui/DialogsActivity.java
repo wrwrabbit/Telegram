@@ -133,11 +133,15 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupProtocol;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChat;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -8332,7 +8336,29 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 EncryptedGroup encryptedGroup = getMessagesController()
                         .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                 if (encryptedGroup != null) {
-                    args.putInt("enc_group_id", encryptedGroup.getId());
+                    if (encryptedGroup.getState() == EncryptedGroupState.JOINING_NOT_CONFIRMED) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                        builder.setTitle(LocaleController.getString(R.string.AppName));
+                        builder.setMessage("Do you want to join the secret group?");
+                        builder.setPositiveButton("Yes", (dialog, which) -> {
+                            encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
+                            try {
+                                getMessagesStorage().updateEncryptedGroup(encryptedGroup);
+                            } catch (Exception e) {
+                                PartisanLog.handleException(e);
+                            }
+                            InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedGroup.getOwnerUserId());
+                            TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(innerChat.getEncryptedChatId());
+                            new EncryptedGroupProtocol(currentAccount).sendJoinConfirmation(encryptedChat);
+                        });
+                        builder.setNegativeButton("No", (dialog, which) -> {
+                            getMessagesController().deleteDialog(encryptedGroup.getInternalId(), 2, false);
+                        });
+                        builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);
+                        showDialog(builder.create());
+                        return;
+                    }
+                    args.putInt("enc_group_id", encryptedGroup.getInternalId());
                 } else {
                     args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
                 }
@@ -9606,7 +9632,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         showDialog(builder.create());
                     } else {
                         EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(DialogObject.getEncryptedChatId(dialog.id));
-                        AlertsCreator.createClearOrDeleteDialogAlert(DialogsActivity.this, action == clear, chat, user, DialogObject.isEncryptedDialog(dialog.id), action == delete, encryptedGroup != null ? encryptedGroup.getId() : null, (param) -> {
+                        AlertsCreator.createClearOrDeleteDialogAlert(DialogsActivity.this, action == clear, chat, user, DialogObject.isEncryptedDialog(dialog.id), action == delete, encryptedGroup != null ? encryptedGroup.getInternalId() : null, (param) -> {
                             hideActionMode(false);
                             if (action == clear && ChatObject.isChannel(chat) && (!chat.megagroup || ChatObject.isPublic(chat))) {
                                 getMessagesController().deleteDialog(selectedDialog, 2, param);

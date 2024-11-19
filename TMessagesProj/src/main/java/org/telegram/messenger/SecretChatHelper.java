@@ -589,7 +589,7 @@ public class SecretChatHelper extends BaseController {
         }
     }
 
-    protected void performSendEncryptedRequest(TLRPC.DecryptedMessage req, TLRPC.Message newMsgObj, TLRPC.EncryptedChat chat, TLRPC.InputEncryptedFile encryptedFile, String originalPath, MessageObject newMsg) {
+    public void performSendEncryptedRequest(TLRPC.DecryptedMessage req, TLRPC.Message newMsgObj, TLRPC.EncryptedChat chat, TLRPC.InputEncryptedFile encryptedFile, String originalPath, MessageObject newMsg) {
         if (req == null || chat.auth_key == null || chat instanceof TLRPC.TL_encryptedChatRequested || chat instanceof TLRPC.TL_encryptedChatWaiting) {
             return;
         }
@@ -682,7 +682,7 @@ public class SecretChatHelper extends BaseController {
                 TLObject reqToSend;
 
                 if (encryptedFile == null) {
-                    if (req instanceof TLRPC.TL_decryptedMessageService) {
+                    if (req instanceof TLRPC.TL_decryptedMessageService || req instanceof org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage) {
                         TLRPC.TL_messages_sendEncryptedService req2 = new TLRPC.TL_messages_sendEncryptedService();
                         req2.data = data;
                         req2.random_id = req.random_id;
@@ -1322,6 +1322,9 @@ public class SecretChatHelper extends BaseController {
                 } else {
                     return null;
                 }
+            } else if (object instanceof org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage) {
+                new org.telegram.messenger.partisan.secretgroups.EncryptedGroupProtocol(currentAccount)
+                        .handleServiceMessage(chat, (org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage)object);
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("unknown message " + object);

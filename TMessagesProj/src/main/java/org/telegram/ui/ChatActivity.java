@@ -302,7 +302,6 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider, AllowShowingActivityInterface, InstantCameraView.Delegate {
@@ -2608,7 +2607,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (encIds != null || encGroupId != 0) {
             currentEncryptedGroup = getMessagesController().getEncryptedGroup(encGroupId);
             if (currentEncryptedGroup != null) {
-                encIds = currentEncryptedGroup.getEncryptedChatsIds();
+                encIds = currentEncryptedGroup.getInnerEncryptedChatIds();
             }
             currentEncryptedChatList = encIds.stream()
                     .map(id -> getMessagesController().getEncryptedChat(id))
@@ -22892,7 +22891,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             return;
         }
         try {
-            int encryptedGroupId = currentEncryptedGroup.getId();
+            int encryptedGroupId = currentEncryptedGroup.getInternalId();
             int encryptedChatId = DialogObject.getEncryptedChatId(obj.getDialogId());
             obj.encryptedGroupVirtualMessageId = getMessagesStorage()
                     .getEncryptedGroupVirtualMessageId(encryptedGroupId, encryptedChatId, obj.getId());
@@ -40715,7 +40714,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentEncryptedGroup == null) {
             return null;
         }
-        return currentEncryptedGroup.getId();
+        return currentEncryptedGroup.getInternalId();
     }
 
     public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {

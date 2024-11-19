@@ -6075,6 +6075,10 @@ public class MessagesController extends BaseController implements NotificationCe
         return encryptedGroups.get(id);
     }
 
+    public EncryptedGroup getEncryptedGroupByExternalId(long externalId) {
+        return encryptedGroups.values().stream().filter(g -> g.getExternalId() == externalId).findAny().orElse(null);
+    }
+
     public TLRPC.EncryptedChat getEncryptedChatDB(int chatId, boolean created) {
         TLRPC.EncryptedChat chat = encryptedChats.get(chatId);
         if (chat == null || created && (chat instanceof TLRPC.TL_encryptedChatWaiting || chat instanceof TLRPC.TL_encryptedChatRequested)) {
@@ -6511,9 +6515,9 @@ public class MessagesController extends BaseController implements NotificationCe
             return;
         }
         if (fromCache) {
-            encryptedGroups.putIfAbsent(encryptedGroup.getId(), encryptedGroup);
+            encryptedGroups.putIfAbsent(encryptedGroup.getInternalId(), encryptedGroup);
         } else {
-            encryptedGroups.put(encryptedGroup.getId(), encryptedGroup);
+            encryptedGroups.put(encryptedGroup.getInternalId(), encryptedGroup);
         }
     }
 
@@ -12222,7 +12226,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 enc_groups_dict = new SparseArray<>();
                 for (int a = 0, N = encGroups.size(); a < N; a++) {
                     EncryptedGroup encryptedGroup = encGroups.get(a);
-                    enc_groups_dict.put(encryptedGroup.getId(), encryptedGroup);
+                    enc_groups_dict.put(encryptedGroup.getInternalId(), encryptedGroup);
                 }
             } else {
                 enc_groups_dict = null;
@@ -12263,11 +12267,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 new_dialogMessage.put(did, arrayList);
                 if (encGroups != null && !encGroups.isEmpty() && DialogObject.isEncryptedDialog(did)) {
                     EncryptedGroup encryptedGroup = encGroups.stream()
-                            .filter(g -> g.getEncryptedChatsIds().contains(DialogObject.getEncryptedChatId(did)))
+                            .filter(g -> g.getInnerEncryptedChatIds().contains(DialogObject.getEncryptedChatId(did)))
                             .findAny()
                             .orElse(null);
                     if (encryptedGroup != null) {
-                        long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getId());
+                        long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId());
                         ArrayList<MessageObject> prevMessage = new_dialogMessage.get(encryptedGroupDialogId);
                         if (prevMessage == null || arrayList.get(0).messageOwner.date > prevMessage.get(0).messageOwner.date) {
                             new_dialogMessage.put(encryptedGroupDialogId, arrayList);

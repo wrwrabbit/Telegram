@@ -1,0 +1,25 @@
+package org.telegram.messenger.partisan.secretgroups;
+
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.tgnet.TLRPC;
+
+public class EncryptedGroupUtils {
+    public static void checkAllEncryptedChatsCreated(EncryptedGroup encryptedGroup, int accountNum) {
+        if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.INITIALIZED)) {
+            encryptedGroup.setState(EncryptedGroupState.INITIALIZED);
+            try {
+                MessagesStorage.getInstance(accountNum).updateEncryptedGroup(encryptedGroup);
+            } catch (Exception e) {
+                PartisanLog.handleException(e);
+            }
+            if (encryptedGroup.getOwnerUserId() != UserConfig.getInstance(accountNum).clientUserId) {
+                InnerEncryptedChat ownerInnerEncryptedChat = encryptedGroup.getInnerChatByUserId(encryptedGroup.getOwnerUserId());
+                TLRPC.EncryptedChat ownerEncryptedChat = MessagesController.getInstance(accountNum).getEncryptedChat(ownerInnerEncryptedChat.getEncryptedChatId());
+                new EncryptedGroupProtocol(accountNum).sendAllSecondaryChatsInitialized(ownerEncryptedChat);
+            }
+        }
+    }
+}
