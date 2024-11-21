@@ -183,7 +183,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
             selectedPremium = null;
         }
         if (miniapps && selectedMiniapps == null) {
-            selectedMiniapps = new GroupCreateSpan(getContext(), "miniapps");
+            selectedMiniapps = new GroupCreateSpan(getContext(), "miniapps", currentAccount);
             spansContainer.addSpan(selectedMiniapps);
             selectedMiniapps.setOnClickListener(GroupCreateActivity.this);
         } else if (!miniapps && selectedMiniapps != null) {
@@ -833,7 +833,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 }
                 if (cell.currentMiniapps) {
                     if (selectedMiniapps == null) {
-                        selectedMiniapps = new GroupCreateSpan(editText.getContext(), "miniapps");
+                        selectedMiniapps = new GroupCreateSpan(editText.getContext(), "miniapps", currentAccount);
                         spansContainer.addSpan(selectedMiniapps);
                         selectedMiniapps.setOnClickListener(GroupCreateActivity.this);
                     } else {

@@ -1360,7 +1360,7 @@ public class BotWebViewSheet extends Dialog implements NotificationCenter.Notifi
             });
         }
         if (fullscreenButtons != null) {
-            fullscreenButtons.setName(UserObject.getUserName(userbot), userbot != null && userbot.verified);
+            fullscreenButtons.setName(UserObject.getUserName(userbot), userbot != null && userbot.isVerified());
         }
         ActionBarMenu menu = actionBar.createMenu();
         menu.removeAllViews();

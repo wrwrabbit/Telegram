@@ -53,7 +53,7 @@ public class UpdateButton extends IUpdateButton {
             if (!SharedConfig.isAppUpdateAvailable()) return;
             Activity activity = AndroidUtilities.findActivity(getContext());
             if (activity == null) return;
-            AndroidUtilities.openForView(SharedConfig.pendingAppUpdate.document, true, activity);
+            AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, activity);
         });
 
         icon = new RadialProgress2(this);
@@ -121,8 +121,8 @@ public class UpdateButton extends IUpdateButton {
     public void update(boolean animated) {
         final boolean show;
         if (SharedConfig.isAppUpdateAvailable()) {
-            final String fileName = FileLoader.getAttachFileName(SharedConfig.pendingAppUpdate.document);
-            final File path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(SharedConfig.pendingAppUpdate.document, true);
+            final String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
+            final File path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
             show = path.exists();
         } else {
             show = false;
