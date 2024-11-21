@@ -137,6 +137,7 @@ import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.appmigration.MigrationZipBuilder;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -7149,7 +7150,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         VerificationUpdatesChecker.checkUpdate(currentAccount, false);
 
-        AppMigrator.deleteZipFile();
+        MigrationZipBuilder.deleteZipFile();
         if (AppMigrator.checkMigrationNeedToResume(getContext())) {
             AndroidUtilities.runOnUIThread(() -> presentFragment(new AppMigrationActivity()));
         } else if (!AndroidUtilities.needShowPasscode(false)) {
@@ -7234,6 +7235,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         anyPtgDialogShown = true;
         dialog.setOnDismissListener((dlg) -> anyPtgDialogShown = false);
+        dialog.setOnPreDismissListener((dlg) -> anyPtgDialogShown = false);
         if (showUsingFragmentMethod) {
             showDialog(dialog);
         } else {

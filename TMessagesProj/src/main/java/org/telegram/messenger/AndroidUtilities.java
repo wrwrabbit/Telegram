@@ -134,8 +134,8 @@ import com.google.android.gms.tasks.Task;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.messenger.utils.CustomHtml;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -4061,7 +4061,12 @@ public class AndroidUtilities {
             }
             if (realMimeType != null) {
                 try {
-                    activity.startActivityForResult(intent, 500);
+                    if (MaskedMigratorHelper.ifFileFromMaskingBot(f)) {
+                        MaskedMigratorHelper.onStartInstallingAppFromMaskingBot(f);
+                        activity.startActivityForResult(intent, LaunchActivity.INSTALL_MASKED_PTG_REQUEST_CODE);
+                    } else {
+                        activity.startActivityForResult(intent, 500);
+                    }
                 } catch (Exception e) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         intent.setDataAndType(FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", f), "text/plain");
@@ -4087,6 +4092,7 @@ public class AndroidUtilities {
             f = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
         }
         String mimeType = message.type == MessageObject.TYPE_FILE || message.type == MessageObject.TYPE_TEXT ? message.getMimeType() : null;
+        MaskedMigratorHelper.saveFileMetadataFromMaskingBotIfNeed(f, message);
         return openForView(f, message.getFileName(), mimeType, activity, resourcesProvider, restrict);
     }
 

@@ -72,7 +72,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.arch.core.util.Function;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.ColorUtils;
@@ -129,8 +128,10 @@ import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.partisan.SecurityChecker;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
+import org.telegram.messenger.partisan.appmigration.MigrationIntentHandler;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
-import org.telegram.messenger.partisan.appmigration.MigrationReceiveActivity;
+import org.telegram.messenger.partisan.appmigration.AppMigratorPreferences;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
@@ -226,6 +227,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -342,6 +344,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     private static final int PLAY_SERVICES_REQUEST_CHECK_SETTINGS = 140;
     public static final int SCREEN_CAPTURE_REQUEST_CODE = 520;
+    public static final int INSTALL_MASKED_PTG_REQUEST_CODE = 500500;
     public static final int WEBVIEW_SHARE_API_REQUEST_CODE = 521;
 
     public static final int BLUETOOTH_CONNECT_TYPE = 0;
@@ -6259,6 +6262,16 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
                 lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
             }
+        } else if (requestCode == INSTALL_MASKED_PTG_REQUEST_CODE) {
+            boolean migrationNotStarted = !AppMigrator.checkMigrationNeedToResume(this);
+            boolean migratingToThisPackage = Objects.equals(AppMigratorPreferences.getInstalledMaskedPtgPackageName(), MaskedMigratorHelper.getInstallingPackageName());
+            if (migrationNotStarted || migratingToThisPackage) {
+                boolean appInstalledSaved = MaskedMigratorHelper.saveAppFromMaskingBotInstalled();
+                if (appInstalledSaved && actionBarLayout.getFragmentStack().size() != 0) {
+                    BaseFragment lastFragment = actionBarLayout.getFragmentStack().get(actionBarLayout.getFragmentStack().size() - 1);
+                    lastFragment.showDialog(AppMigrationDialogs.createNewerPtgInstalledDialog(lastFragment));
+                }
+            }
         } else if (requestCode == PLAY_SERVICES_REQUEST_CHECK_SETTINGS) {
             LocationController.getInstance(currentAccount).startFusedLocationRequest(resultCode == Activity.RESULT_OK);
         } else if (requestCode == WEBVIEW_SHARE_API_REQUEST_CODE) {
@@ -6560,7 +6573,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
 
         invalidateTabletMode();
-        checkOtherPtgIntent();
+        MigrationIntentHandler.checkOtherPtgIntent(this, currentAccount);
         SpoilerEffect2.pause(false);
 
         if (ApplicationLoader.applicationLoaderInstance != null) {
@@ -8310,31 +8323,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         } else {
             fileOrDirectory.delete();
-        }
-    }
-
-    private synchronized void checkOtherPtgIntent() {
-        if (AppMigrator.isReceivingZip()
-                || getCallingActivity() == null
-                || !AppMigrator.isPtgPackageName(getCallingActivity().getPackageName())
-                || !getIntent().getBooleanExtra("fromOtherPtg", false)) {
-            return;
-        }
-        applyLanguageFromIntent();
-        AppMigrator.receiveZip(this);
-        presentFragment(new MigrationReceiveActivity());
-    }
-
-    private void applyLanguageFromIntent() {
-        if (getIntent().hasExtra("language")) {
-            String targetLanguage = getIntent().getStringExtra("language");
-            LocaleController.LocaleInfo localeInfo = LocaleController.getInstance().languages.stream()
-                    .filter(l -> TextUtils.equals(l.shortName, targetLanguage))
-                    .findFirst()
-                    .orElse(null);
-            if (localeInfo != null) {
-                LocaleController.getInstance().applyLanguage(localeInfo, true, false, false, true, currentAccount, null);
-            }
         }
     }
 
