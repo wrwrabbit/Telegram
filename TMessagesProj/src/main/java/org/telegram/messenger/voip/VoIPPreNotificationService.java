@@ -34,6 +34,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.XiaomiUtilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.PermissionRequest;
@@ -400,6 +401,10 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
         }
 
         if (pendingCall != null && pendingCall.id == call.id) {
+            return;
+        }
+
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return;
         }
 
