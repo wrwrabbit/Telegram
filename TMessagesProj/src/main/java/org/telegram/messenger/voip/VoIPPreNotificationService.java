@@ -404,10 +404,6 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
             return;
         }
 
-        if (FakePasscodeUtils.isFakePasscodeActivated()) {
-            return;
-        }
-
         dismiss(context, false);
 
         pendingVoIP = intent;
@@ -416,6 +412,10 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
         final int account = intent.getIntExtra("account", UserConfig.selectedAccount);
         final long user_id = intent.getLongExtra("user_id", 0);
         final boolean video = call != null && call.video;
+
+        if (FakePasscodeUtils.isHideChat(user_id, account) || FakePasscodeUtils.isHideAccount(account)) {
+            return;
+        }
 
         currentState = new State(account, user_id, call);
 
