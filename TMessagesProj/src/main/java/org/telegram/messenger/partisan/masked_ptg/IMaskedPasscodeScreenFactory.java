@@ -11,4 +11,5 @@ public interface IMaskedPasscodeScreenFactory {
     boolean allowIconShortcuts();
     boolean allowCallNotification();
     boolean allowNotHiddenNotifications();
+    int getDefaultPrimaryColor();
 }

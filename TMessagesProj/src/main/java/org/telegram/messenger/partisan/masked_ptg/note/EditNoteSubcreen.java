@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.EditTextBoldCursor;
 
@@ -56,8 +57,8 @@ class EditNoteSubcreen extends RelativeLayout {
 
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.OVAL);
-        shape.setColor(Colors.primaryColor);
-        acceptButton.setBackground(Theme.AdaptiveRipple.filledCircle(shape, Colors.primaryColor, -1));
+        shape.setColor(getPrimaryColor());
+        acceptButton.setBackground(Theme.AdaptiveRipple.filledCircle(shape, getPrimaryColor(), -1));
 
         LayoutParams relativeParams = new LayoutParams(dp(48), dp(48));
         relativeParams.addRule(ALIGN_PARENT_TOP);
@@ -89,15 +90,15 @@ class EditNoteSubcreen extends RelativeLayout {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ColorStateList colorStateList = new ColorStateList(
                     new int[][]{StateSet.WILD_CARD},
-                    new int[]{Colors.primaryColor}
+                    new int[]{getPrimaryColor()}
             );
             titleEditText.setBackgroundTintList(colorStateList);
         }
         titleEditText.setId(generateViewId());
         titleEditText.setHint("Title");
         titleEditText.setHintTextColor(Colors.noteTitleHintColor);
-        titleEditText.setCursorColor(Colors.primaryColor);
-        titleEditText.setHandlesColor(Colors.primaryColor);
+        titleEditText.setCursorColor(getPrimaryColor());
+        titleEditText.setHandlesColor(getPrimaryColor());
         titleEditText.setMaxLines(1);
         titleEditText.setSingleLine();
         titleEditText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 32);
@@ -149,15 +150,15 @@ class EditNoteSubcreen extends RelativeLayout {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ColorStateList colorStateList = new ColorStateList(
                     new int[][]{StateSet.WILD_CARD},
-                    new int[]{Colors.primaryColor}
+                    new int[]{getPrimaryColor()}
             );
             descriptionEditText.setBackgroundTintList(colorStateList);
         }
         descriptionEditText.setId(generateViewId());
         descriptionEditText.setHint("Description");
         descriptionEditText.setHintTextColor(Colors.descriptionHintColor);
-        descriptionEditText.setCursorColor(Colors.primaryColor);
-        descriptionEditText.setHandlesColor(Colors.primaryColor);
+        descriptionEditText.setCursorColor(getPrimaryColor());
+        descriptionEditText.setHandlesColor(getPrimaryColor());
         descriptionEditText.setSingleLine(false);
         descriptionEditText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         descriptionEditText.setGravity(Gravity.TOP);
@@ -183,5 +184,9 @@ class EditNoteSubcreen extends RelativeLayout {
         this.tutorial = tutorial;
         titleTutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
         acceptButtonTutorialArrow.setVisibility(View.GONE);
+    }
+
+    private int getPrimaryColor() {
+        return MaskedPtgConfig.getPrimaryColor(getContext());
     }
 }

@@ -36,4 +36,9 @@ public class NoteScreenFactory implements IMaskedPasscodeScreenFactory {
     public boolean allowNotHiddenNotifications() {
         return false;
     }
+
+    @Override
+    public int getDefaultPrimaryColor() {
+        return Colors.primaryColor;
+    }
 }

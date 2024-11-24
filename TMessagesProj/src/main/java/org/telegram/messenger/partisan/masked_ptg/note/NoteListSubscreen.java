@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Components.RecyclerListView;
@@ -56,8 +57,8 @@ class NoteListSubscreen extends FrameLayout {
 
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.OVAL);
-        shape.setColor(Colors.primaryColor);
-        floatingButton.setBackground(Theme.AdaptiveRipple.filledCircle(shape, Colors.primaryColor, -1));
+        shape.setColor(getPrimaryColor());
+        floatingButton.setBackground(Theme.AdaptiveRipple.filledCircle(shape, getPrimaryColor(), -1));
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(56), dp(56));
         params.gravity = Gravity.BOTTOM | Gravity.END;
@@ -90,7 +91,7 @@ class NoteListSubscreen extends FrameLayout {
         listView.setVerticalScrollBarEnabled(false);
         listView.setItemAnimator(null);
         listView.setLayoutAnimation(null);
-        listView.setGlowColor(Colors.primaryColor);
+        listView.setGlowColor(getPrimaryColor());
         listView.setAdapter(listAdapter = new ListAdapter(getContext()));
         listView.setOnItemClickListener((view, position) -> delegate.onNoteClicked(position / 2));
         listView.setOnItemLongClickListener((view, position) -> {
@@ -126,6 +127,10 @@ class NoteListSubscreen extends FrameLayout {
     void setTutorial(boolean tutorial) {
         this.tutorial = tutorial;
         tutorialArrow.setVisibility(tutorial ? View.VISIBLE : View.GONE);
+    }
+
+    private int getPrimaryColor() {
+        return MaskedPtgConfig.getPrimaryColor(getContext());
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

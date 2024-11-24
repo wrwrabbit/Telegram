@@ -36,4 +36,9 @@ public class OriginalScreenFactory implements IMaskedPasscodeScreenFactory {
     public boolean allowNotHiddenNotifications() {
         return true;
     }
+
+    @Override
+    public int getDefaultPrimaryColor() {
+        return 0xFF2AABEE;
+    }
 }

@@ -20,6 +20,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
@@ -112,7 +113,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
     private int getButtonBackgroundColor(int row, int col) {
         if (col == BUTTONS_COL_COUNT - 1) {
-            return 0xfffe9500;
+            return MaskedPtgConfig.getPrimaryColor(context);
         } else if (row == 4) {
             return 0xffa5a5a5;
         } else {

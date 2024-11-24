@@ -21,6 +21,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.LayoutHelper;
@@ -149,7 +150,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     private void createProgressBar(Context context) {
         progressBar = new RadialProgressView(context);
         progressBar.setSize(AndroidUtilities.dp(64));
-        progressBar.setProgressColor(0xFFED7C04);
+        progressBar.setProgressColor(MaskedPtgConfig.getPrimaryColor(context));
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         relativeParams.addRule(RelativeLayout.CENTER_HORIZONTAL);

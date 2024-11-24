@@ -1,10 +1,14 @@
 package org.telegram.messenger.partisan.masked_ptg;
 
 import android.content.Context;
+import android.os.Build;
+import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
 
 import org.telegram.messenger.partisan.masked_ptg.original.OriginalScreenFactory;
 
 public class MaskedPtgConfig {
+    private static final int PRIMARY_COLOR = 0xffffffff;
     private static IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
 
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
@@ -31,7 +35,18 @@ public class MaskedPtgConfig {
         return FACTORY.allowNotHiddenNotifications();
     }
 
-    public static int getNotificationsColor() {
-        return 0xffffffff;
+    public static int getPrimaryColor(Context context) {
+        if (PRIMARY_COLOR != 0xffffffff) {
+            return PRIMARY_COLOR;
+        } else {
+            if (Build.VERSION.SDK_INT >= 21) {
+                TypedValue typedValue = new TypedValue();
+                ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault);
+                if (contextThemeWrapper.getTheme().resolveAttribute(android.R.attr.colorAccent, typedValue, true)) {
+                    return typedValue.data;
+                }
+            }
+            return FACTORY.getDefaultPrimaryColor();
+        }
     }
 }

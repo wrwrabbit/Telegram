@@ -4428,7 +4428,7 @@ public class NotificationsController extends BaseController {
                     .setGroupSummary(true)
                     .setShowWhen(true)
                     .setWhen(((long) lastMessageObject.messageOwner.date) * 1000)
-                    .setColor(MaskedPtgConfig.getNotificationsColor());
+                    .setColor(MaskedPtgConfig.getPrimaryColor(ApplicationLoader.applicationContext));
 
             long[] vibrationPattern = null;
             Uri sound = null;
@@ -5392,7 +5392,7 @@ public class NotificationsController extends BaseController {
                     .setContentText(Utils.fixMessage(text.toString()))
                     .setAutoCancel(true)
                     .setNumber(dialogKey.story ? storyPushMessages.size() : messageObjects.size())
-                    .setColor(MaskedPtgConfig.getNotificationsColor())
+                    .setColor(MaskedPtgConfig.getPrimaryColor(ApplicationLoader.applicationContext))
                     .setGroupSummary(false)
                     .setWhen(date)
                     .setShowWhen(true)

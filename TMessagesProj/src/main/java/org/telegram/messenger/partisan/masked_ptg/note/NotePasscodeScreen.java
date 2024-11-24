@@ -14,6 +14,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
@@ -129,9 +130,9 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
             } else if (key == Theme.key_dialogTextBlack) {
                 return Colors.noteTitleColor;
             } else if (key == Theme.key_dialogButton) {
-                return Colors.primaryColor;
+                return getPrimaryColor();
             }
-            return Colors.primaryColor;
+            return getPrimaryColor();
         });
         dialogBuilder.setTitle(LocaleController.getString(R.string.AppName));
         dialogBuilder.setMessage("Delete the note?");
@@ -202,5 +203,9 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
         } else {
             return true;
         }
+    }
+
+    private int getPrimaryColor() {
+        return MaskedPtgConfig.getPrimaryColor(context);
     }
 }

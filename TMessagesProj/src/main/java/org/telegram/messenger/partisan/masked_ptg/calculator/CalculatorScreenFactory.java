@@ -36,4 +36,9 @@ public class CalculatorScreenFactory implements IMaskedPasscodeScreenFactory {
     public boolean allowNotHiddenNotifications() {
         return false;
     }
+
+    @Override
+    public int getDefaultPrimaryColor() {
+        return 0xfffe9500;
+    }
 }
