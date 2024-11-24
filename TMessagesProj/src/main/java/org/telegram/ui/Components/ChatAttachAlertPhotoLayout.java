@@ -543,6 +543,13 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         public boolean allowCaption() {
             return !parentAlert.isPhotoPicker;
         }
+
+        @Override
+        public long getDialogId() {
+            if (parentAlert.baseFragment instanceof ChatActivity)
+                return ((ChatActivity) parentAlert.baseFragment).getDialogId();
+            return super.getDialogId();
+        }
     };
 
     protected void updateCheckedPhotoIndices() {
@@ -1697,7 +1704,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         });
     }
 
-    private void clearSelectedPhotos() {
+    public void clearSelectedPhotos() {
         spoilerItem.setText(LocaleController.getString(R.string.EnablePhotoSpoiler));
         spoilerItem.setAnimatedIcon(R.raw.photo_spoiler);
         parentAlert.selectedMenuItem.showSubItem(compress);
@@ -3362,7 +3369,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                 parentAlert.selectedMenuItem.showSubItem(open_in);
                 hasCompress = false;
                 parentAlert.selectedMenuItem.hideSubItem(compress);
-            } else if (documentsEnabled && getStarsPrice() <= 0) {
+            } else if (documentsEnabled && getStarsPrice() <= 0 && parentAlert.editingMessageObject == null) {
                 hasCompress = true;
                 parentAlert.selectedMenuItem.showSubItem(compress);
             } else {
