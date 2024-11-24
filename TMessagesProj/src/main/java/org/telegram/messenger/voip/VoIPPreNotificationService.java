@@ -34,6 +34,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.XiaomiUtilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.PermissionRequest;
@@ -411,6 +412,10 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
         final int account = intent.getIntExtra("account", UserConfig.selectedAccount);
         final long user_id = intent.getLongExtra("user_id", 0);
         final boolean video = call != null && call.video;
+
+        if (FakePasscodeUtils.isHideChat(user_id, account) || FakePasscodeUtils.isHideAccount(account)) {
+            return;
+        }
 
         currentState = new State(account, user_id, call);
 
