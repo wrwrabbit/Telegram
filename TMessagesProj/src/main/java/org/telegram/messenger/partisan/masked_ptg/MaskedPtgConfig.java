@@ -8,7 +8,7 @@ import android.view.ContextThemeWrapper;
 import org.telegram.messenger.partisan.masked_ptg.original.OriginalScreenFactory;
 
 public class MaskedPtgConfig {
-    private static final int PRIMARY_COLOR = 0xffffffff;
+    private static final Integer PRIMARY_COLOR = null;
     private static IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
 
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
@@ -36,7 +36,7 @@ public class MaskedPtgConfig {
     }
 
     public static int getPrimaryColor(Context context) {
-        if (PRIMARY_COLOR != 0xffffffff) {
+        if (PRIMARY_COLOR != null) {
             return PRIMARY_COLOR;
         } else {
             if (Build.VERSION.SDK_INT >= 21) {
