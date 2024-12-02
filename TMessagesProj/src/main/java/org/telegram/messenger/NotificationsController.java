@@ -4678,11 +4678,17 @@ public class NotificationsController extends BaseController {
         if (!storyPushMessages.isEmpty()) {
             sortedDialogs.add(new DialogKey(0, 0, true));
         }
+        if (!MaskedPtgConfig.allowNotHiddenNotifications()) {
+            sortedDialogs.add(new DialogKey(0, 0, false));
+        }
         LongSparseArray<ArrayList<MessageObject>> messagesByDialogs = new LongSparseArray<>();
         List<MessageObject> filteredMessages = filteredPushMessages();
         for (int a = 0; a < filteredMessages.size(); a++) {
             MessageObject messageObject = filteredMessages.get(a);
             long dialog_id = messageObject.getDialogId();
+            if (!MaskedPtgConfig.allowNotHiddenNotifications()) {
+                dialog_id = 0;
+            }
             long topicId = MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject));
             int dismissDate = preferences.getInt("dismissDate" + dialog_id, 0);
             if (!messageObject.isStoryPush && messageObject.messageOwner.date <= dismissDate) {
@@ -4855,7 +4861,9 @@ public class NotificationsController extends BaseController {
                     chat = getMessagesController().getChat(-dialogId);
                     if (chat == null) {
                         canReply = false;
-                        if (lastMessageObject.isFcmMessage()) {
+                        if (!MaskedPtgConfig.allowNotHiddenNotifications()) {
+                            name = "";
+                        } else if (lastMessageObject.isFcmMessage()) {
                             isSupergroup = lastMessageObject.isSupergroup();
                             name = getUserConfig().getChatTitleOverride(dialogId, lastMessageObject.localName);
                             isChannel = lastMessageObject.localChannel;
@@ -5309,6 +5317,9 @@ public class NotificationsController extends BaseController {
                     if (dialogId == 777000 && messageObject.messageOwner.reply_markup != null) {
                         rows = messageObject.messageOwner.reply_markup.rows;
                         rowsMid = messageObject.getId();
+                    }
+                    if (!MaskedPtgConfig.allowNotHiddenNotifications()) { // Show only 1 notification
+                        break;
                     }
                 }
             }
