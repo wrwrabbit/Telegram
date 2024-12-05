@@ -1089,7 +1089,7 @@ public class SharedConfig {
                     break;
                 default:
                     if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
-                        bruteForceRetryInMillis = 3600 * 1000;
+                        bruteForceRetryInMillis = 15 * 60 * 1000;
                     }
                     passcodeRetryInMs = 30000;
                     break;
