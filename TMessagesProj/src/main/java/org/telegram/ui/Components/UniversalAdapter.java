@@ -755,6 +755,7 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
             case VIEW_TYPE_SLIDE:
                 SlideChooseView slideView = (SlideChooseView) holder.itemView;
                 slideView.setOptions(item.intValue, item.texts);
+                slideView.setMinAllowedIndex((int) item.longValue);
                 slideView.setCallback(index -> {
                     if (item.intCallback != null) {
                         item.intCallback.run(index);
@@ -764,6 +765,7 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
             case VIEW_TYPE_INTSLIDE:
                 SlideIntChooseView slideIntChooseView = (SlideIntChooseView) holder.itemView;
                 slideIntChooseView.set(item.intValue, (SlideIntChooseView.Options) item.object, item.intCallback);
+                slideIntChooseView.setMinValueAllowed((int) item.longValue);
                 break;
             case VIEW_TYPE_QUICK_REPLY:
                 QuickRepliesActivity.QuickReplyView replyView = (QuickRepliesActivity.QuickReplyView) holder.itemView;
@@ -844,7 +846,7 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
                 ProfileSearchCell profileCell = (ProfileSearchCell) holder.itemView;
                 Object object = item.object;
                 CharSequence s = "";
-                if (item.accent && object instanceof TLRPC.User && ((TLRPC.User) object).bot_active_users != 0) { // show bot dau
+                if (item.accent && object instanceof TLRPC.User && ((TLRPC.User) object).bot_active_users != 0) { // show bot mau
                     TLRPC.User user = (TLRPC.User) object;
                     if (user.bot_active_users != 0) {
                         s = LocaleController.formatPluralStringSpaced("BotUsers", user.bot_active_users);
@@ -884,6 +886,7 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
                     // add status text
                     title = UserObject.getUserName(user, currentAccount);
                 }
+                profileCell.setRectangularAvatar(item.red);
                 profileCell.setData(object, null, title, s, false, false);
                 profileCell.useSeparator = divider;
                 break;
