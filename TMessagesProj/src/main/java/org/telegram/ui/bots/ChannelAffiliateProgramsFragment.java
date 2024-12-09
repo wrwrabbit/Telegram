@@ -43,6 +43,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -853,6 +854,9 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
                             continue;
                         did = -chat.id;
                     } else continue;
+                    if (FakePasscodeUtils.isHideChat(did, currentAccount)) {
+                        continue;
+                    }
                     i.addChat(obj, did == selectedDialogId[0], () -> {
                         selectedDialogId[0] = did;
                         updateDialog.run();

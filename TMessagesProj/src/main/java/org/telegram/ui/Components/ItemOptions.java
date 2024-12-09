@@ -332,11 +332,11 @@ public class ItemOptions {
         subItem.setPadding(dp(18), 0, dp(18), 0);
         if (obj instanceof TLRPC.Chat) {
             TLRPC.Chat chat = (TLRPC.Chat) obj;
-            subItem.setText(chat == null ? "" : chat.title);
+            subItem.setText(chat == null ? "" : UserConfig.getChatTitleOverride(UserConfig.selectedAccount, chat));
             subItem.setSubtext(ChatObject.isChannelAndNotMegaGroup(chat) ? getString(R.string.DiscussChannel) : getString(R.string.AccDescrGroup).toLowerCase());
         } else if (obj instanceof TLRPC.User) {
             TLRPC.User user = (TLRPC.User) obj;
-            subItem.setText(UserObject.getUserName(user));
+            subItem.setText(UserObject.getUserName(user, UserConfig.selectedAccount));
             if (user.id == UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId()) {
                 subItem.setSubtext(getString(R.string.VoipGroupPersonalAccount));
             } else if (UserObject.isBot(user)) {
