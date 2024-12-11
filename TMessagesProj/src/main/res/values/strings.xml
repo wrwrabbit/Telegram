@@ -8453,4 +8453,7 @@
     <string name="EncryptedGroupTitleOutgoing">You have created a secret group.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s invited you to join a secret group.</string>
     <string name="EncryptedGroupDescriptionTitle">Secret groups:</string>
+    <string name="SecretGroupJoiningConfirmation">Do you want to join the secret group?</string>
+    <string name="JoinSecretGroup">Join</string>
+    <string name="DeclineJoiningToSecretGroup">Decline Invitation</string>
 </resources>

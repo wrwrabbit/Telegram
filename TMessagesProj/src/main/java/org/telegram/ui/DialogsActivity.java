@@ -8340,7 +8340,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                         builder.setTitle(LocaleController.getString(R.string.AppName));
                         builder.setMessage("Do you want to join the secret group?");
-                        builder.setPositiveButton("Yes", (dialog, which) -> {
+                        builder.setPositiveButton(LocaleController.getString(R.string.JoinSecretGroup), (dialog, which) -> {
                             encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
                             try {
                                 getMessagesStorage().updateEncryptedGroup(encryptedGroup);
@@ -8350,8 +8350,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedGroup.getOwnerUserId());
                             TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(innerChat.getEncryptedChatId());
                             new EncryptedGroupProtocol(currentAccount).sendJoinConfirmation(encryptedChat);
+
+                            Bundle args2 = new Bundle();
+                            args2.putInt("enc_group_id", encryptedGroup.getInternalId());
+                            args2.putBoolean("just_created_chat", true);
+                            presentFragment(new ChatActivity(args2), true);
                         });
-                        builder.setNegativeButton("No", (dialog, which) -> {
+                        builder.setNegativeButton(LocaleController.getString(R.string.DeclineJoiningToSecretGroup), (dialog, which) -> {
                             getMessagesController().deleteDialog(encryptedGroup.getInternalId(), 2, false);
                         });
                         builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);

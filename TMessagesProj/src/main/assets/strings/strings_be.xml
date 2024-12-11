@@ -272,4 +272,6 @@
     <string name="EncryptedGroupTitleOutgoing">Вы стварылі сакрэтную групу.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s запрасіў Вас у сакрэтную групу.</string>
     <string name="EncryptedGroupDescriptionTitle">Сакрэтныя групы:</string>
+    <string name="JoinSecretGroup">Далучыцца</string>
+    <string name="DeclineJoiningToSecretGroup">Адхіліць запрашэнне</string>
 </resources>
