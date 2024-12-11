@@ -8450,4 +8450,7 @@
     <string name="WaitingForSecretGroupInitializationConfirmation">Waiting for confirmation from participants</string>
     <string name="WaitingForSecondaryChatsCreation">Waiting for the creation of chats between participants</string>
     <string name="SecretGroupInitializationFailed">Secret group initialization failed</string>
+    <string name="EncryptedGroupTitleOutgoing">You have created a secret group.</string>
+    <string name="EncryptedGroupPlaceholderTitleIncoming">%s invited you to join a secret group.</string>
+    <string name="EncryptedGroupDescriptionTitle">Secret groups:</string>
 </resources>

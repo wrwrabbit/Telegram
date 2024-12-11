@@ -30526,12 +30526,19 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     emptyViewContainer.addView(emptyView, new FrameLayout.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
                 }
             }
+        } else if (currentEncryptedGroup != null) {
+            bigEmptyView = new ChatBigEmptyView(getContext(), contentView, ChatBigEmptyView.EMPTY_VIEW_TYPE_SECRET_GROUP, themeDelegate);
+            if (currentEncryptedGroup.getOwnerUserId() == getUserConfig().getClientUserId()) {
+                bigEmptyView.setStatusText(LocaleController.getString(R.string.EncryptedGroupTitleOutgoing));
+            } else {
+                TLRPC.User ownerUser = getMessagesController().getUser(currentEncryptedGroup.getOwnerUserId());
+                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedGroupPlaceholderTitleIncoming", R.string.EncryptedGroupPlaceholderTitleIncoming, ownerUser != null ? UserObject.getFirstName(ownerUser) : "Unknown"));
+            }
+            emptyViewContainer.addView(bigEmptyView, new FrameLayout.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
         } else {
             bigEmptyView = new ChatBigEmptyView(getContext(), contentView, ChatBigEmptyView.EMPTY_VIEW_TYPE_SECRET, themeDelegate);
             if (currentEncryptedChatSingle != null && currentEncryptedChatSingle.admin_id == getUserConfig().getClientUserId()) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, UserObject.getFirstName(currentUser)));
-            } else if (currentEncryptedGroup != null) {
-                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, currentEncryptedGroup.getName()));
             } else if (currentEncryptedChatList != null) {
                 bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, "Encrypted Group"));
             } else {

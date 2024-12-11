@@ -269,4 +269,7 @@
     <string name="WaitingForSecretGroupInitializationConfirmation">Чакаем пацверджання ад удзельнікаў</string>
     <string name="WaitingForSecondaryChatsCreation">Чакаем стварэння чатаў паміж удзельнікамі</string>
     <string name="SecretGroupInitializationFailed">Не атрымалася ініцыалізаваць сакрэтную групу</string>
+    <string name="EncryptedGroupTitleOutgoing">Вы стварылі сакрэтную групу.</string>
+    <string name="EncryptedGroupPlaceholderTitleIncoming">%s запрасіў Вас у сакрэтную групу.</string>
+    <string name="EncryptedGroupDescriptionTitle">Сакрэтныя групы:</string>
 </resources>
