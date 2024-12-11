@@ -61,6 +61,7 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
+import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChat;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
 import org.telegram.messenger.voip.VoIPPreNotificationService;
@@ -8895,6 +8896,14 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     protected void deleteDialog(long did, int first, int onlyHistory, int max_id, boolean revoke, TLRPC.InputPeer peer, long taskId) {
+        if (DialogObject.isEncryptedDialog(did)) {
+            EncryptedGroup encryptedGroup = getEncryptedGroup(DialogObject.getEncryptedChatId(did));
+            if (encryptedGroup != null) {
+                for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
+                    deleteDialog(innerChat.getDialogId(), onlyHistory, revoke);
+                }
+            }
+        }
         if (onlyHistory == 2) {
             if (did == getUserConfig().getClientUserId()) {
                 getSavedMessagesController().deleteAllDialogs();
