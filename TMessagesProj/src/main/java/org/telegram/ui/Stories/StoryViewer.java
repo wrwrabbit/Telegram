@@ -1381,7 +1381,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
                                 currentPlayerScope.firstFrameRendered = true;
                             }
                             FileLog.d("StoryViewer requestPlayer: currentPlayerScope.player start " + uri);
-                            currentPlayerScope.player.start(isPaused(), uri, t, isInSilentMode, currentSpeed);
+                            currentPlayerScope.player.start(false, isPaused(), uri, t, isInSilentMode, currentSpeed);
                             currentPlayerScope.invalidate();
                         } else {
                             FileLog.d("StoryViewer requestPlayer: url is null (1)");
@@ -2663,7 +2663,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
         if (BuildVars.DEBUG_PRIVATE_VERSION) {
             return;
         }
-        allowScreenshots = !isShowing || allowScreenshots;
+        allowScreenshots = !isShowing || allowScreenshots || SharedConfig.forceAllowScreenshots;
         if (this.allowScreenshots != allowScreenshots) {
             this.allowScreenshots = allowScreenshots;
 
