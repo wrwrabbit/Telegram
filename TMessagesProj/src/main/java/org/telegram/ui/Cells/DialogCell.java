@@ -3002,6 +3002,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             user = null;
             chat = null;
             encryptedChat = null;
+            encryptedGroup = null;
 
             long dialogId;
             if (currentDialogFolderId != 0) {
