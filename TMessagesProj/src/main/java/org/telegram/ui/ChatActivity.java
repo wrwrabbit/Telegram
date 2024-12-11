@@ -28360,7 +28360,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Map<TLRPC.EncryptedChat, List<MessageObject>> encryptedGroupMessages = new HashMap<>();
         for (MessageObject message : srcMessages) {
             List<MessageObject> messageCopies;
-            if (message.isOut()) {
+            if (message.isOut() && hiddenEncryptedGroupOutMessages.containsKey(message.getId())) {
                 messageCopies = new ArrayList<>(hiddenEncryptedGroupOutMessages.get(message.getId()));
                 messageCopies.add(message);
             } else {
