@@ -218,6 +218,9 @@ public class EncryptedGroupProtocol {
             if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.WAITING_SECONDARY_CHATS_CREATION)) {
                 requestMembersToCreateSecondaryChats(encryptedGroup);
             }
+            AndroidUtilities.runOnUIThread(() -> {
+                getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            });
         } catch (Exception e) {
             PartisanLog.handleException(e);
         }
@@ -251,6 +254,9 @@ public class EncryptedGroupProtocol {
             encryptedGroup.setState(EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION);
             getMessagesStorage().updateEncryptedGroup(encryptedGroup);
             SecondaryInnerChatStarter.startSecondaryChats(accountNum, LaunchActivity.instance, encryptedGroup);
+            AndroidUtilities.runOnUIThread(() -> {
+                getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            });
         } catch (Exception e) {
             PartisanLog.handleException(e);
         }
@@ -280,6 +286,9 @@ public class EncryptedGroupProtocol {
         }
 
         EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
+        AndroidUtilities.runOnUIThread(() -> {
+            getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+        });
     }
 
     private void handleAllSecondaryChatsInitialized(TLRPC.EncryptedChat encryptedChat, AllSecondaryChatsInitializedAction action) {
@@ -302,6 +311,9 @@ public class EncryptedGroupProtocol {
                 PartisanLog.handleException(e);
             }
             EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
+            AndroidUtilities.runOnUIThread(() -> {
+                getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            });
         } catch (Exception e) {
             PartisanLog.handleException(e);
         }
