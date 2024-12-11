@@ -14192,7 +14192,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         name = null;
                     }
                 }
-                if (isEncryptedChat()) {
+                if (isEncryptedGroup()) {
+                    if (messageObjectToReply.isOutOwner()) {
+                        name = UserObject.getUserName(getUserConfig().getCurrentUser());
+                    } else {
+                        TLRPC.User user = getMessagesController().getUser(messageObjectToReply.messageOwner.peer_id.user_id);
+                        name = UserObject.getUserName(user);
+                    }
+                } else if (isEncryptedChat()) {
                     if (messageObjectToReply.isOutOwner()) {
                         name = UserObject.getUserName(getUserConfig().getCurrentUser());
                     } else {
