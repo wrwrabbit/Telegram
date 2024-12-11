@@ -2774,6 +2774,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
+        getNotificationCenter().addObserver(this, NotificationCenter.encryptedGroupUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogsUnreadReactionsCounterChanged);
         getNotificationCenter().addObserver(this, NotificationCenter.groupStickersDidLoad);
@@ -3206,6 +3207,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
+        getNotificationCenter().removeObserver(this, NotificationCenter.encryptedGroupUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.chatAvailableReactionsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSponsoredMessages);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSendAsPeers);
@@ -17770,13 +17772,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (!inPreviewMode && !isInsideContainer && chatMode != MODE_SAVED) {
                     chatActivityEnterView.setVisibility(View.VISIBLE);
                 }
-            } else if (currentEncryptedGroup != null && currentEncryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
-                bottomOverlayText.setText(EncryptedGroupUtils.getEncryptedStateDescription(currentEncryptedGroup.getState()));
-                bottomOverlay.setVisibility(View.VISIBLE);
-                chatActivityEnterView.setVisibility(View.INVISIBLE);
-                chatActivityEnterView.setFieldText("");
-                getMediaDataController().cleanDraft(dialog_id, threadMessageId, false);
-                hideKeyboard = true;
+            } else if (currentEncryptedGroup != null) {
+                if (currentEncryptedGroup.getState() == EncryptedGroupState.INITIALIZED) {
+                    bottomOverlay.setVisibility(View.INVISIBLE);
+                    if (!inPreviewMode && !isInsideContainer && chatMode != MODE_SAVED) {
+                        chatActivityEnterView.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    bottomOverlayText.setText(EncryptedGroupUtils.getEncryptedStateDescription(currentEncryptedGroup.getState()));
+                    bottomOverlay.setVisibility(View.VISIBLE);
+                    chatActivityEnterView.setVisibility(View.INVISIBLE);
+                    chatActivityEnterView.setFieldText("");
+                    getMediaDataController().cleanDraft(dialog_id, threadMessageId, false);
+                    hideKeyboard = true;
+                }
             }
             checkRaiseSensors();
             checkActionBarMenu(false);
@@ -21225,6 +21234,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             TLRPC.EncryptedChat chat = (TLRPC.EncryptedChat) args[0];
             if (currentEncryptedChatSingle != null && chat.id == currentEncryptedChatSingle.id) {
                 currentEncryptedChatSingle = chat;
+                updateTopPanel(true);
+                updateSecretStatus();
+                if (suggestEmojiPanel != null) {
+                    suggestEmojiPanel.fireUpdate();
+                }
+                if (chatActivityEnterView != null) {
+                    chatActivityEnterView.setAllowStickersAndGifs(true, true, true);
+                    chatActivityEnterView.checkRoundVideo();
+                }
+                if (mentionContainer != null && mentionContainer.getAdapter() != null) {
+                    mentionContainer.getAdapter().setNeedBotContext(!chatActivityEnterView.isEditingMessage());
+                }
+            }
+        } else if (id == NotificationCenter.encryptedGroupUpdated) {
+            EncryptedGroup encryptedGroup = (EncryptedGroup) args[0];
+            if (currentEncryptedGroup != null && encryptedGroup.getInternalId() == currentEncryptedGroup.getInternalId()) {
                 updateTopPanel(true);
                 updateSecretStatus();
                 if (suggestEmojiPanel != null) {

@@ -152,6 +152,7 @@ public class EncryptedGroupProtocol {
 
         AndroidUtilities.runOnUIThread(() -> {
             getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
             getMessagesController().putEncryptedGroup(encryptedGroup, false);
         });
     }
@@ -220,6 +221,7 @@ public class EncryptedGroupProtocol {
             }
             AndroidUtilities.runOnUIThread(() -> {
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
             });
         } catch (Exception e) {
             PartisanLog.handleException(e);
@@ -256,6 +258,7 @@ public class EncryptedGroupProtocol {
             SecondaryInnerChatStarter.startSecondaryChats(accountNum, LaunchActivity.instance, encryptedGroup);
             AndroidUtilities.runOnUIThread(() -> {
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
             });
         } catch (Exception e) {
             PartisanLog.handleException(e);
@@ -288,6 +291,7 @@ public class EncryptedGroupProtocol {
         EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
         AndroidUtilities.runOnUIThread(() -> {
             getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
         });
     }
 
@@ -313,6 +317,7 @@ public class EncryptedGroupProtocol {
             EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
             AndroidUtilities.runOnUIThread(() -> {
                 getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
             });
         } catch (Exception e) {
             PartisanLog.handleException(e);
