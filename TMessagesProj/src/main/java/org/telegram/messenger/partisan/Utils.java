@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -546,6 +547,20 @@ public class Utils {
         } catch (Exception e) {
             PartisanLog.handleException(e);
             return filteredDialogsByPasscode;
+        }
+    }
+
+    public static void getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(long dialogId, int account, Consumer<Integer> action) {
+        if (DialogObject.isEncryptedDialog(dialogId)) {
+            try {
+                Integer encryptedGroupId = MessagesStorage.getInstance(account)
+                        .getEncryptedGroupIdByInnerEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
+                if (encryptedGroupId != null) {
+                    action.accept(encryptedGroupId);
+                }
+            } catch (Exception e) {
+                PartisanLog.handleException(e);
+            }
         }
     }
 }

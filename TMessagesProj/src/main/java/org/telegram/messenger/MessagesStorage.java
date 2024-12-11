@@ -10548,8 +10548,8 @@ public class MessagesStorage extends BaseController {
         return encryptedGroupExists;
     }
 
-    public Integer getEncryptedGroupIdByInnerEncryptedChatId(int internalChatId) throws Exception {
-        SQLiteCursor cursor = database.queryFinalized("SELECT encrypted_group_id FROM enc_group_inner_chats WHERE encrypted_chat_id=?", internalChatId);
+    public Integer getEncryptedGroupIdByInnerEncryptedChatId(int innerChatId) throws Exception {
+        SQLiteCursor cursor = database.queryFinalized("SELECT encrypted_group_id FROM enc_group_inner_chats WHERE encrypted_chat_id=?", innerChatId);
 
         Integer groupId = null;
         if (cursor.next()) {
