@@ -78,6 +78,8 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -1398,6 +1400,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     messageString = LocaleController.getString(R.string.EncryptedChatStartedIncoming);
                                 }
                             }
+                        } else if (encryptedGroup != null && encryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+                            currentMessagePaint = Theme.dialogs_messagePrintingPaint[paintIndex];
+                            messageString = EncryptedGroupUtils.getEncryptedStateDescription(encryptedGroup.getState());
                         } else {
                             if (dialogsType == DialogsActivity.DIALOGS_TYPE_FORWARD && UserObject.isUserSelf(user)) {
                                 messageString = LocaleController.getString(parentFragment != null && parentFragment.isQuote ? R.string.SavedMessagesInfoQuote : R.string.SavedMessagesInfo);

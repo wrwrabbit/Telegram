@@ -187,6 +187,8 @@ import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.findmessages.FindMessagesController;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.utils.PhotoUtilities;
 import org.telegram.messenger.voip.VoIPService;
@@ -17761,6 +17763,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (!inPreviewMode && !isInsideContainer && chatMode != MODE_SAVED) {
                     chatActivityEnterView.setVisibility(View.VISIBLE);
                 }
+            } else if (currentEncryptedGroup != null && currentEncryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+                bottomOverlayText.setText(EncryptedGroupUtils.getEncryptedStateDescription(currentEncryptedGroup.getState()));
+                bottomOverlay.setVisibility(View.VISIBLE);
+                chatActivityEnterView.setVisibility(View.INVISIBLE);
+                chatActivityEnterView.setFieldText("");
+                getMediaDataController().cleanDraft(dialog_id, threadMessageId, false);
+                hideKeyboard = true;
             }
             checkRaiseSensors();
             checkActionBarMenu(false);

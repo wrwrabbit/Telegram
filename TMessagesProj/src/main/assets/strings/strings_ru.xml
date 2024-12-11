@@ -265,4 +265,8 @@
     <string name="NewEncryptedGroup">Создать секретную группу</string>
     <string name="AreYouSureClearHistoryWithSecretGroup">Вы точно хотите удалить историю секретной группы **%1$s** для всех пользователей?</string>
     <string name="AreYouSureDeleteThisSecretGroup">Вы точно хотите удалить эту секретную группу: **%1$s**?</string>
+    <string name="JoiningNotConfirmed">Присоединение не подтверждено</string>
+    <string name="WaitingForSecretGroupInitializationConfirmation">Ждём подтверждения от участников</string>
+    <string name="WaitingForSecondaryChatsCreation">Ждём создания чатов между участниками</string>
+    <string name="SecretGroupInitializationFailed">Инициализация секретной группы не удалась</string>
 </resources>
