@@ -14,6 +14,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.SpannableStringBuilder;
@@ -928,7 +929,12 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                     if (creationProgressDialog != null) {
                         creationProgressDialog.dismiss();
                     }
-                    finishFragment();
+                    getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
+
+                    Bundle args = new Bundle();
+                    args.putInt("enc_group_id", group.getInternalId());
+                    args.putBoolean("just_created_chat", true);
+                    presentFragment(new ChatActivity(args), true);
                 });
             });
         };
