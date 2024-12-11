@@ -1133,7 +1133,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
             }
 //            searchForStickers(null, false);
             searchForContextBot(username, query);
-        } else if (allowStickers && parentFragment != null && parentFragment.getCurrentEncryptedChat() == null && (currentChat == null || ChatObject.canSendStickers(currentChat)) && text.trim().length() >= 2 && text.trim().indexOf(' ') < 0) {
+        } else if (allowStickers && parentFragment != null && parentFragment.getCurrentEncryptedChatSingle() == null && (currentChat == null || ChatObject.canSendStickers(currentChat)) && text.trim().length() >= 2 && text.trim().indexOf(' ') < 0) {
 //            searchForStickers(text.trim(), false);
             searchForContextBot(null, null);
         } else {
