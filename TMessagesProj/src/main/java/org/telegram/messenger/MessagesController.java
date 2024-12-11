@@ -20135,6 +20135,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 dialog.top_message = lastMessage.getId();
                 dialog.last_message_date = lastMessage.messageOwner.date;
+                EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                    EncryptedGroupUtils.updateEncryptedGroupLastMessageDate(encryptedGroupId, currentAccount);
+                });
                 changed = true;
                 ArrayList<MessageObject> arrayList = new ArrayList<>(1);
                 for (int i = 0; i < messages.size(); ++i) {

@@ -9,6 +9,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class EncryptedGroupUtils {
@@ -67,7 +68,24 @@ public class EncryptedGroupUtils {
         for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
             long innerDialogId = DialogObject.makeEncryptedDialogId(innerChat.getEncryptedChatId());
             TLRPC.Dialog innerDialog = messagesController.getDialog(innerDialogId);
-            encryptedGroupDialog.unread_count += innerDialog.unread_count;
+            if (innerDialog != null) {
+                encryptedGroupDialog.unread_count += innerDialog.unread_count;
+            }
         }
+    }
+
+    public static void updateEncryptedGroupLastMessageDate(int encryptedGroupId, int account) {
+        MessagesController messagesController = MessagesController.getInstance(account);
+
+        EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
+        TLRPC.Dialog encryptedGroupDialog = messagesController.getDialog(DialogObject.makeEncryptedDialogId(encryptedGroupId));
+        encryptedGroupDialog.last_message_date = encryptedGroup.getInnerChats().stream()
+                .map(InnerEncryptedChat::getDialogId)
+                .filter(Objects::nonNull)
+                .map(messagesController::getDialog)
+                .filter(Objects::nonNull)
+                .mapToInt(dialog -> dialog.last_message_date)
+                .max()
+                .orElse(0);
     }
 }

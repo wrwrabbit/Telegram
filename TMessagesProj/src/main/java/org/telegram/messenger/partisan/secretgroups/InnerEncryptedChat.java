@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.secretgroups;
 
+import org.telegram.messenger.DialogObject;
+
 public class InnerEncryptedChat {
     private final long userId;
     private Integer encryptedChatId;
@@ -17,6 +19,13 @@ public class InnerEncryptedChat {
 
     public Integer getEncryptedChatId() {
         return encryptedChatId;
+    }
+
+    public Long getDialogId() {
+        if (encryptedChatId == null) {
+            return null;
+        }
+        return DialogObject.makeEncryptedDialogId(encryptedChatId);
     }
 
     public void setEncryptedChatId(int encryptedChatId) {
