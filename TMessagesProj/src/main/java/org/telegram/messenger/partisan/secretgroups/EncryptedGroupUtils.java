@@ -1,5 +1,6 @@
 package org.telegram.messenger.partisan.secretgroups;
 
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
@@ -7,6 +8,8 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
+
+import java.util.function.Consumer;
 
 public class EncryptedGroupUtils {
     public static void checkAllEncryptedChatsCreated(EncryptedGroup encryptedGroup, int accountNum) {
@@ -38,6 +41,33 @@ public class EncryptedGroupUtils {
                 return LocaleController.getString(R.string.SecretGroupInitializationFailed);
             default:
                 throw new RuntimeException("Can't return encrypted group state description for state " + state);
+        }
+    }
+
+    public static void getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(long dialogId, int account, Consumer<Integer> action) {
+        if (DialogObject.isEncryptedDialog(dialogId)) {
+            try {
+                Integer encryptedGroupId = MessagesStorage.getInstance(account)
+                        .getEncryptedGroupIdByInnerEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
+                if (encryptedGroupId != null) {
+                    action.accept(encryptedGroupId);
+                }
+            } catch (Exception e) {
+                PartisanLog.handleException(e);
+            }
+        }
+    }
+
+    public static void updateEncryptedGroupUnreadCount(int encryptedGroupId, int account) {
+        MessagesController messagesController = MessagesController.getInstance(account);
+
+        EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
+        TLRPC.Dialog encryptedGroupDialog = messagesController.getDialog(DialogObject.makeEncryptedDialogId(encryptedGroupId));
+        encryptedGroupDialog.unread_count = 0;
+        for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
+            long innerDialogId = DialogObject.makeEncryptedDialogId(innerChat.getEncryptedChatId());
+            TLRPC.Dialog innerDialog = messagesController.getDialog(innerDialogId);
+            encryptedGroupDialog.unread_count += innerDialog.unread_count;
         }
     }
 }

@@ -54,13 +54,13 @@ import org.telegram.messenger.fakepasscode.FakePasscodeMessages;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
-import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
 import org.telegram.messenger.voip.VoIPPreNotificationService;
@@ -12768,6 +12768,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     if (currentDialog != null) {
                         int prevCount = currentDialog.unread_count;
                         currentDialog.unread_count = dialogsToUpdate.valueAt(a);
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                            EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroupId, currentAccount);
+                        });
                         if (BuildVars.DEBUG_PRIVATE_VERSION) {
                             FileLog.d("update dialog " + dialogId + " with new unread " + currentDialog.unread_count);
                         }
@@ -20141,7 +20144,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
                 dialogMessage.put(dialogId, arrayList);
-                Utils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
                     dialogMessage.put(DialogObject.makeEncryptedDialogId(encryptedGroupId), arrayList);
                 });
 

@@ -549,18 +549,4 @@ public class Utils {
             return filteredDialogsByPasscode;
         }
     }
-
-    public static void getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(long dialogId, int account, Consumer<Integer> action) {
-        if (DialogObject.isEncryptedDialog(dialogId)) {
-            try {
-                Integer encryptedGroupId = MessagesStorage.getInstance(account)
-                        .getEncryptedGroupIdByInnerEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
-                if (encryptedGroupId != null) {
-                    action.accept(encryptedGroupId);
-                }
-            } catch (Exception e) {
-                PartisanLog.handleException(e);
-            }
-        }
-    }
 }
