@@ -2628,6 +2628,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 encIds = currentEncryptedGroup.getInnerEncryptedChatIds();
             }
             currentEncryptedChatList = encIds.stream()
+                    .filter(Objects::nonNull)
                     .map(id -> getMessagesController().getEncryptedChat(id))
                     .filter(Objects::nonNull)
                     .collect(toCollection(ArrayList::new));
