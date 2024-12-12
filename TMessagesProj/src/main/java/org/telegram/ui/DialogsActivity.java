@@ -8237,7 +8237,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 EncryptedGroup encryptedGroup = getMessagesController()
                         .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                 if (encryptedGroup != null) {
-                    if (encryptedGroup.getState() == EncryptedGroupState.JOINING_NOT_CONFIRMED || true) {
+                    if (encryptedGroup.getState() == EncryptedGroupState.JOINING_NOT_CONFIRMED) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                         builder.setTitle(LocaleController.getString(R.string.AppName));
                         TLRPC.User ownerUser = getMessagesController().getUser(encryptedGroup.getOwnerUserId());
