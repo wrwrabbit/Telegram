@@ -100,6 +100,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
     private int measuredContainerHeight;
     private int containerHeight;
 
+    private int maxCount = 9;
     private boolean searchWas;
     private boolean searching;
     private final LongSparseArray<GroupCreateSpan> selectedContacts = new LongSparseArray<>();
@@ -415,7 +416,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
         if (span.isDeleting()) {
             currentDeletingSpan = null;
             spansContainer.removeSpan(span);
-            checkDoneButton();
+            selectedCountUpdated();
             checkVisibleRows();
         } else {
             if (currentDeletingSpan != null) {
@@ -437,7 +438,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.NewGroup));
+        actionBar.setTitle(LocaleController.getString(R.string.NewEncryptedGroup));
 
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
@@ -619,7 +620,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                         wasEmpty = editText.length() == 0;
                     } else if (event.getAction() == KeyEvent.ACTION_UP && wasEmpty && !allSpans.isEmpty()){
                         spansContainer.removeSpan(allSpans.get(allSpans.size() - 1));
-                        checkDoneButton();
+                        selectedCountUpdated();
                         checkVisibleRows();
                         return true;
                     }
@@ -699,6 +700,9 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                     GroupCreateSpan span = selectedContacts.get(id);
                     spansContainer.removeSpan(span);
                 } else {
+                    if (maxCount != 0 && selectedContacts.size() == maxCount) {
+                        return;
+                    }
                     if (selectedContacts.size() == getMessagesController().maxGroupCount) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                         builder.setTitle(LocaleController.getString(R.string.AppName));
@@ -718,7 +722,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                     spansContainer.addSpan(span);
                     span.setOnClickListener(SecretGroupCreateActivity.this);
                 }
-                checkDoneButton();
+                selectedCountUpdated();
                 if (searching || searchWas) {
                     AndroidUtilities.showKeyboard(editText);
                 } else {
@@ -779,7 +783,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
         }
         floatingButton.setContentDescription(LocaleController.getString(R.string.Next));
 
-        checkDoneButton();
+        selectedCountUpdated();
         return fragmentView;
     }
 
@@ -951,6 +955,20 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
         listView.setFastScrollVisible(true);
         listView.setVerticalScrollBarEnabled(false);
         showItemsAnimated(0);
+    }
+
+    private void selectedCountUpdated() {
+        updateHint();
+        checkDoneButton();
+    }
+
+    private void updateHint() {
+        if (selectedContacts.size() == 0) {
+            actionBar.setSubtitle(LocaleController.formatString("MembersCountZero", R.string.MembersCountZero, LocaleController.formatPluralString("Members", maxCount)));
+        } else {
+            String str = LocaleController.getPluralString("MembersCountSelected", selectedContacts.size());
+            actionBar.setSubtitle(String.format(str, selectedContacts.size(), maxCount));
+        }
     }
 
     private void checkDoneButton() {
