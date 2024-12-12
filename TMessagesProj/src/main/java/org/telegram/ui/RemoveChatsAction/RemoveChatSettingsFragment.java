@@ -270,33 +270,41 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         strictHidingRow = -1;
         strictHidingDetailsRow = -1;
 
-        deleteDialogRow = rowCount++;
+        if (allowDelete()) {
+            deleteDialogRow = rowCount++;
 
-        if (hasUsers() || hasEncryptedChats()) {
-            deleteFromCompanionRow = rowCount++;
-            deleteFromCompanionDetailsRow = rowCount++;
+            boolean hasDeleteOptions = false;
+            if (allowDeleteFromCompanion()) {
+                hasDeleteOptions = true;
+                deleteFromCompanionRow = rowCount++;
+                deleteFromCompanionDetailsRow = rowCount++;
+            }
+
+            if (allowDeleteNewMessages()) {
+                hasDeleteOptions = true;
+                deleteNewMessagesRow = rowCount++;
+                deleteNewMessagesDetailsRow = rowCount++;
+            }
+
+            if (allowDeleteAllMyMessages()) {
+                hasDeleteOptions = true;
+                deleteAllMyMessagesRow = rowCount++;
+                deleteAllMyMessagesDetailsRow = rowCount++;
+            }
+
+            if (!hasDeleteOptions) {
+                deleteDialogDetailsEmptyRow = rowCount++;
+            }
         }
 
-        if (hasUsers()) {
-            deleteNewMessagesRow = rowCount++;
-            deleteNewMessagesDetailsRow = rowCount++;
-        }
-
-        if (hasChats()) {
-            deleteAllMyMessagesRow = rowCount++;
-            deleteAllMyMessagesDetailsRow = rowCount++;
-        }
-
-        if (deleteDialogRow == rowCount - 1) {
-            deleteDialogDetailsEmptyRow = rowCount++;
-        }
-
-        if (!hasOnlySavedMessages()) {
+        if (allowHiding()) {
             hideDialogRow = rowCount++;
             hideDialogDetailsRow = rowCount++;
 
-            strictHidingRow = rowCount++;
-            strictHidingDetailsRow = rowCount++;
+            if (allowStrictHiding()) {
+                strictHidingRow = rowCount++;
+                strictHidingDetailsRow = rowCount++;
+            }
         }
     }
 
@@ -337,30 +345,28 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         }
     }
 
-    private boolean hasUsers() {
-        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isUserDialog);
+    public boolean allowDelete() {
+        return items.stream().anyMatch(Item::allowDelete);
     }
 
-    private boolean hasEncryptedChats() {
-        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isEncryptedDialog);
+    public boolean allowDeleteFromCompanion() {
+        return items.stream().anyMatch(Item::allowDeleteFromCompanion);
     }
 
-    private boolean hasChats() {
-        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(did -> {
-            if (!DialogObject.isChatDialog(did)) {
-                return false;
-            }
-            TLRPC.Chat chat = getMessagesController().getChat(-did);
-            return !ChatObject.isChannel(chat) || chat.megagroup;
-        });
+    public boolean allowDeleteNewMessages() {
+        return items.stream().anyMatch(Item::allowDeleteNewMessages);
     }
 
-    private boolean hasSavedMessages() {
-        return removeChatEntries.stream().anyMatch(e -> e.chatId == getUserConfig().clientUserId);
+    public boolean allowDeleteAllMyMessages() {
+        return items.stream().anyMatch(Item::allowDeleteAllMyMessages);
     }
 
-    private boolean hasOnlySavedMessages() {
-        return removeChatEntries.size() == 1 && removeChatEntries.get(0).chatId == getUserConfig().clientUserId;
+    public boolean allowHiding() {
+        return items.stream().anyMatch(Item::allowHiding);
+    }
+
+    public boolean allowStrictHiding() {
+        return items.stream().anyMatch(Item::allowStrictHiding);
     }
 
     private boolean hasDeleteDialog() {
@@ -479,7 +485,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                     || position == deleteAllMyMessagesRow) {
                 return hasDeleteDialog();
             } else if (position == hideDialogRow) {
-                return !hasSavedMessages() && !fakePasscode.replaceOriginalPasscode;
+                return !items.stream().anyMatch(item -> !item.allowHiding()) && !fakePasscode.replaceOriginalPasscode;
             } else if (position == strictHidingRow) {
                 return hasHideDialog();
             }

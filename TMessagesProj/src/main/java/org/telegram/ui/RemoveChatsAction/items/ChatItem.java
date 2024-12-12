@@ -1,6 +1,7 @@
 package org.telegram.ui.RemoveChatsAction.items;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ChatObject;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
@@ -35,5 +36,14 @@ class ChatItem extends Item {
     @Override
     public CharSequence generateSearchName(String query) {
         return AndroidUtilities.generateSearchName(getUserConfig().getChatTitleOverride(chat), null, query);
+    }
+
+    @Override
+    public boolean allowDeleteAllMyMessages() {
+        return !isChannel();
+    }
+
+    private boolean isChannel() {
+        return ChatObject.isChannel(chat) && !chat.megagroup;
     }
 }

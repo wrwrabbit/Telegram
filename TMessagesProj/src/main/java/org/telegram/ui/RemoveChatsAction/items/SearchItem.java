@@ -1,6 +1,9 @@
 package org.telegram.ui.RemoveChatsAction.items;
 
 import org.telegram.tgnet.TLObject;
+import org.telegram.ui.Components.AvatarDrawable;
+
+import java.util.Optional;
 
 public class SearchItem extends Item {
     Item innerItem;
@@ -61,5 +64,40 @@ public class SearchItem extends Item {
         return statusOverride != null
                 ? statusOverride
                 : innerItem.getStatus();
+    }
+
+    @Override
+    public Optional<Integer> getAvatarType() {
+        return innerItem.getAvatarType();
+    }
+
+    @Override
+    public boolean allowDelete() {
+        return innerItem.allowDelete();
+    }
+
+    @Override
+    public boolean allowDeleteFromCompanion() {
+        return innerItem.allowDeleteFromCompanion();
+    }
+
+    @Override
+    public boolean allowDeleteNewMessages() {
+        return innerItem.allowDeleteNewMessages();
+    }
+
+    @Override
+    public boolean allowDeleteAllMyMessages() {
+        return innerItem.allowDeleteAllMyMessages();
+    }
+
+    @Override
+    public boolean allowHiding() {
+        return innerItem.allowHiding();
+    }
+
+    @Override
+    public boolean allowStrictHiding() {
+        return innerItem.allowStrictHiding();
     }
 }
