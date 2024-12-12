@@ -141,6 +141,7 @@ import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupProtocol;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChat;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
@@ -8238,39 +8239,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                 if (encryptedGroup != null) {
                     if (encryptedGroup.getState() == EncryptedGroupState.JOINING_NOT_CONFIRMED) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                        builder.setTitle(LocaleController.getString(R.string.AppName));
-                        TLRPC.User ownerUser = getMessagesController().getUser(encryptedGroup.getOwnerUserId());
-                        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.SecretGroupJoiningConfirmation, UserObject.getUserName(ownerUser))));
-                        builder.setPositiveButton(LocaleController.getString(R.string.JoinSecretGroup), (dialog, which) -> {
-                            encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
-                            try {
-                                getMessagesStorage().updateEncryptedGroup(encryptedGroup);
-                            } catch (Exception e) {
-                                PartisanLog.handleException(e);
-                            }
-                            InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedGroup.getOwnerUserId());
-                            TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(innerChat.getEncryptedChatId());
-                            new EncryptedGroupProtocol(currentAccount).sendJoinConfirmation(encryptedChat);
-
+                        AlertDialog alertDialog = EncryptedGroupUtils.createSecretGroupJoinDialog(encryptedGroup, getContext(), currentAccount, () -> {
                             Bundle args2 = new Bundle();
                             args2.putInt("enc_group_id", encryptedGroup.getInternalId());
                             args2.putBoolean("just_created_chat", true);
                             presentFragment(new ChatActivity(args2), true);
                         });
-                        builder.setNegativeButton(LocaleController.getString(R.string.DeclineJoiningToSecretGroup), (dialog, which) -> {
-                            getMessagesController().deleteDialog(encryptedGroup.getInternalId(), 2, false);
-                        });
-                        builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);
-                        AlertDialog alertDialog = builder.create();
                         showDialog(alertDialog);
-                        TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
-                        if (button != null) {
-                            button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
-                        }
                         return;
+                    } else {
+                        args.putInt("enc_group_id", encryptedGroup.getInternalId());
                     }
-                    args.putInt("enc_group_id", encryptedGroup.getInternalId());
                 } else {
                     args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
                 }
