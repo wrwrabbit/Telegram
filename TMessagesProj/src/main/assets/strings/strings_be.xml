@@ -272,7 +272,7 @@
     <string name="EncryptedGroupTitleOutgoing">Вы стварылі сакрэтную групу.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s запрасіў Вас у сакрэтную групу.</string>
     <string name="EncryptedGroupDescriptionTitle">Сакрэтныя групы:</string>
-    <string name="SecretGroupJoiningConfirmation">Вы хочаце далучыцца да сакрэтнай групы?</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Запрасіў Вас у сакрэтную групу. Вы хочаце далучыцца да сакрэтнай групы?\n\n**Калі Вы пацвердзіце далучэнне, %1$s даведаецца, што Вы выкарыстоўваеце Партызанскі Тэлеграм!**</string>
     <string name="JoinSecretGroup">Далучыцца</string>
     <string name="DeclineJoiningToSecretGroup">Адхіліць запрашэнне</string>
 </resources>

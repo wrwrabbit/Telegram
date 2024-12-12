@@ -8237,10 +8237,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 EncryptedGroup encryptedGroup = getMessagesController()
                         .getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                 if (encryptedGroup != null) {
-                    if (encryptedGroup.getState() == EncryptedGroupState.JOINING_NOT_CONFIRMED) {
+                    if (encryptedGroup.getState() == EncryptedGroupState.JOINING_NOT_CONFIRMED || true) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                         builder.setTitle(LocaleController.getString(R.string.AppName));
-                        builder.setMessage("Do you want to join the secret group?");
+                        TLRPC.User ownerUser = getMessagesController().getUser(encryptedGroup.getOwnerUserId());
+                        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.SecretGroupJoiningConfirmation, UserObject.getUserName(ownerUser))));
                         builder.setPositiveButton(LocaleController.getString(R.string.JoinSecretGroup), (dialog, which) -> {
                             encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
                             try {

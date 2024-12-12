@@ -272,7 +272,7 @@
     <string name="EncryptedGroupTitleOutgoing">Вы создали секретную группу.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s пригласил Вас в секретную группу.</string>
     <string name="EncryptedGroupDescriptionTitle">Секретные группы:</string>
-    <string name="SecretGroupJoiningConfirmation">Вы хотите присоединиться к секретной группе?</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Пригласил Вас в секретную группу. Вы хотите присоединиться к секретной группе?\n\n**Если Вы подтвердите присоединение, %1$s узнает, что Вы используете Партизанский Телеграм!**</string>
     <string name="JoinSecretGroup">Присоединиться</string>
     <string name="DeclineJoiningToSecretGroup">Отклонить приглашение</string>
 </resources>
