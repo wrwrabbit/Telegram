@@ -121,7 +121,8 @@ public class EncryptedGroupUtils {
             }
         });
         builder.setNegativeButton(LocaleController.getString(R.string.DeclineJoiningToSecretGroup), (dialog, which) -> {
-            messagesController.deleteDialog(encryptedGroup.getInternalId(), 2, false);
+            long dialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId());
+            messagesController.deleteDialog(dialogId, 0, false);
         });
         builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);
         AlertDialog alertDialog = builder.create();
