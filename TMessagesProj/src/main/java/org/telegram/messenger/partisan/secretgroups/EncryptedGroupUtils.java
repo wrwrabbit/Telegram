@@ -1,8 +1,6 @@
 package org.telegram.messenger.partisan.secretgroups;
 
-import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Bundle;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -16,8 +14,8 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ChatActivity;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -99,11 +97,11 @@ public class EncryptedGroupUtils {
                 .orElse(0);
     }
 
-    public static AlertDialog createSecretGroupJoinDialog(EncryptedGroup encryptedGroup, Context context, int accountNum, Runnable onJoined) {
+    public static void showSecretGroupJoinDialog(EncryptedGroup encryptedGroup, BaseFragment fragment, int accountNum, Runnable onJoined) {
         MessagesController messagesController = MessagesController.getInstance(accountNum);
         MessagesStorage messagesStorage = MessagesStorage.getInstance(accountNum);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
         builder.setTitle(LocaleController.getString(R.string.AppName));
         TLRPC.User ownerUser = messagesController.getUser(encryptedGroup.getOwnerUserId());
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.SecretGroupJoiningConfirmation, UserObject.getUserName(ownerUser))));
@@ -127,10 +125,10 @@ public class EncryptedGroupUtils {
         });
         builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);
         AlertDialog alertDialog = builder.create();
+        fragment.showDialog(alertDialog);
         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
         if (button != null) {
             button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
         }
-        return alertDialog;
     }
 }
