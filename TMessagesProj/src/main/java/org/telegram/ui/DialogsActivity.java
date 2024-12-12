@@ -8262,7 +8262,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             getMessagesController().deleteDialog(encryptedGroup.getInternalId(), 2, false);
                         });
                         builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);
-                        showDialog(builder.create());
+                        AlertDialog alertDialog = builder.create();
+                        showDialog(alertDialog);
+                        TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+                        if (button != null) {
+                            button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
+                        }
                         return;
                     }
                     args.putInt("enc_group_id", encryptedGroup.getInternalId());

@@ -8787,5 +8787,5 @@
     <string name="EncryptedGroupDescriptionTitle">Secret groups:</string>
     <string name="SecretGroupJoiningConfirmation">**%1$s** Invited you to a secret group. Do you want to join the secret group?\n\n**If you confirm joining, %1$s will know that you are using Partisan Telegram!**</string>
     <string name="JoinSecretGroup">Join</string>
-    <string name="DeclineJoiningToSecretGroup">Decline Invitation</string>
+    <string name="DeclineJoiningToSecretGroup">Decline</string>
 </resources>
