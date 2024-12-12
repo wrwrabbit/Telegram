@@ -8233,7 +8233,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             Bundle args2 = new Bundle();
                             args2.putInt("enc_group_id", encryptedGroup.getInternalId());
                             args2.putBoolean("just_created_chat", true);
-                            presentFragment(new ChatActivity(args2), true);
+                            presentFragment(new ChatActivity(args2), false);
                         });
                         return;
                     } else {
