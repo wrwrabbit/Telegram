@@ -3,6 +3,7 @@ package org.telegram.messenger.partisan.secretgroups;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class EncryptedGroup {
@@ -27,7 +28,7 @@ public class EncryptedGroup {
 
     public InnerEncryptedChat getInnerChatByEncryptedChatId(int chatId) {
         return innerChats.stream()
-                .filter(c -> c.getEncryptedChatId() != null && c.getEncryptedChatId() == chatId)
+                .filter(c -> c.getEncryptedChatId().isPresent() && c.getEncryptedChatId().get() == chatId)
                 .findAny()
                 .orElse(null);
     }
@@ -39,12 +40,24 @@ public class EncryptedGroup {
                 .orElse(null);
     }
 
+    private InnerEncryptedChat getOwnerInnerChat() {
+        return getInnerChatByUserId(ownerUserId);
+    }
+
+    public int getOwnerEncryptedChatId() {
+        return getOwnerInnerChat().getEncryptedChatId().get();
+    }
+
     public boolean allInnerChatsMatchState(InnerEncryptedChatState state) {
         return innerChats.stream().allMatch(c -> c.getState() == state);
     }
 
     public List<Integer> getInnerEncryptedChatIds() {
-        return innerChats.stream().map(InnerEncryptedChat::getEncryptedChatId).collect(Collectors.toList());
+        return innerChats.stream()
+                .map(InnerEncryptedChat::getEncryptedChatId)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     public List<Long> getInnerUserIds() {

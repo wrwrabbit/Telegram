@@ -929,6 +929,9 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                     .collect(Collectors.toList());
 
             SecretGroupStarter.startSecretGroup(currentAccount, getContext(), users, chatName, group -> {
+                if (!group.isPresent()) {
+                    return;
+                }
                 AndroidUtilities.runOnUIThread(() -> {
                     if (creationProgressDialog != null) {
                         creationProgressDialog.dismiss();
@@ -936,7 +939,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
                     getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
 
                     Bundle args = new Bundle();
-                    args.putInt("enc_group_id", group.getInternalId());
+                    args.putInt("enc_group_id", group.get().getInternalId());
                     args.putBoolean("just_created_chat", true);
                     presentFragment(new ChatActivity(args), true);
                 });

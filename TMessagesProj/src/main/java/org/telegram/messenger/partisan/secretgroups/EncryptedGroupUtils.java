@@ -18,6 +18,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class EncryptedGroupUtils {
@@ -30,8 +31,9 @@ public class EncryptedGroupUtils {
                 PartisanLog.handleException(e);
             }
             if (encryptedGroup.getOwnerUserId() != UserConfig.getInstance(accountNum).clientUserId) {
-                InnerEncryptedChat ownerInnerEncryptedChat = encryptedGroup.getInnerChatByUserId(encryptedGroup.getOwnerUserId());
-                TLRPC.EncryptedChat ownerEncryptedChat = MessagesController.getInstance(accountNum).getEncryptedChat(ownerInnerEncryptedChat.getEncryptedChatId());
+                MessagesController messagesController = MessagesController.getInstance(accountNum);
+                int ownerEncryptedChatId = encryptedGroup.getOwnerEncryptedChatId();
+                TLRPC.EncryptedChat ownerEncryptedChat = messagesController.getEncryptedChat(ownerEncryptedChatId);
                 new EncryptedGroupProtocol(accountNum).sendAllSecondaryChatsInitialized(ownerEncryptedChat);
             }
         }
@@ -74,10 +76,11 @@ public class EncryptedGroupUtils {
         TLRPC.Dialog encryptedGroupDialog = messagesController.getDialog(DialogObject.makeEncryptedDialogId(encryptedGroupId));
         encryptedGroupDialog.unread_count = 0;
         for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
-            long innerDialogId = DialogObject.makeEncryptedDialogId(innerChat.getEncryptedChatId());
-            TLRPC.Dialog innerDialog = messagesController.getDialog(innerDialogId);
-            if (innerDialog != null) {
-                encryptedGroupDialog.unread_count += innerDialog.unread_count;
+            if (innerChat.getDialogId().isPresent()) {
+                TLRPC.Dialog innerDialog = messagesController.getDialog(innerChat.getDialogId().get());
+                if (innerDialog != null) {
+                    encryptedGroupDialog.unread_count += innerDialog.unread_count;
+                }
             }
         }
     }
@@ -89,7 +92,8 @@ public class EncryptedGroupUtils {
         TLRPC.Dialog encryptedGroupDialog = messagesController.getDialog(DialogObject.makeEncryptedDialogId(encryptedGroupId));
         encryptedGroupDialog.last_message_date = encryptedGroup.getInnerChats().stream()
                 .map(InnerEncryptedChat::getDialogId)
-                .filter(Objects::nonNull)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .map(messagesController::getDialog)
                 .filter(Objects::nonNull)
                 .mapToInt(dialog -> dialog.last_message_date)
@@ -112,8 +116,7 @@ public class EncryptedGroupUtils {
             } catch (Exception e) {
                 PartisanLog.handleException(e);
             }
-            InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedGroup.getOwnerUserId());
-            TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(innerChat.getEncryptedChatId());
+            TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
             new EncryptedGroupProtocol(accountNum).sendJoinConfirmation(encryptedChat);
 
             if (onJoined != null) {

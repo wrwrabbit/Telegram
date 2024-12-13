@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.secretgroups;
 
+import static org.telegram.messenger.SecretChatHelper.CURRENT_SECRET_CHAT_LAYER;
+
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -25,6 +27,7 @@ import org.telegram.ui.LaunchActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class EncryptedGroupProtocol {
@@ -80,6 +83,8 @@ public class EncryptedGroupProtocol {
         TLRPC.Message message;
 
         reqSend.encryptedGroupAction = action;
+        reqSend.action = new TLRPC.TL_decryptedMessageActionNotifyLayer(); // action shouldn't be null, so we put a meaningless action there
+        reqSend.action.layer = CURRENT_SECRET_CHAT_LAYER;
         message = createSecretGroupServiceMessage(encryptedChat, reqSend.action, accountNum);
         reqSend.random_id = message.random_id;
 
@@ -87,6 +92,9 @@ public class EncryptedGroupProtocol {
     }
 
     private static TLRPC.TL_messageService createSecretGroupServiceMessage(TLRPC.EncryptedChat encryptedChat, TLRPC.DecryptedMessageAction decryptedMessage, int accountNum) {
+        if (decryptedMessage == null) {
+            throw new RuntimeException("createSecretGroupServiceMessage error: decryptedMessage was null");
+        }
         AccountInstance accountInstance = AccountInstance.getInstance(accountNum);
 
         TLRPC.TL_messageService newMsg = new TLRPC.TL_messageService();
@@ -185,7 +193,7 @@ public class EncryptedGroupProtocol {
                 .map(memberId -> new InnerEncryptedChat(memberId, null))
                 .collect(Collectors.toList());
 
-        InnerEncryptedChat ownerInternalChat = new InnerEncryptedChat(encryptedChat.user_id, encryptedChat.id);
+        InnerEncryptedChat ownerInternalChat = new InnerEncryptedChat(encryptedChat.user_id, Optional.of(encryptedChat.id));
         ownerInternalChat.setState(InnerEncryptedChatState.INITIALIZED);
         innerEncryptedChats.add(ownerInternalChat);
 
@@ -233,7 +241,8 @@ public class EncryptedGroupProtocol {
             encryptedGroup.setState(EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION);
             getMessagesStorage().updateEncryptedGroup(encryptedGroup);
             for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
-                TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(innerChat.getEncryptedChatId());
+                int encryptedChatId = innerChat.getEncryptedChatId().get();
+                TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(encryptedChatId);
                 sendGroupInitializationConfirmation(encryptedChat);
             }
         } catch (Exception e) {
@@ -276,7 +285,7 @@ public class EncryptedGroupProtocol {
             PartisanLog.e("There is no inner chat for user id " + encryptedChat.user_id + " in encrypted group with id " + action.externalGroupId);
             return;
         }
-        if (innerChat.getEncryptedChatId() != null) {
+        if (innerChat.getEncryptedChatId().isPresent()) {
             PartisanLog.e("Inner encrypted chat is already initialized for user id " + encryptedChat.user_id + " in encrypted group with id " + action.externalGroupId);
             return;
         }

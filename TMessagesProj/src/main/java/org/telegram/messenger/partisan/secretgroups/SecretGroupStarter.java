@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SecretGroupStarter {
@@ -27,9 +28,9 @@ public class SecretGroupStarter {
     private final List<TLRPC.User> users = new LinkedList<>();
     private final String name;
     private final List<TLRPC.EncryptedChat> encryptedChats = new ArrayList<>();
-    private final Consumer<EncryptedGroup> callback;
+    private final Consumer<Optional<EncryptedGroup>> callback;
 
-    public SecretGroupStarter(int accountNum, Context context, List<TLRPC.User> users, String name, Consumer<EncryptedGroup> callback) {
+    public SecretGroupStarter(int accountNum, Context context, List<TLRPC.User> users, String name, Consumer<Optional<EncryptedGroup>> callback) {
         this.accountNum = accountNum;
         this.context = context;
         this.users.addAll(users);
@@ -37,7 +38,7 @@ public class SecretGroupStarter {
         this.callback = callback;
     }
 
-    public static void startSecretGroup(int accountNum, Context context, List<TLRPC.User> users, String name, Consumer<EncryptedGroup> callback) {
+    public static void startSecretGroup(int accountNum, Context context, List<TLRPC.User> users, String name, Consumer<Optional<EncryptedGroup>> callback) {
         if (users == null || users.isEmpty() || context == null) {
             return;
         }
@@ -71,7 +72,7 @@ public class SecretGroupStarter {
             encryptedChats.add(encryptedChat);
             checkInnerEncryptedChats();
         } else {
-            callback.accept(null);
+            callback.accept(Optional.empty());
         }
     }
 
@@ -79,7 +80,7 @@ public class SecretGroupStarter {
         AndroidUtilities.runOnUIThread(() -> {
             EncryptedGroup encryptedGroup = createEncryptedGroup();
             if (encryptedGroup == null) {
-                callback.accept(null);
+                callback.accept(Optional.empty());
                 return;
             }
 
@@ -95,7 +96,7 @@ public class SecretGroupStarter {
 
             sendInvitations(encryptedGroup);
 
-            callback.accept(encryptedGroup);
+            callback.accept(Optional.of(encryptedGroup));
         });
     }
 
@@ -118,7 +119,7 @@ public class SecretGroupStarter {
     private List<InnerEncryptedChat> createEncryptedChats() {
         return encryptedChats.stream()
                 .filter(Objects::nonNull)
-                .map(encryptedChat -> new InnerEncryptedChat(encryptedChat.user_id, encryptedChat.id))
+                .map(encryptedChat -> new InnerEncryptedChat(encryptedChat.user_id, Optional.of(encryptedChat.id)))
                 .collect(Collectors.toList());
     }
 

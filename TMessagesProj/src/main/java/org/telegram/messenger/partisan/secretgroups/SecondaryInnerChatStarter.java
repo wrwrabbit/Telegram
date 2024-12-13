@@ -34,7 +34,7 @@ public class SecondaryInnerChatStarter {
 
     private void checkInnerEncryptedChats() {
         InnerEncryptedChat uninitializedInnerChat = encryptedGroup.getInnerChats().stream()
-                .filter(c -> c.getEncryptedChatId() == null && c.getUserId() > getUserConfig().clientUserId) // Users with smaller ids will initialize chats with users with bigger ids.
+                .filter(c -> !c.getEncryptedChatId().isPresent() && c.getUserId() > getUserConfig().clientUserId) // Users with smaller ids will initialize chats with users with bigger ids.
                 .findAny()
                 .orElse(null);
         if (uninitializedInnerChat != null) {
@@ -46,7 +46,7 @@ public class SecondaryInnerChatStarter {
 
     private void initializeNextEncryptedChat(InnerEncryptedChat uninitializedInnerChat) {
         boolean isFirstChat = encryptedGroup.getInnerChats().stream()
-                .noneMatch(c -> c.getEncryptedChatId() != null && c.getUserId() > getUserConfig().clientUserId && c.getUserId() != encryptedGroup.getOwnerUserId());
+                .noneMatch(c -> c.getEncryptedChatId().isPresent() && c.getUserId() > getUserConfig().clientUserId && c.getUserId() != encryptedGroup.getOwnerUserId());
         int delay = isFirstChat ? 0 : 10*1000;
         TLRPC.User user = getMessagesController().getUser(uninitializedInnerChat.getUserId());
         Utilities.globalQueue.postRunnable(

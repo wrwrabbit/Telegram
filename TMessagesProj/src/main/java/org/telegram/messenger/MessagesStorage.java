@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
@@ -10031,8 +10032,8 @@ public class MessagesStorage extends BaseController {
                     state.requery();
                     state.bindInteger(1, encryptedGroup.getInternalId());
                     state.bindLong(2, innerChat.getUserId());
-                    if (innerChat.getEncryptedChatId() != null) {
-                        state.bindInteger(3, innerChat.getEncryptedChatId());
+                    if (innerChat.getEncryptedChatId().isPresent()) {
+                        state.bindInteger(3, innerChat.getEncryptedChatId().get());
                     } else {
                         state.bindNull(3);
                     }
@@ -10497,7 +10498,12 @@ public class MessagesStorage extends BaseController {
         SQLiteCursor cursor = database.queryFinalized("SELECT user_id, encrypted_chat_id, state FROM enc_group_inner_chats WHERE encrypted_group_id = ?", encryptedGroupId);
         while (cursor.next()) {
             long userId = cursor.longValue(0);
-            int innerChatId = cursor.intValue(1);
+            Optional<Integer> innerChatId;
+            if (cursor.isNull(1)) {
+                innerChatId = Optional.empty();
+            } else {
+                innerChatId = Optional.of(cursor.intValue(1));
+            }
             InnerEncryptedChatState innerChatState = InnerEncryptedChatState.valueOf(cursor.stringValue(2));
             InnerEncryptedChat innerEncryptedChat = new InnerEncryptedChat(userId, innerChatId);
             innerEncryptedChat.setState(innerChatState);
@@ -10518,8 +10524,8 @@ public class MessagesStorage extends BaseController {
 
     public void updateEncryptedGroupInnerChat(int encryptedGroupId, InnerEncryptedChat innerChat) throws Exception {
         SQLitePreparedStatement state = database.executeFast("UPDATE enc_group_inner_chats SET encrypted_chat_id = ?, state = ? WHERE encrypted_group_id = ? AND user_id = ?");
-        if (innerChat.getEncryptedChatId() != null) {
-            state.bindInteger(1, innerChat.getEncryptedChatId());
+        if (innerChat.getEncryptedChatId().isPresent()) {
+            state.bindInteger(1, innerChat.getEncryptedChatId().get());
         } else {
             state.bindNull(1);
         }

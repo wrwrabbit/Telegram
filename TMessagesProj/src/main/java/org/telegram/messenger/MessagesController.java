@@ -8994,7 +8994,9 @@ public class MessagesController extends BaseController implements NotificationCe
             EncryptedGroup encryptedGroup = getEncryptedGroup(DialogObject.getEncryptedChatId(did));
             if (encryptedGroup != null) {
                 for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
-                    deleteDialog(innerChat.getDialogId(), onlyHistory, revoke);
+                    if (innerChat.getDialogId().isPresent()) {
+                        deleteDialog(innerChat.getDialogId().get(), onlyHistory, revoke);
+                    }
                 }
             }
         }
