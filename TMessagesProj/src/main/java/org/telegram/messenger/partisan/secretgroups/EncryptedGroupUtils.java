@@ -136,7 +136,6 @@ public class EncryptedGroupUtils {
             long dialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId());
             messagesController.deleteDialog(dialogId, 0, false);
         });
-        builder.setNeutralButton(LocaleController.getString(R.string.Cancel), null);
         AlertDialog alertDialog = builder.create();
         fragment.showDialog(alertDialog);
         TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
