@@ -20,10 +20,12 @@ import org.telegram.ui.ActionBar.Theme;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class EncryptedGroupUtils {
     public static void checkAllEncryptedChatsCreated(EncryptedGroup encryptedGroup, int accountNum) {
         if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.INITIALIZED)) {
+            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". All encrypted chats initialized.");
             encryptedGroup.setState(EncryptedGroupState.INITIALIZED);
             try {
                 MessagesStorage.getInstance(accountNum).updateEncryptedGroup(encryptedGroup);
@@ -36,6 +38,12 @@ public class EncryptedGroupUtils {
                 TLRPC.EncryptedChat ownerEncryptedChat = messagesController.getEncryptedChat(ownerEncryptedChatId);
                 new EncryptedGroupProtocol(accountNum).sendAllSecondaryChatsInitialized(ownerEncryptedChat);
             }
+        } else if (PartisanLog.logsAllowed()) {
+            String notInitializedInnerChats = encryptedGroup.getInnerChats().stream()
+                    .filter(innerChat -> innerChat.getState() != InnerEncryptedChatState.INITIALIZED)
+                    .map(innerChat -> Long.toString(innerChat.getUserId()))
+                    .collect(Collectors.joining(", "));
+            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". NOT all encrypted chats initialized: " + notInitializedInnerChats +".");
         }
     }
 
@@ -117,6 +125,7 @@ public class EncryptedGroupUtils {
                 PartisanLog.handleException(e);
             }
             TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
+            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". Send join confirmation.");
             new EncryptedGroupProtocol(accountNum).sendJoinConfirmation(encryptedChat);
 
             if (onJoined != null) {

@@ -12,6 +12,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 
@@ -61,6 +62,7 @@ public class SecretGroupStarter {
         int currentUserIndex = encryptedChats.size();
         int delay = encryptedChats.isEmpty() ? 0 : 10*1000;
         TLRPC.User user = users.get(currentUserIndex);
+        PartisanLog.d("Encrypted group. Start inner encrypted chat with user " + user.id + ".");
         Utilities.globalQueue.postRunnable(
                 () -> getSecretChatHelper().startSecretChat(context, user, this::onInnerEncryptedChatStarted),
                 delay
@@ -95,6 +97,7 @@ public class SecretGroupStarter {
             getMessagesController().putEncryptedGroup(encryptedGroup, false);
 
             sendInvitations(encryptedGroup);
+            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + " created by owner.");
 
             callback.accept(Optional.of(encryptedGroup));
         });
