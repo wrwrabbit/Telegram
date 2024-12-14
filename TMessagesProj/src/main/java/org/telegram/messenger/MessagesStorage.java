@@ -10508,47 +10508,39 @@ public class MessagesStorage extends BaseController {
         cursor.dispose();
     }
 
-    private List<InnerEncryptedChat> getEncryptedGroupInnerChats(int encryptedGroupId) throws Exception {
-        List<InnerEncryptedChat> innerChats = new ArrayList<>();
-        SQLiteCursor cursor = database.queryFinalized("SELECT user_id, encrypted_chat_id, state FROM enc_group_inner_chats WHERE encrypted_group_id = ?", encryptedGroupId);
-        while (cursor.next()) {
-            long userId = cursor.longValue(0);
-            Optional<Integer> innerChatId;
-            if (cursor.isNull(1)) {
-                innerChatId = Optional.empty();
-            } else {
-                innerChatId = Optional.of(cursor.intValue(1));
+    private List<InnerEncryptedChat> getEncryptedGroupInnerChats(int encryptedGroupId) {
+        String sql = "SELECT user_id, encrypted_chat_id, state FROM enc_group_inner_chats WHERE encrypted_group_id = ?";
+        Object[] args = {encryptedGroupId};
+        return partisanSelect(sql, args, cursor -> {
+            List<InnerEncryptedChat> innerChats = new ArrayList<>();
+            while (cursor.next()) {
+                long userId = cursor.longValue(0);
+                Optional<Integer> innerChatId;
+                if (cursor.isNull(1)) {
+                    innerChatId = Optional.empty();
+                } else {
+                    innerChatId = Optional.of(cursor.intValue(1));
+                }
+                InnerEncryptedChatState innerChatState = InnerEncryptedChatState.valueOf(cursor.stringValue(2));
+                InnerEncryptedChat innerEncryptedChat = new InnerEncryptedChat(userId, innerChatId);
+                innerEncryptedChat.setState(innerChatState);
+                innerChats.add(innerEncryptedChat);
             }
-            InnerEncryptedChatState innerChatState = InnerEncryptedChatState.valueOf(cursor.stringValue(2));
-            InnerEncryptedChat innerEncryptedChat = new InnerEncryptedChat(userId, innerChatId);
-            innerEncryptedChat.setState(innerChatState);
-            innerChats.add(innerEncryptedChat);
-        }
-        cursor.dispose();
-        return innerChats;
+            return innerChats;
+        });
     }
 
     public void updateEncryptedGroup(EncryptedGroup encryptedGroup) {
-        SQLitePreparedStatement state = null;
-        try {
-            state = database.executeFast("UPDATE enc_groups SET name = ?, state = ? WHERE encrypted_group_id = ?");
+        partisanExecute("UPDATE enc_groups SET name = ?, state = ? WHERE encrypted_group_id = ?", state -> {
             state.bindString(1, encryptedGroup.getName());
             state.bindString(2, encryptedGroup.getState().toString());
             state.bindInteger(3, encryptedGroup.getInternalId());
             state.step();
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
-        }
-        if (state != null) {
-            state.dispose();
-        }
+        });
     }
 
     public void updateEncryptedGroupInnerChat(int encryptedGroupId, InnerEncryptedChat innerChat) {
-        SQLitePreparedStatement state = null;
-        try {
-            state = database.executeFast("UPDATE enc_group_inner_chats SET encrypted_chat_id = ?, state = ? WHERE encrypted_group_id = ? AND user_id = ?");
+        partisanExecute("UPDATE enc_group_inner_chats SET encrypted_chat_id = ?, state = ? WHERE encrypted_group_id = ? AND user_id = ?", state -> {
             if (innerChat.getEncryptedChatId().isPresent()) {
                 state.bindInteger(1, innerChat.getEncryptedChatId().get());
             } else {
@@ -10558,136 +10550,121 @@ public class MessagesStorage extends BaseController {
             state.bindInteger(3, encryptedGroupId);
             state.bindLong(4, innerChat.getUserId());
             state.step();
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
-        }
-        if (state != null) {
-            state.dispose();
-        }
+        });
     }
 
     public boolean isEncryptedGroup(long dialogId) {
-        try {
-            if (!DialogObject.isEncryptedDialog(dialogId)) {
-                return false;
-            }
-            int encryptedGroupId = DialogObject.getEncryptedChatId(dialogId);
-            SQLiteCursor cursor = database.queryFinalized("SELECT EXISTS(SELECT 1 FROM enc_groups WHERE encrypted_group_id=? LIMIT 1)", encryptedGroupId);
-
-            boolean encryptedGroupExists = false;
-            if (cursor.next()) {
-                try {
-                    encryptedGroupExists = cursor.intValue(0) == 1;
-                } catch (Exception e) {
-                    checkSQLException(e);
-                }
-            }
-            cursor.dispose();
-            return encryptedGroupExists;
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
+        if (!DialogObject.isEncryptedDialog(dialogId)) {
             return false;
         }
+        String sql = "SELECT EXISTS(SELECT 1 FROM enc_groups WHERE encrypted_group_id=? LIMIT 1)";
+        Object[] args = {DialogObject.getEncryptedChatId(dialogId)};
+        return partisanSelect(sql, args, cursor -> {
+            if (cursor.next()) {
+                return cursor.intValue(0) == 1;
+            }
+            return false;
+        });
     }
 
     public Integer getEncryptedGroupIdByInnerEncryptedChatId(int innerChatId) {
-        SQLiteCursor cursor = null;
-        Integer groupId = null;
-        try {
-            cursor = database.queryFinalized("SELECT encrypted_group_id FROM enc_group_inner_chats WHERE encrypted_chat_id=?", innerChatId);
+        String sql = "SELECT encrypted_group_id FROM enc_group_inner_chats WHERE encrypted_chat_id=?";
+        Object[] args = {innerChatId};
+        return partisanSelect(sql, args, cursor -> {
             if (cursor.next()) {
-                groupId = cursor.intValue(0);
+                return cursor.intValue(0);
             }
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
-        }
-        if (cursor != null) {
-            cursor.dispose();
-        }
-        return groupId;
+            return null;
+        });
     }
 
     public Set<Integer> getAllInnerChatIdsFromEncryptedGroups() {
-        Set<Integer> encryptedChatIds = new HashSet<>();
-        SQLiteCursor cursor = null;
-        try {
-            cursor = database.queryFinalized("SELECT DISTINCT encrypted_chat_id FROM enc_group_inner_chats");
+        return partisanSelect("SELECT DISTINCT encrypted_chat_id FROM enc_group_inner_chats", cursor -> {
+            Set<Integer> encryptedChatIds = new HashSet<>();
             while (cursor.next()) {
                 int id = cursor.intValue(0);
                 encryptedChatIds.add(id);
             }
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
-        }
-        if (cursor != null) {
-            cursor.dispose();
-        }
-        return encryptedChatIds;
+            return encryptedChatIds;
+        });
     }
 
     public Integer getEncryptedGroupVirtualMessageId(int encryptedGroupId, int encryptedChatId, int realMessageId) {
-        SQLiteCursor cursor = null;
-        Integer virtualMessageId = null;
-        try {
-            cursor = database.queryFinalized("SELECT virtual_message_id " +
-                    "FROM enc_group_virtual_messages_to_messages_v2 " +
-                    "WHERE encrypted_group_id = ? AND encrypted_chat_id = ? AND real_message_id = ?",
-                    encryptedGroupId, encryptedChatId, realMessageId);
+        String sql = "SELECT virtual_message_id " +
+                "FROM enc_group_virtual_messages_to_messages_v2 " +
+                "WHERE encrypted_group_id = ? AND encrypted_chat_id = ? AND real_message_id = ?";
+        Object[] args = {encryptedGroupId, encryptedChatId, realMessageId};
+        return partisanSelect(sql, args, cursor -> {
             if (cursor.next()) {
-                virtualMessageId = cursor.intValue(0);
+                return cursor.intValue(0);
             }
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
-        }
-        if (cursor != null) {
-            cursor.dispose();
-        }
-        return virtualMessageId;
+            return null;
+        });
     }
 
     public int createEncryptedVirtualMessage(int encryptedGroupId) {
         int virtualMessageId = getUserConfig().getNewEncryptedGroupVirtualMessageId();
-        SQLitePreparedStatement state = null;
-        try {
-            state = database.executeFast("INSERT INTO enc_group_virtual_messages VALUES(?, ?)");
+        partisanExecute("INSERT INTO enc_group_virtual_messages VALUES(?, ?)", state -> {
             int pointer = 1;
             state.bindInteger(pointer++, encryptedGroupId);
             state.bindInteger(pointer++, virtualMessageId);
             state.step();
-        } catch (Exception e) {
-            checkSQLException(e);
-            PartisanLog.handleException(e);
-        }
-        if (state != null) {
-            state.dispose();
-        }
+        });
         return virtualMessageId;
     }
 
     public void addEncryptedVirtualMessageMapping(int encryptedGroupId, int virtualMessageId, int encryptedChatId, int realMessageId) throws Exception {
-        SQLitePreparedStatement state = null;
-        try {
-            state = database.executeFast("INSERT INTO enc_group_virtual_messages_to_messages_v2 VALUES(?, ?, ?, ?)");
-            state.requery();
+        partisanExecute("INSERT INTO enc_group_virtual_messages_to_messages_v2 VALUES(?, ?, ?, ?)", state -> {
             int pointer = 1;
             state.bindInteger(pointer++, encryptedGroupId);
             state.bindInteger(pointer++, virtualMessageId);
             state.bindInteger(pointer++, encryptedChatId);
             state.bindInteger(pointer++, realMessageId);
             state.step();
+        });
+    }
 
-        } catch (Exception e) {
+    private interface SQLitePreparedStatementConsumer {
+        void accept(SQLitePreparedStatement state) throws SQLiteException;
+    }
+
+    private void partisanExecute(String sql, SQLitePreparedStatementConsumer action) {
+        SQLitePreparedStatement state = null;
+        try {
+            state = database.executeFast(sql);
+            action.accept(state);
+
+        } catch (SQLiteException e) {
             checkSQLException(e);
             PartisanLog.handleException(e);
         }
         if (state != null) {
             state.dispose();
         }
+    }
+
+    private interface SQLiteCursorConsumer<T> {
+        T accept(SQLiteCursor cursor) throws SQLiteException;
+    }
+
+    private <T> T partisanSelect(String sql, SQLiteCursorConsumer<T> action) {
+        return partisanSelect(sql, new Object[]{}, action);
+    }
+
+    private <T> T partisanSelect(String sql, Object[] args, SQLiteCursorConsumer<T> action) {
+        SQLiteCursor cursor = null;
+        T result = null;
+        try {
+            cursor = database.queryFinalized(sql, args);
+            result = action.accept(cursor);
+        } catch (Exception e) {
+            checkSQLException(e);
+            PartisanLog.handleException(e);
+        }
+        if (cursor != null) {
+            cursor.dispose();
+        }
+        return result;
     }
 
     private void putUsersAndChatsInternal(List<TLRPC.User> users, List<TLRPC.Chat> chats, boolean withTransaction) {
