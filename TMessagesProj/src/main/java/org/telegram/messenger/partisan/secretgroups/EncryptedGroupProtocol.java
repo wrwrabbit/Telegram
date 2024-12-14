@@ -224,6 +224,10 @@ public class EncryptedGroupProtocol {
                 log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
                 return;
             }
+            if (encryptedGroup.getState() != EncryptedGroupState.WAITING_CONFIRMATION_FROM_MEMBERS) {
+                log("Invalid encrypted group state.");
+                return;
+            }
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
             if (innerChat.getState() != InnerEncryptedChatState.REQUEST_SENT) {
                 log(encryptedGroup, "The encrypted group doesn't wait for an answer to the request.");
@@ -269,7 +273,7 @@ public class EncryptedGroupProtocol {
                 return;
             }
             if (encryptedGroup.getState() != EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER) {
-                log(encryptedGroup, " doesn't wait for owner confirmation.");
+                log(encryptedGroup, "Doesn't wait for owner confirmation.");
                 return;
             }
             log(encryptedGroup, "Owner confirmed initialization.");
@@ -289,6 +293,10 @@ public class EncryptedGroupProtocol {
         EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroupByExternalId(action.externalGroupId);
         if (encryptedGroup == null) {
             log("There is no encrypted group with id " + action.externalGroupId);
+            return;
+        }
+        if (encryptedGroup.getState() != EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION) {
+            log("Invalid encrypted group state.");
             return;
         }
         InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedChat.user_id);
@@ -322,6 +330,10 @@ public class EncryptedGroupProtocol {
             EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(groupId);
             if (encryptedGroup == null) {
                 log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
+                return;
+            }
+            if (encryptedGroup.getState() != EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION) {
+                log("Invalid encrypted group state.");
                 return;
             }
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);

@@ -26,6 +26,9 @@ import javax.annotation.Nullable;
 
 public class EncryptedGroupUtils {
     public static void checkAllEncryptedChatsCreated(EncryptedGroup encryptedGroup, int accountNum) {
+        if (encryptedGroup.getState() != EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION) {
+            throw new RuntimeException("Invalid encrypted group state");
+        }
         if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.INITIALIZED)) {
             log(encryptedGroup, accountNum, "All encrypted chats initialized.");
             encryptedGroup.setState(EncryptedGroupState.INITIALIZED);
@@ -122,6 +125,9 @@ public class EncryptedGroupUtils {
         TLRPC.User ownerUser = messagesController.getUser(encryptedGroup.getOwnerUserId());
         builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.SecretGroupJoiningConfirmation, UserObject.getUserName(ownerUser))));
         builder.setPositiveButton(LocaleController.getString(R.string.JoinSecretGroup), (dialog, which) -> {
+            if (encryptedGroup.getState() != EncryptedGroupState.JOINING_NOT_CONFIRMED) {
+                throw new RuntimeException("Invalid encrypted group state");
+            }
             encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
             try {
                 messagesStorage.updateEncryptedGroup(encryptedGroup);
