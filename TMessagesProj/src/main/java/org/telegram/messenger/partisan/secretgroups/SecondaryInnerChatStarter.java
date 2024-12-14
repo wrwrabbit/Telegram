@@ -64,11 +64,7 @@ public class SecondaryInnerChatStarter {
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedChat.user_id);
             innerChat.setEncryptedChatId(encryptedChat.id);
             innerChat.setState(InnerEncryptedChatState.INITIALIZED);
-            try {
-                getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
-            } catch (Exception e) {
-                PartisanLog.handleException(e);
-            }
+            getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
             new EncryptedGroupProtocol(accountNum).sendStartSecondaryInnerChat(encryptedChat, encryptedGroup.getExternalId());
 
             checkInnerEncryptedChats();

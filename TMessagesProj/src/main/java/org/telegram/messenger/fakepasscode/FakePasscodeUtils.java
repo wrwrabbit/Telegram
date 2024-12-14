@@ -124,14 +124,7 @@ public class FakePasscodeUtils {
 
         MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
         List<TLRPC.Dialog> filteredDialogsWithoutEncryptedGroups = filteredDialogs.stream()
-                .filter(d -> {
-                    try {
-                        return !messagesStorage.isEncryptedGroup(d.id);
-                    } catch (Exception e) {
-                        PartisanLog.handleException(e);
-                        return false;
-                    }
-                })
+                .filter(d -> !messagesStorage.isEncryptedGroup(d.id))
                 .collect(Collectors.toList());
         return new FilteredArrayList<>(filteredDialogsWithoutEncryptedGroups, filteredDialogs);
     }

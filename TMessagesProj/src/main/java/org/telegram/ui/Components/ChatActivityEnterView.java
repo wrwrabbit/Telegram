@@ -7000,10 +7000,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     Integer encryptedGroupId = parentFragment.getEncryptedGroupId();
                     int virtualMessageId = 0;
                     if (encryptedGroupId != null) {
-                        try {
-                            virtualMessageId = accountInstance.getMessagesStorage().createEncryptedVirtualMessage(encryptedGroupId);
-                        } catch (Exception ignore) {
-                        }
+                        virtualMessageId = accountInstance.getMessagesStorage().createEncryptedVirtualMessage(encryptedGroupId);
                     }
                     for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList()) {
                         params.peer = DialogObject.makeEncryptedDialogId(chat.id);

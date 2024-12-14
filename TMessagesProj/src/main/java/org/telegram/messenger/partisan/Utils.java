@@ -537,16 +537,11 @@ public class Utils {
         if (!account.isPresent() || SharedConfig.showEncryptedChatsFromEncryptedGroups) {
             return filteredDialogsByPasscode;
         }
-        try {
-            MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
-            Set<Integer> innerChatIdsFromEncryptedGroups = messagesStorage.getAllInnerChatIdsFromEncryptedGroups();
-            List<TLRPC.Dialog> filteredDialogs = filteredDialogsByPasscode.stream()
-                    .filter(d -> !DialogObject.isEncryptedDialog(d.id) || !innerChatIdsFromEncryptedGroups.contains(DialogObject.getEncryptedChatId(d.id)))
-                    .collect(Collectors.toList());
-            return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
-        } catch (Exception e) {
-            PartisanLog.handleException(e);
-            return filteredDialogsByPasscode;
-        }
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
+        Set<Integer> innerChatIdsFromEncryptedGroups = messagesStorage.getAllInnerChatIdsFromEncryptedGroups();
+        List<TLRPC.Dialog> filteredDialogs = filteredDialogsByPasscode.stream()
+                .filter(d -> !DialogObject.isEncryptedDialog(d.id) || !innerChatIdsFromEncryptedGroups.contains(DialogObject.getEncryptedChatId(d.id)))
+                .collect(Collectors.toList());
+        return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
     }
 }

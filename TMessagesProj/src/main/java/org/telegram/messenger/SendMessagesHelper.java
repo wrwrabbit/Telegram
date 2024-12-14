@@ -4281,14 +4281,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
 
             if (sendMessageParams.encryptedGroupId != null && sendMessageParams.encryptedGroupVirtualMessageId != null) {
-                try {
-                    int encryptedGroupId = sendMessageParams.encryptedGroupId;
-                    int virtualMessageId = sendMessageParams.encryptedGroupVirtualMessageId;
-                    int encryptedChatId = DialogObject.getEncryptedChatId(peer);
-                    getMessagesStorage().addEncryptedVirtualMessageMapping(encryptedGroupId, virtualMessageId, encryptedChatId, newMsg.id);
-                } catch (Exception e) {
-                    PartisanLog.handleException(e);
-                }
+                int encryptedGroupId = sendMessageParams.encryptedGroupId;
+                int virtualMessageId = sendMessageParams.encryptedGroupVirtualMessageId;
+                int encryptedChatId = DialogObject.getEncryptedChatId(peer);
+                getMessagesStorage().addEncryptedVirtualMessageMapping(encryptedGroupId, virtualMessageId, encryptedChatId, newMsg.id);
             }
 
             if (groupId == 0) {

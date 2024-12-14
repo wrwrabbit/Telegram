@@ -23181,14 +23181,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentEncryptedGroup == null) {
             return;
         }
-        try {
-            int encryptedGroupId = currentEncryptedGroup.getInternalId();
-            int encryptedChatId = DialogObject.getEncryptedChatId(obj.getDialogId());
-            obj.encryptedGroupVirtualMessageId = getMessagesStorage()
-                    .getEncryptedGroupVirtualMessageId(encryptedGroupId, encryptedChatId, obj.getId());
-        } catch (Exception e) {
-            PartisanLog.handleException(e);
-        }
+        int encryptedGroupId = currentEncryptedGroup.getInternalId();
+        int encryptedChatId = DialogObject.getEncryptedChatId(obj.getDialogId());
+        obj.encryptedGroupVirtualMessageId = getMessagesStorage()
+                .getEncryptedGroupVirtualMessageId(encryptedGroupId, encryptedChatId, obj.getId());
     }
 
     private AlertDialog quoteMessageUpdateAlert;

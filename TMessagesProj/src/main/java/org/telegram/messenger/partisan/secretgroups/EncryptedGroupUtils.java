@@ -32,11 +32,7 @@ public class EncryptedGroupUtils {
         if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.INITIALIZED)) {
             log(encryptedGroup, accountNum, "All encrypted chats initialized.");
             encryptedGroup.setState(EncryptedGroupState.INITIALIZED);
-            try {
-                MessagesStorage.getInstance(accountNum).updateEncryptedGroup(encryptedGroup);
-            } catch (Exception e) {
-                PartisanLog.handleException(e);
-            }
+            MessagesStorage.getInstance(accountNum).updateEncryptedGroup(encryptedGroup);
             if (encryptedGroup.getOwnerUserId() != UserConfig.getInstance(accountNum).clientUserId) {
                 MessagesController messagesController = MessagesController.getInstance(accountNum);
                 int ownerEncryptedChatId = encryptedGroup.getOwnerEncryptedChatId();
@@ -70,14 +66,10 @@ public class EncryptedGroupUtils {
 
     public static void getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(long dialogId, int account, Consumer<Integer> action) {
         if (DialogObject.isEncryptedDialog(dialogId)) {
-            try {
-                Integer encryptedGroupId = MessagesStorage.getInstance(account)
-                        .getEncryptedGroupIdByInnerEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
-                if (encryptedGroupId != null) {
-                    action.accept(encryptedGroupId);
-                }
-            } catch (Exception e) {
-                PartisanLog.handleException(e);
+            Integer encryptedGroupId = MessagesStorage.getInstance(account)
+                    .getEncryptedGroupIdByInnerEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
+            if (encryptedGroupId != null) {
+                action.accept(encryptedGroupId);
             }
         }
     }
@@ -129,11 +121,7 @@ public class EncryptedGroupUtils {
                 throw new RuntimeException("Invalid encrypted group state");
             }
             encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
-            try {
-                messagesStorage.updateEncryptedGroup(encryptedGroup);
-            } catch (Exception e) {
-                PartisanLog.handleException(e);
-            }
+            messagesStorage.updateEncryptedGroup(encryptedGroup);
             TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
             log(encryptedGroup, accountNum, "Send join confirmation.");
             new EncryptedGroupProtocol(accountNum).sendJoinConfirmation(encryptedChat);
@@ -178,5 +166,15 @@ public class EncryptedGroupUtils {
         } else {
             PartisanLog.d("Account: " + account + ". Encrypted group: unknown. " + message);
         }
+    }
+
+    public static EncryptedGroup getEncryptedGroupByEncryptedChat(TLRPC.EncryptedChat encryptedChat, int accountNum) {
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(accountNum);
+        MessagesController messagesController = MessagesController.getInstance(accountNum);
+        Integer groupId = messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChat.id);
+        if (groupId == null) {
+            return null;
+        }
+        return messagesController.getEncryptedGroup(groupId);
     }
 }
