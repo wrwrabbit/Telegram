@@ -145,4 +145,13 @@ public class EncryptedGroupUtils {
             button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
         }
     }
+
+    public static void showNotImplementedDialog(BaseFragment fragment) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
+        builder.setTitle(LocaleController.getString(R.string.AppName));
+        builder.setMessage(LocaleController.getString(R.string.ThisFeatureIsNotImplemented));
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        AlertDialog alertDialog = builder.create();
+        fragment.showDialog(alertDialog);
+    }
 }

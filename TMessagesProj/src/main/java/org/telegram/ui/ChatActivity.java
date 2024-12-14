@@ -3626,7 +3626,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     });
                 } else if (id == chat_enc_timer) {
-                    if (getParentActivity() == null || isEncryptedGroup()) {
+                    if (isEncryptedGroup()) {
+                        EncryptedGroupUtils.showNotImplementedDialog(ChatActivity.this);
+                        return;
+                    }
+                    if (getParentActivity() == null) {
                         return;
                     }
                     showDialog(AlertsCreator.createTTLAlert(getParentActivity(), currentEncryptedChatSingle, themeDelegate).create());
@@ -3805,9 +3809,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         chatActivityEnterView.getEditField().makeSelectedRegular();
                     }
                 } else if (id == delete_messages) {
-                    if (isEncryptedGroup()) {
-                        return;
-                    }
                     final long did;
                     if (dialog_id != 0) {
                         did = dialog_id;
@@ -4318,7 +4319,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 chat = null;
             }
             if (!FakePasscodeUtils.isFakePasscodeActivated() && (!ChatObject.isChannel(chat) || chat.megagroup)
-                    && SharedConfig.showDeleteMyMessages) {
+                    && !isEncryptedGroup() && SharedConfig.showDeleteMyMessages) {
                 headerItem.lazilyAddSubItem(delete_messages, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteMyMessages));
             }
             if (!isTopic && getUserConfig().isChannelSavingAllowed(chat)) {

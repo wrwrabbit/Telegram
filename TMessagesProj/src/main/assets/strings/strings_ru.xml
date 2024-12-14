@@ -277,4 +277,5 @@
     <string name="DeclineJoiningToSecretGroup">Отклонить</string>
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Секретные группы всегда скрываются ложным код-паролем.</string>
     <string name="NotAllSelectedDialogsHaveThisOption">Не все выбранные диалоги имеют эту опцию.</string>
+    <string name="ThisFeatureIsNotImplemented">Эта функция ещё не реализована.</string>
 </resources>

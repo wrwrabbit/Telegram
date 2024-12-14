@@ -46,6 +46,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -523,6 +524,11 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (parentFragment.isComments) {
             if (chat == null) return;
             parentFragment.presentFragment(ProfileActivity.of(-chat.id), removeLast);
+            return;
+        }
+
+        if (parentFragment.isEncryptedGroup()) {
+            EncryptedGroupUtils.showNotImplementedDialog(parentFragment);
             return;
         }
 

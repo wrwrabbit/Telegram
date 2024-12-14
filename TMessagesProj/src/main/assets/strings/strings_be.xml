@@ -277,4 +277,5 @@
     <string name="DeclineJoiningToSecretGroup">Адхіліць</string>
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Сакрэтныя групы заўсёды хаваюцца несапраўдным кодам блакіроўкі.</string>
     <string name="NotAllSelectedDialogsHaveThisOption">Не ўсе абраныя дыялогі маюць гэтую опцыю.</string>
+    <string name="ThisFeatureIsNotImplemented">Гэтая функцыя яшчэ не рэалізавана.</string>
 </resources>

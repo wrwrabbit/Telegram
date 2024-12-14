@@ -1178,7 +1178,7 @@
     <string name="ApplyLocalizationFile">Apply localization file</string>
     <string name="ApplyThemeFile">Apply theme file</string>
     <string name="UnsupportedAttachment">Unsupported attachment</string>
-    <string name="SetTimer">Set self-destruct timer</string>
+        <string name="SetTimer">Set self-destruct timer</string>
     <string name="ServiceNotifications">Service notifications</string>
     <string name="VerifyCodesNotifications">Verification Codes</string>
     <string name="GettingLinkInfo">Getting Link Info...</string>
@@ -8789,4 +8789,6 @@
     <string name="JoinSecretGroup">Join</string>
     <string name="DeclineJoiningToSecretGroup">Decline</string>
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Secret groups are always hidden with a fake passcode.</string>
-    <string name="NotAllSelectedDialogsHaveThisOption">Not all selected dialogs have this option.</string></resources>
+    <string name="NotAllSelectedDialogsHaveThisOption">Not all selected dialogs have this option.</string>
+    <string name="ThisFeatureIsNotImplemented">This feature is not yet implemented.</string>
+</resources>
