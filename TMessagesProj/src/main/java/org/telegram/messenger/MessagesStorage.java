@@ -10044,27 +10044,7 @@ public class MessagesStorage extends BaseController {
                 state = null;
 
                 if (dialog != null) {
-                    state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    state.bindLong(1, dialog.id);
-                    state.bindInteger(2, dialog.last_message_date);
-                    state.bindInteger(3, dialog.unread_count);
-                    state.bindInteger(4, dialog.top_message);
-                    state.bindInteger(5, dialog.read_inbox_max_id);
-                    state.bindInteger(6, dialog.read_outbox_max_id);
-                    state.bindInteger(7, 0);
-                    state.bindInteger(8, dialog.unread_mentions_count);
-                    state.bindInteger(9, dialog.pts);
-                    state.bindInteger(10, 0);
-                    state.bindInteger(11, dialog.pinnedNum);
-                    state.bindInteger(12, dialog.flags);
-                    state.bindInteger(13, dialog.folder_id);
-                    state.bindNull(14);
-                    state.bindInteger(15, dialog.unread_reactions_count);
-                    state.bindInteger(16, 0);
-                    state.bindInteger(17, dialog.ttl_period);
-                    state.step();
-                    state.dispose();
-                    state = null;
+                    updateEncryptedGroupDialog(dialog);
                 }
             } catch (Exception e) {
                 checkSQLException(e);
@@ -10074,6 +10054,39 @@ public class MessagesStorage extends BaseController {
                 }
             }
         });
+    }
+
+    public void updateEncryptedGroupDialog(TLRPC.Dialog dialog) {
+        SQLitePreparedStatement state = null;
+        try {
+            state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            state.bindLong(1, dialog.id);
+            state.bindInteger(2, dialog.last_message_date);
+            state.bindInteger(3, dialog.unread_count);
+            state.bindInteger(4, dialog.top_message);
+            state.bindInteger(5, dialog.read_inbox_max_id);
+            state.bindInteger(6, dialog.read_outbox_max_id);
+            state.bindInteger(7, 0);
+            state.bindInteger(8, dialog.unread_mentions_count);
+            state.bindInteger(9, dialog.pts);
+            state.bindInteger(10, 0);
+            state.bindInteger(11, dialog.pinnedNum);
+            state.bindInteger(12, dialog.flags);
+            state.bindInteger(13, dialog.folder_id);
+            state.bindNull(14);
+            state.bindInteger(15, dialog.unread_reactions_count);
+            state.bindInteger(16, 0);
+            state.bindInteger(17, dialog.ttl_period);
+            state.step();
+            state.dispose();
+            state = null;
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (state != null) {
+                state.dispose();
+            }
+        }
     }
 
     private String formatUserSearchName(TLRPC.User user) {

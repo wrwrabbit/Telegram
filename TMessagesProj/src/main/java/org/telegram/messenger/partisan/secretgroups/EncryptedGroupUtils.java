@@ -91,6 +91,7 @@ public class EncryptedGroupUtils {
                 }
             }
         }
+        MessagesStorage.getInstance(account).updateEncryptedGroupDialog(encryptedGroupDialog);
     }
 
     public static void updateEncryptedGroupLastMessageDate(int encryptedGroupId, int account) {
@@ -107,6 +108,7 @@ public class EncryptedGroupUtils {
                 .mapToInt(dialog -> dialog.last_message_date)
                 .max()
                 .orElse(0);
+        MessagesStorage.getInstance(account).updateEncryptedGroupDialog(encryptedGroupDialog);
     }
 
     public static void showSecretGroupJoinDialog(EncryptedGroup encryptedGroup, BaseFragment fragment, int accountNum, Runnable onJoined) {
