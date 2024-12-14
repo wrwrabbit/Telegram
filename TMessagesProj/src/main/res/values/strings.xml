@@ -8788,4 +8788,5 @@
     <string name="SecretGroupJoiningConfirmation">**%1$s** Invited you to a secret group. Do you want to join the secret group?\n\n**If you confirm joining, %1$s will know that you are using Partisan Telegram!**</string>
     <string name="JoinSecretGroup">Join</string>
     <string name="DeclineJoiningToSecretGroup">Decline</string>
-</resources>
+    <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Secret groups are always hidden with a fake passcode.</string>
+    <string name="NotAllSelectedDialogsHaveThisOption">Not all selected dialogs have this option.</string></resources>

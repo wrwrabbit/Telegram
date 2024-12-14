@@ -275,4 +275,6 @@
     <string name="SecretGroupJoiningConfirmation">**%1$s** Запрасіў Вас у сакрэтную групу. Вы хочаце далучыцца да сакрэтнай групы?\n\n**Калі Вы пацвердзіце далучэнне, %1$s даведаецца, што Вы выкарыстоўваеце Партызанскі Тэлеграм!**</string>
     <string name="JoinSecretGroup">Далучыцца</string>
     <string name="DeclineJoiningToSecretGroup">Адхіліць</string>
+    <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Сакрэтныя групы заўсёды хаваюцца несапраўдным кодам блакіроўкі.</string>
+    <string name="NotAllSelectedDialogsHaveThisOption">Не ўсе абраныя дыялогі маюць гэтую опцыю.</string>
 </resources>
