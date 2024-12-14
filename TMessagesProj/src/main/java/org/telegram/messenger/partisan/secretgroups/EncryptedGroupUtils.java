@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 public class EncryptedGroupUtils {
     public static void checkAllEncryptedChatsCreated(EncryptedGroup encryptedGroup, int accountNum) {
         if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.INITIALIZED)) {
-            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". All encrypted chats initialized.");
+            log(encryptedGroup, accountNum, "All encrypted chats initialized.");
             encryptedGroup.setState(EncryptedGroupState.INITIALIZED);
             try {
                 MessagesStorage.getInstance(accountNum).updateEncryptedGroup(encryptedGroup);
