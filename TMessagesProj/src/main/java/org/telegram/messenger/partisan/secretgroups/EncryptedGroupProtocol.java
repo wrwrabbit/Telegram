@@ -1,7 +1,6 @@
 package org.telegram.messenger.partisan.secretgroups;
 
 import static org.telegram.messenger.SecretChatHelper.CURRENT_SECRET_CHAT_LAYER;
-import static org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils.log;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -30,6 +29,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 public class EncryptedGroupProtocol {
     private final int accountNum;
 
@@ -39,14 +40,14 @@ public class EncryptedGroupProtocol {
 
     public void sendInvitation(TLRPC.EncryptedChat encryptedChat, EncryptedGroup encryptedGroup) {
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
-            log(encryptedGroup, accountNum, "Can't send invitation to " + encryptedChat.user_id + ". The encrypted chat is not initialized.");
+            log(encryptedGroup, "Can't send invitation to " + encryptedChat.user_id + ". The encrypted chat is not initialized.");
             Utilities.globalQueue.postRunnable(() -> {
                 TLRPC.EncryptedChat encryptedChat2 = getMessagesController().getEncryptedChat(encryptedChat.id);
                 sendInvitation(encryptedChat2, encryptedGroup);
             }, 1000); // workaround
             return;
         }
-        log(encryptedGroup, accountNum, z"Send invitation to " + encryptedChat.user_id);
+        log(encryptedGroup, "Send invitation to " + encryptedChat.user_id);
         CreateGroupAction action = new CreateGroupAction();
         action.externalGroupId = encryptedGroup.getExternalId();
         action.name = encryptedGroup.getName();
@@ -65,14 +66,14 @@ public class EncryptedGroupProtocol {
 
     public void sendStartSecondaryInnerChat(TLRPC.EncryptedChat encryptedChat, long externalGroupId) {
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
-            log(externalGroupId, accountNum, "Can't start secondary chat with " + encryptedChat.user_id + ". The encrypted chat is not initialized.");
+            log(externalGroupId, "Can't start secondary chat with " + encryptedChat.user_id + ". The encrypted chat is not initialized.");
             Utilities.globalQueue.postRunnable(() -> {
                 TLRPC.EncryptedChat encryptedChat2 = getMessagesController().getEncryptedChat(encryptedChat.id);
                 sendStartSecondaryInnerChat(encryptedChat2, externalGroupId);
             }, 1000); // workaround
             return;
         }
-        log(externalGroupId, accountNum, "Start secondary chat with " + encryptedChat.user_id);
+        log(externalGroupId, "Start secondary chat with " + encryptedChat.user_id);
         StartSecondaryInnerChatAction secondaryInnerChatAction = new StartSecondaryInnerChatAction();
         secondaryInnerChatAction.externalGroupId = externalGroupId;
         sendAction(encryptedChat, secondaryInnerChatAction);
@@ -136,7 +137,7 @@ public class EncryptedGroupProtocol {
 
     public void handleServiceMessage(TLRPC.EncryptedChat encryptedChat, EncryptedGroupsServiceMessage serviceMessage) {
         EncryptedGroupAction action = serviceMessage.encryptedGroupAction;
-        log(accountNum, "Handle service message " + action.getClass());
+        log("Handle service message " + action.getClass());
         if (action instanceof CreateGroupAction) {
             handleGroupCreation(encryptedChat, (CreateGroupAction) action);
         } else if (action instanceof ConfirmJoinAction) {
@@ -155,7 +156,7 @@ public class EncryptedGroupProtocol {
         if (encryptedGroup == null) {
             return;
         }
-        log(encryptedGroup, accountNum, "Created.");
+        log(encryptedGroup, "Created.");
 
         TLRPC.Dialog dialog = createTlrpcDialog(encryptedGroup);
         getMessagesController().dialogs_dict.put(dialog.id, dialog);
@@ -174,7 +175,7 @@ public class EncryptedGroupProtocol {
     private EncryptedGroup createEncryptedGroup(TLRPC.EncryptedChat encryptedChat, CreateGroupAction action) {
         EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroupByExternalId(action.externalGroupId);
         if (encryptedGroup != null) {
-            log(accountNum, "There is already an encrypted group with external id " + action.externalGroupId);
+            log("There is already an encrypted group with external id " + action.externalGroupId);
             return null;
         }
         List<InnerEncryptedChat> encryptedChats = createInnerChats(encryptedChat, action);
@@ -220,15 +221,15 @@ public class EncryptedGroupProtocol {
             Integer groupId = getMessagesStorage().getEncryptedGroupIdByInnerEncryptedChatId(encryptedChat.id);
             EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(groupId);
             if (encryptedGroup == null) {
-                PartisanLog.e("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
+                log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
                 return;
             }
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
             if (innerChat.getState() != InnerEncryptedChatState.REQUEST_SENT) {
-                PartisanLog.e("Encrypted group " + encryptedGroup.getExternalId() + " doesn't wait for an answer to the request.");
+                log(encryptedGroup, "The encrypted group doesn't wait for an answer to the request.");
                 return;
             }
-            log(encryptedGroup, accountNum, "Handle confirm join.");
+            log(encryptedGroup, "Handle confirm join.");
             innerChat.setState(InnerEncryptedChatState.WAITING_SECONDARY_CHATS_CREATION);
             getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
             if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.WAITING_SECONDARY_CHATS_CREATION)) {
@@ -245,11 +246,11 @@ public class EncryptedGroupProtocol {
 
     private void requestMembersToCreateSecondaryChats(EncryptedGroup encryptedGroup) {
         try {
-            log(encryptedGroup, accountNum, "Request members to create secondary chats.");
+            log(encryptedGroup, "Request members to create secondary chats.");
             encryptedGroup.setState(EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION);
             getMessagesStorage().updateEncryptedGroup(encryptedGroup);
             for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
-                log(encryptedGroup, accountNum,"Request " + innerChat.getUserId() + " to create secondary chats.");
+                log(encryptedGroup, "Request " + innerChat.getUserId() + " to create secondary chats.");
                 int encryptedChatId = innerChat.getEncryptedChatId().get();
                 TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(encryptedChatId);
                 sendGroupInitializationConfirmation(encryptedChat);
@@ -264,14 +265,14 @@ public class EncryptedGroupProtocol {
             Integer groupId = getMessagesStorage().getEncryptedGroupIdByInnerEncryptedChatId(encryptedChat.id);
             EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(groupId);
             if (encryptedGroup == null) {
-                PartisanLog.e("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
+                log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
                 return;
             }
             if (encryptedGroup.getState() != EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER) {
-                PartisanLog.e("Encrypted group " + encryptedGroup.getExternalId() + " doesn't wait for owner confirmation.");
+                log(encryptedGroup, " doesn't wait for owner confirmation.");
                 return;
             }
-            log(encryptedGroup, accountNum, "Owner confirmed initialization.");
+            log(encryptedGroup, "Owner confirmed initialization.");
             encryptedGroup.setState(EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION);
             getMessagesStorage().updateEncryptedGroup(encryptedGroup);
             SecondaryInnerChatStarter.startSecondaryChats(accountNum, LaunchActivity.instance, encryptedGroup);
@@ -287,19 +288,19 @@ public class EncryptedGroupProtocol {
     private void handleStartSecondaryChat(TLRPC.EncryptedChat encryptedChat, StartSecondaryInnerChatAction action) {
         EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroupByExternalId(action.externalGroupId);
         if (encryptedGroup == null) {
-            PartisanLog.e("There is no encrypted group with id " + action.externalGroupId);
+            log("There is no encrypted group with id " + action.externalGroupId);
             return;
         }
         InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedChat.user_id);
         if (innerChat == null) {
-            PartisanLog.e("There is no inner chat for user id " + encryptedChat.user_id + " in encrypted group with id " + action.externalGroupId);
+            log(encryptedGroup, "There is no inner chat for user id.");
             return;
         }
         if (innerChat.getEncryptedChatId().isPresent()) {
-            PartisanLog.e("Inner encrypted chat is already initialized for user id " + encryptedChat.user_id + " in encrypted group with id " + action.externalGroupId);
+            log(encryptedGroup, "Inner encrypted chat is already initialized for user id.");
             return;
         }
-        log(encryptedGroup, accountNum, "Secondary chat creation handled.");
+        log(encryptedGroup, "Secondary chat creation handled.");
         innerChat.setEncryptedChatId(encryptedChat.id);
         innerChat.setState(InnerEncryptedChatState.INITIALIZED);
         try {
@@ -320,16 +321,16 @@ public class EncryptedGroupProtocol {
             Integer groupId = getMessagesStorage().getEncryptedGroupIdByInnerEncryptedChatId(encryptedChat.id);
             EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(groupId);
             if (encryptedGroup == null) {
-                PartisanLog.e("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
+                log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
                 return;
             }
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
             if (innerChat.getState() != InnerEncryptedChatState.WAITING_SECONDARY_CHATS_CREATION) {
-                PartisanLog.e("Inner encrypted chat " + encryptedChat.id + " doesn't wait for secondary chats creation");
+                log("Inner encrypted chat " + encryptedChat.id + " doesn't wait for secondary chats creation");
                 return;
             }
             innerChat.setState(InnerEncryptedChatState.INITIALIZED);
-            log(encryptedGroup, accountNum, "User " + innerChat.getUserId() + " created all secondary chats.");
+            log(encryptedGroup, "User " + innerChat.getUserId() + " created all secondary chats.");
             try {
                 getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
             } catch (Exception e) {
@@ -367,5 +368,17 @@ public class EncryptedGroupProtocol {
 
     private SecretChatHelper getSecretChatHelper() {
         return SecretChatHelper.getInstance(accountNum);
+    }
+
+    private void log(String message) {
+        EncryptedGroupUtils.log(accountNum, message);
+    }
+
+    private void log(@Nullable EncryptedGroup encryptedGroup, String message) {
+        EncryptedGroupUtils.log(encryptedGroup, accountNum, message);
+    }
+
+    private void log(@Nullable Long encryptedGroupExternalId, String message) {
+        EncryptedGroupUtils.log(encryptedGroupExternalId, accountNum, message);
     }
 }
