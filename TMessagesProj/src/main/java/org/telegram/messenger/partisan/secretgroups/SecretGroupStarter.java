@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.secretgroups;
 
+import static org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils.log;
+
 import android.content.Context;
 
 import com.google.android.exoplayer2.util.Consumer;
@@ -62,7 +64,7 @@ public class SecretGroupStarter {
         int currentUserIndex = encryptedChats.size();
         int delay = encryptedChats.isEmpty() ? 0 : 10*1000;
         TLRPC.User user = users.get(currentUserIndex);
-        PartisanLog.d("Encrypted group. Start inner encrypted chat with user " + user.id + ".");
+        log(accountNum, "Start inner encrypted chat with user " + user.id + ".");
         Utilities.globalQueue.postRunnable(
                 () -> getSecretChatHelper().startSecretChat(context, user, this::onInnerEncryptedChatStarted),
                 delay
@@ -97,7 +99,7 @@ public class SecretGroupStarter {
             getMessagesController().putEncryptedGroup(encryptedGroup, false);
 
             sendInvitations(encryptedGroup);
-            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + " created by owner.");
+            log(encryptedGroup, accountNum, "Created by owner.");
 
             callback.accept(Optional.of(encryptedGroup));
         });

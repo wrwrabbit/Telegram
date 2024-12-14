@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 public class EncryptedGroupUtils {
     public static void checkAllEncryptedChatsCreated(EncryptedGroup encryptedGroup, int accountNum) {
         if (encryptedGroup.allInnerChatsMatchState(InnerEncryptedChatState.INITIALIZED)) {
@@ -43,7 +45,7 @@ public class EncryptedGroupUtils {
                     .filter(innerChat -> innerChat.getState() != InnerEncryptedChatState.INITIALIZED)
                     .map(innerChat -> Long.toString(innerChat.getUserId()))
                     .collect(Collectors.joining(", "));
-            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". NOT all encrypted chats initialized: " + notInitializedInnerChats +".");
+            log(encryptedGroup, accountNum, "NOT all encrypted chats initialized: " + notInitializedInnerChats + ".");
         }
     }
 
@@ -127,7 +129,7 @@ public class EncryptedGroupUtils {
                 PartisanLog.handleException(e);
             }
             TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
-            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". Send join confirmation.");
+            log(encryptedGroup, accountNum, "Send join confirmation.");
             new EncryptedGroupProtocol(accountNum).sendJoinConfirmation(encryptedChat);
 
             if (onJoined != null) {
@@ -153,5 +155,22 @@ public class EncryptedGroupUtils {
         builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
         AlertDialog alertDialog = builder.create();
         fragment.showDialog(alertDialog);
+    }
+
+    static void log(int account, String message) {
+        log((Long)null, account, message);
+    }
+
+    static void log(@Nullable EncryptedGroup encryptedGroup, int account, String message) {
+        Long externalId = encryptedGroup != null ? encryptedGroup.getExternalId() : null;
+        log(externalId, account, message);
+    }
+
+    static void log(@Nullable Long encryptedGroupExternalId, int account, String message) {
+        if (encryptedGroupExternalId != null) {
+            PartisanLog.d("Account: " + account + ". Encrypted group: " + encryptedGroupExternalId + ". " + message);
+        } else {
+            PartisanLog.d("Account: " + account + ". Encrypted group: unknown. " + message);
+        }
     }
 }

@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.secretgroups;
 
+import static org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils.log;
+
 import android.content.Context;
 
 import org.telegram.messenger.MessagesController;
@@ -49,7 +51,7 @@ public class SecondaryInnerChatStarter {
                 .noneMatch(c -> c.getEncryptedChatId().isPresent() && c.getUserId() > getUserConfig().clientUserId && c.getUserId() != encryptedGroup.getOwnerUserId());
         int delay = isFirstChat ? 0 : 10*1000;
         TLRPC.User user = getMessagesController().getUser(uninitializedInnerChat.getUserId());
-        PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". Start secondary inner chat with user " + user.id + ".");
+        log(encryptedGroup, accountNum, "Start secondary inner chat with user " + user.id + ".");
         Utilities.globalQueue.postRunnable(
                 () -> getSecretChatHelper().startSecretChat(context, user, this::onInternalEncryptedChatStarted),
                 delay
@@ -58,7 +60,7 @@ public class SecondaryInnerChatStarter {
 
     private void onInternalEncryptedChatStarted(TLRPC.EncryptedChat encryptedChat) {
         if (encryptedChat != null) {
-            PartisanLog.d("Encrypted group: " + encryptedGroup.getExternalId() + ". Start secondary inner chat with user " + encryptedChat.user_id + ".");
+            log(encryptedGroup, accountNum, "Start secondary inner chat with user " + encryptedChat.user_id + ".");
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedChat.user_id);
             innerChat.setEncryptedChatId(encryptedChat.id);
             innerChat.setState(InnerEncryptedChatState.INITIALIZED);
