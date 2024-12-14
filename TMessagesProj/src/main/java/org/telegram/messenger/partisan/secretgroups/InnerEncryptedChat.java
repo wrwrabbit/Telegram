@@ -1,5 +1,7 @@
 package org.telegram.messenger.partisan.secretgroups;
 
+import androidx.annotation.NonNull;
+
 import org.telegram.messenger.DialogObject;
 
 import java.util.Optional;
@@ -9,7 +11,7 @@ public class InnerEncryptedChat {
     private Optional<Integer> encryptedChatId;
     private InnerEncryptedChatState state;
 
-    public InnerEncryptedChat(long userId, Optional<Integer> encryptedChatId) {
+    public InnerEncryptedChat(long userId, @NonNull Optional<Integer> encryptedChatId) {
         this.userId = userId;
         this.encryptedChatId = encryptedChatId;
         this.state = InnerEncryptedChatState.REQUEST_SENT;

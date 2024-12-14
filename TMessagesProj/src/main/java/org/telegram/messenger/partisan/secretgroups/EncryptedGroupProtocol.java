@@ -196,7 +196,7 @@ public class EncryptedGroupProtocol {
         List<InnerEncryptedChat> innerEncryptedChats = action.memberIds.stream()
                 .filter(Objects::nonNull)
                 .filter(id -> id != getUserConfig().clientUserId)
-                .map(memberId -> new InnerEncryptedChat(memberId, null))
+                .map(memberId -> new InnerEncryptedChat(memberId, Optional.empty()))
                 .collect(Collectors.toList());
 
         InnerEncryptedChat ownerInternalChat = new InnerEncryptedChat(encryptedChat.user_id, Optional.of(encryptedChat.id));
