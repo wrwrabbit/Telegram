@@ -15558,7 +15558,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 int finalMaxPositiveUnreadId1 = maxPositiveUnreadId;
                 int finalMaxNegativeUnreadId1 = maxNegativeUnreadId;
                 int finalScheduledRead = scheduledRead;
-                forEachDialogId(dialog_id -> {
+                forEachDialogIdIncludingVirtual(dialog_id -> {
                     getMessagesController().markDialogAsRead(dialog_id, finalMaxPositiveUnreadId, finalMaxNegativeUnreadId, finalMaxUnreadDate, false, threadId, finalCounterDecrement, finalMaxPositiveUnreadId1 == minMessageId[0] || finalMaxNegativeUnreadId1 == minMessageId[0], finalScheduledRead);
                 });
                 firstUnreadSent = true;
@@ -41693,6 +41693,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {
         return currentEncryptedChatList;
+    }
+
+    public void forEachDialogIdIncludingVirtual(Consumer<Long> action) {
+        forEachDialogId(action);
+        if (isEncryptedGroup()) {
+            action.accept(dialog_id);
+        }
     }
 
     public void forEachDialogId(Consumer<Long> action) {
