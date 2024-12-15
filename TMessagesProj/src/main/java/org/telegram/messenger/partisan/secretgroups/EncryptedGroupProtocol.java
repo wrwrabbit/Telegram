@@ -338,6 +338,14 @@ public class EncryptedGroupProtocol {
                 getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
                 EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
             }
+        } else if (encryptedChat instanceof TLRPC.TL_encryptedChatDiscarded) {
+            if (encryptedGroup.getState() == EncryptedGroupState.INITIALIZED) {
+                encryptedGroup.removeInnerChat(encryptedChat.id);
+                getMessagesStorage().deleteEncryptedGroupInnerChat(encryptedGroup.getInternalId(), encryptedChat.user_id);
+            } else {
+                encryptedGroup.setState(EncryptedGroupState.INITIALIZATION_FAILED);
+                getMessagesStorage().updateEncryptedGroup(encryptedGroup);
+            }
         }
     }
 

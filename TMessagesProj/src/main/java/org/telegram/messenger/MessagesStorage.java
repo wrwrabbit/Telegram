@@ -10553,6 +10553,14 @@ public class MessagesStorage extends BaseController {
         });
     }
 
+    public void deleteEncryptedGroupInnerChat(int encryptedGroupId, long userId) {
+        partisanExecute("DELETE FROM enc_group_inner_chats WHERE encrypted_group_id = ? AND user_id = ?", state -> {
+            state.bindInteger(1, encryptedGroupId);
+            state.bindLong(2, userId);
+            state.step();
+        });
+    }
+
     public boolean isEncryptedGroup(long dialogId) {
         if (!DialogObject.isEncryptedDialog(dialogId)) {
             return false;
