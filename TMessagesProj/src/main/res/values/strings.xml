@@ -8791,4 +8791,5 @@
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Secret groups are always hidden with a fake passcode.</string>
     <string name="NotAllSelectedDialogsHaveThisOption">Not all selected dialogs have this option.</string>
     <string name="ThisFeatureIsNotImplemented">This feature is not yet implemented.</string>
+    <string name="DeleteSecretGroupOptionForMembers">Also delete messages for others</string>
 </resources>

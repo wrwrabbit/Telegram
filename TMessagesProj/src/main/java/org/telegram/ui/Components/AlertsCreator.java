@@ -1743,8 +1743,8 @@ public class AlertsCreator {
         }));
     }
 
-    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean canDeleteHistory, Integer secretGroupId, MessagesStorage.BooleanCallback onProcessRunnable) {
-        createClearOrDeleteDialogAlert(fragment, clear, false, false, chat, user, secret, false, canDeleteHistory, secretGroupId, onProcessRunnable, null);
+    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean canDeleteHistory, Integer encryptedGroupId, MessagesStorage.BooleanCallback onProcessRunnable) {
+        createClearOrDeleteDialogAlert(fragment, clear, false, false, chat, user, secret, false, canDeleteHistory, encryptedGroupId, onProcessRunnable, null);
     }
 
     public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, MessagesStorage.BooleanCallback onProcessRunnable) {
@@ -1759,7 +1759,7 @@ public class AlertsCreator {
         createClearOrDeleteDialogAlert(fragment, clear, admin, second, chat, user, secret, checkDeleteForAll, canDeleteHistory, null, onProcessRunnable, resourcesProvider);
     }
 
-    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, boolean admin, boolean second, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, Integer secretGroupId, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
+    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, boolean admin, boolean second, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, Integer encryptedGroupId, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
         if (fragment == null || fragment.getParentActivity() == null || (chat == null && user == null)) {
             return;
         }
@@ -1878,7 +1878,7 @@ public class AlertsCreator {
                 deleteForAll[0] = !deleteForAll[0];
                 cell1.setChecked(deleteForAll[0], true);
             });
-        } else if (!second && (secret && !clear || canDeleteInbox) && !UserObject.isDeleted(user) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
+        } else if (!second && (secret && !clear || canDeleteInbox || encryptedGroupId != null && !clear) && (!UserObject.isDeleted(user) || encryptedGroupId != null) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
             if (deleteChatForAll) {
@@ -1890,6 +1890,8 @@ public class AlertsCreator {
                 }
             } else if (clear) {
                 cell[0].setText(LocaleController.formatString(R.string.ClearHistoryOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
+            } else if (encryptedGroupId != null) {
+                cell[0].setText(LocaleController.getString(R.string.DeleteSecretGroupOptionForMembers), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault, false);
             } else {
                 cell[0].setText(LocaleController.formatString(R.string.DeleteMessagesOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
             }
@@ -1903,7 +1905,7 @@ public class AlertsCreator {
         }
 
         if (user != null) {
-            if (secretGroupId != null) {
+            if (encryptedGroupId != null) {
                 avatarDrawable.setScaleSize(.8f);
                 avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
                 imageView.setImage(null, null, avatarDrawable, user);
@@ -1938,8 +1940,8 @@ public class AlertsCreator {
         } else {
             if (clear) {
                 if (user != null) {
-                    if (secretGroupId != null) {
-                        EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(secretGroupId);
+                    if (encryptedGroupId != null) {
+                        EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(encryptedGroupId);
                         messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretGroup", R.string.AreYouSureClearHistoryWithSecretGroup, encryptedGroup != null ? encryptedGroup.getName() : "")));
                     } else if (secret) {
                         messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretUser", R.string.AreYouSureClearHistoryWithSecretUser, UserObject.getUserName(user, account))));
@@ -1972,8 +1974,8 @@ public class AlertsCreator {
                     }
                 } else {
                     if (user != null) {
-                        if (secretGroupId != null) {
-                            EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(secretGroupId);
+                        if (encryptedGroupId != null) {
+                            EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(encryptedGroupId);
                             messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisSecretGroup", R.string.AreYouSureDeleteThisSecretGroup, encryptedGroup != null ? encryptedGroup.getName() : "")));
                         } else if (secret) {
                             messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisChatWithSecretUser", R.string.AreYouSureDeleteThisChatWithSecretUser, UserObject.getUserName(user, account))));
