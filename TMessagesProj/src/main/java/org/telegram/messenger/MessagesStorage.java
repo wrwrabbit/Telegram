@@ -41,6 +41,7 @@ import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChat;
 import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChatState;
 import org.telegram.messenger.support.LongSparseIntArray;
@@ -14122,6 +14123,15 @@ public class MessagesStorage extends BaseController {
                     int date = cursor.intValue(8);
                     if (date != 0) {
                         dialog.last_message_date = date;
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                            Utilities.stageQueue.postRunnable(() -> {
+                                EncryptedGroupUtils.updateEncryptedGroupLastMessageDate(encryptedGroupId, currentAccount);
+                                AndroidUtilities.runOnUIThread(() -> {
+                                    getMessagesController().sortDialogs(null);
+                                    getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                                });
+                            }, 100);
+                        });
                     }
                     message.dialog_id = dialog.id;
                     dialogs.messages.add(message);

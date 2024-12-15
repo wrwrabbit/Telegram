@@ -6,6 +6,7 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
@@ -17,6 +18,9 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -89,6 +93,30 @@ public class EncryptedGroupUtils {
             }
         }
         MessagesStorage.getInstance(account).updateEncryptedGroupDialog(encryptedGroupDialog);
+    }
+
+    public static void updateEncryptedGroupLastMessage(int encryptedGroupId, int account) {
+        MessagesController messagesController = MessagesController.getInstance(account);
+
+        EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
+        MessageObject lastMessage = null;
+        for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
+            if (!innerChat.getDialogId().isPresent()) {
+                continue;
+            }
+            ArrayList<MessageObject> currentMessages = messagesController.dialogMessage.get(innerChat.getDialogId().get());
+            if (currentMessages == null || currentMessages.isEmpty()) {
+                continue;
+            }
+            if (lastMessage == null || currentMessages.get(0).realDate > lastMessage.realDate) {
+                lastMessage = currentMessages.get(0);
+            }
+        }
+        long groupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroupId);
+        ArrayList<MessageObject> lastMessages = lastMessage != null
+                ? new ArrayList<>(Collections.singletonList(lastMessage))
+                : null;
+        messagesController.dialogMessage.put(groupDialogId, lastMessages);
     }
 
     public static void updateEncryptedGroupLastMessageDate(int encryptedGroupId, int account) {

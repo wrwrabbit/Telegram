@@ -13220,6 +13220,9 @@ public class MessagesController extends BaseController implements NotificationCe
                             FileLog.d("processDialogsUpdate dialog not null");
                         }
                         currentDialog.unread_count = value.unread_count;
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(currentDialog.id, currentAccount, encryptedGroupId -> {
+                            EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroupId, currentAccount);
+                        });
                         if (currentDialog.unread_mentions_count != value.unread_mentions_count) {
                             currentDialog.unread_mentions_count = value.unread_mentions_count;
                             if (createdDialogMainThreadIds.contains(currentDialog.id)) {
@@ -13288,6 +13291,9 @@ public class MessagesController extends BaseController implements NotificationCe
                             if (oldMsgsDeleted || messagesMaxDate(newMsgs) > messagesMaxDate(oldMsgs)) {
                                 dialogs_dict.put(key, value);
                                 dialogMessage.put(key, newMsgs);
+                                EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(key, currentAccount, encryptedGroupId -> {
+                                    EncryptedGroupUtils.updateEncryptedGroupLastMessage(encryptedGroupId, currentAccount);
+                                });
                                 if (oldMsgs != null) {
                                     for (int i = 0; i < oldMsgs.size(); ++i) {
                                         MessageObject oldMsg = oldMsgs.get(i);
@@ -20264,7 +20270,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 dialogMessage.put(dialogId, arrayList);
                 EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
-                    dialogMessage.put(DialogObject.makeEncryptedDialogId(encryptedGroupId), arrayList);
+                    EncryptedGroupUtils.updateEncryptedGroupLastMessage(encryptedGroupId, currentAccount);
                 });
 
                 getTranslateController().checkDialogMessage(dialogId);
