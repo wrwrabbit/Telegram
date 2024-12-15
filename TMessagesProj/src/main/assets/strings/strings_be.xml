@@ -263,7 +263,7 @@
     <string name="MigrationErrorUnknownDescription">Адбылася невядомая памылка. Абнавіце абодва прыкладанні і паспрабуйце яшчэ раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
     <string name="NewEncryptedGroup">Новая сакрэтная група</string>
-    <string name="AreYouSureClearHistoryWithSecretGroup">Вы ўпэўненыя, што хочаце ачысціць гісторыю чата **%1$s** для ўсіх карыстальнікаў?</string>
+    <string name="AreYouSureClearHistoryWithSecretGroup">Вы ўпэўненыя, што хочаце ачысціць гісторыю чата **%1$s**?</string>
     <string name="AreYouSureDeleteThisSecretGroup">Вы ўпэўненыя, што хочаце выгаліць гэтую сакрэтную групу: **%1$s**?</string>
     <string name="JoiningNotConfirmed">Далучэнне не пацверджана</string>
     <string name="WaitingForSecretGroupInitializationConfirmation">Чакаем пацверджання ад удзельнікаў</string>
