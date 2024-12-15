@@ -14115,6 +14115,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public void showFieldPanelForReply(MessageObject messageObjectToReply) {
+        if (isEncryptedGroup()) {
+            EncryptedGroupUtils.showNotImplementedDialog(this);
+            return;
+        }
         showFieldPanel(true, messageObjectToReply, null, null, null, true, 0, null, false, true);
     }
 
