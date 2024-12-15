@@ -3646,7 +3646,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 if (revoke && (currentUser != null || canDeleteHistory)) {
                                     getMessagesStorage().getMessagesCount(dialog_id, (count) -> {
                                         if (count >= 50) {
-                                            AlertsCreator.createClearOrDeleteDialogAlert(ChatActivity.this, true, false, true, currentChat, currentUser, false, false, canDeleteHistory, (param) -> performHistoryClear(true, canDeleteHistory), themeDelegate);
+                                            AlertsCreator.createClearOrDeleteDialogAlert(ChatActivity.this, true, false, true, currentChat, !isEncryptedGroup() ? currentUser : new TLRPC.TL_userEmpty(), false, false, canDeleteHistory, getEncryptedGroupId(), (param) -> performHistoryClear(true, canDeleteHistory), themeDelegate);
                                         } else {
                                             performHistoryClear(true, canDeleteHistory);
                                         }
@@ -3658,7 +3658,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }, getResourceProvider());
                         return;
                     }
-                    AlertsCreator.createClearOrDeleteDialogAlert(ChatActivity.this, id == clear_history, currentChat, currentUser, isEncryptedChat(), true, canDeleteHistory, (param) -> {
+                    AlertsCreator.createClearOrDeleteDialogAlert(ChatActivity.this, id == clear_history, currentChat, !isEncryptedGroup() ? currentUser : new TLRPC.TL_userEmpty(), isEncryptedChat(), true, canDeleteHistory, getEncryptedGroupId(), (param) -> {
                         if (id == clear_history && ChatObject.isChannel(currentChat) && (!currentChat.megagroup || ChatObject.isPublic(currentChat))) {
                             getMessagesController().deleteDialog(dialog_id, 2, param);
                         } else {
@@ -8476,7 +8476,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 } else {
                     boolean canDeleteHistory = chatInfo != null && chatInfo.can_delete_channel;
-                    AlertsCreator.createClearOrDeleteDialogAlert(ChatActivity.this, false, currentChat, currentUser, isEncryptedChat(), true, canDeleteHistory, (param) -> {
+                    AlertsCreator.createClearOrDeleteDialogAlert(ChatActivity.this, false, currentChat, !isEncryptedGroup() ? currentUser : new TLRPC.TL_userEmpty(), isEncryptedChat(), true, canDeleteHistory, getEncryptedGroupId(), (param) -> {
                         getNotificationCenter().removeObserver(ChatActivity.this, NotificationCenter.closeChats);
                         getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                         finishFragment();
