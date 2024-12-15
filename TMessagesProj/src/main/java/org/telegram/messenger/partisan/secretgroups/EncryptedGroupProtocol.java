@@ -12,7 +12,6 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.secretgroups.action.AllSecondaryChatsInitializedAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmGroupInitializationAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmJoinAction;
@@ -40,12 +39,7 @@ public class EncryptedGroupProtocol {
 
     public void sendInvitation(TLRPC.EncryptedChat encryptedChat, EncryptedGroup encryptedGroup) {
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
-            log(encryptedGroup, "Can't send invitation to " + encryptedChat.user_id + ". The encrypted chat is not initialized.");
-            Utilities.globalQueue.postRunnable(() -> {
-                TLRPC.EncryptedChat encryptedChat2 = getMessagesController().getEncryptedChat(encryptedChat.id);
-                sendInvitation(encryptedChat2, encryptedGroup);
-            }, 1000); // workaround
-            return;
+            throw new RuntimeException("The secret chat isn't initialized");
         }
         log(encryptedGroup, "Send invitation to " + encryptedChat.user_id);
         CreateGroupAction action = new CreateGroupAction();
@@ -64,14 +58,9 @@ public class EncryptedGroupProtocol {
         sendAction(encryptedChat, new ConfirmGroupInitializationAction());
     }
 
-    public void sendStartSecondaryInnerChat(TLRPC.EncryptedChat encryptedChat, long externalGroupId) {
+    public void sendSecondaryInnerChatInvitation(TLRPC.EncryptedChat encryptedChat, long externalGroupId) {
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
-            log(externalGroupId, "Can't start secondary chat with " + encryptedChat.user_id + ". The encrypted chat is not initialized.");
-            Utilities.globalQueue.postRunnable(() -> {
-                TLRPC.EncryptedChat encryptedChat2 = getMessagesController().getEncryptedChat(encryptedChat.id);
-                sendStartSecondaryInnerChat(encryptedChat2, externalGroupId);
-            }, 1000); // workaround
-            return;
+            throw new RuntimeException("The secret chat isn't initialized");
         }
         log(externalGroupId, "Start secondary chat with " + encryptedChat.user_id);
         StartSecondaryInnerChatAction secondaryInnerChatAction = new StartSecondaryInnerChatAction();
@@ -222,12 +211,13 @@ public class EncryptedGroupProtocol {
             log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
             return;
         }
-        if (encryptedGroup.getState() != EncryptedGroupState.WAITING_CONFIRMATION_FROM_MEMBERS) {
+        if (encryptedGroup.getState() != EncryptedGroupState.WAITING_CONFIRMATION_FROM_MEMBERS
+                && encryptedGroup.getState() != EncryptedGroupState.CREATING_ENCRYPTED_CHATS) {
             log("Invalid encrypted group state.");
             return;
         }
         InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
-        if (innerChat.getState() != InnerEncryptedChatState.REQUEST_SENT) {
+        if (innerChat.getState() != InnerEncryptedChatState.INVITATION_SENT) {
             log(encryptedGroup, "The encrypted group doesn't wait for an answer to the request.");
             return;
         }
@@ -329,6 +319,26 @@ public class EncryptedGroupProtocol {
             getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
             getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
         });
+    }
+
+    public void processEncryptedChatUpdate(TLRPC.EncryptedChat encryptedChat) {
+        EncryptedGroup encryptedGroup = getEncryptedGroupByEncryptedChat(encryptedChat);
+        if (encryptedGroup == null) {
+            return;
+        }
+        if (encryptedChat instanceof TLRPC.TL_encryptedChat) {
+            InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
+            if (innerChat.getState() == InnerEncryptedChatState.NEED_SEND_INVITATION) {
+                sendInvitation(encryptedChat, encryptedGroup);
+                innerChat.setState(InnerEncryptedChatState.INVITATION_SENT);
+                getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+            } else if (innerChat.getState() == InnerEncryptedChatState.NEED_SEND_SECONDARY_INVITATION) {
+                sendSecondaryInnerChatInvitation(encryptedChat, encryptedGroup.getExternalId());
+                innerChat.setState(InnerEncryptedChatState.INITIALIZED);
+                getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+                EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
+            }
+        }
     }
 
     private UserConfig getUserConfig() {

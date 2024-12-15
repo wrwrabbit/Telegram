@@ -1,6 +1,7 @@
 package org.telegram.messenger.partisan.secretgroups;
 
 public enum EncryptedGroupState {
+    CREATING_ENCRYPTED_CHATS,
     JOINING_NOT_CONFIRMED,
     WAITING_CONFIRMATION_FROM_MEMBERS,
     WAITING_CONFIRMATION_FROM_OWNER,

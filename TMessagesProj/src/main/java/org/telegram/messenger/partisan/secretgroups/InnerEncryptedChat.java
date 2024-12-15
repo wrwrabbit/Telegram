@@ -14,7 +14,7 @@ public class InnerEncryptedChat {
     public InnerEncryptedChat(long userId, @NonNull Optional<Integer> encryptedChatId) {
         this.userId = userId;
         this.encryptedChatId = encryptedChatId;
-        this.state = InnerEncryptedChatState.REQUEST_SENT;
+        this.state = InnerEncryptedChatState.CREATING_ENCRYPTED_CHAT;
     }
 
     public long getUserId() {

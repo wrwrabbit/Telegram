@@ -9,7 +9,6 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 
 public class SecondaryInnerChatStarter {
@@ -63,9 +62,8 @@ public class SecondaryInnerChatStarter {
             log(encryptedGroup, accountNum, "Start secondary inner chat with user " + encryptedChat.user_id + ".");
             InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedChat.user_id);
             innerChat.setEncryptedChatId(encryptedChat.id);
-            innerChat.setState(InnerEncryptedChatState.INITIALIZED);
+            innerChat.setState(InnerEncryptedChatState.NEED_SEND_SECONDARY_INVITATION);
             getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
-            new EncryptedGroupProtocol(accountNum).sendStartSecondaryInnerChat(encryptedChat, encryptedGroup.getExternalId());
 
             checkInnerEncryptedChats();
         }

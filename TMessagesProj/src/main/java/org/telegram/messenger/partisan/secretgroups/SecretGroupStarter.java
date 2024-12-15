@@ -33,6 +33,8 @@ public class SecretGroupStarter {
     private final List<TLRPC.EncryptedChat> encryptedChats = new ArrayList<>();
     private final Consumer<Optional<EncryptedGroup>> callback;
 
+    private EncryptedGroup encryptedGroup;
+
     public SecretGroupStarter(int accountNum, Context context, List<TLRPC.User> users, String name, Consumer<Optional<EncryptedGroup>> callback) {
         this.accountNum = accountNum;
         this.context = context;
@@ -49,7 +51,25 @@ public class SecretGroupStarter {
     }
 
     public void start() {
-        checkInnerEncryptedChats();
+        AndroidUtilities.runOnUIThread(() -> {
+            encryptedGroup = createEncryptedGroup();
+            if (encryptedGroup == null) {
+                callback.accept(Optional.empty());
+                return;
+            }
+
+            TLRPC.Dialog dialog = createTlrpcDialog(encryptedGroup);
+            getMessagesController().dialogs_dict.put(dialog.id, dialog);
+            getMessagesController().addDialog(dialog);
+            getMessagesController().sortDialogs(null);
+
+            getMessagesStorage().addEncryptedGroup(encryptedGroup, dialog);
+
+            getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            getMessagesController().putEncryptedGroup(encryptedGroup, false);
+
+            checkInnerEncryptedChats();
+        });
     }
 
     private void checkInnerEncryptedChats() {
@@ -74,6 +94,12 @@ public class SecretGroupStarter {
     private void onInnerEncryptedChatStarted(TLRPC.EncryptedChat encryptedChat) {
         if (encryptedChat != null) {
             encryptedChats.add(encryptedChat);
+
+            InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByUserId(encryptedChat.user_id);
+            innerChat.setEncryptedChatId(encryptedChat.id);
+            innerChat.setState(InnerEncryptedChatState.NEED_SEND_INVITATION);
+            getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+
             checkInnerEncryptedChats();
         } else {
             callback.accept(Optional.empty());
@@ -82,23 +108,9 @@ public class SecretGroupStarter {
 
     private void onAllEncryptedChatsCreated() {
         AndroidUtilities.runOnUIThread(() -> {
-            EncryptedGroup encryptedGroup = createEncryptedGroup();
-            if (encryptedGroup == null) {
-                callback.accept(Optional.empty());
-                return;
-            }
+            encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_MEMBERS);
+            getMessagesStorage().updateEncryptedGroup(encryptedGroup);
 
-            TLRPC.Dialog dialog = createTlrpcDialog(encryptedGroup);
-            getMessagesController().dialogs_dict.put(dialog.id, dialog);
-            getMessagesController().addDialog(dialog);
-            getMessagesController().sortDialogs(null);
-
-            getMessagesStorage().addEncryptedGroup(encryptedGroup, dialog);
-
-            getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
-            getMessagesController().putEncryptedGroup(encryptedGroup, false);
-
-            sendInvitations(encryptedGroup);
             log(encryptedGroup, accountNum, "Created by owner.");
 
             callback.accept(Optional.of(encryptedGroup));
@@ -117,14 +129,14 @@ public class SecretGroupStarter {
         builder.setName(name);
         builder.setInnerChats(encryptedChats);
         builder.setOwnerUserId(getUserConfig().clientUserId);
-        builder.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_MEMBERS);
+        builder.setState(EncryptedGroupState.CREATING_ENCRYPTED_CHATS);
         return builder.create();
     }
 
     private List<InnerEncryptedChat> createEncryptedChats() {
-        return encryptedChats.stream()
+        return users.stream()
                 .filter(Objects::nonNull)
-                .map(encryptedChat -> new InnerEncryptedChat(encryptedChat.user_id, Optional.of(encryptedChat.id)))
+                .map(user -> new InnerEncryptedChat(user.id, Optional.empty()))
                 .collect(Collectors.toList());
     }
 
@@ -135,13 +147,6 @@ public class SecretGroupStarter {
         dialog.top_message = 0;
         dialog.last_message_date = getConnectionsManager().getCurrentTime();
         return dialog;
-    }
-
-    private void sendInvitations(EncryptedGroup encryptedGroup) {
-        EncryptedGroupProtocol protocol = new EncryptedGroupProtocol(accountNum);
-        for (TLRPC.EncryptedChat encryptedChat : encryptedChats) {
-            protocol.sendInvitation(encryptedChat, encryptedGroup);
-        }
     }
 
     private UserConfig getUserConfig() {
