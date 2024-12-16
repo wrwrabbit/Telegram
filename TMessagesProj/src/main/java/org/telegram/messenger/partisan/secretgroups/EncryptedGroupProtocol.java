@@ -157,6 +157,8 @@ public class EncryptedGroupProtocol {
         }
         log(encryptedGroup, "Created.");
 
+        getMessagesController().deleteDialog(DialogObject.makeEncryptedDialogId(encryptedChat.id), 1);
+
         TLRPC.Dialog dialog = createTlrpcDialog(encryptedGroup);
         getMessagesController().dialogs_dict.put(dialog.id, dialog);
         getMessagesController().addDialog(dialog);
