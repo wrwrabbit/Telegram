@@ -239,6 +239,6 @@ public class EncryptedGroupUtils {
             return false;
         }
         EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
-        return encryptedGroup.getState() != EncryptedGroupState.INITIALIZED;
+        return encryptedGroup == null || encryptedGroup.getState() != EncryptedGroupState.INITIALIZED;
     }
 }
