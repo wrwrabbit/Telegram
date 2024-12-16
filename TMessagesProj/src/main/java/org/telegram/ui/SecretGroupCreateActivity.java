@@ -100,7 +100,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
     private int measuredContainerHeight;
     private int containerHeight;
 
-    private int maxCount = 9;
+    private int maxCount = 4;
     private boolean searchWas;
     private boolean searching;
     private final LongSparseArray<GroupCreateSpan> selectedContacts = new LongSparseArray<>();
