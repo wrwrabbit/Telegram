@@ -4138,7 +4138,6 @@ public class NotificationsController extends BaseController {
             String lastMessage = null;
             boolean hasNewMessages = false;
             if (filteredPushMessages().size() <= 1 || !allowSummary) {
-                MessageObject messageObject = filteredPushMessages().get(0);
                 boolean[] text = new boolean[1];
                 String message = lastMessage = getStringForMessage(lastMessageObject, false, text, null);
                 silent = isSilentMessage(lastMessageObject) ? 1 : 0;
