@@ -13498,8 +13498,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 caption = null;
             }
             getSendMessagesHelper().sendMessage(fmessages, dialog_id, false, false, true, 0);
+            final String captionFinal = caption;
             forEachDialogId(dialog_id -> {
-                SendMessagesHelper.prepareSendingDocuments(getAccountInstance(), files, files, null, caption, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, scheduleDate, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
+                SendMessagesHelper.prepareSendingDocuments(getAccountInstance(), files, files, null, captionFinal, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, scheduleDate, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
             });
             afterMessageSend();
         }
