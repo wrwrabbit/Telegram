@@ -167,6 +167,10 @@ public class EncryptedGroupProtocol {
             log("There is already an encrypted group with external id " + action.externalGroupId);
             return null;
         }
+        if (action.memberIds.size() > EncryptedGroupConstants.MAX_MEMBER_COUNT) {
+            log("Too many encrypted group members");
+            return null;
+        }
         List<InnerEncryptedChat> encryptedChats = createInnerChats(encryptedChat, action);
         if (encryptedChats.isEmpty()) {
             return null;
