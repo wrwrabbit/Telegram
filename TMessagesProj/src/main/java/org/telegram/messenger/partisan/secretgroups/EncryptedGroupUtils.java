@@ -80,6 +80,9 @@ public class EncryptedGroupUtils {
     }
 
     public static void updateEncryptedGroupUnreadCount(int encryptedGroupId, int account) {
+        if (isNotInitializedEncryptedGroup(encryptedGroupId, account)) {
+            return;
+        }
         MessagesController messagesController = MessagesController.getInstance(account);
 
         EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
@@ -97,6 +100,9 @@ public class EncryptedGroupUtils {
     }
 
     public static void updateEncryptedGroupLastMessage(int encryptedGroupId, int account) {
+        if (isNotInitializedEncryptedGroup(encryptedGroupId, account)) {
+            return;
+        }
         MessagesController messagesController = MessagesController.getInstance(account);
 
         EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
@@ -121,6 +127,9 @@ public class EncryptedGroupUtils {
     }
 
     public static void updateEncryptedGroupLastMessageDate(int encryptedGroupId, int account) {
+        if (isNotInitializedEncryptedGroup(encryptedGroupId, account)) {
+            return;
+        }
         MessagesController messagesController = MessagesController.getInstance(account);
 
         EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
