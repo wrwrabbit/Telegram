@@ -51,8 +51,10 @@ public class EncryptedGroupUtils {
         }
     }
 
-    public static String getEncryptedStateDescription(EncryptedGroupState state) {
+    public static String getGroupStateDescription(EncryptedGroupState state) {
         switch (state) {
+            case CREATING_ENCRYPTED_CHATS:
+                return LocaleController.getString(R.string.CreatingSecretChats);
             case JOINING_NOT_CONFIRMED:
                 return LocaleController.getString(R.string.JoiningNotConfirmed);
             case WAITING_CONFIRMATION_FROM_MEMBERS:

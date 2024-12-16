@@ -265,6 +265,7 @@
     <string name="NewEncryptedGroup">Новая сакрэтная група</string>
     <string name="AreYouSureClearHistoryWithSecretGroup">Вы ўпэўненыя, што хочаце ачысціць гісторыю чата **%1$s**?</string>
     <string name="AreYouSureDeleteThisSecretGroup">Вы ўпэўненыя, што хочаце выгаліць гэтую сакрэтную групу: **%1$s**?</string>
+    <string name="CreatingSecretChats">Стварэнне сакрэтных чатаў</string>
     <string name="JoiningNotConfirmed">Далучэнне не пацверджана</string>
     <string name="WaitingForSecretGroupInitializationConfirmation">Чакаем пацверджання ад удзельнікаў</string>
     <string name="WaitingForSecondaryChatsCreation">Чакаем стварэння чатаў паміж удзельнікамі</string>

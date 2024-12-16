@@ -1427,7 +1427,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             }
                         } else if (encryptedGroup != null && encryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
                             currentMessagePaint = Theme.dialogs_messagePrintingPaint[paintIndex];
-                            messageString = EncryptedGroupUtils.getEncryptedStateDescription(encryptedGroup.getState());
+                            messageString = EncryptedGroupUtils.getGroupStateDescription(encryptedGroup.getState());
                         } else {
                             if (dialogsType == DialogsActivity.DIALOGS_TYPE_FORWARD && UserObject.isUserSelf(user)) {
                                 messageString = LocaleController.getString(parentFragment != null && parentFragment.isQuote ? R.string.SavedMessagesInfoQuote : R.string.SavedMessagesInfo);
