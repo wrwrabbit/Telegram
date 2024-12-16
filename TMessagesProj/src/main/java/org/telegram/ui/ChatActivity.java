@@ -41697,6 +41697,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return currentEncryptedGroup.getInternalId();
     }
 
+    public EncryptedGroup getEncryptedGroup() {
+        return currentEncryptedGroup;
+    }
+
     public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {
         return currentEncryptedChatList;
     }

@@ -160,6 +160,8 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanVersion;
 import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -5972,7 +5974,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         return;
                     }
                     Bundle args = new Bundle();
-                    args.putLong("user_id", userId);
+                    EncryptedGroup encryptedGroup = EncryptedGroupUtils.getEncryptedGroupByEncryptedChat(currentEncryptedChat, currentAccount);
+                    if (encryptedGroup != null && !SharedConfig.showEncryptedChatsFromEncryptedGroups) {
+                        args.putInt("enc_group_id", encryptedGroup.getInternalId());
+                    } else {
+                        args.putLong("user_id", userId);
+                    }
                     if (!getMessagesController().checkCanOpenChat(args, ProfileActivity.this)) {
                         return;
                     }

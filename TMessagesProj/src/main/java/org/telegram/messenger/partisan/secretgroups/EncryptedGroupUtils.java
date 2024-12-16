@@ -217,6 +217,9 @@ public class EncryptedGroupUtils {
     }
 
     public static EncryptedGroup getEncryptedGroupByEncryptedChat(TLRPC.EncryptedChat encryptedChat, int accountNum) {
+        if (encryptedChat == null) {
+            return null;
+        }
         MessagesStorage messagesStorage = MessagesStorage.getInstance(accountNum);
         MessagesController messagesController = MessagesController.getInstance(accountNum);
         Integer groupId = messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChat.id);

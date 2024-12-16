@@ -56,6 +56,7 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Business.BusinessLinksController;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.EncryptedGroupProfileActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.TopicsFragment;
@@ -528,7 +529,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
 
         if (parentFragment.isEncryptedGroup()) {
-            EncryptedGroupUtils.showNotImplementedDialog(parentFragment);
+            parentFragment.presentFragment(new EncryptedGroupProfileActivity(parentFragment.getEncryptedGroup()), removeLast);
             return;
         }
 
