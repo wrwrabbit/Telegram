@@ -279,6 +279,6 @@
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Сакрэтныя групы заўсёды хаваюцца несапраўдным кодам блакіроўкі.</string>
     <string name="NotAllSelectedDialogsHaveThisOption">Не ўсе абраныя дыялогі маюць гэтую опцыю.</string>
     <string name="ThisFeatureIsNotImplemented">Гэтая функцыя яшчэ не рэалізавана.</string>
-    <string name="DeleteSecretGroupOptionForMembers">Таксама выдаліць паведамленні для астатніх</string>
+    <string name="DeleteSecretGroupOptionForMembers">Выдаліць паведамленні для астатніх</string>
     <string name="InstallPartisanTelegramForSecretGroups">Калі Вы бачыце гэтае паведамленне, у Вас не ўсталяваны Партызанскі Тэлеграм. Для ўступлення ў сакрэтную групу cпампуйце дадатак з афіцыйнага канала: https://t.me/cpartisans_security</string>
 </resources>

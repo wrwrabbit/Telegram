@@ -8792,6 +8792,6 @@
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Secret groups are always hidden with a fake passcode.</string>
     <string name="NotAllSelectedDialogsHaveThisOption">Not all selected dialogs have this option.</string>
     <string name="ThisFeatureIsNotImplemented">This feature is not yet implemented.</string>
-    <string name="DeleteSecretGroupOptionForMembers">Also delete messages for others</string>
+    <string name="DeleteSecretGroupOptionForMembers">Delete messages for others</string>
     <string name="InstallPartisanTelegramForSecretGroups">If you see this message, you do not have Partisan Telegram installed. To join the secret group, download the application from the official channel: https://t.me/cpartisans_security</string>
 </resources>
