@@ -158,12 +158,22 @@ public class EncryptedGroupUtils {
             if (encryptedGroup.getState() != EncryptedGroupState.JOINING_NOT_CONFIRMED) {
                 throw new RuntimeException("Invalid encrypted group state");
             }
-            encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
-            messagesStorage.updateEncryptedGroup(encryptedGroup);
-            TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
-            log(encryptedGroup, accountNum, "Send join confirmation.");
-            new EncryptedGroupProtocol(accountNum).sendJoinConfirmation(encryptedChat);
-
+            boolean allMembersAreKnown = encryptedGroup.getInnerUserIds()
+                    .stream()
+                    .allMatch(user_id -> messagesController.getUser(user_id) != null);
+            if (allMembersAreKnown) {
+                encryptedGroup.setState(EncryptedGroupState.WAITING_CONFIRMATION_FROM_OWNER);
+                messagesStorage.updateEncryptedGroup(encryptedGroup);
+                TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
+                log(encryptedGroup, accountNum, "Send join confirmation.");
+                new EncryptedGroupProtocol(accountNum).sendJoinConfirmation(encryptedChat);
+            } else {
+                encryptedGroup.setState(EncryptedGroupState.INITIALIZATION_FAILED);
+                messagesStorage.updateEncryptedGroup(encryptedGroup);
+                TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedGroup.getOwnerEncryptedChatId());
+                log(encryptedGroup, accountNum, "Not all users are known.");
+                new EncryptedGroupProtocol(accountNum).sendGroupInitializationFailed(encryptedChat);
+            }
             if (onJoined != null) {
                 onJoined.run();
             }
