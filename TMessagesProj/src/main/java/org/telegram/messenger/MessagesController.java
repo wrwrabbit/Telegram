@@ -17719,6 +17719,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     for (int a = 0, size = decryptedMessages.size(); a < size; a++) {
                         TLRPC.Message message = decryptedMessages.get(a);
+                        if (!PartisanMessagesInterceptionController.intercept(currentAccount, message).isAllowMessageSaving()) {
+                            continue;
+                        }
                         ImageLoader.saveMessageThumbs(message);
                         if (messagesArr == null) {
                             messagesArr = new ArrayList<>();

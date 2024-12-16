@@ -19,7 +19,6 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
@@ -204,5 +203,21 @@ public class EncryptedGroupUtils {
             return null;
         }
         return messagesController.getEncryptedGroup(groupId);
+    }
+
+    public static boolean isNotInitializedEncryptedGroup(long dialogId, int accountNum) {
+        if (!DialogObject.isEncryptedDialog(dialogId)) {
+            return false;
+        }
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(accountNum);
+        MessagesController messagesController = MessagesController.getInstance(accountNum);
+
+        int encryptedChatId = DialogObject.getEncryptedChatId(dialogId);
+        Integer encryptedGroupId = messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId);
+        if (encryptedGroupId == null) {
+            return false;
+        }
+        EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
+        return encryptedGroup.getState() != EncryptedGroupState.INITIALIZED;
     }
 }

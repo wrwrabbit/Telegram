@@ -1,7 +1,7 @@
 package org.telegram.messenger.partisan.messageinterception;
 
 public class InterceptionResult {
-    private boolean preventMessageSaving;
+    private final boolean preventMessageSaving;
 
     public InterceptionResult(boolean preventMessageSaving) {
         this.preventMessageSaving = preventMessageSaving;
