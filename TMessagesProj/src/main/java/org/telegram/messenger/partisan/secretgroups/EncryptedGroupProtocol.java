@@ -403,6 +403,9 @@ public class EncryptedGroupProtocol {
         for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
             innerChat.setState(InnerEncryptedChatState.INITIALIZATION_FAILED);
             getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+            if (!innerChat.getEncryptedChatId().isPresent()) {
+                continue;
+            }
             int encryptedChatId = innerChat.getEncryptedChatId().get();
             TLRPC.EncryptedChat innerEncryptedChat = getMessagesController().getEncryptedChat(encryptedChatId);
             sendGroupInitializationFailed(innerEncryptedChat);
