@@ -52,6 +52,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupConstants;
 import org.telegram.messenger.partisan.secretgroups.SecretGroupStarter;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -100,7 +101,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
     private int measuredContainerHeight;
     private int containerHeight;
 
-    private final int maxCount = 4;
+    private final int maxCount = EncryptedGroupConstants.MAX_MEMBER_COUNT - 1;
     private boolean searchWas;
     private boolean searching;
     private final LongSparseArray<GroupCreateSpan> selectedContacts = new LongSparseArray<>();

@@ -5,11 +5,14 @@ import static org.telegram.messenger.SecretChatHelper.CURRENT_SECRET_CHAT_LAYER;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.R;
 import org.telegram.messenger.SecretChatHelper;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.partisan.secretgroups.action.AllSecondaryChatsInitializedAction;
@@ -336,6 +339,15 @@ public class EncryptedGroupProtocol {
                 sendInvitation(encryptedChat, encryptedGroup);
                 innerChat.setState(InnerEncryptedChatState.INVITATION_SENT);
                 getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+
+                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(
+                        LocaleController.getString(R.string.InstallPartisanTelegramForSecretGroups), innerChat.getDialogId().get(),
+                        null, null, null, true, new ArrayList<>(), null,
+                        null, true, 0, null, false
+                );
+                SendMessagesHelper.allowReloadDialogsByMessage = false;
+                SendMessagesHelper.getInstance(accountNum).sendMessage(params);
+                SendMessagesHelper.allowReloadDialogsByMessage = true;
             } else if (innerChat.getState() == InnerEncryptedChatState.NEED_SEND_SECONDARY_INVITATION) {
                 sendSecondaryInnerChatInvitation(encryptedChat, encryptedGroup.getExternalId());
                 innerChat.setState(InnerEncryptedChatState.INITIALIZED);

@@ -128,6 +128,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private HashMap<String, ImportingStickers> importingStickersFiles = new HashMap<>();
     private HashMap<String, ImportingStickers> importingStickersMap = new HashMap<>();
 
+    public static boolean allowReloadDialogsByMessage = true;
+
     public static boolean checkUpdateStickersOrder(CharSequence text) {
         if (text instanceof Spannable) {
             AnimatedEmojiSpan[] spans = ((Spannable)text).getSpans(0, text.length(), AnimatedEmojiSpan.class);
@@ -4302,11 +4304,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 } else {
                     mode = 0;
                 }
-                if (!TelegramMessageAction.allowReloadDialogsByMessage) {
+                if (!allowReloadDialogsByMessage) {
                     TelegramMessageAction.sosMessageSent(newMsg);
                 }
                 MessagesStorage.getInstance(currentAccount).putMessages(arr, false, true, false, 0, mode, threadMessageId);
-                if (TelegramMessageAction.allowReloadDialogsByMessage) {
+                if (allowReloadDialogsByMessage) {
                     MessagesController.getInstance(currentAccount).updateInterfaceWithMessages(peer, objArr, mode);
                     if (scheduleDate == 0) {
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogsNeedReload);
