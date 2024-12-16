@@ -50,7 +50,7 @@ public class SecondaryInnerChatStarter {
                 .noneMatch(c -> c.getEncryptedChatId().isPresent() && c.getUserId() > getUserConfig().clientUserId && c.getUserId() != encryptedGroup.getOwnerUserId());
         int delay = isFirstChat ? 0 : 10*1000;
         TLRPC.User user = getMessagesController().getUser(uninitializedInnerChat.getUserId());
-        log(encryptedGroup, accountNum, "Start secondary inner chat with user " + user.id + ".");
+        log(encryptedGroup, accountNum, "Start secondary inner chat with user " + (user != null ? user.id : 0) + ".");
         Utilities.globalQueue.postRunnable(
                 () -> getSecretChatHelper().startSecretChat(context, user, this::onInternalEncryptedChatStarted),
                 delay
