@@ -23,6 +23,9 @@ public abstract class EncryptedGroupAction extends TLObject {
             case 0x6ffdc230:
                 result = new AllSecondaryChatsInitializedAction();
                 break;
+            case 0xcdc18852:
+                result = new GroupCreationFailedAction();
+                break;
         }
         if (result == null && exception) {
             throw new RuntimeException(String.format("can't parse magic %x in EncryptedGroupAction", constructor));

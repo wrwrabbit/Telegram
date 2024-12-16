@@ -20,6 +20,7 @@ import org.telegram.messenger.partisan.secretgroups.action.ConfirmGroupInitializ
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmJoinAction;
 import org.telegram.messenger.partisan.secretgroups.action.CreateGroupAction;
 import org.telegram.messenger.partisan.secretgroups.action.EncryptedGroupAction;
+import org.telegram.messenger.partisan.secretgroups.action.GroupCreationFailedAction;
 import org.telegram.messenger.partisan.secretgroups.action.StartSecondaryInnerChatAction;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -73,6 +74,10 @@ public class EncryptedGroupProtocol {
 
     public void sendAllSecondaryChatsInitialized(TLRPC.EncryptedChat encryptedChat) {
         sendAction(encryptedChat, new AllSecondaryChatsInitializedAction());
+    }
+
+    public void sendGroupInitializationFailed(TLRPC.EncryptedChat encryptedChat) {
+        sendAction(encryptedChat, new GroupCreationFailedAction());
     }
 
     private void sendAction(TLRPC.EncryptedChat encryptedChat, EncryptedGroupAction action) {
@@ -140,6 +145,8 @@ public class EncryptedGroupProtocol {
             handleStartSecondaryChat(encryptedChat, (StartSecondaryInnerChatAction) action);
         } else if (action instanceof AllSecondaryChatsInitializedAction) {
             handleAllSecondaryChatsInitialized(encryptedChat, (AllSecondaryChatsInitializedAction) action);
+        } else if (action instanceof GroupCreationFailedAction) {
+            handleGroupCreationFailed(encryptedChat, (GroupCreationFailedAction) action);
         }
     }
 
@@ -192,13 +199,13 @@ public class EncryptedGroupProtocol {
     private List<InnerEncryptedChat> createInnerChats(TLRPC.EncryptedChat encryptedChat, CreateGroupAction action) {
         List<InnerEncryptedChat> innerEncryptedChats = action.memberIds.stream()
                 .filter(Objects::nonNull)
-                .filter(id -> id != getUserConfig().clientUserId)
+                .filter(id -> id != getUserConfig().getClientUserId())
                 .map(memberId -> new InnerEncryptedChat(memberId, Optional.empty()))
                 .collect(Collectors.toList());
 
-        InnerEncryptedChat ownerInternalChat = new InnerEncryptedChat(encryptedChat.user_id, Optional.of(encryptedChat.id));
-        ownerInternalChat.setState(InnerEncryptedChatState.INITIALIZED);
-        innerEncryptedChats.add(ownerInternalChat);
+        InnerEncryptedChat ownerInnerChat = new InnerEncryptedChat(encryptedChat.user_id, Optional.of(encryptedChat.id));
+        ownerInnerChat.setState(InnerEncryptedChatState.INITIALIZED);
+        innerEncryptedChats.add(ownerInnerChat);
 
         return innerEncryptedChats;
     }
@@ -303,6 +310,25 @@ public class EncryptedGroupProtocol {
         });
     }
 
+    private void handleGroupCreationFailed(TLRPC.EncryptedChat encryptedChat, GroupCreationFailedAction action) {
+        EncryptedGroup encryptedGroup = getEncryptedGroupByEncryptedChat(encryptedChat);
+        if (encryptedGroup == null) {
+            log("There is no encrypted group contained encrypted chat with id " + encryptedChat.id);
+            return;
+        }
+        if (encryptedGroup.getState() == EncryptedGroupState.INITIALIZED && encryptedGroup.getOwnerUserId() != encryptedChat.user_id) {
+            log("Invalid encrypted group state.");
+            return;
+        }
+        encryptedGroup.setState(EncryptedGroupState.INITIALIZATION_FAILED);
+        getMessagesStorage().updateEncryptedGroup(encryptedGroup);
+        AndroidUtilities.runOnUIThread(() -> {
+            getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
+        });
+        sendGroupCreationFailedToAllMembers(encryptedGroup);
+    }
+
     private void handleAllSecondaryChatsInitialized(TLRPC.EncryptedChat encryptedChat, AllSecondaryChatsInitializedAction action) {
         EncryptedGroup encryptedGroup = getEncryptedGroupByEncryptedChat(encryptedChat);
         if (encryptedGroup == null) {
@@ -318,8 +344,8 @@ public class EncryptedGroupProtocol {
             log("Inner encrypted chat " + encryptedChat.id + " doesn't wait for secondary chats creation");
             return;
         }
-        innerChat.setState(InnerEncryptedChatState.INITIALIZED);
         log(encryptedGroup, "User " + innerChat.getUserId() + " created all secondary chats.");
+        innerChat.setState(InnerEncryptedChatState.INITIALIZED);
         getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
         EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
         AndroidUtilities.runOnUIThread(() -> {
@@ -361,7 +387,25 @@ public class EncryptedGroupProtocol {
             } else {
                 encryptedGroup.setState(EncryptedGroupState.INITIALIZATION_FAILED);
                 getMessagesStorage().updateEncryptedGroup(encryptedGroup);
+                AndroidUtilities.runOnUIThread(() -> {
+                    getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                    getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
+                });
+                sendGroupCreationFailedToAllMembers(encryptedGroup);
             }
+        }
+    }
+
+    private void sendGroupCreationFailedToAllMembers(EncryptedGroup encryptedGroup) {
+        if (encryptedGroup.getOwnerUserId() != getUserConfig().getClientUserId()) {
+            return;
+        }
+        for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
+            innerChat.setState(InnerEncryptedChatState.INITIALIZATION_FAILED);
+            getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+            int encryptedChatId = innerChat.getEncryptedChatId().get();
+            TLRPC.EncryptedChat innerEncryptedChat = getMessagesController().getEncryptedChat(encryptedChatId);
+            sendGroupInitializationFailed(innerEncryptedChat);
         }
     }
 
