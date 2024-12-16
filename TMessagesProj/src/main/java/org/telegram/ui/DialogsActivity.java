@@ -9354,6 +9354,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                 hasDialogsToRevoke = true;
                                 dialogsIdsPossibleToRevoke.add(selectedDialog);
                             }
+                        } else if (getMessagesStorage().isEncryptedGroup(selectedDialog)) {
+                            hasDialogsToRevoke = true;
+                            dialogsIdsPossibleToRevoke.add(selectedDialog);
                         }
                     }
                 }
