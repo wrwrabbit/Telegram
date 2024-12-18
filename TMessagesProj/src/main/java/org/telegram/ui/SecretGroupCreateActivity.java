@@ -917,7 +917,7 @@ public class SecretGroupCreateActivity extends BaseFragment implements Notificat
             result.add(selectedContacts.keyAt(a));
         }
         DialogTemplate template = new DialogTemplate();
-        template.type = DialogType.ADD;
+        template.type = DialogType.CREATE;
         template.title = LocaleController.getString(R.string.GroupName);
         template.addEditTemplate("", LocaleController.getString(R.string.EnterGroupNamePlaceholder), true);
         template.positiveListener = views -> {
