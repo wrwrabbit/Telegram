@@ -47,7 +47,7 @@ public class EncryptedGroupUtils {
                     .filter(innerChat -> innerChat.getState() != InnerEncryptedChatState.INITIALIZED)
                     .map(innerChat -> Long.toString(innerChat.getUserId()))
                     .collect(Collectors.joining(", "));
-            log(encryptedGroup, accountNum, "NOT all encrypted chats initialized: " + notInitializedInnerChats + ".");
+            log(encryptedGroup, accountNum, "NOT all encrypted chats initialized: " + notInitializedInnerChats.length() + ".");
         }
     }
 

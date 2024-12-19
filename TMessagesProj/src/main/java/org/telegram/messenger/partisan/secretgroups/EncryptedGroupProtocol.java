@@ -45,7 +45,7 @@ public class EncryptedGroupProtocol {
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
             throw new RuntimeException("The secret chat isn't initialized");
         }
-        log(encryptedGroup, "Send invitation to " + encryptedChat.user_id);
+        log(encryptedGroup, "Send invitation");
         CreateGroupAction action = new CreateGroupAction();
         action.externalGroupId = encryptedGroup.getExternalId();
         action.name = encryptedGroup.getName();
@@ -66,7 +66,7 @@ public class EncryptedGroupProtocol {
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
             throw new RuntimeException("The secret chat isn't initialized");
         }
-        log(externalGroupId, "Start secondary chat with " + encryptedChat.user_id);
+        log(externalGroupId, "Start secondary chat with a user");
         StartSecondaryInnerChatAction secondaryInnerChatAction = new StartSecondaryInnerChatAction();
         secondaryInnerChatAction.externalGroupId = externalGroupId;
         sendAction(encryptedChat, secondaryInnerChatAction);
@@ -254,7 +254,7 @@ public class EncryptedGroupProtocol {
         encryptedGroup.setState(EncryptedGroupState.WAITING_SECONDARY_CHAT_CREATION);
         getMessagesStorage().updateEncryptedGroup(encryptedGroup);
         for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
-            log(encryptedGroup, "Request " + innerChat.getUserId() + " to create secondary chats.");
+            log(encryptedGroup, "Request a user to create secondary chats.");
             int encryptedChatId = innerChat.getEncryptedChatId().get();
             TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(encryptedChatId);
             sendGroupInitializationConfirmation(encryptedChat);
@@ -346,7 +346,7 @@ public class EncryptedGroupProtocol {
             log("Inner encrypted chat " + encryptedChat.id + " doesn't wait for secondary chats creation");
             return;
         }
-        log(encryptedGroup, "User " + innerChat.getUserId() + " created all secondary chats.");
+        log(encryptedGroup, "User created all secondary chats.");
         innerChat.setState(InnerEncryptedChatState.INITIALIZED);
         getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
         EncryptedGroupUtils.checkAllEncryptedChatsCreated(encryptedGroup, accountNum);
