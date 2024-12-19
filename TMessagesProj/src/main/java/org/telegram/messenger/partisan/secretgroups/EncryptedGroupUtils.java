@@ -100,7 +100,7 @@ public class EncryptedGroupUtils {
     }
 
     public static void updateEncryptedGroupLastMessage(int encryptedGroupId, int account) {
-        if (isNotInitializedEncryptedGroup(encryptedGroupId, account)) {
+        if (isNotInitializedEncryptedGroup(DialogObject.makeEncryptedDialogId(encryptedGroupId), account)) {
             return;
         }
         MessagesController messagesController = MessagesController.getInstance(account);
