@@ -32540,6 +32540,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if ((messagePreviewParams == null && (!fragment.isQuote || replyingMessageObject == null) || fragment.isQuote && replyingMessageObject == null) && forwardingMessage == null && selectedMessagesIds[0].size() == 0 && selectedMessagesIds[1].size() == 0) {
             return false;
         }
+        if (dids.stream().anyMatch(did -> getMessagesStorage().isEncryptedGroup(did.dialogId))) {
+            EncryptedGroupUtils.showNotImplementedDialog(this);
+            return false;
+        }
         ArrayList<MessageObject> fmessages = new ArrayList<>();
         if (forwardingMessage != null) {
             if (forwardingMessageGroup != null) {
