@@ -10576,9 +10576,9 @@ public class MessagesStorage extends BaseController {
         });
     }
 
-    public Integer getEncryptedGroupIdByInnerEncryptedChatId(int innerChatId) {
+    public Integer getEncryptedGroupIdByInnerEncryptedChatId(int encryptedChatId) {
         String sql = "SELECT encrypted_group_id FROM enc_group_inner_chats WHERE encrypted_chat_id=?";
-        Object[] args = {innerChatId};
+        Object[] args = {encryptedChatId};
         return partisanSelect(sql, args, cursor -> {
             if (cursor.next()) {
                 return cursor.intValue(0);

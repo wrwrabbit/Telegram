@@ -244,4 +244,16 @@ public class EncryptedGroupUtils {
         EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedGroupId);
         return encryptedGroup == null || encryptedGroup.getState() != EncryptedGroupState.INITIALIZED;
     }
+
+    public static boolean isInnerEncryptedGroupChat(long dialogId, int account) {
+        if (!DialogObject.isEncryptedDialog(dialogId)) {
+            return false;
+        }
+        return isInnerEncryptedGroupChat(DialogObject.getEncryptedChatId(dialogId), account);
+    }
+
+    public static boolean isInnerEncryptedGroupChat(int encryptedChatId, int account) {
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(account);
+        return messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId) != null;
+    }
 }
