@@ -158,6 +158,14 @@ public class EncryptedGroupProtocol {
         log(encryptedGroup, "Created.");
 
         getMessagesController().deleteDialog(DialogObject.makeEncryptedDialogId(encryptedChat.id), 1);
+        for (int i = 1; i <= 20; i++) {
+            AndroidUtilities.runOnUIThread(() -> {
+                if (encryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+                    getMessagesController().deleteDialog(DialogObject.makeEncryptedDialogId(encryptedChat.id), 1);
+                    getMessagesController().dialogMessage.put(DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId()), null);
+                }
+            });
+        }
 
         TLRPC.Dialog dialog = createTlrpcDialog(encryptedGroup);
         getMessagesController().dialogs_dict.put(dialog.id, dialog);
