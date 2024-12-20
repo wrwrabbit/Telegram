@@ -347,7 +347,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
             } else {
                 String title = item.getDisplayName().toString();
                 boolean isExitFromChat = !fakePasscode.passwordlessMode || item.getHidingPermission() != OptionPermission.ALLOW;
-                boolean isDeleteNewMessages = isExitFromChat && item.getDeleteAllMyMessagesPermission() == OptionPermission.ALLOW;
+                boolean isDeleteNewMessages = isExitFromChat && item.getDeleteNewMessagesPermission() == OptionPermission.ALLOW;
                 removeChatEntries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat, isDeleteNewMessages));
             }
         }
