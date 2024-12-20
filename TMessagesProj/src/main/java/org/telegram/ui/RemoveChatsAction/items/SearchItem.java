@@ -1,7 +1,6 @@
 package org.telegram.ui.RemoveChatsAction.items;
 
 import org.telegram.tgnet.TLObject;
-import org.telegram.ui.Components.AvatarDrawable;
 
 import java.util.Optional;
 
@@ -72,32 +71,32 @@ public class SearchItem extends Item {
     }
 
     @Override
-    public boolean allowDelete() {
-        return innerItem.allowDelete();
+    public OptionPermission getDeletePermission() {
+        return innerItem.getDeletePermission();
     }
 
     @Override
-    public boolean allowDeleteFromCompanion() {
-        return innerItem.allowDeleteFromCompanion();
+    public OptionPermission getDeleteFromCompanionPermission() {
+        return innerItem.getDeleteFromCompanionPermission();
     }
 
     @Override
-    public boolean allowDeleteNewMessages() {
-        return innerItem.allowDeleteNewMessages();
+    public OptionPermission getDeleteNewMessagesPermission() {
+        return innerItem.getDeleteNewMessagesPermission();
     }
 
     @Override
-    public boolean allowDeleteAllMyMessages() {
-        return innerItem.allowDeleteAllMyMessages();
+    public OptionPermission getDeleteAllMyMessagesPermission() {
+        return innerItem.getDeleteAllMyMessagesPermission();
     }
 
     @Override
-    public boolean allowHiding() {
-        return innerItem.allowHiding();
+    public OptionPermission getHidingPermission() {
+        return innerItem.getHidingPermission();
     }
 
     @Override
-    public boolean allowStrictHiding() {
-        return innerItem.allowStrictHiding();
+    public OptionPermission getStrictHidingPermission() {
+        return innerItem.getStrictHidingPermission();
     }
 }

@@ -39,8 +39,8 @@ class ChatItem extends Item {
     }
 
     @Override
-    public boolean allowDeleteAllMyMessages() {
-        return !isChannel();
+    public OptionPermission getDeleteAllMyMessagesPermission() {
+        return !isChannel() ? OptionPermission.ALLOW : OptionPermission.DENY;
     }
 
     private boolean isChannel() {

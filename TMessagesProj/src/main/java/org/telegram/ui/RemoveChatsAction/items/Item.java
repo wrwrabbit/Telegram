@@ -130,28 +130,34 @@ public abstract class Item {
         return Optional.empty();
     }
 
-    public boolean allowDelete() {
-        return true;
+    public OptionPermission getDeletePermission() {
+        return OptionPermission.ALLOW;
     }
 
-    public boolean allowDeleteFromCompanion() {
-        return isUserId() && !isSelf() || isEncryptedDialogId();
+    public OptionPermission getDeleteFromCompanionPermission() {
+        return isUserId() && !isSelf() || isEncryptedDialogId() ? OptionPermission.ALLOW : OptionPermission.DENY;
     }
 
-    public boolean allowDeleteNewMessages() {
-        return isUserId() && !isSelf();
+    public OptionPermission getDeleteNewMessagesPermission() {
+        if (isUserId() && !isSelf()) {
+            return OptionPermission.ALLOW;
+        } else if (isEncryptedDialogId()) {
+            return OptionPermission.INDIFFERENT;
+        } else {
+            return OptionPermission.DENY;
+        }
     }
 
-    public boolean allowDeleteAllMyMessages() {
-        return isChatId();
+    public OptionPermission getDeleteAllMyMessagesPermission() {
+        return isChatId() ? OptionPermission.ALLOW : OptionPermission.DENY;
     }
 
-    public boolean allowHiding() {
-        return !isSelf();
+    public OptionPermission getHidingPermission() {
+        return !isSelf() ? OptionPermission.ALLOW : OptionPermission.DENY;
     }
 
-    public boolean allowStrictHiding() {
-        return allowHiding();
+    public OptionPermission getStrictHidingPermission() {
+        return getHidingPermission();
     }
 
     private boolean isUserId() {

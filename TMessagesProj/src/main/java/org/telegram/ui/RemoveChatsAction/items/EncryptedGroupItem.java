@@ -41,12 +41,12 @@ public class EncryptedGroupItem extends Item {
         return AndroidUtilities.generateSearchName(encryptedGroup.getName(), null, query);
     }
 
-    public boolean allowDeleteFromCompanion() {
-        return true;
+    public OptionPermission getDeleteFromCompanionPermission() {
+        return OptionPermission.ALLOW;
     }
 
-    public boolean allowHiding() {
-        return false;
+    public OptionPermission getHidingPermission() {
+        return OptionPermission.DENY;
     }
 
     @Override
