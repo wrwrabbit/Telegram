@@ -2876,6 +2876,14 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     if (mask == 0) {
                         clearingDialog = MessagesController.getInstance(currentAccount).isClearingDialog(dialog.id);
                         ArrayList<MessageObject> newMessage = MessagesController.getInstance(currentAccount).dialogMessage.get(dialog.id);
+                        if (DialogObject.isEncryptedDialog(dialog.id)) {
+                            int encryptedChatId = DialogObject.getEncryptedChatId(dialog.id);
+                            EncryptedGroup tempEncryptedGroup = MessagesController.getInstance(currentAccount).getEncryptedGroup(encryptedChatId);
+                            if (tempEncryptedGroup != null && tempEncryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+                                newMessage = null;
+                                MessagesController.getInstance(currentAccount).dialogMessage.put(dialog.id, null);
+                            }
+                        }
                         if (newMessage == null || newMessage.isEmpty() || !FakePasscodeUtils.isHideMessage(currentAccount, dialog.id, newMessage.get(0).getId())) {
                             groupMessages = newMessage;
                         }
