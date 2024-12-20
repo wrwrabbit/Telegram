@@ -418,7 +418,9 @@ public class EncryptedGroupProtocol {
             }
             int encryptedChatId = innerChat.getEncryptedChatId().get();
             TLRPC.EncryptedChat innerEncryptedChat = getMessagesController().getEncryptedChat(encryptedChatId);
-            sendGroupInitializationFailed(innerEncryptedChat);
+            if (innerEncryptedChat != null) {
+                sendGroupInitializationFailed(innerEncryptedChat);
+            }
         }
     }
 
