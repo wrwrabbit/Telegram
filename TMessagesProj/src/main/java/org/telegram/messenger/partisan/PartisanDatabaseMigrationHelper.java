@@ -6,7 +6,7 @@ import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.FileLog;
 
 public class PartisanDatabaseMigrationHelper {
-    private static final int LAST_PARTISAN_DB_VERSION = 2;
+    private static final int LAST_PARTISAN_DB_VERSION = 3;
 
     private final SQLiteDatabase database;
     private int currentVersion = 0;
@@ -74,6 +74,12 @@ public class PartisanDatabaseMigrationHelper {
         if (currentVersion == 1) {
             database.executeFast("ALTER TABLE enc_groups ADD COLUMN external_group_id INTEGER").stepThis().dispose();
             database.executeFast("CREATE UNIQUE INDEX IF NOT EXISTS enc_group_external_id_idx ON enc_groups(external_group_id);").stepThis().dispose();
+
+            increaseVersion();
+        }
+
+        if (currentVersion == 2) {
+            database.executeFast("CREATE INDEX IF NOT EXISTS enc_group_inner_chats_encrypted_chat_id_idx ON enc_group_inner_chats(encrypted_chat_id);").stepThis().dispose();
 
             increaseVersion();
         }
