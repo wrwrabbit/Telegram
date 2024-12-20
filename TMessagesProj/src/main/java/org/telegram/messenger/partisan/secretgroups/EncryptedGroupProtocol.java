@@ -15,6 +15,7 @@ import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.secretgroups.action.AllSecondaryChatsInitializedAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmGroupInitializationAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmJoinAction;
@@ -157,14 +158,9 @@ public class EncryptedGroupProtocol {
         }
         log(encryptedGroup, "Created.");
 
-        getMessagesController().deleteDialog(DialogObject.makeEncryptedDialogId(encryptedChat.id), 1);
+        forceHidePreview(encryptedChat, encryptedGroup);
         for (int i = 1; i <= 20; i++) {
-            AndroidUtilities.runOnUIThread(() -> {
-                if (encryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
-                    getMessagesController().deleteDialog(DialogObject.makeEncryptedDialogId(encryptedChat.id), 1);
-                    getMessagesController().dialogMessage.put(DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId()), null);
-                }
-            });
+            AndroidUtilities.runOnUIThread(() -> forceHidePreview(encryptedChat, encryptedGroup));
         }
 
         TLRPC.Dialog dialog = createTlrpcDialog(encryptedGroup);
@@ -179,6 +175,19 @@ public class EncryptedGroupProtocol {
             getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
             getMessagesController().putEncryptedGroup(encryptedGroup, false);
         });
+    }
+
+    private void forceHidePreview(TLRPC.EncryptedChat encryptedChat, EncryptedGroup encryptedGroup) {
+        if (encryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+            long chatDialogId = DialogObject.makeEncryptedDialogId(encryptedChat.id);
+            long groupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId());
+
+            getMessagesController().deleteDialog(chatDialogId, 1);
+            if (getMessagesController().dialogMessage.get(groupDialogId) != null) {
+                getMessagesController().dialogMessage.put(groupDialogId, null);
+                getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+            }
+        }
     }
 
     private EncryptedGroup createEncryptedGroup(TLRPC.EncryptedChat encryptedChat, CreateGroupAction action) {
