@@ -9,7 +9,7 @@ import org.telegram.messenger.partisan.masked_ptg.original.OriginalScreenFactory
 
 public class MaskedPtgConfig {
     private static final Integer PRIMARY_COLOR = null;
-    private static IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
+    private static final IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
 
     public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
         return FACTORY.createScreen(context, delegate);
