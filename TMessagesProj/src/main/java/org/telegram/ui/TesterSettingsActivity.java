@@ -347,7 +347,9 @@ public class TesterSettingsActivity extends BaseFragment {
         rowCount += simpleDataArray.length;
         simpleDataEndRow = rowCount;
         hideDialogIsNotSafeWarningRow = rowCount++;
-        phoneOverrideRow = rowCount++;
+        if (SharedConfig.activatedTesterSettingType >= 2) {
+            phoneOverrideRow = rowCount++;
+        }
         resetSecurityIssuesRow = rowCount++;
         activateAllSecurityIssuesRow = rowCount++;
         editSavedChannelsRow = rowCount++;
@@ -360,7 +362,9 @@ public class TesterSettingsActivity extends BaseFragment {
             resetMaskedUpdateTagRow = -1;
         }
         maskingBotUsernameRow = rowCount++;
-        forceAllowScreenshotsRow = rowCount++;
+        if (SharedConfig.activatedTesterSettingType >= 2) {
+            forceAllowScreenshotsRow = rowCount++;
+        }
         saveLogcatAfterRestartRow = rowCount++;
     }
 
