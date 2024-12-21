@@ -22,6 +22,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
+import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
@@ -50,7 +51,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     private FrameLayout buttonsFrameLayout;
     private ArrayList<Button> buttons;
 
-    private boolean tutorial;
+    private TutorialType tutorialType;
 
     public CalculatorPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
@@ -197,7 +198,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     @Override
-    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
+    public void onShow(boolean fingerprint, boolean animated, TutorialType tutorialType) {
         Activity parentActivity = AndroidUtilities.findActivity(context);
         if (parentActivity != null) {
             View currentFocus = parentActivity.getCurrentFocus();
@@ -216,8 +217,8 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
         inputTextView.setText("");
         outputTextView.setText("");
         inputString = "";
-        this.tutorial = tutorial;
-        if (tutorial) {
+        this.tutorialType = tutorialType;
+        if (tutorialType == TutorialType.FULL) {
             createInstructionDialog().show();
         }
     }
@@ -442,7 +443,7 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
 
     @Override
     public void onPasscodeError() {
-        if (tutorial) {
+        if (tutorialType != TutorialType.DISABLED) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
             builder.setMessage(LocaleController.getString(R.string.MaskedPasscodeScreen_WrongPasscode));

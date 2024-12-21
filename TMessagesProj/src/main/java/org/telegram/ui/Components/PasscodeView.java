@@ -21,6 +21,7 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
+import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 
 public class PasscodeView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private boolean showed = false;
@@ -280,7 +281,10 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         setTranslationY(0);
         setVisibility(View.VISIBLE);
         if (screen != null) {
-            screen.onShow(fingerprint, animated, SharedConfig.needShowMaskedPasscodeScreenTutorial);
+            TutorialType tutorialType = SharedConfig.needShowMaskedPasscodeScreenTutorial
+                    ? TutorialType.FULL
+                    : TutorialType.DISABLED;
+            screen.onShow(fingerprint, animated, tutorialType);
         }
         checkRetryTextView();
         if (animated) {

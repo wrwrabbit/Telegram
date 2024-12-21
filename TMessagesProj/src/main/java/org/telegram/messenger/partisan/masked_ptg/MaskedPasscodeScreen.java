@@ -4,7 +4,7 @@ import android.view.View;
 
 public interface MaskedPasscodeScreen {
     View createView();
-    void onShow(boolean fingerprint, boolean animated, boolean tutorial);
+    void onShow(boolean fingerprint, boolean animated, TutorialType tutorialType);
     default void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {}
     default void onPasscodeError() {}
     default void onAttachedToWindow() {}

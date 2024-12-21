@@ -23,6 +23,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
+import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RadialProgressView;
@@ -45,7 +46,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     private String passcode = "";
     private long lastPasscodeInputTime;
     private boolean fragmentDetached = false;
-    private boolean tutorial = false;
+    private TutorialType tutorialType = TutorialType.DISABLED;
 
     public LoadingPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
@@ -114,7 +115,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     private void showToast(String text) {
-        if (!tutorial) {
+        if (tutorialType == TutorialType.DISABLED) {
             return;
         }
         if (lastToast != null) {
@@ -165,9 +166,9 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     @Override
-    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
-        this.tutorial = tutorial;
-        if (tutorial) {
+    public void onShow(boolean fingerprint, boolean animated, TutorialType tutorialType) {
+        this.tutorialType = tutorialType;
+        if (tutorialType != TutorialType.DISABLED) {
             tutorialView.setVisibility(View.VISIBLE);
             createInstructionDialog().show();
         } else {
@@ -190,8 +191,12 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
         AlertDialog dialog = builder.create();
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
-        DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 5,
-                (dlg, which) -> dlg.dismiss());
+        if (tutorialType == TutorialType.FULL) {
+            DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 5,
+                    (dlg, which) -> dlg.dismiss());
+        } else {
+            dialog.setNegativeButton(LocaleController.getString(R.string.OK), null);
+        }
         return dialog;
     }
 
@@ -220,7 +225,7 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
 
     @Override
     public void onPasscodeError() {
-        if (tutorial) {
+        if (tutorialType != TutorialType.DISABLED) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
             builder.setMessage(LocaleController.getString(R.string.MaskedPasscodeScreen_WrongPasscode));

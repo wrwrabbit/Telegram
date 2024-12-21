@@ -73,6 +73,7 @@ import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
+import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -1274,7 +1275,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             keyboardView.setVisibility(View.GONE);
             maskedScreenView.setVisibility(View.VISIBLE);
             setCustomKeyboardVisible(false, false);
-            screen.onShow(false, true, true);
+            screen.onShow(false, true, TutorialType.FULL);
         }
     }
 

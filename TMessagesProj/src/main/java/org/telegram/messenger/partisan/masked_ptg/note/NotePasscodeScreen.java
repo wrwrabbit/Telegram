@@ -16,6 +16,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
+import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
@@ -37,7 +38,7 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
     private NoteListSubscreen noteListSubscreen;
     private EditNoteSubcreen editNoteSubscreen;
 
-    private boolean tutorial;
+    private TutorialType tutorialType;
 
     public NotePasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
@@ -83,7 +84,7 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
     }
 
     @Override
-    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
+    public void onShow(boolean fingerprint, boolean animated, TutorialType tutorialType) {
         Activity parentActivity = AndroidUtilities.findActivity(context);
         if (parentActivity != null) {
             View currentFocus = parentActivity.getCurrentFocus();
@@ -92,14 +93,14 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
                 AndroidUtilities.hideKeyboard(parentActivity.getCurrentFocus());
             }
         }
-        setTutorial(tutorial);
+        setTutorial(tutorialType);
     }
 
-    private void setTutorial(boolean tutorial) {
-        this.tutorial = tutorial;
-        noteListSubscreen.setTutorial(tutorial);
-        editNoteSubscreen.setTutorial(tutorial);
-        if (tutorial) {
+    private void setTutorial(TutorialType tutorialType) {
+        this.tutorialType = tutorialType;
+        noteListSubscreen.setTutorial(tutorialType != TutorialType.DISABLED);
+        editNoteSubscreen.setTutorial(tutorialType != TutorialType.DISABLED);
+        if (tutorialType == TutorialType.FULL) {
             createInstructionDialog().show();
         }
     }
@@ -186,7 +187,7 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
             notes.add(currentNote);
             noteListSubscreen.notifyNoteAdded();
         }
-        if (tutorial) {
+        if (tutorialType != TutorialType.DISABLED) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
             builder.setMessage(LocaleController.getString(R.string.MaskedPasscodeScreen_WrongPasscode));

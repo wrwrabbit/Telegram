@@ -51,6 +51,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
+import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BackgroundGradientDrawable;
@@ -963,7 +964,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     @Override
-    public void onShow(boolean fingerprint, boolean animated, boolean tutorial) {
+    public void onShow(boolean fingerprint, boolean animated, TutorialType tutorialType) {
         showed = false;
         checkFingerprintButton();
         Activity parentActivity = AndroidUtilities.findActivity(context);
