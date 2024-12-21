@@ -465,6 +465,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         SharedConfig.useFingerprintLock = !SharedConfig.useFingerprintLock;
                         if (FakePasscodeUtils.isFakePasscodeActivated()) {
                             FakePasscodeUtils.getActivatedFakePasscode().activateByFingerprint = SharedConfig.useFingerprintLock;
+                        } else if (!SharedConfig.useFingerprintLock) {
+                            for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+                                fakePasscode.activateByFingerprint = false;
+                            }
                         }
                         UserConfig.getInstance(currentAccount).saveConfig(false);
                         ((TextCheckCell) view).setChecked(SharedConfig.useFingerprintLock);
