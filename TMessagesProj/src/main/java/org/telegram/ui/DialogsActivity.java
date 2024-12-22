@@ -5210,11 +5210,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (!SharedConfig.isAppUpdateAvailable()) {
                     return;
                 }
+                String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
                 File path = getFileLoader().getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
-                if (!path.exists()) {
-                    UpdateChecker.startUpdateDownloading(currentAccount);
-                } else {
+                if (path.exists()) {
                     AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, getParentActivity());
+                } else if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
+                    FileLoader.getInstance(currentAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
+                    updateAppUpdateViews(true);
+                } else {
+                    UpdateChecker.startUpdateDownloading(currentAccount);
                 }
             });
 
@@ -6395,23 +6399,26 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         boolean show;
         if (SharedConfig.isAppUpdateAvailable()) {
-            if (SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument()) {
-                String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
-                show = !FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName);
-            } else {
-                show = false;
-            }
+            show = SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument();
         } else {
             show = false;
         }
         if (show) {
+            /*
             if (updateLayout.getTag() != null) {
                 return;
             }
+            */
+            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
             File path = getFileLoader().getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
             if (path.exists()) {
                 updateTextView.setText(LocaleController.getString(R.string.AppUpdateNow).toUpperCase());
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, false);
+            } else if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
+                updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, animated);
+                updateLayoutIcon.setProgress(0, false);
+                Float p = ImageLoader.getInstance().getFileProgress(fileName);
+                updateTextView.setText(LocaleController.formatString("AppUpdateDownloading", R.string.AppUpdateDownloading, (int) ((p != null ? p : 0.0f) * 100)));
             } else {
                 updateTextView.setText(LocaleController.getString(R.string.AppUpdateDownloadNow).toUpperCase());
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, false);
@@ -11017,6 +11024,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
                 if (fileName.equals(name)) {
                     updateMenuButton(true);
+                    updateAppUpdateViews(true);
                 }
             }
         } else if (id == NotificationCenter.onDatabaseMigration) {
