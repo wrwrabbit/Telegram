@@ -21,13 +21,10 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class NotePasscodeScreen implements MaskedPasscodeScreen
         , NoteListSubscreen.NoteListSubscreenDelegate
         , EditNoteSubcreen.NoteListSubscreenDelegate {
-    private final List<Note> notes = new ArrayList<>();
+
     private Note currentNote;
     private int currentNotePos = -1;
 
@@ -40,10 +37,12 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
 
     private TutorialType tutorialType;
 
+
+
     public NotePasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
         this.context = context;
         this.delegate = delegate;
-        fillExampleNotes();
+        NoteStorage.loadNotes();
     }
 
     @Override
@@ -56,7 +55,7 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
     }
 
     private void createNoteListSubscreen() {
-        noteListSubscreen = new NoteListSubscreen(context, notes, this);
+        noteListSubscreen = new NoteListSubscreen(context, this);
         FrameLayout.LayoutParams params = LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT);
         params.setMargins(0, AndroidUtilities.statusBarHeight, 0, AndroidUtilities.navigationBarHeight);
         backgroundFrameLayout.addView(noteListSubscreen, params);
@@ -68,12 +67,6 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
         params.setMargins(0, AndroidUtilities.statusBarHeight, 0, AndroidUtilities.navigationBarHeight);
         editNoteSubscreen.setVisibility(View.GONE);
         backgroundFrameLayout.addView(editNoteSubscreen, params);
-    }
-
-    private void fillExampleNotes() {
-        notes.add(new Note("Meeting Notes - Team Collaboration", "Discussed project timelines, assigned tasks, and set deadlines for next week's deliverables."));
-        notes.add(new Note("Recipe - Spaghetti Carbonara", "Ingredients - spaghetti, eggs, pancetta, Parmesan cheese, black pepper. Steps - cook spaghetti, fry pancetta, mix eggs and cheese, combine all ingredients."));
-        notes.add(new Note("Book Summary - \"The Alchemist\" by Paulo Coelho", "Follows the journey of a shepherd named Santiago as he seeks his Personal Legend. Themes include destiny, following one's dreams, and the importance of listening to one's heart."));
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -119,7 +112,7 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
     @Override
     public void onNoteClicked(int pos) {
         currentNotePos = pos;
-        editNoteSubscreen.bindNote(notes.get(pos));
+        editNoteSubscreen.bindNote(NoteStorage.notes.get(pos));
         showEditNoteSubscreen();
     }
 
@@ -138,7 +131,8 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
         dialogBuilder.setTitle(LocaleController.getString(R.string.AppName));
         dialogBuilder.setMessage("Delete the note?");
         dialogBuilder.setPositiveButton(LocaleController.getString("Delete", R.string.Delete), (dlg, which) -> {
-            notes.remove(pos);
+            NoteStorage.notes.remove(pos);
+            NoteStorage.saveNotes();
             noteListSubscreen.notifyNoteRemoved(pos);
         });
         dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
@@ -184,9 +178,10 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
         if (currentNotePos != -1) {
             noteListSubscreen.notifyNoteEdited(currentNotePos);
         } else {
-            notes.add(currentNote);
+            NoteStorage.notes.add(currentNote);
             noteListSubscreen.notifyNoteAdded();
         }
+        NoteStorage.saveNotes();
         if (tutorialType != TutorialType.DISABLED) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));

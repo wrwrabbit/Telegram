@@ -30,7 +30,6 @@ class NoteListSubscreen extends FrameLayout {
         void onAddNote();
     }
 
-    private final List<Note> notes;
     private final NoteListSubscreenDelegate delegate;
 
     private ListAdapter listAdapter;
@@ -39,10 +38,9 @@ class NoteListSubscreen extends FrameLayout {
     private boolean tutorial;
     private View tutorialArrow;
 
-    NoteListSubscreen(Context context, List<Note> notes, NoteListSubscreenDelegate delegate) {
+    NoteListSubscreen(Context context, NoteListSubscreenDelegate delegate) {
         super(context);
 
-        this.notes = notes;
         this.delegate = delegate;
         createFloatingButton();
         createTipArrow();
@@ -113,13 +111,13 @@ class NoteListSubscreen extends FrameLayout {
     }
 
     void notifyNoteAdded() {
-        listAdapter.notifyItemInserted(notes.size() * 2 - 2);
-        listAdapter.notifyItemInserted(notes.size() * 2 - 1);
+        listAdapter.notifyItemInserted(NoteStorage.notes.size() * 2 - 2);
+        listAdapter.notifyItemInserted(NoteStorage.notes.size() * 2 - 1);
     }
 
     void notifyNoteRemoved(int pos) {
         listAdapter.notifyItemRemoved(pos * 2);
-        if (pos < notes.size()) {
+        if (pos < NoteStorage.notes.size()) {
             listAdapter.notifyItemInserted(pos * 2 + 1);
         }
     }
@@ -148,10 +146,10 @@ class NoteListSubscreen extends FrameLayout {
 
         @Override
         public int getItemCount() {
-            if (notes.isEmpty()) {
+            if (NoteStorage.notes.isEmpty()) {
                 return 0;
             } else {
-                return notes.size() * 2 - 1;
+                return NoteStorage.notes.size() * 2 - 1;
             }
         }
 
@@ -175,7 +173,7 @@ class NoteListSubscreen extends FrameLayout {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
                 case 0: {
-                    Note note = notes.get(position / 2);
+                    Note note = NoteStorage.notes.get(position / 2);
                     NoteCell textCell = (NoteCell) holder.itemView;
                     textCell.setTitleAndDescription(note.title, note.description);
                     break;
