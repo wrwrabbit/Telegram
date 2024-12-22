@@ -309,6 +309,9 @@ public class TesterSettingsActivity extends BaseFragment {
     private void updateRows() {
         rowCount = 0;
 
+        phoneOverrideRow = -1;
+        forceAllowScreenshotsRow = -1;
+
         sessionTerminateActionWarningRow = rowCount++;
         updateChannelIdRow = rowCount++;
         updateChannelUsernameRow = rowCount++;
