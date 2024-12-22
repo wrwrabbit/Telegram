@@ -1426,7 +1426,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     }
 
     private void showPasscodeError(ErrorType errorType) {
-        if (screen != null) {
+        if (passcodeSetStep == 1 && screen != null) {
             screen.onPasscodeError();
         }
 
