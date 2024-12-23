@@ -1230,7 +1230,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 }
             }
 
-            if (encryptedChat != null) {
+            if (encryptedChat != null || encryptedGroup != null) {
                 if (currentDialogFolderId == 0) {
                     drawNameLock = true;
                     if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
@@ -3649,7 +3649,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 }
                 if (currentDialogFolderId != 0) {
                     Theme.dialogs_namePaint[paintIndex].setColor(Theme.dialogs_namePaint[paintIndex].linkColor = Theme.getColor(Theme.key_chats_nameArchived, resourcesProvider));
-                } else if (encryptedChat != null || customDialog != null && customDialog.type == 2) {
+                } else if (encryptedChat != null || encryptedGroup != null || customDialog != null && customDialog.type == 2) {
                     Theme.dialogs_namePaint[paintIndex].setColor(Theme.dialogs_namePaint[paintIndex].linkColor = Theme.getColor(Theme.key_chats_secretName, resourcesProvider));
                 } else {
                     Theme.dialogs_namePaint[paintIndex].setColor(Theme.dialogs_namePaint[paintIndex].linkColor = Theme.getColor(Theme.key_chats_name, resourcesProvider));
