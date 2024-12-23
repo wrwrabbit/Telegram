@@ -542,6 +542,10 @@ public class Utils {
         List<TLRPC.Dialog> filteredDialogs = filteredDialogsByPasscode.stream()
                 .filter(d -> !DialogObject.isEncryptedDialog(d.id) || !innerChatIdsFromEncryptedGroups.contains(DialogObject.getEncryptedChatId(d.id)))
                 .collect(Collectors.toList());
-        return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
+        if (filteredDialogsByPasscode.size() == filteredDialogs.size()) {
+            return filteredDialogsByPasscode;
+        } else {
+            return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
+        }
     }
 }
