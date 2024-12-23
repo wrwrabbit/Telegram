@@ -335,7 +335,7 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == transferDataToOtherPtgRow) {
                 presentFragment(new AppMigrationActivity());
             } else if (position == enableSecretGroupsRow) {
-                if (SharedConfig.encryptedGroupsEnabled) {
+                if (!SharedConfig.encryptedGroupsEnabled) {
                     SharedConfig.toggleSecretGroups();
                     listAdapter.notifyItemChanged(position);
                 }
