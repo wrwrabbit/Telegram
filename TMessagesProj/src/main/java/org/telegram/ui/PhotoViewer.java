@@ -188,6 +188,7 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.camera.Size;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.messenger.video.OldVideoPlayerRewinder;
 import org.telegram.messenger.video.VideoFramesRewinder;
 import org.telegram.messenger.video.VideoPlayerRewinder;
@@ -4987,6 +4988,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     long dialogId = currentDialogId;
                     if (currentMessageObject != null) {
                         dialogId = currentMessageObject.getDialogId();
+                    }
+                    if (EncryptedGroupUtils.isInnerEncryptedGroupChat(dialogId, currentAccount)) {
+                        return;
                     }
                     if (DialogObject.isEncryptedDialog(dialogId)) {
                         args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
