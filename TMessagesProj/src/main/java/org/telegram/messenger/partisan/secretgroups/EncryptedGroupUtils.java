@@ -157,7 +157,10 @@ public class EncryptedGroupUtils {
         AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
         builder.setTitle(LocaleController.getString(R.string.AppName));
         TLRPC.User ownerUser = messagesController.getUser(encryptedGroup.getOwnerUserId());
-        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.SecretGroupJoiningConfirmation, UserObject.getUserName(ownerUser))));
+        String message = LocaleController.formatString(R.string.SecretGroupJoiningConfirmation,
+                UserObject.getUserName(ownerUser),
+                LocaleController.getString(R.string.DeclineJoiningToSecretGroup));
+        builder.setMessage(AndroidUtilities.replaceTags(message));
         builder.setPositiveButton(LocaleController.getString(R.string.JoinSecretGroup), (dialog, which) -> {
             if (encryptedGroup.getState() != EncryptedGroupState.JOINING_NOT_CONFIRMED) {
                 throw new RuntimeException("Invalid encrypted group state");

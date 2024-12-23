@@ -8787,7 +8787,7 @@
     <string name="EncryptedGroupTitleOutgoing">You have created a secret group.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s invited you to join a secret group.</string>
     <string name="EncryptedGroupDescriptionTitle">Secret groups:</string>
-    <string name="SecretGroupJoiningConfirmation">**%1$s** Invited you to a secret group. Do you want to join the secret group?\n\n**If you confirm joining, %1$s will know that you are using Partisan Telegram!**</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Invited you to a secret group. Do you want to join the secret group?\n\n**If you confirm joining, %1$s will know that you are using Partisan Telegram!** If you don\'t know this user, press **%2$s** or ignore this dialog.</string>
     <string name="JoinSecretGroup">Join</string>
     <string name="DeclineJoiningToSecretGroup">Decline</string>
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Secret groups are always hidden with a fake passcode.</string>

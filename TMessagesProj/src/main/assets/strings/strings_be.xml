@@ -274,7 +274,7 @@
     <string name="EncryptedGroupTitleOutgoing">Вы стварылі сакрэтную групу.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s запрасіў Вас у сакрэтную групу.</string>
     <string name="EncryptedGroupDescriptionTitle">Сакрэтныя групы:</string>
-    <string name="SecretGroupJoiningConfirmation">**%1$s** Запрасіў Вас у сакрэтную групу. Вы хочаце далучыцца да сакрэтнай групы?\n\n**Калі Вы пацвердзіце далучэнне, %1$s даведаецца, што Вы выкарыстоўваеце Партызанскі Тэлеграм!**</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Запрасіў Вас у сакрэтную групу. Вы хочаце далучыцца да сакрэтнай групы?\n\n**Калі Вы пацвердзіце далучэнне, %1$s даведаецца, што Вы выкарыстоўваеце Партызанскі Тэлеграм!** Калі вы не ведаеце гэтага карыстальніка, націсніце **%2$s** або праігнаруйце гэты дыялог.</string>
     <string name="JoinSecretGroup">Далучыцца</string>
     <string name="DeclineJoiningToSecretGroup">Адхіліць</string>
     <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Сакрэтныя групы заўсёды хаваюцца несапраўдным кодам блакіроўкі.</string>
