@@ -263,7 +263,7 @@
     <string name="MigrationErrorUnknownDescription">Произошла неизвестная ошибка. Обновите оба приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Если ошибка остаётся, пожалуйста, свяжитесь с техподдержкой Партизанского Телеграма.</string>
     <string name="NewEncryptedGroup">Создать секретную группу</string>
-    <string name="AreYouSureClearHistoryWithSecretGroup">Вы точно хотите удалить историю секретной группы **%1$s**?</string>
+    <string name="AreYouSureClearHistoryWithSecretGroup">Вы точно хотите удалить историю секретной группы **%1$s** только для себя? У других участников она останется доступной.</string>
     <string name="AreYouSureDeleteThisSecretGroup">Вы точно хотите удалить эту секретную группу: **%1$s**?</string>
     <string name="CreatingSecretChats">Создание секретных чатов</string>
     <string name="JoiningNotConfirmed">Присоединение не подтверждено</string>
