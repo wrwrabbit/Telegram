@@ -5755,7 +5755,8 @@ public class MessagesStorage extends BaseController {
                 for (int a = 0, N = encryptedChats.size(); a < N; a++) {
                     TLRPC.EncryptedChat encryptedChat = encryptedChats.get(a);
                     TLRPC.User user = encUsersDict.get(encryptedChat.user_id);
-                    if (user == null || FakePasscodeUtils.isHideChat(DialogObject.makeEncryptedDialogId(encryptedChat.id), currentAccount)) {
+                    if (user == null || FakePasscodeUtils.isHideChat(DialogObject.makeEncryptedDialogId(encryptedChat.id), currentAccount)
+                            || EncryptedGroupUtils.isInnerEncryptedGroupChat(encryptedChat.id, currentAccount)) {
                         continue;
                     }
                     long did = DialogObject.makeEncryptedDialogId(encryptedChat.id);
