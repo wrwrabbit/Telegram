@@ -20730,7 +20730,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             long did = (Long) args[0];
             ArrayList<MessageObject> arr = (ArrayList<MessageObject>) args[1];
             if (isInsideContainer) return;
-            if (did == dialog_id || DialogObject.isEncryptedDialog(did) && currentEncryptedGroup != null && currentEncryptedGroup.containsEncryptedChatId(DialogObject.getEncryptedChatId(did))) {
+            if (isCurrentDialogId(did)) {
                 boolean scheduled = (Boolean) args[2];
                 int mode = (Integer) args[3];
                 if (mode != chatMode && chatMode != MODE_SAVED) {
