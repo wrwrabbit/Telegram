@@ -260,6 +260,13 @@ public class EncryptedGroupUtils {
         return isInnerEncryptedGroupChat(DialogObject.getEncryptedChatId(dialogId), account);
     }
 
+    public static boolean isInnerEncryptedGroupChat(TLRPC.EncryptedChat encryptedChat, int account) {
+        if (encryptedChat == null) {
+            return false;
+        }
+        return isInnerEncryptedGroupChat(encryptedChat.id, account);
+    }
+
     public static boolean isInnerEncryptedGroupChat(int encryptedChatId, int account) {
         MessagesStorage messagesStorage = MessagesStorage.getInstance(account);
         return messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId) != null;

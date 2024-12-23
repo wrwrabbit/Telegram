@@ -9088,7 +9088,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 //                if (phoneRow != -1 || userInfoRow != -1 || usernameRow != -1 || bizHoursRow != -1 || bizLocationRow != -1) {
 //                    notificationsDividerRow = rowCount++;
 //                }
-                if (userId != getUserConfig().getClientUserId()) {
+                if (userId != getUserConfig().getClientUserId() && !EncryptedGroupUtils.isInnerEncryptedGroupChat(currentEncryptedChat, currentAccount)) {
                     notificationsRow = rowCount++;
                 }
                 if (isBot && user != null && user.bot_has_main_app) {
@@ -9128,7 +9128,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 if (currentEncryptedChat instanceof TLRPC.TL_encryptedChat) {
-                    settingsTimerRow = rowCount++;
+                    if (!EncryptedGroupUtils.isInnerEncryptedGroupChat(currentEncryptedChat, currentAccount)) {
+                        settingsTimerRow = rowCount++;
+                    }
                     settingsKeyRow = rowCount++;
                     secretSettingsSectionRow = rowCount++;
                 }
