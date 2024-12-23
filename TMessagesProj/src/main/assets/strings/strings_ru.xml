@@ -282,4 +282,5 @@
     <string name="ThisFeatureIsNotImplemented">Эта функция ещё не реализована.</string>
     <string name="DeleteSecretGroupOptionForMembers">Удалить сообщения для остальных</string>
     <string name="InstallPartisanTelegramForSecretGroups">Если Вы видите это сообщение, у Вас не установлен Партизанский Телеграм. Для вступления в секретную группу скачайте приложение из официального канала: https://t.me/cpartisans_security</string>
+    <string name="EnableSecretGroupsInfo">Секретные группы позволяют общаться нескольким пользователям общаться с использованием сквозного шифрования. Чтобы создать секретную группу, включите этот функционал при помощи кнопки выше, вернитесь в список диалогов нажмите на иконку карандаша в правом нижнем углу и выберите "%1$s".</string>
 </resources>

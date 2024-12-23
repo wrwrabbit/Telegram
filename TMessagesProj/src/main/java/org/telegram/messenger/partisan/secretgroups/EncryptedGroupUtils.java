@@ -10,8 +10,10 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -261,5 +263,10 @@ public class EncryptedGroupUtils {
     public static boolean isInnerEncryptedGroupChat(int encryptedChatId, int account) {
         MessagesStorage messagesStorage = MessagesStorage.getInstance(account);
         return messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId) != null;
+    }
+
+    public static boolean encryptedGroupsEnabled() {
+        return !FakePasscodeUtils.isFakePasscodeActivated()
+                && SharedConfig.encryptedGroupsEnabled;
     }
 }

@@ -13,6 +13,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
@@ -82,6 +83,9 @@ public class EncryptedGroupProtocol {
     }
 
     private void sendAction(TLRPC.EncryptedChat encryptedChat, EncryptedGroupAction action) {
+        if (!SharedConfig.encryptedGroupsEnabled) {
+            return;
+        }
         EncryptedGroupsServiceMessage reqSend = new EncryptedGroupsServiceMessage();
         TLRPC.Message message;
 
@@ -134,6 +138,9 @@ public class EncryptedGroupProtocol {
     }
 
     public void handleServiceMessage(TLRPC.EncryptedChat encryptedChat, EncryptedGroupsServiceMessage serviceMessage) {
+        if (!SharedConfig.encryptedGroupsEnabled) {
+            return;
+        }
         EncryptedGroupAction action = serviceMessage.encryptedGroupAction;
         log("Handle service message " + action.getClass());
         if (action instanceof CreateGroupAction) {
@@ -377,6 +384,9 @@ public class EncryptedGroupProtocol {
     }
 
     public void processEncryptedChatUpdate(TLRPC.EncryptedChat encryptedChat) {
+        if (!SharedConfig.encryptedGroupsEnabled) {
+            return;
+        }
         EncryptedGroup encryptedGroup = getEncryptedGroupByEncryptedChat(encryptedChat);
         if (encryptedGroup == null) {
             return;

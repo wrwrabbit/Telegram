@@ -28,8 +28,10 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -285,7 +287,7 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else if (needPhonebook) {
                     return row != 1;
                 } else {
-                    return row != (3 + (FakePasscodeUtils.isFakePasscodeActivated() ? 0 : 2));
+                    return row != (3 + (EncryptedGroupUtils.encryptedGroupsEnabled() ? 2 : 0));
                 }
             } else {
                 if (isEmpty) {
@@ -373,7 +375,7 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else if (needPhonebook) {
                     return 2;
                 } else {
-                    return 4 + (FakePasscodeUtils.isFakePasscodeActivated() ? 0 : 2);
+                    return 4 + (EncryptedGroupUtils.encryptedGroupsEnabled() ? 2 : 0);
                 }
             } else {
                 if (isEmpty) {
@@ -678,14 +680,14 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                         return isEmpty ? 5 : 2;
                     }
                 } else {
-                    if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                    if (EncryptedGroupUtils.encryptedGroupsEnabled()) {
                         if (position == 3) {
+                            return 5;
+                        } else if (position == 5) {
                             return isEmpty ? 5 : 2;
                         }
                     } else {
                         if (position == 3) {
-                            return 5;
-                        } else if (position == 5) {
                             return isEmpty ? 5 : 2;
                         }
                     }

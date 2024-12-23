@@ -97,6 +97,7 @@ public class TesterSettingsActivity extends BaseFragment {
     private int forceAllowScreenshotsRow;
     private int saveLogcatAfterRestartRow;
     private int showEncryptedChatsFromEncryptedGroupsRow;
+    private int enableSecretGroupsRow;
 
     public static boolean showPlainBackup;
 
@@ -297,6 +298,9 @@ public class TesterSettingsActivity extends BaseFragment {
             } else if (position == showEncryptedChatsFromEncryptedGroupsRow) {
                 SharedConfig.toggleShowEncryptedChatsFromEncryptedGroups();
                 ((TextCheckCell) view).setChecked(SharedConfig.showEncryptedChatsFromEncryptedGroups);
+            } else if (position == enableSecretGroupsRow) {
+                SharedConfig.toggleSecretGroups();
+                ((TextCheckCell) view).setChecked(SharedConfig.encryptedGroupsEnabled);
             }
         });
 
@@ -337,6 +341,7 @@ public class TesterSettingsActivity extends BaseFragment {
         } else {
             showEncryptedChatsFromEncryptedGroupsRow = -1;
         }
+        enableSecretGroupsRow = rowCount++;
     }
 
     @Override
@@ -453,6 +458,9 @@ public class TesterSettingsActivity extends BaseFragment {
                     } else if (position == showEncryptedChatsFromEncryptedGroupsRow) {
                         textCell.setTextAndCheck("Show encrypted chats from encrypted groups",
                                 SharedConfig.showEncryptedChatsFromEncryptedGroups, true);
+                    } else if (position == enableSecretGroupsRow) {
+                        textCell.setTextAndCheck("Secret groups enabled",
+                                SharedConfig.encryptedGroupsEnabled, true);
                     }
                     break;
                 } case 1: {
