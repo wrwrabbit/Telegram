@@ -15,6 +15,7 @@ import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.secretgroups.action.AllSecondaryChatsInitializedAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmGroupInitializationAction;
@@ -152,6 +153,9 @@ public class EncryptedGroupProtocol {
     }
 
     private void handleGroupCreation(TLRPC.EncryptedChat encryptedChat, CreateGroupAction action) {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            return;
+        }
         EncryptedGroup encryptedGroup = createEncryptedGroup(encryptedChat, action);
         if (encryptedGroup == null) {
             return;
