@@ -21484,7 +21484,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         } else if (id == NotificationCenter.messagesReadEncrypted) {
             int encId = (Integer) args[0];
-            if (currentEncryptedChatSingle != null && currentEncryptedChatSingle.id == encId) {
+            if (isCurrentEncryptedChatId(encId)) {
                 int date = (Integer) args[1];
                 for (MessageObject obj : messages) {
                     if (!obj.isOut()) {
@@ -41729,13 +41729,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
-    public boolean isCurrentDialogId(long dialogId) {
+    private boolean isCurrentDialogId(long dialogId) {
         if (currentEncryptedGroup != null) {
             return DialogObject.isEncryptedDialog(dialogId) &&
                     currentEncryptedGroup.containsEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
         } else {
             return dialogId == dialog_id;
         }
+    }
+
+    private boolean isCurrentEncryptedChatId(int encryptedChatId) {
+        if (currentEncryptedChatSingle != null) {
+            return currentEncryptedChatSingle.id == encryptedChatId;
+        } else if (currentEncryptedGroup != null) {
+            return currentEncryptedGroup.containsEncryptedChatId(DialogObject.getEncryptedChatId(encryptedChatId));
+        }
+        return false;
     }
 
     public MessageObject fixEncryptedGroupMessageObjectIfNeed(MessageObject obj, long targetEncryptedDialogId) {
