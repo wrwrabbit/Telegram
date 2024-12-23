@@ -12382,10 +12382,8 @@ public class MessagesController extends BaseController implements NotificationCe
                 arrayList.add(messageObject);
                 new_dialogMessage.put(did, arrayList);
                 if (encGroups != null && !encGroups.isEmpty() && DialogObject.isEncryptedDialog(did)) {
-                    EncryptedGroup encryptedGroup = encGroups.stream()
-                            .filter(g -> g.getInnerEncryptedChatIds().contains(DialogObject.getEncryptedChatId(did)))
-                            .findAny()
-                            .orElse(null);
+                    int encryptedChatId = DialogObject.getEncryptedChatId(did);
+                    EncryptedGroup encryptedGroup = EncryptedGroupUtils.getEncryptedGroupByEncryptedChatId(encryptedChatId, currentAccount);
                     if (encryptedGroup != null) {
                         long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId());
                         ArrayList<MessageObject> prevMessage = new_dialogMessage.get(encryptedGroupDialogId);

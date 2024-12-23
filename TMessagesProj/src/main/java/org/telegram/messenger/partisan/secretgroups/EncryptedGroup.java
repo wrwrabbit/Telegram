@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EncryptedGroup {
     private long externalId; // external id for identifying a group in the secret group protocol
@@ -56,9 +57,16 @@ public class EncryptedGroup {
         return innerChats.stream().allMatch(c -> c.getState() == state);
     }
 
-    public List<Integer> getInnerEncryptedChatIds() {
-        return innerChats.stream()
-                .map(InnerEncryptedChat::getEncryptedChatId)
+    public List<Integer> getInitializedInnerEncryptedChatIds() {
+        return getInnerEncryptedChatIds(true);
+    }
+
+    public List<Integer> getInnerEncryptedChatIds(boolean onlyInitialized) {
+        Stream<InnerEncryptedChat> stream = innerChats.stream();
+        if (onlyInitialized) {
+            stream = stream.filter(innerChat -> innerChat.getState() == InnerEncryptedChatState.INITIALIZED);
+        }
+        return stream.map(InnerEncryptedChat::getEncryptedChatId)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());

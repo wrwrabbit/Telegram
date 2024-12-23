@@ -12,14 +12,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.R;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
-import org.telegram.ui.Cells.AccountActionsCell;
 import org.telegram.ui.Cells.EncryptedGroupMemberCell;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCheckCell;
@@ -120,7 +118,7 @@ public class EncryptedGroupProfileActivity extends BaseFragment {
     }
 
     private List<Integer> getInnerEncryptedChatIds() {
-        return encryptedGroup.getInnerEncryptedChatIds();
+        return encryptedGroup.getInnerEncryptedChatIds(false);
     }
 
     private TLRPC.User getUser(int index) {

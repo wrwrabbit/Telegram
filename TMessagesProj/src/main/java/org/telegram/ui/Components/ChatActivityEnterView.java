@@ -7002,7 +7002,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     if (encryptedGroupId != null) {
                         virtualMessageId = accountInstance.getMessagesStorage().createEncryptedVirtualMessage(encryptedGroupId);
                     }
-                    for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList()) {
+                    for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList(true)) {
                         params.peer = DialogObject.makeEncryptedDialogId(chat.id);
                         params.replyToMsg = parentFragment.fixEncryptedGroupMessageObjectIfNeed(replyToMsg, params.peer);
                         params.encryptedGroupId = encryptedGroupId;
@@ -10372,7 +10372,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
                         if (gif instanceof TLRPC.Document) {
                             TLRPC.Document document = (TLRPC.Document) gif;
-                            parentFragment.forEachDialogId(dialog_id -> {
+                            parentFragment.forEachActiveDialogId(dialog_id -> {
                                 SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                             });
                             MediaDataController.getInstance(currentAccount).addRecentGif(document, (int) (System.currentTimeMillis() / 1000), true);
@@ -10397,11 +10397,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                             params.put("force_gif", "1");
 
                             if (storyItem == null) {
-                                parentFragment.forEachDialogId(dialog_id -> {
+                                parentFragment.forEachActiveDialogId(dialog_id -> {
                                     SendMessagesHelper.prepareSendingBotContextResult(parentFragment, accountInstance, result, params, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, notify, scheduleDate, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                                 });
                             } else {
-                                parentFragment.forEachDialogId(dialog_id -> {
+                                parentFragment.forEachActiveDialogId(dialog_id -> {
                                     SendMessagesHelper.getInstance(currentAccount).sendSticker(result.document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                                 });
                             }
@@ -10667,7 +10667,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
                 setStickersExpanded(false, true, false);
                 TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
-                parentFragment.forEachDialogId(dialog_id -> {
+                parentFragment.forEachActiveDialogId(dialog_id -> {
                     SendMessagesHelper.getInstance(currentAccount).sendSticker(sticker, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, sendAnimationData, notify, scheduleDate, parent instanceof TLRPC.TL_messages_stickerSet, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                 });
                 if (delegate != null) {

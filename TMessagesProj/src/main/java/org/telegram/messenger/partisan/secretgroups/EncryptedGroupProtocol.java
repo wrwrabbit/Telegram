@@ -16,7 +16,6 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.secretgroups.action.AllSecondaryChatsInitializedAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmGroupInitializationAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmJoinAction;
@@ -405,8 +404,24 @@ public class EncryptedGroupProtocol {
             }
         } else if (encryptedChat instanceof TLRPC.TL_encryptedChatDiscarded) {
             if (encryptedGroup.getState() == EncryptedGroupState.INITIALIZED) {
-                encryptedGroup.removeInnerChat(encryptedChat.id);
-                getMessagesStorage().deleteEncryptedGroupInnerChat(encryptedGroup.getInternalId(), encryptedChat.user_id);
+                if (encryptedChat.history_deleted) {
+                    encryptedGroup.removeInnerChat(encryptedChat.id);
+                    getMessagesStorage().deleteEncryptedGroupInnerChat(encryptedGroup.getInternalId(), encryptedChat.user_id);
+                } else {
+                    InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
+                    innerChat.setState(InnerEncryptedChatState.CANCELLED);
+                    getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
+                }
+                boolean allInnerChatsCancelled = encryptedGroup.getInnerChats().stream()
+                        .allMatch(innerChat -> innerChat.getState() == InnerEncryptedChatState.CANCELLED);
+                if (allInnerChatsCancelled) {
+                    encryptedGroup.setState(EncryptedGroupState.CANCELLED);
+                    getMessagesStorage().updateEncryptedGroup(encryptedGroup);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                        getNotificationCenter().postNotificationName(NotificationCenter.encryptedGroupUpdated, encryptedGroup);
+                    });
+                }
             } else {
                 encryptedGroup.setState(EncryptedGroupState.INITIALIZATION_FAILED);
                 getMessagesStorage().updateEncryptedGroup(encryptedGroup);

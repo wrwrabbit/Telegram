@@ -64,6 +64,8 @@ public class EncryptedGroupUtils {
                 return LocaleController.getString(R.string.WaitingForSecondaryChatsCreation);
             case INITIALIZATION_FAILED:
                 return LocaleController.getString(R.string.SecretGroupInitializationFailed);
+            case CANCELLED:
+                return LocaleController.getString(R.string.SecretGroupCancelled);
             default:
                 throw new RuntimeException("Can't return encrypted group state description for state " + state);
         }
@@ -220,9 +222,13 @@ public class EncryptedGroupUtils {
         if (encryptedChat == null) {
             return null;
         }
+        return getEncryptedGroupByEncryptedChatId(encryptedChat.id, accountNum);
+    }
+
+    public static EncryptedGroup getEncryptedGroupByEncryptedChatId(int encryptedChatId, int accountNum) {
         MessagesStorage messagesStorage = MessagesStorage.getInstance(accountNum);
         MessagesController messagesController = MessagesController.getInstance(accountNum);
-        Integer groupId = messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChat.id);
+        Integer groupId = messagesStorage.getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId);
         if (groupId == null) {
             return null;
         }

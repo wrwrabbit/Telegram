@@ -270,6 +270,7 @@
     <string name="WaitingForSecretGroupInitializationConfirmation">Ждём подтверждения от участников</string>
     <string name="WaitingForSecondaryChatsCreation">Ждём создания чатов между участниками</string>
     <string name="SecretGroupInitializationFailed">Инициализация секретной группы не удалась</string>
+    <string name="SecretGroupCancelled">Секретная группа отменена</string>
     <string name="EncryptedGroupTitleOutgoing">Вы создали секретную группу.</string>
     <string name="EncryptedGroupPlaceholderTitleIncoming">%s пригласил Вас в секретную группу.</string>
     <string name="EncryptedGroupDescriptionTitle">Секретные группы:</string>
