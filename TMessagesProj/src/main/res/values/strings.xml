@@ -8798,5 +8798,5 @@
     <string name="PartisanExperimentalSettingsHeader">Experimental Settings</string>
     <string name="EnableSecretGroups">Enable Secret Groups</string>
     <string name="SecretGroupsEnabled">Secret Groups Enabled</string>
-    <string name="EnableSecretGroupsInfo">Secret groups allow multiple users to communicate using end-to-end encryption. To create a secret group, enable this feature using the button above, return to the list of conversations, click the pencil icon in the lower right corner and select "%1$s".</string>
+    <string name="EnableSecretGroupsInfo">Secret groups allow multiple users to communicate using end-to-end encryption. To create a secret group, enable this feature using the button above, return to the list of conversations, click the pencil icon in the lower right corner and select \"%1$s\".</string>
 </resources>
