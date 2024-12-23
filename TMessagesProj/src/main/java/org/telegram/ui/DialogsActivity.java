@@ -626,7 +626,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private final static int add_to_folder = 109;
     private final static int remove_from_folder = 110;
     private final static int save = 400;
-    private final static int secret_group_debug = 401;
 
     private final static int ARCHIVE_ITEM_STATE_PINNED = 0;
     private final static int ARCHIVE_ITEM_STATE_SHOWED = 1;
@@ -3856,7 +3855,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         undoView.showWithAction(did, UndoView.ACTION_REMOVED_FROM_FOLDER, neverShow.size(), filter, null, null);
                     }
                     hideActionMode(false);
-                } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2 || id == save || id == secret_group_debug) {
+                } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2 || id == save) {
                     performSelectedDialogsAction(selectedDialogs, id, true, false);
                 }
             }
@@ -6565,9 +6564,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         muteItem = actionMode.addItemWithWidth(mute, R.drawable.msg_mute, dp(54));
         archive2Item = actionMode.addItemWithWidth(archive2, R.drawable.msg_archive, dp(54));
         deleteItem = actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(54), LocaleController.getString(R.string.Delete));
-        if (BuildVars.isAlphaApp()) {
-            secretGroupDebugItem = actionMode.addItemWithWidth(secret_group_debug, R.drawable.large_locked_post, dp(54));
-        }
         ActionBarMenuItem otherItem = actionMode.addItemWithWidth(0, R.drawable.ic_ab_other, dp(54), LocaleController.getString(R.string.AccDescrMoreOptions));
         archiveItem = otherItem.addSubItem(archive, R.drawable.msg_archive, LocaleController.getString(R.string.Archive));
         pin2Item = otherItem.addSubItem(pin2, R.drawable.msg_pin, LocaleController.getString(R.string.DialogPin));
@@ -9497,28 +9493,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     markAsRead(selectedDialog);
                 } else {
                     markAsUnread(selectedDialog);
-                }
-            } else if (action == secret_group_debug) {
-                Bundle args = new Bundle();
-                ArrayList<Integer> ids = selectedDialogs.stream()
-                        .map(id -> DialogObject.getEncryptedChatId(id))
-                        .collect(Collectors.toCollection(ArrayList::new));
-                args.putIntegerArrayList("enc_ids", ids);
-
-                args.putInt("dialog_folder_id", folderId);
-                if (searchViewPager != null && searchViewPager.actionModeShowing()) {
-                    searchViewPager.hideActionMode();
-                }
-
-                slowedReloadAfterDialogClick = true;
-                if (getMessagesController().checkCanOpenChat(args, DialogsActivity.this)) {
-                    ChatActivity chatActivity = new ChatActivity(args);
-                    if (AndroidUtilities.isTablet()) {
-                        if (rightSlidingDialogContainer.currentFragment != null) {
-                            rightSlidingDialogContainer.finishPreview();
-                        }
-                    }
-                    presentFragment(chatActivity);
                 }
             } else if (action == delete || action == clear) {
                 if (count == 1) {

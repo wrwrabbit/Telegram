@@ -327,7 +327,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     protected TLRPC.User currentUser;
     //protected TLRPC.EncryptedChat currentEncryptedChat;
     protected TLRPC.EncryptedChat currentEncryptedChatSingle;
-    protected ArrayList<TLRPC.EncryptedChat> currentEncryptedChatList;
     protected EncryptedGroup currentEncryptedGroup;
     private boolean userBlocked;
 
@@ -2469,7 +2468,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
         final int encGroupId = arguments.getInt("enc_group_id");
-        List<Integer> encIds = arguments.getIntegerArrayList("enc_ids");
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);
@@ -2622,41 +2620,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             dialog_id = DialogObject.makeEncryptedDialogId(encId);
             maxMessageId[0] = maxMessageId[1] = Integer.MIN_VALUE;
             minMessageId[0] = minMessageId[1] = Integer.MAX_VALUE;
-        } else if (encIds != null || encGroupId != 0) {
+        } else if (encGroupId != 0) {
             currentEncryptedGroup = getMessagesController().getEncryptedGroup(encGroupId);
-            if (currentEncryptedGroup != null) {
-                encIds = currentEncryptedGroup.getInnerEncryptedChatIds();
-            }
-            currentEncryptedChatList = encIds.stream()
-                    .filter(Objects::nonNull)
-                    .map(id -> getMessagesController().getEncryptedChat(id))
-                    .filter(Objects::nonNull)
-                    .collect(toCollection(ArrayList::new));
-            final MessagesStorage messagesStorage = getMessagesStorage();
-            if (currentEncryptedChatList.isEmpty()) {
-                final CountDownLatch countDownLatch = new CountDownLatch(1);
-                final List<Integer> encIdsFinal = encIds;
-                messagesStorage.getStorageQueue().postRunnable(() -> {
-                    currentEncryptedChatList = encIdsFinal.stream()
-                            .map(id -> getMessagesController().getEncryptedChat(id))
-                            .filter(Objects::nonNull)
-                            .collect(toCollection(ArrayList::new));
-                    countDownLatch.countDown();
-                });
-                try {
-                    countDownLatch.await();
-                } catch (Exception e) {
-                    FileLog.e(e);
-                }
-                if (!currentEncryptedChatList.isEmpty()) {
-                    for (TLRPC.EncryptedChat encryptedChat : currentEncryptedChatList) {
-                        getMessagesController().putEncryptedChat(encryptedChat, true);
-                    }
-                } else {
-                    currentEncryptedChatList = null;
-                    return false;
-                }
-            }
             currentUser = null;
             dialog_id = encGroupId != 0
                     ? DialogObject.makeEncryptedDialogId(encGroupId)
@@ -4310,7 +4275,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 did = dialog_id;
             } else if (currentUser != null && currentUser.id != 0) {
                 did = currentUser.id;
-            } else if (currentEncryptedChatList != null) {
+            } else if (isEncryptedGroup()) {
                 did = 0;
             } else {
                 did = -currentChat.id;
@@ -12555,8 +12520,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Bundle bundle = new Bundle();
         if (currentEncryptedChatSingle != null) {
             bundle.putInt("enc_id", currentEncryptedChatSingle.id);
-        } else if (currentEncryptedChatList != null) {
-            bundle.putIntegerArrayList("enc_ids", currentEncryptedChatList.stream().map(c -> c.id).collect(toCollection(ArrayList::new)));
         } else if (currentChat != null) {
             bundle.putLong("chat_id", currentChat.id);
         } else {
@@ -18720,8 +18683,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             avatarContainer.setTitle(AndroidUtilities.removeDiacritics(getUserConfig().getChatTitleOverride(currentChat)), currentChat.isScam(), currentChat.isFake(), currentChat.isVerified(), false, currentChat.emoji_status, animated);
         } else if (currentEncryptedGroup != null) {
             avatarContainer.setTitle(currentEncryptedGroup.getName());
-        } else if (currentEncryptedChatList != null) {
-            avatarContainer.setTitle("Encrypted Group");
         } else if (currentUser != null) {
             if (currentUser.self) {
                 avatarContainer.setTitle(LocaleController.getString(R.string.SavedMessages));
@@ -19607,8 +19568,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 Bundle bundle = new Bundle();
                                 if (currentEncryptedChatSingle != null) {
                                     bundle.putInt("enc_id", currentEncryptedChatSingle.id);
-                                } else if (currentEncryptedChatList != null) {
-                                    bundle.putIntegerArrayList("enc_ids", currentEncryptedChatList.stream().map(c -> c.id).collect(toCollection(ArrayList::new)));
                                 } else if (currentChat != null) {
                                     bundle.putLong("chat_id", currentChat.id);
                                 } else {
@@ -20772,7 +20731,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             long did = (Long) args[0];
             ArrayList<MessageObject> arr = (ArrayList<MessageObject>) args[1];
             if (isInsideContainer) return;
-            if (did == dialog_id || isEncryptedGroup() && currentEncryptedChatList.stream().anyMatch(c -> DialogObject.makeEncryptedDialogId(c.id) == did)) {
+            if (did == dialog_id || DialogObject.isEncryptedDialog(did) && currentEncryptedGroup != null && currentEncryptedGroup.containsEncryptedChatId(DialogObject.getEncryptedChatId(did))) {
                 boolean scheduled = (Boolean) args[2];
                 int mode = (Integer) args[3];
                 if (mode != chatMode && chatMode != MODE_SAVED) {
@@ -23169,7 +23128,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private boolean addMessage(int pos, MessageObject obj) {
         if (isEncryptedGroup()) {
             updateMessageVirtualId(obj);
-            boolean needAddMessage = !obj.isOut() || obj.getDialogId() == DialogObject.makeEncryptedDialogId(currentEncryptedChatList.get(0).id);
+            boolean needAddMessage = !obj.isOut() || obj.getDialogId() == DialogObject.makeEncryptedDialogId(currentEncryptedGroup.getInnerEncryptedChatIds().get(0));
             if (needAddMessage) {
                 messages.add(obj);
                 messages.sort(Collections.reverseOrder(Comparator.comparingInt(m -> m.messageOwner.date)));
@@ -29003,7 +28962,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private Map<TLRPC.EncryptedChat, List<MessageObject>> createEncryptedMessagesMapToDelete(MessageObject finalSelectedObject) {
-        if (currentEncryptedChatList == null) {
+        if (!isEncryptedGroup()) {
             return null;
         }
         List<MessageObject> srcMessages;
@@ -29028,7 +28987,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             for (MessageObject messageCopy : messageCopies) {
                 long dialogId = messageCopy.getDialogId();
-                TLRPC.EncryptedChat encryptedChat = currentEncryptedChatList.stream()
+                TLRPC.EncryptedChat encryptedChat = getCurrentEncryptedChatList().stream()
                         .filter(c -> DialogObject.makeEncryptedDialogId(c.id) == dialogId)
                         .findAny()
                         .orElse(null);
@@ -31257,8 +31216,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             bigEmptyView = new ChatBigEmptyView(getContext(), contentView, ChatBigEmptyView.EMPTY_VIEW_TYPE_SECRET, themeDelegate);
             if (currentEncryptedChatSingle != null && currentEncryptedChatSingle.admin_id == getUserConfig().getClientUserId()) {
                 bigEmptyView.setStatusText(LocaleController.formatString(R.string.EncryptedPlaceholderTitleOutgoing, UserObject.getFirstName(currentUser)));
-            } else if (currentEncryptedChatList != null) {
-                bigEmptyView.setStatusText(LocaleController.formatString("EncryptedPlaceholderTitleOutgoing", R.string.EncryptedPlaceholderTitleOutgoing, "Encrypted Group"));
             } else {
                 bigEmptyView.setStatusText(LocaleController.formatString(R.string.EncryptedPlaceholderTitleIncoming, UserObject.getFirstName(currentUser)));
             }
@@ -41675,30 +41632,29 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public boolean isEncryptedChat() {
-        return currentEncryptedChatSingle != null ||
-                (currentEncryptedChatList != null && !currentEncryptedChatList.isEmpty());
+        return currentEncryptedChatSingle != null || isEncryptedGroup();
     }
 
     private void forEachCurrentEncryptedChat(Consumer<TLRPC.EncryptedChat> action) {
         if (currentEncryptedChatSingle != null) {
             action.accept(currentEncryptedChatSingle);
-        } else if (currentEncryptedChatList != null) {
-            currentEncryptedChatList.stream().forEach(action);
+        } else if (currentEncryptedGroup != null) {
+            getCurrentEncryptedChatList().stream().forEach(action);
         }
     }
 
     public boolean allCurrentEncryptedChatMatch(Predicate<TLRPC.EncryptedChat> predicate) {
         if (currentEncryptedChatSingle != null) {
             return predicate.test(currentEncryptedChatSingle);
-        } else if (currentEncryptedChatList != null) {
-            return currentEncryptedChatList.stream().allMatch(predicate);
+        } else if (currentEncryptedGroup != null) {
+            return getCurrentEncryptedChatList().stream().allMatch(predicate);
         } else {
             return false;
         }
     }
 
     public boolean isEncryptedGroup() {
-        return currentEncryptedChatList != null;
+        return currentEncryptedGroup != null;
     }
 
     public Integer getEncryptedGroupId() {
@@ -41712,8 +41668,38 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return currentEncryptedGroup;
     }
 
-    public ArrayList<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {
-        return currentEncryptedChatList;
+    public List<TLRPC.EncryptedChat> getCurrentEncryptedChatList() {
+        if (currentEncryptedGroup == null) {
+            return null;
+        }
+        List<Integer> chatIds = currentEncryptedGroup.getInnerEncryptedChatIds();
+        ArrayList<TLRPC.EncryptedChat> encryptedChats = chatIds.stream()
+                .map(id -> getMessagesController().getEncryptedChat(id))
+                .filter(Objects::nonNull)
+                .collect(toCollection(ArrayList::new));
+        final MessagesStorage messagesStorage = getMessagesStorage();
+        if (encryptedChats.isEmpty()) {
+            final CountDownLatch countDownLatch = new CountDownLatch(1);
+            messagesStorage.getStorageQueue().postRunnable(() -> {
+                chatIds.stream()
+                        .map(id -> getMessagesController().getEncryptedChat(id))
+                        .filter(Objects::nonNull)
+                        .forEach(encryptedChats::add);
+                countDownLatch.countDown();
+            });
+            try {
+                countDownLatch.await();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+            if (!encryptedChats.isEmpty()) {
+                for (TLRPC.EncryptedChat encryptedChat : encryptedChats) {
+                    getMessagesController().putEncryptedChat(encryptedChat, true);
+                }
+            }
+        }
+
+        return encryptedChats;
     }
 
     public void forEachDialogIdIncludingVirtual(Consumer<Long> action) {
@@ -41724,8 +41710,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public void forEachDialogId(Consumer<Long> action) {
-        if (currentEncryptedChatList != null) {
-            currentEncryptedChatList.stream()
+        if (currentEncryptedGroup != null) {
+            getCurrentEncryptedChatList().stream()
                     .map(c -> DialogObject.makeEncryptedDialogId(c.id))
                     .forEach(action);
         } else {
@@ -41734,10 +41720,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     public boolean isCurrentDialogId(long dialogId) {
-        if (currentEncryptedChatList != null) {
-            return currentEncryptedChatList.stream()
-                    .map(c -> DialogObject.makeEncryptedDialogId(c.id))
-                    .anyMatch(encryptedDialogId -> dialogId == encryptedDialogId);
+        if (currentEncryptedGroup != null) {
+            return DialogObject.isEncryptedDialog(dialogId) &&
+                    currentEncryptedGroup.containsEncryptedChatId(DialogObject.getEncryptedChatId(dialogId));
         } else {
             return dialogId == dialog_id;
         }

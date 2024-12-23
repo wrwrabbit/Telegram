@@ -64,6 +64,12 @@ public class EncryptedGroup {
                 .collect(Collectors.toList());
     }
 
+    public boolean containsEncryptedChatId(int encryptedChatId) {
+        return innerChats.stream()
+                .anyMatch(innerChat -> innerChat.getEncryptedChatId().isPresent()
+                        && innerChat.getEncryptedChatId().get() == encryptedChatId);
+    }
+
     public List<Long> getInnerUserIds() {
         return innerChats.stream().map(InnerEncryptedChat::getUserId).collect(Collectors.toList());
     }

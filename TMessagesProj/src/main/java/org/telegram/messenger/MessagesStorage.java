@@ -10612,7 +10612,15 @@ public class MessagesStorage extends BaseController {
     }
 
     public int createEncryptedVirtualMessage(int encryptedGroupId) {
-        int virtualMessageId = getUserConfig().getNewEncryptedGroupVirtualMessageId();
+        String sql = "SELECT MAX(virtual_message_id) FROM enc_group_virtual_messages WHERE encrypted_group_id = ?";
+        Object[] args = {encryptedGroupId};
+        int prevVirtualMessageId = partisanSelect(sql, args, cursor -> {
+            if (cursor.next()) {
+                return cursor.intValue(0);
+            }
+            return 0;
+        });
+        int virtualMessageId = prevVirtualMessageId + 1;
         partisanExecute("INSERT INTO enc_group_virtual_messages VALUES(?, ?)", state -> {
             int pointer = 1;
             state.bindInteger(pointer++, encryptedGroupId);
