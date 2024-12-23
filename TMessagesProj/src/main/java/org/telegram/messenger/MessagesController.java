@@ -13784,6 +13784,9 @@ public class MessagesController extends BaseController implements NotificationCe
                                 dialog.unread_count = maxNegativeId - dialog.top_message;
                             }
                         }
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                            EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroupId, currentAccount);
+                        });
                         boolean wasUnread;
                         if (wasUnread = dialog.unread_mark) {
                             dialog.unread_mark = false;
