@@ -50,7 +50,6 @@ public class UserConfig extends BaseController {
     private TLRPC.User currentUser;
     public boolean registeredForPush;
     public int lastSendMessageId = -210000;
-    public int encryptedGroupVirtualMessageId = -1230000;
     public int lastBroadcastId = -1;
     public int contactsSavedCount;
     public long clientUserId;
@@ -278,15 +277,6 @@ public class UserConfig extends BaseController {
         return id;
     }
 
-    public int getNewEncryptedGroupVirtualMessageId() {
-        int id;
-        synchronized (sync) {
-            id = encryptedGroupVirtualMessageId;
-            encryptedGroupVirtualMessageId--;
-        }
-        return id;
-    }
-
     public void saveConfig(boolean withFile) {
         NotificationCenter.getInstance(currentAccount).doOnIdle(() -> {
             if (!configLoaded) {
@@ -311,7 +301,6 @@ public class UserConfig extends BaseController {
                     editor.putString("pinnedSavedChannels", pinnedSavedChannelsStr);
                     editor.putBoolean("registeredForPush", registeredForPush);
                     editor.putInt("lastSendMessageId", lastSendMessageId);
-                    editor.putInt("encryptedGroupVirtualMessageId", encryptedGroupVirtualMessageId);
                     editor.putInt("contactsSavedCount", contactsSavedCount);
                     editor.putInt("lastBroadcastId", lastBroadcastId);
                     editor.putInt("lastContactsSyncTime", lastContactsSyncTime);
@@ -482,7 +471,6 @@ public class UserConfig extends BaseController {
             pinnedSavedChannels.remove("");
             registeredForPush = preferences.getBoolean("registeredForPush", false);
             lastSendMessageId = preferences.getInt("lastSendMessageId", -210000);
-            encryptedGroupVirtualMessageId = preferences.getInt("encryptedGroupVirtualMessageId", -1230000);
             contactsSavedCount = preferences.getInt("contactsSavedCount", 0);
             lastBroadcastId = preferences.getInt("lastBroadcastId", -1);
             lastContactsSyncTime = preferences.getInt("lastContactsSyncTime", (int) (System.currentTimeMillis() / 1000) - 23 * 60 * 60);
@@ -657,7 +645,6 @@ public class UserConfig extends BaseController {
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = -210000;
-        encryptedGroupVirtualMessageId = -1230000;
         lastBroadcastId = -1;
         notificationsSettingsLoaded = false;
         notificationsSignUpSettingsLoaded = false;
