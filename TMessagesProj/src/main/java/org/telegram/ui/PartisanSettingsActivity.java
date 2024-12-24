@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -338,6 +339,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                 if (!SharedConfig.encryptedGroupsEnabled) {
                     SharedConfig.toggleSecretGroups();
                     listAdapter.notifyItemChanged(position);
+                    Toast.makeText(getContext(), LocaleController.getString(R.string.PopupEnabled), Toast.LENGTH_SHORT).show();
                 }
             }
         });
