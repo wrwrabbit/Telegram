@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.R;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -29,7 +30,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EncryptedGroupProfileActivity extends BaseFragment {
+public class EncryptedGroupProfileActivity extends BaseFragment implements AllowShowingActivityInterface {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
@@ -139,6 +140,11 @@ public class EncryptedGroupProfileActivity extends BaseFragment {
         }
         int encryptedChatId = getInnerEncryptedChatIds().get(index);
         return DialogObject.makeEncryptedDialogId(encryptedChatId);
+    }
+
+    @Override
+    public boolean allowShowing() {
+        return !FakePasscodeUtils.isFakePasscodeActivated();
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

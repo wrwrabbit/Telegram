@@ -40891,9 +40891,35 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(arguments.getLong("chat_id", 0), currentAccount)
-                && !FakePasscodeUtils.isHideChat(arguments.getLong("user_id", 0), currentAccount)
-                && !(FakePasscodeUtils.isFakePasscodeActivated() && isSavedChannel);
+        long chat_id = arguments.getLong("chat_id", 0);
+        long user_id = arguments.getLong("user_id", 0);
+        int enc_id = arguments.getInt("enc_id", 0);
+        if (chat_id != 0 && FakePasscodeUtils.isHideChat(chat_id, currentAccount)) {
+            return false;
+        }
+        if (user_id != 0 && FakePasscodeUtils.isHideChat(user_id, currentAccount)) {
+            return false;
+        }
+        if (enc_id != 0 && FakePasscodeUtils.isHideChat(DialogObject.makeEncryptedDialogId(enc_id), currentAccount)) {
+            return false;
+        }
+
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            if (isSavedChannel) {
+                return false;
+            }
+            if (arguments.getInt("enc_group_id", 0) != 0) {
+                return false;
+            }
+        } else {
+            boolean isEncryptedChatFromEncryptedGroup = enc_id != 0 &&
+                    getMessagesStorage().getEncryptedGroupIdByInnerEncryptedChatId(enc_id) != null;
+            if (!SharedConfig.showEncryptedChatsFromEncryptedGroups && isEncryptedChatFromEncryptedGroup) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private class RecyclerListViewInternal extends RecyclerListView implements StoriesListPlaceProvider.ClippedView {

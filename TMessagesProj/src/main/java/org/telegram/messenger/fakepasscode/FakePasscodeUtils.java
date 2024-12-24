@@ -99,11 +99,8 @@ public class FakePasscodeUtils {
             return items;
         }
         List<T> filteredItems = items;
-        for (Map.Entry<Integer, RemoveChatsResult> pair : actionsResult.removeChatsResults.entrySet()) {
-            Integer accountNum = pair.getKey();
-            if (accountNum != null && (!account.isPresent() || accountNum.equals(account.get()))) {
-                filteredItems = filteredItems.stream().filter(i -> filter.test(i, pair.getValue())).collect(Collectors.toList());
-            }
+        for (ChatFilter chatFilter : actionsResult.getChatFilters(account)) {
+            filteredItems = filteredItems.stream().filter(i -> filter.test(i, chatFilter)).collect(Collectors.toList());
         }
         if (passcode != null) {
             for (AccountActions actions : passcode.getFilteredAccountActions()) {
@@ -150,8 +147,7 @@ public class FakePasscodeUtils {
         if ((passcode == null && actionsResult == null) || peer == null) {
             return false;
         }
-        RemoveChatsResult result = actionsResult.getRemoveChatsResult(account);
-        if (result != null && result.isHidePeer(peer)) {
+        if (actionsResult.getChatFilters(Optional.of(account)).stream().anyMatch(filter -> filter.isHidePeer(peer))) {
             return true;
         }
         if (passcode != null) {
@@ -198,8 +194,7 @@ public class FakePasscodeUtils {
         if (passcode == null && actionsResult == null) {
             return false;
         }
-        RemoveChatsResult result = actionsResult.getRemoveChatsResult(account);
-        if (result != null && result.isHideChat(chatId)) {
+        if (actionsResult.getChatFilters(Optional.of(account)).stream().anyMatch(filter -> filter.isHideChat(chatId))) {
             return true;
         }
         if (passcode != null) {
@@ -216,8 +211,7 @@ public class FakePasscodeUtils {
         if (passcode == null && actionsResult == null) {
             return false;
         }
-        RemoveChatsResult result = actionsResult.getRemoveChatsResult(account);
-        if (result != null && result.isHideFolder(folderId)) {
+        if (actionsResult.getChatFilters(Optional.of(account)).stream().anyMatch(filter -> filter.isHideFolder(folderId))) {
             return true;
         }
         if (passcode != null) {
@@ -306,8 +300,8 @@ public class FakePasscodeUtils {
             return false;
         }
 
-        RemoveChatsResult removeChatsResult = actionsResult.getRemoveChatsResult(accountNum);
-        if (removeChatsResult != null && removeChatsResult.isHideChat(dialogId, strictHiding)) {
+
+        if (actionsResult.getChatFilters(Optional.of(accountNum)).stream().anyMatch(filter -> filter.isHideChat(dialogId, strictHiding))) {
             return true;
         }
         if (passcode != null) {
