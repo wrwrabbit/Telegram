@@ -2466,7 +2466,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final long chatId = arguments.getLong("chat_id", 0);
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
-        final int encGroupId = arguments.getInt("enc_group_id");
+        final int encGroupId = arguments.getInt("enc_group_id", 0);
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);

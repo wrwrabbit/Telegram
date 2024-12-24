@@ -3148,7 +3148,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 }
             } else if (push_enc_id != 0) {
                 Bundle args = new Bundle();
-                args.putInt("enc_id", push_enc_id);
+                Integer encryptedGroupId = MessagesStorage.getInstance(currentAccount).getEncryptedGroupIdByInnerEncryptedChatId(push_enc_id);
+                if (encryptedGroupId != null) {
+                    args.putInt("enc_group_id", encryptedGroupId);
+                } else {
+                    args.putInt("enc_id", push_enc_id);
+                }
                 ChatActivity fragment = new ChatActivity(args);
                 if (getActionBarLayout().presentFragment(new INavigationLayout.NavigationParams(fragment).setNoAnimation(true))) {
                     pushOpened = true;
