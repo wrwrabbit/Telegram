@@ -483,8 +483,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Nullable
     private ActionBarMenuItem deleteItem;
     @Nullable
-    private ActionBarMenuItem secretGroupDebugItem;
-    @Nullable
     private ActionBarMenuItem pinItem;
     @Nullable
     private ActionBarMenuItem muteItem;
@@ -6583,9 +6581,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         actionModeViews.add(archive2Item);
         actionModeViews.add(muteItem);
         actionModeViews.add(deleteItem);
-        if (BuildVars.isAlphaApp()) {
-            actionModeViews.add(secretGroupDebugItem);
-        }
         actionModeViews.add(otherItem);
 
         updateCounters(false);
@@ -10053,9 +10048,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     readItem.setVisibility(View.GONE);
                 }
             }
-        }
-        if (secretGroupDebugItem != null) {
-            secretGroupDebugItem.setVisibility(secretChatsForDebugSecretGroupSelected ? View.VISIBLE : View.GONE);
         }
         if (pinItem != null && pin2Item != null) {
             if (canPinCount != 0) {
