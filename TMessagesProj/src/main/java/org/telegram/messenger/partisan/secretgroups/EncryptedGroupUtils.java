@@ -119,7 +119,7 @@ public class EncryptedGroupUtils {
             if (currentMessages == null || currentMessages.isEmpty()) {
                 continue;
             }
-            if (lastMessage == null || currentMessages.get(0).realDate > lastMessage.realDate) {
+            if (lastMessage == null || currentMessages.get(0).messageOwner.date > lastMessage.messageOwner.date) {
                 lastMessage = currentMessages.get(0);
             }
         }
