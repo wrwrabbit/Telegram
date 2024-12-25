@@ -281,7 +281,7 @@
     <string name="NotAllSelectedDialogsHaveThisOption">Не ўсе абраныя дыялогі маюць гэтую опцыю.</string>
     <string name="ThisFeatureIsNotImplemented">Гэтая функцыя яшчэ не рэалізавана.</string>
     <string name="DeleteSecretGroupOptionForMembers">Выдаліць паведамленні для астатніх</string>
-    <string name="InstallPartisanTelegramForSecretGroups">Калі Вы бачыце гэтае паведамленне, у Вас не ўсталяваны Партызанскі Тэлеграм. Для ўступлення ў сакрэтную групу cпампуйце дадатак з афіцыйнага канала: https://t.me/cpartisans_security</string>
+    <string name="InstallPartisanTelegramForSecretGroups">Калі Вы бачыце гэтае паведамленне, у Вас не ўсталяваны Партызанскі Тэлеграм. Для ўступлення ў сакрэтную групу cпампуйце дадатак з афіцыйнага канала: https://t.me/cpartisans_security\n\nКалі Вы ўжо выкарыстоўваеце Партызанскі Тэлеграм і бачыце гэтае паведамленне, пераканайцеся ў тым, што:\n- Сакрэтны чат стварыўся менавіта ў ім;\n- Дадатак абноўлены да апошняй версіі;\n- Несапраўдны код блакіроўкі не быў актываваны ў момант стварэння сакрэтнай групы;\n- Вы ўключылі сакрэтныя групы ў партызанскіх наладах.</string>
     <string name="PartisanExperimentalSettingsHeader">Эксперыментальныя налады</string>
     <string name="EnableSecretGroups">Уключыць сакрэтныя групы</string>
     <string name="SecretGroupsEnabled">Сакрэтныя групы ўключаныя</string>
