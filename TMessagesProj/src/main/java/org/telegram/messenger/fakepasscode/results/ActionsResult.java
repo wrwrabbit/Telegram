@@ -2,9 +2,12 @@ package org.telegram.messenger.fakepasscode.results;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.Action;
 import org.telegram.messenger.fakepasscode.ChatFilter;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,10 +69,15 @@ public class ActionsResult {
             if (removeChatsResults.containsKey(accountNum.get())) {
                 result.add(removeChatsResults.get(accountNum.get()));
             }
+            result.add(new HideEncryptedChatsFromEncryptedGroups(accountNum.get()));
         } else {
             result = new ArrayList<>(removeChatsResults.values());
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (AccountInstance.getInstance(a).getUserConfig().isClientActivated()) {
+                    result.add(new HideEncryptedChatsFromEncryptedGroups(a));
+                }
+            }
         }
-        result.add(HideEncryptedChatsFromEncryptedGroups.instance);
         return result;
     }
 
