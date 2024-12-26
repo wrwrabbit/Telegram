@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
@@ -30,7 +31,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EncryptedGroupProfileActivity extends BaseFragment implements AllowShowingActivityInterface {
+public class EncryptedGroupProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, AllowShowingActivityInterface {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
@@ -49,6 +50,7 @@ public class EncryptedGroupProfileActivity extends BaseFragment implements Allow
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
+        getNotificationCenter().addObserver(this, NotificationCenter.dialogsHidingChanged);
         updateRows();
         return true;
     }
@@ -56,7 +58,7 @@ public class EncryptedGroupProfileActivity extends BaseFragment implements Allow
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
-        AndroidUtilities.removeAdjustResize(getParentActivity(), classGuid);
+        getNotificationCenter().removeObserver(this, NotificationCenter.dialogsHidingChanged);
     }
 
     @Override
@@ -145,6 +147,24 @@ public class EncryptedGroupProfileActivity extends BaseFragment implements Allow
     @Override
     public boolean allowShowing() {
         return !FakePasscodeUtils.isFakePasscodeActivated();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!allowShowing()) {
+            finishFragment(false);
+            return;
+        }
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, final Object... args) {
+        if (id == NotificationCenter.dialogsHidingChanged) {
+            if (!allowShowing()) {
+                finishFragment(false);
+            }
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

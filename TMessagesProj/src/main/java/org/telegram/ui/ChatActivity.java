@@ -22842,7 +22842,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         } else if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
-                finishFragment();
+                finishHiddenChatFragment();
             }
         } else if (id == NotificationCenter.chatAvailableReactionsUpdated) {
             long chatId = (long) args[0];
@@ -28143,7 +28143,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         super.onResume();
 
         if (!allowShowing()) {
-            finishFragment();
+            finishHiddenChatFragment();
             return;
         }
 
@@ -28313,12 +28313,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public void finishFragment() {
-        if (!finishing) {
-            super.finishFragment();
-            if (scrimPopupWindow != null) {
-                scrimPopupWindow.setPauseNotifications(false);
-                closeMenu();
-            }
+        super.finishFragment();
+        if (scrimPopupWindow != null) {
+            scrimPopupWindow.setPauseNotifications(false);
+            closeMenu();
         }
     }
 
@@ -41782,6 +41780,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 .filter(m -> m.getDialogId() == targetEncryptedDialogId)
                 .findAny()
                 .orElse(obj);
+    }
+
+    private void finishHiddenChatFragment() {
+        if (!finishing) {
+            super.finishFragment(false);
+        }
     }
 
     private void gotChatInfo() {

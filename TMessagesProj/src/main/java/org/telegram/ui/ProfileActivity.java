@@ -7907,9 +7907,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             }
-        }  else if (id == NotificationCenter.dialogsHidingChanged) {
+        } else if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
-                finishFragment();
+                finishFragment(false);
             }
         } else if (id == NotificationCenter.privacyRulesUpdated) {
             if (qrItem != null) {
@@ -8075,7 +8075,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     public void onResume() {
         super.onResume();
         if (!allowShowing()) {
-            finishFragment();
+            finishFragment(false);
             return;
         }
 
