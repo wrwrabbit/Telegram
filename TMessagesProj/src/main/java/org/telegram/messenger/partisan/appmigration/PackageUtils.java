@@ -27,7 +27,7 @@ public class PackageUtils {
 
     public static String getSignatureThumbprint(Signature signature) {
         try {
-            MessageDigest hash = MessageDigest.getInstance("SHA-1");
+            MessageDigest hash = MessageDigest.getInstance("SHA-256");
             return Utilities.bytesToHex(hash.digest(signature.toByteArray()));
         } catch (NoSuchAlgorithmException ignored) {
             return null;

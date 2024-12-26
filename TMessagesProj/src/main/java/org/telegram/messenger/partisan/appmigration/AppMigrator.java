@@ -39,8 +39,8 @@ public class AppMigrator {
     public static final int MIGRATE_TO_REGULAR_PTG_CODE = 20202020;
     public static final int CONFIRM_SIGNATURE_CODE = 20202021;
 
-    private static final String PTG_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
-    private static final String PTG_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
+    private static final String PTG_SIGNATURE = "54EACD58409061FFADD5930A9D8B0A13E5A2B0561A486E5E6B5600480A5BC32A";
+    private static final String PTG_DEBUG_SIGNATURE = "7A7D4936FAD1A022F4DB2B24B8C9687B80C79099D986C05C541D002308872421";
     private static final List<String> PTG_PACKAGE_NAMES = Arrays.asList(
             "org.telegram.messenger.web",
             "org.telegram.messenger"
