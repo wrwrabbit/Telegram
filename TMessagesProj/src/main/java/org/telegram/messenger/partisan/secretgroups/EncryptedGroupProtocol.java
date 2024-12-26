@@ -17,6 +17,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.secretgroups.action.AllSecondaryChatsInitializedAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmGroupInitializationAction;
 import org.telegram.messenger.partisan.secretgroups.action.ConfirmJoinAction;
@@ -399,7 +400,7 @@ public class EncryptedGroupProtocol {
                 getMessagesStorage().updateEncryptedGroupInnerChat(encryptedGroup.getInternalId(), innerChat);
 
                 SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(
-                        LocaleController.getString(R.string.InstallPartisanTelegramForSecretGroups), innerChat.getDialogId().get(),
+                        getInviteMessageForNonPtgUsers(), innerChat.getDialogId().get(),
                         null, null, null, true, new ArrayList<>(), null,
                         null, true, 0, null, false
                 );
@@ -441,6 +442,26 @@ public class EncryptedGroupProtocol {
                 });
                 sendGroupCreationFailedToAllMembers(encryptedGroup);
             }
+        }
+    }
+
+    private String getInviteMessageForNonPtgUsers() {
+        if (Utils.isRussianAppLanguage()) {
+            return "Если Вы видите это сообщение, у Вас не установлен Партизанский Телеграм. " +
+                    "Для вступления в секретную группу скачайте приложение из официального канала: https://t.me/cpartisans_security\n\n" +
+                    "Если Вы уже используете Партизанский Телеграм и видите это сообщение, убедитесь в том, что:\n" +
+                    "- Секретный чат создался именно в нём;\n" +
+                    "- Приложение обновлено до последней версии;\n" +
+                    "- Ложный код-пароль не был активирован в момент создания секретной группы;\n" +
+                    "- Вы включили секретные группы в партизанских настройках.";
+        } else {
+            return "If you see this message, you do not have Partisan Telegram installed. " +
+                    "To join the secret group, download the application from the official channel: https://t.me/cpartisans_security\n\n" +
+                    "If you are already using Partisan Telegram and see this message, make sure that:\n" +
+                    "- The secret chat was created in it;\n" +
+                    "- The application has been updated to the latest version;\n" +
+                    "- The fake passcode was not activated when the secret group was created;\n" +
+                    "- You enabled secret groups in the partisan settings.";
         }
     }
 

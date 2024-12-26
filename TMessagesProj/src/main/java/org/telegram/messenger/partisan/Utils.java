@@ -548,4 +548,10 @@ public class Utils {
             return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
         }
     }
+
+    public static boolean isRussianAppLanguage() {
+        String appLanguage = LocaleController.getInstance().getCurrentLocale().getLanguage();
+        List<String> russianLikeLanguageList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
+        return new HashSet<>(russianLikeLanguageList).contains(appLanguage);
+    }
 }
