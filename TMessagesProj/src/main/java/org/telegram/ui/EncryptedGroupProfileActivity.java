@@ -153,7 +153,7 @@ public class EncryptedGroupProfileActivity extends BaseFragment implements Notif
     public void onResume() {
         super.onResume();
         if (!allowShowing()) {
-            finishFragment(false);
+            finishHiddenChatFragment();
             return;
         }
     }
@@ -162,8 +162,14 @@ public class EncryptedGroupProfileActivity extends BaseFragment implements Notif
     public void didReceivedNotification(int id, int account, final Object... args) {
         if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
-                finishFragment(false);
+                finishHiddenChatFragment();
             }
+        }
+    }
+
+    private void finishHiddenChatFragment() {
+        if (!finishing) {
+            super.finishFragment(false);
         }
     }
 

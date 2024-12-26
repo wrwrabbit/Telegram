@@ -7909,7 +7909,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
-                finishFragment(false);
+                finishHiddenChatFragment();
             }
         } else if (id == NotificationCenter.privacyRulesUpdated) {
             if (qrItem != null) {
@@ -8075,7 +8075,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     public void onResume() {
         super.onResume();
         if (!allowShowing()) {
-            finishFragment(false);
+            finishHiddenChatFragment();
             return;
         }
 
@@ -13867,7 +13867,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         long user_id = arguments.getLong("user_id", 0);
 
         if (dialog_id != 0 && FakePasscodeUtils.isHideChat(dialog_id, currentAccount)) {
-            return false;
+            if (!FakePasscodeUtils.isFakePasscodeActivated() && DialogObject.isEncryptedDialog(dialog_id)) {
+                int encryptedChatId = DialogObject.getEncryptedChatId(dialog_id);
+                Integer groupId = getMessagesStorage().getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId);
+                if (groupId == null) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
         if (chat_id != 0 && FakePasscodeUtils.isHideChat(chat_id, currentAccount)) {
             return false;
@@ -13877,6 +13885,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
 
         return true;
+    }
+
+    private void finishHiddenChatFragment() {
+        if (!finishing) {
+            super.finishFragment(false);
+        }
     }
 
     @Override
