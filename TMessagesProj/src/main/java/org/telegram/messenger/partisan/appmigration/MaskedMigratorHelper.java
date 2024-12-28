@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MaskedMigratorHelper {
-    public static String MASKING_BOT_USERNAME = null;
+    public static String MASKING_BOT_USERNAME = "MaskedPtgBot";
     public static final long MASKING_BOT_ID = 7901437172L;
     private static final long MASKING_BOT_ID2 = 7138739692L;
     private static final long MASKING_BOT_ID3 = 7116474629L;
