@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Base64;
 
 import androidx.core.content.ContextCompat;
 
@@ -28,6 +29,11 @@ import org.telegram.messenger.partisan.PartisanVersion;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.LauncherIconController;
 
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,8 +45,8 @@ public class AppMigrator {
     public static final int MIGRATE_TO_REGULAR_PTG_CODE = 20202020;
     public static final int CONFIRM_SIGNATURE_CODE = 20202021;
 
-    private static final String PTG_SIGNATURE = "06480D1C49ADA4A50D7BC57B097271D68AE7707E";
-    private static final String PTG_DEBUG_SIGNATURE = "B134DF916190F59F832BE4E1DE8354DC23444059";
+    private static final String PTG_SIGNATURE = "54EACD58409061FFADD5930A9D8B0A13E5A2B0561A486E5E6B5600480A5BC32A";
+    private static final String PTG_DEBUG_SIGNATURE = "7A7D4936FAD1A022F4DB2B24B8C9687B80C79099D986C05C541D002308872421";
     private static final List<String> PTG_PACKAGE_NAMES = Arrays.asList(
             "org.telegram.messenger.web",
             "org.telegram.messenger"
@@ -49,6 +55,17 @@ public class AppMigrator {
             "org.telegram.messenger.alpha",
             "org.telegram.messenger.beta"
     );
+
+    private static final String signatureVerificationPublicKey =
+            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsz15+DMiBNud4pLLdixJ" +
+            "mRNLjqCCDYplCg2ev/UGZGDzEx2mbbV6SLu9z7qYTWgFHhwne0VS5uH4yht3Bq22" +
+            "AAFWNz+T90QtAWl9JvvoYPVGU9/WK2VKTwa7JJMexqm1sLTMlH37+ll2hDeHl1St" +
+            "k0XiwqO8wePqVDelkaNLAIfFqdyo+szAPNeJVAdMKrHcQADluPqyp4ToaKG0n2lN" +
+            "hv4LdGlJhQvFJubWYQ9lGhGpkGnWOGGIq0Y3ztM+SvQmKmZzOhh+Caxtr798FCLl" +
+            "dzmOQbVaU25D04s9j/VBUReFx4h41qP5HTomV5jYJ5pk3erELMiLW5K2/saUqP7E" +
+            "PwIDAQAB";
+
+    private static final String signedAppSignature = null;
 
     public static boolean startNewTelegram(Activity activity) {
         Intent intent = createNewTelegramIntent(activity);
@@ -125,6 +142,9 @@ public class AppMigrator {
         intent.putExtra("language", LocaleController.getInstance().getLanguageOverride());
         intent.putExtra("fromOtherPtg", true);
         intent.putExtra("version", PartisanVersion.PARTISAN_VERSION_STRING);
+        if (signedAppSignature != null) {
+            intent.putExtra("ptgSignatureVerificationByPublicKey", Base64.decode(signedAppSignature, Base64.DEFAULT));
+        }
         intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         return intent;
     }
@@ -270,7 +290,7 @@ public class AppMigrator {
         return BuildVars.isAlphaApp() || BuildVars.isBetaApp();
     }
 
-    private static boolean isPtgSignature(PackageInfo packageInfo) {
+    public static boolean isPtgSignature(PackageInfo packageInfo) {
         return PackageUtils.isPackageSignatureThumbprint(packageInfo, getPtgSignature());
     }
 
@@ -319,5 +339,20 @@ public class AppMigrator {
 
     public static boolean appAlreadyHasAccounts() {
         return UserConfig.getActivatedAccountsCount(true) > 0;
+    }
+
+    public static boolean verifyPtgSignatureByPublicKey(byte[] data, byte[] signature) {
+        try {
+            byte[] publicKeyBytes = Base64.decode(signatureVerificationPublicKey, Base64.DEFAULT);
+            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+            Signature sig = Signature.getInstance("SHA256withRSA");
+            sig.initVerify(publicKey);
+            sig.update(data);
+            return sig.verify(signature);
+        } catch (GeneralSecurityException ignore) {
+            return false;
+        }
     }
 }

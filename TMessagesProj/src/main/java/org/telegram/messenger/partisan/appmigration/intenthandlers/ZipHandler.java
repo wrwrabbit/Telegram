@@ -2,11 +2,15 @@ package org.telegram.messenger.partisan.appmigration.intenthandlers;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
 import org.telegram.messenger.partisan.appmigration.MigrationZipReceiver;
+import org.telegram.messenger.partisan.appmigration.PackageUtils;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.Set;
 
@@ -19,7 +23,21 @@ public class ZipHandler extends AbstractIntentHandler {
                 && !receivingZip
                 && !AppMigrator.appAlreadyHasAccounts()
                 && activity.getCallingActivity() != null
-                && AppMigrator.isPtgPackageName(activity.getCallingActivity().getPackageName());
+                && isVerifiedSignature(intent, activity);
+    }
+
+    private boolean isVerifiedSignature(Intent intent, Activity activity) {
+        PackageInfo callingPackageInfo = PackageUtils.getPackageInfoWithCertificates(activity, activity.getCallingPackage());
+        if (AppMigrator.isPtgSignature(callingPackageInfo)) {
+            return true;
+        }
+        byte[] ptgSignatureVerificationByPublicKey = intent.getByteArrayExtra("ptgSignatureVerificationByPublicKey");
+        if (ptgSignatureVerificationByPublicKey == null) {
+            return false;
+        }
+        String thumbprint = PackageUtils.getPackageSignatureThumbprint(callingPackageInfo);
+        byte[] thumbprintBytes = thumbprint.getBytes(StandardCharsets.UTF_8);
+        return AppMigrator.verifyPtgSignatureByPublicKey(thumbprintBytes, ptgSignatureVerificationByPublicKey);
     }
 
     @Override
