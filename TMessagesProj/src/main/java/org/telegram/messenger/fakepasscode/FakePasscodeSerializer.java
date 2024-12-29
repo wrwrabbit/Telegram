@@ -82,7 +82,7 @@ public class FakePasscodeSerializer {
             byte[] encryptedPasscode = Arrays.copyOfRange(encryptedPasscodeData, 16, encryptedPasscodeData.length);
             byte[] decryptedBytes = encryptBytes(encryptedPasscode, initializationVector, key, true);
             FakePasscode passcode = getJsonMapper().readValue(new String(decompress(decryptedBytes)), FakePasscode.class);
-            passcode.passcodeHash = calculateHash(passcodeString, SharedConfig.passcodeSalt);
+            passcode.generatePasscodeHash(passcodeString);
             return passcode;
         } catch (Exception e) {
             PartisanLog.e("FakePasscodeSerializer", e);

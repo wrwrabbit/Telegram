@@ -46,7 +46,7 @@ public class LauncherIconController {
                 .collect(Collectors.toList());
     }
 
-    private static int getSelectedIconIndex() {
+    public static int getSelectedIconIndex() {
         List<LauncherIcon> icons = getAvailableIcons();
 
         for (int i = 0; i < icons.size(); i++) {

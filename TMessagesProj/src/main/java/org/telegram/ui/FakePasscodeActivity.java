@@ -1132,15 +1132,7 @@ public class FakePasscodeActivity extends BaseFragment {
             return;
         }
 
-        String code;
-        if (SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD) {
-            code = passwordEditText.getText().toString();
-        } else {
-            code = codeFieldContainer.getCode();
-        }
-        SharedConfig.PasscodeCheckResult passcodeCheckResult = SharedConfig.checkPasscode(code);
-        if (passcodeCheckResult.isRealPasscodeSuccess || passcodeCheckResult.fakePasscode != null) {
-            showPasscodeError(ErrorType.PASSCODE_IN_USE);
+        if (checkPasscodeInUse()) {
             return;
         }
 
@@ -1152,6 +1144,18 @@ public class FakePasscodeActivity extends BaseFragment {
         for (CodeNumberField f : codeFieldContainer.codeField) f.setText("");
         showKeyboard();
         passcodeSetStep = 1;
+    }
+
+    private boolean checkPasscodeInUse() {
+        String passcode = SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD
+                ? passwordEditText.getText().toString()
+                : codeFieldContainer.getCode();
+        SharedConfig.PasscodeCheckResult passcodeCheckResult = SharedConfig.checkPasscode(passcode);
+        if (passcodeCheckResult.isRealPasscodeSuccess || passcodeCheckResult.fakePasscode != null) {
+            showPasscodeError(ErrorType.PASSCODE_IN_USE);
+            return true;
+        }
+        return false;
     }
 
     private boolean isPinCode() {
@@ -1183,7 +1187,7 @@ public class FakePasscodeActivity extends BaseFragment {
             return;
         }
 
-        fakePasscode.passcodeHash = FakePasscodeSerializer.calculateHash(firstPassword, SharedConfig.passcodeSalt);
+        fakePasscode.generatePasscodeHash(firstPassword);
         SharedConfig.saveConfig();
 
         passwordEditText.clearFocus();
@@ -1210,7 +1214,7 @@ public class FakePasscodeActivity extends BaseFragment {
 
     private void processDoneBackup() {
         String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
-        if (Objects.equals(FakePasscodeSerializer.calculateHash(passcodeString, SharedConfig.passcodeSalt), fakePasscode.passcodeHash)) {
+        if (fakePasscode.validatePasscode(passcodeString)) {
             presentFragment(new FakePasscodeBackupActivity(fakePasscode, passcodeString), true);
         } else {
             showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
@@ -1223,7 +1227,7 @@ public class FakePasscodeActivity extends BaseFragment {
         FakePasscode passcode = FakePasscodeSerializer.deserializeEncrypted(encryptedPasscode, passcodeString);
         if (passcode == null) {
             showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
-        } else if (SharedConfig.fakePasscodes.stream().anyMatch(p -> p.passcodeHash.equals(passcode.passcodeHash))) {
+        } else if (SharedConfig.fakePasscodes.stream().anyMatch(p -> p.validatePasscode(passcodeString))) {
             showPasscodeError(ErrorType.PASSCODE_IN_USE);
         } else {
             SharedConfig.fakePasscodes.add(passcode);

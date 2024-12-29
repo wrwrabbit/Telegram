@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="FakePasscode">Фальшивий код блокування</string>
+    <string name="FakePassword">Фальшивий пароль</string>
     <string name="ChangeFakePasscode">Змінити фальшивий код блокування</string>
     <string name="FakePasscodeActionsInfo">Якщо ввести фальшивий код блокування, то будуть виконані обрані дії.</string>
     <string name="AllowFakePasscodeLogin">Дозволити вхід з фальшивим кодом блокування</string>
