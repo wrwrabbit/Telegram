@@ -8449,6 +8449,7 @@
     <string name="IssuePasswordlessModeDescription">Fake passcodes with passwordless mode are not allowed in a masked app. Disable this mode in passcodes or delete these passcodes.</string>
     <string name="IssueActivateByFingerprintDescription">Fingerprint-activated passcodes are not allowed in a masked app. Disable this option.</string>
     <string name="PasswordToPinSwitchWarning">If you had fake passcodes that did not contain 4 digits, you will not be able to enter them. We recommend changing them.</string>
+    <string name="ContinueMaskedMigrationDescription">It seems you have fixed all the issues. Do you want to resume the migration?</string>
     <string name="PermissionDisabledTitle">Permission Disabled</string>
     <string name="PermissionDisabledMessage">The permission is disabled in your version of Partisan Telegram.</string>
     <string name="MaskedUpdateWarningMessage">PTelegram will send a message to the builder bot with a request to build the update.</string>

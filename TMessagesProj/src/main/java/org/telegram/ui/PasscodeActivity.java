@@ -70,6 +70,8 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.appmigration.MaskedMigrationIssue;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
@@ -366,6 +368,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                             passcode.onDelete();
                                         }
                                         SharedConfig.fakePasscodes.clear();
+                                        MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.INVALID_PASSCODE_TYPE);
+                                        MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.PASSWORDLESS_MODE);
+                                        MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT);
                                     }
                                     SharedConfig.setAppLocked(false);
                                     SharedConfig.saveConfig();
@@ -497,6 +502,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                             for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
                                 fakePasscode.activateByFingerprint = false;
                             }
+                        }
+                        if (!SharedConfig.useFingerprintLock) {
+                            MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT);
                         }
                         UserConfig.getInstance(currentAccount).saveConfig(false);
                         ((TextCheckCell) view).setChecked(SharedConfig.useFingerprintLock);
@@ -1340,6 +1348,11 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
             if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                 SharedConfig.allowScreenCapture = true;
+            }
+
+            boolean passcodeTypeChanged = SharedConfig.passcodeType != currentPasswordType;
+            if (passcodeTypeChanged) {
+                MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.INVALID_PASSCODE_TYPE);
             }
 
             SharedConfig.passcodeType = currentPasswordType;
