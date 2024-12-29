@@ -117,10 +117,10 @@ public class MigrationZipReceiver {
         }
         Set<String> issues = new HashSet<>();
         if (!validatePasscodeType(config)) {
-            issues.add("invalidPasscodeType");
+            issues.add(MaskedMigrationIssue.INVALID_PASSCODE_TYPE.toString());
         }
         if (!validateMainPasscodeFingerprint(config)) {
-            issues.add("activateByFingerprint");
+            issues.add(MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT.toString());
         }
 
         issues.addAll(getFakePasscodesIssues(config));
@@ -170,10 +170,10 @@ public class MigrationZipReceiver {
         Set<String> issues = new HashSet<>();
         for (FakePasscode fakePasscode : fakePasscodes) {
             if (fakePasscode.passwordlessMode) {
-                issues.add("passwordlessMode");
+                issues.add(MaskedMigrationIssue.PASSWORDLESS_MODE.toString());
             }
             if (!MaskedPtgConfig.allowFingerprint() && fakePasscode.activateByFingerprint) {
-                issues.add("activateByFingerprint");
+                issues.add(MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT.toString());
             }
         }
         return issues;
