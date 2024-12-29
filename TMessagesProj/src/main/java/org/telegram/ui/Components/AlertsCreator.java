@@ -100,7 +100,6 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -1223,7 +1222,7 @@ public class AlertsCreator {
         final String scheme = url == null ? null : Uri.parse(url).getScheme();
         SpoofedLinkChecker.SpoofedLinkInfo spoofedLinkInfo = SpoofedLinkChecker.isSpoofedLink(url, fragment, progress);
         if ((Browser.isInternalUrl(url, null) || !ask || "mailto".equalsIgnoreCase(scheme)) && !spoofedLinkInfo.isSpoofed) {
-            Browser.openUrl(fragment.getParentActivity(), Uri.parse(url), inlineReturn == 0, tryTelegraph, forceNotInternalForApps && checkInternalBotApp(url), progress, null, false, true);
+            Browser.openUrl(fragment.getParentActivity(), Uri.parse(url), inlineReturn == 0, tryTelegraph, forceNotInternalForApps && checkInternalBotApp(url), progress, null, false, true, false);
         } else {
             String urlFinal;
             if (punycode) {
@@ -1860,10 +1859,10 @@ public class AlertsCreator {
             lastMessageIsJoined = true;
         }
 
-        if (user != null && user.bot) {
+        if (user != null && user.bot && user.id != UserObject.VERIFY) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
-            cell[0].setText(LocaleController.getString(R.string.BlockBot), "", false, false);
+            cell[0].setText(getString(R.string.BlockBot), "", false, false);
             cell[0].setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
             cell[0].setChecked(deleteForAll[0] = true, false);
             frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));
@@ -1878,14 +1877,14 @@ public class AlertsCreator {
             if (deleteChatForAll) {
                 deleteForAll[0] = false;
                 if (ChatObject.isChannel(chat) && !chat.megagroup) {
-                    cell[0].setText(LocaleController.getString(R.string.DeleteChannelForAll), "", false, false);
+                    cell[0].setText(getString(R.string.DeleteChannelForAll), "", false, false);
                 } else {
-                    cell[0].setText(LocaleController.getString(R.string.DeleteGroupForAll), "", false, false);
+                    cell[0].setText(getString(R.string.DeleteGroupForAll), "", false, false);
                 }
             } else if (clear) {
-                cell[0].setText(LocaleController.formatString("ClearHistoryOptionAlso", R.string.ClearHistoryOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
+                cell[0].setText(LocaleController.formatString(R.string.ClearHistoryOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
             } else {
-                cell[0].setText(LocaleController.formatString("DeleteMessagesOptionAlso", R.string.DeleteMessagesOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
+                cell[0].setText(LocaleController.formatString(R.string.DeleteMessagesOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
             }
             cell[0].setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
             frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));

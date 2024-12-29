@@ -1088,13 +1088,11 @@ public class SharedConfig {
                     passcodeRetryInMs = 25000;
                     break;
                 default:
+                    if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
+                        bruteForceRetryInMillis = 15 * 60 * 1000;
+                    }
                     passcodeRetryInMs = 30000;
                     break;
-            }
-            if (badPasscodeTries >= 30) {
-                if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
-                    bruteForceRetryInMillis = 3600 * 1000;
-                }
             }
             lastUptimeMillis = SystemClock.elapsedRealtime();
         }
