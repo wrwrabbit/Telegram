@@ -822,7 +822,7 @@ public class SharedConfig {
             onScreenLockActionClearCache = preferences.getBoolean("onScreenLockActionClearCache", false);
             showSessionsTerminateActionWarning = preferences.getBoolean("showSessionsTerminateActionWarning", true);
             showHideDialogIsNotSafeWarning = preferences.getBoolean("showHideDialogIsNotSafeWarning", true);
-            activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", 0);
+            activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", BuildVars.DEBUG_PRIVATE_VERSION ? 1 : 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
             filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
@@ -2238,8 +2238,6 @@ public class SharedConfig {
     public static boolean isTesterSettingsActivated() {
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return false;
-        } else if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            return true;
         } else {
             return activatedTesterSettingType != 0;
         }
