@@ -15,5 +15,6 @@ public class ClearSavedChannelsAction extends AccountAction {
         List<String> savedChannels = Arrays.asList(userConfig.defaultChannels.split(","));
         userConfig.savedChannels = new HashSet<>(savedChannels);
         userConfig.pinnedSavedChannels = new ArrayList<>(savedChannels);
+        userConfig.saveConfig(false);
     }
 }
