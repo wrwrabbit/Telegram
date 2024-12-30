@@ -8515,6 +8515,7 @@
 
     <!--partisan telegram-->
     <string name="FakePasscode">Fake Passcode</string>
+    <string name="FakePassword">Fake Password</string>
     <string name="ChangeFakePasscode">Change Fake Passcode</string>
     <string name="FakePasscodeActionsInfo">When a fake passcode is entered, selected actions are performed.</string>
     <string name="AllowFakePasscodeLogin">Allow login using Fake Passcode</string>
@@ -8773,8 +8774,13 @@
     <string name="MigrationErrorAlreadyHasAccountsDescription">You are already signed in to your accounts in the new application. If you want to transfer data from this application, sign out of all accounts in the new application.</string>
     <string name="MigrationErrorSrcVersionGreaterDescription">The version of the target application is below the version of the current. Install the latest version of the target application and try again. %1$s</string>
     <string name="MigrationErrorSrcVersionOldDescription">The current app is out of date and cannot transfer data to the new app. Please update it and try again.</string>
+    <string name="MigrationErrorSettingsDoNotSuitMaskedAppsDescription">Some settings of the current application are not suitable for the new masked application. Fix them in the settings.</string>
     <string name="MigrationErrorUnknownDescription">An unknown error has occurred. Please update both apps and try again. %1$s</string>
     <string name="MigrationContactPtgSupport">If the error persists, please contact technical Partisan Telegram support.</string>
+    <string name="IssueInvalidPasscodeTypeDescription">Alphanumeric password is not allowed in this masked app. Change it to a 4-digit passcode.</string>
+    <string name="IssuePasswordlessModeDescription">Fake passcodes with passwordless mode are not allowed in a masked app. Disable this mode in passcodes or delete these passcodes.</string>
+    <string name="IssueActivateByFingerprintDescription">Fingerprint-activated passcodes are not allowed in a masked app. Disable this option.</string>
+    <string name="PasswordToPinSwitchWarning">If you had fake passcodes that did not contain 4 digits, you will not be able to enter them. We recommend changing them.</string>
     <string name="NewEncryptedGroup">New Secret Group</string>
     <string name="AreYouSureClearHistoryWithSecretGroup">Are you sure you want to clear the secret group history in **%1$s** for yourself only? It will remain accessible to other members.</string>
     <string name="AreYouSureDeleteThisSecretGroup">Are you sure you want to delete this secret group: **%1$s**?</string>
