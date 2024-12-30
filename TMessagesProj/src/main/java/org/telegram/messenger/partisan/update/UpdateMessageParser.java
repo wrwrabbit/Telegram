@@ -19,6 +19,7 @@ class UpdateMessageParser {
     private MessageObject currentMessage;
     private String lang = "en";
     private int langInaccuracy = 0;
+    private MaskedUpdateType maskedUpdateType = MaskedUpdateType.ALLOW;
 
     private final int currentAccount;
     private final Map<Long, List<MessageObject>> messagesByGroupId = new HashMap<>();
@@ -141,6 +142,9 @@ class UpdateMessageParser {
             }
             isFirstCharInNewLine = lineEnd;
         }
+        if (maskedUpdateType == MaskedUpdateType.ONLY) {
+            currentUpdate = null;
+        }
         return currentUpdate;
     }
 
@@ -226,6 +230,16 @@ class UpdateMessageParser {
                     currentUpdate.formatVersion = Integer.parseInt(value);
                 } catch (NumberFormatException ignore) {
                 }
+            }
+        } else if (name.equals("masked")) {
+            if ("allow".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.ALLOW;
+            } else if ("disallow".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.DISALLOW;
+            } else if ("only".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.ONLY;
+            } else {
+                maskedUpdateType = MaskedUpdateType.ALLOW;
             }
         }
     }
