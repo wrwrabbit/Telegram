@@ -234,8 +234,8 @@ class UpdateMessageParser {
         } else if (name.equals("masked")) {
             if ("allow".equalsIgnoreCase(value)) {
                 maskedUpdateType = MaskedUpdateType.ALLOW;
-            } else if ("disallow".equalsIgnoreCase(value)) {
-                maskedUpdateType = MaskedUpdateType.DISALLOW;
+            } else if ("prohibit".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.PROHIBIT;
             } else if ("only".equalsIgnoreCase(value)) {
                 maskedUpdateType = MaskedUpdateType.ONLY;
             } else {
