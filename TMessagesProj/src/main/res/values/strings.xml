@@ -8453,6 +8453,7 @@
     <string name="PermissionDisabledTitle">Permission Disabled</string>
     <string name="PermissionDisabledMessage">The permission is disabled in your version of Partisan Telegram.</string>
     <string name="MaskedUpdateWarningMessage">PTelegram will send a message to the builder bot with a request to build the update.</string>
+    <string name="MaskedUpdateWarningUnblockBotMessage">The bot will be unblocked!</string>
     <string name="RequestUpdate">Request Update</string>
     <string name="UpdateBuildWaiting">Update Build Waiting…</string>
     <string name="MaskedPasscodeScreenInstructionTitle">Instruction</string>

@@ -265,6 +265,7 @@
     <string name="MigrationContactPtgSupport">Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
     <string name="ContinueMaskedMigrationDescription">Здаецца, Вы выправілі ўсе праблемы. Жадаеце аднавіць міграцыю?</string>
     <string name="MaskedUpdateWarningMessage">PTelegram адправіць паведамленне боту-зборшчыку з запытам на зборку абнаўлення.</string>
+    <string name="MaskedUpdateWarningUnblockBotMessage">Бот будзе разблакаваны!</string>
     <string name="RequestUpdate">Запрасіць Абнаўленне</string>
     <string name="UpdateBuildWaiting">Чаканне зборкі абнаўлення...</string>
     <string name="MaskedPasscodeScreenInstructionTitle">Інструкцыя</string>

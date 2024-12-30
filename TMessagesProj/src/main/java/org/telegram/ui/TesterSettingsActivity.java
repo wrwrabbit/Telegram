@@ -95,7 +95,6 @@ public class TesterSettingsActivity extends BaseFragment {
     private int checkVerificationUpdatesRow;
     private int resetVerificationLastCheckTimeRow;
     private int resetMaskedUpdateTagRow;
-    private int maskingBotUsernameRow;
     private int forceAllowScreenshotsRow;
     private int saveLogcatAfterRestartRow;
 
@@ -292,27 +291,6 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.saveConfig();
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.maskedUpdateReceived);
                 Toast.makeText(getParentActivity(), "Reset", Toast.LENGTH_SHORT).show();
-            } else if (position == maskingBotUsernameRow) {
-                DialogTemplate template = new DialogTemplate();
-                template.type = DialogType.EDIT;
-                String title = "Masking Bot Username";
-                template.title = title;
-                String value = MaskedMigratorHelper.MASKING_BOT_USERNAME;
-                template.addEditTemplate(value, "Masking Bot Username", true);
-                template.positiveListener = views -> {
-                    String username = ((EditTextCaption)views.get(0)).getText().toString();
-                    username = Utils.removeUsernamePrefixed(username);
-                    MaskedMigratorHelper.MASKING_BOT_USERNAME = username;
-                    TextSettingsCell cell = (TextSettingsCell) view;
-                    cell.setTextAndValue(title, username, false);
-                };
-                template.negativeListener = (dlg, whichButton) -> {
-                    MaskedMigratorHelper.MASKING_BOT_USERNAME = null;
-                    TextSettingsCell cell = (TextSettingsCell) view;
-                    cell.setTextAndValue(title, "", false);
-                };
-                AlertDialog dialog = FakePasscodeDialogBuilder.build(getParentActivity(), template);
-                showDialog(dialog);
             } else if (position == forceAllowScreenshotsRow) {
                 SharedConfig.forceAllowScreenshots = !SharedConfig.forceAllowScreenshots;
                 SharedConfig.saveConfig();
@@ -364,7 +342,6 @@ public class TesterSettingsActivity extends BaseFragment {
         } else {
             resetMaskedUpdateTagRow = -1;
         }
-        maskingBotUsernameRow = rowCount++;
         if (SharedConfig.activatedTesterSettingType >= 2) {
             forceAllowScreenshotsRow = rowCount++;
         }
@@ -510,8 +487,6 @@ public class TesterSettingsActivity extends BaseFragment {
                         textCell.setText("Reset Verification Last Check Time", true);
                     } else if (position == resetMaskedUpdateTagRow) {
                         textCell.setText("Reset Masked Update Tag", true);
-                    } else if (position == maskingBotUsernameRow) {
-                        textCell.setTextAndValue("Masking Bot Username", MaskedMigratorHelper.MASKING_BOT_USERNAME, true);
                     }
                     break;
                 }
@@ -529,7 +504,7 @@ public class TesterSettingsActivity extends BaseFragment {
                     || position == phoneOverrideRow || position == resetSecurityIssuesRow
                     || position == activateAllSecurityIssuesRow || position == editSavedChannelsRow
                     || position == resetUpdateRow || position == checkVerificationUpdatesRow
-                    || position == resetVerificationLastCheckTimeRow || position == resetMaskedUpdateTagRow || position == maskingBotUsernameRow) {
+                    || position == resetVerificationLastCheckTimeRow || position == resetMaskedUpdateTagRow) {
                 return 1;
             }
             return 0;

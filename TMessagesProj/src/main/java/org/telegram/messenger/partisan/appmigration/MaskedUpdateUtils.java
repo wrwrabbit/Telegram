@@ -11,8 +11,10 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.BlackListLoader;
 import org.telegram.messenger.partisan.KnownChatUsernameResolver;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.DialogBuilder.DialogCheckBox;
@@ -26,26 +28,59 @@ import java.nio.charset.StandardCharsets;
 public class MaskedUpdateUtils {
     public static void requestMaskedUpdateBuildWithWarning(int accountNum, Context context) {
         if (SharedConfig.showMaskedUpdateWarning) {
-            DialogTemplate template = new DialogTemplate();
-            template.type = DialogType.OK_CANCEL;
-            template.title = LocaleController.getString(R.string.Warning);
-            template.message = LocaleController.getString(R.string.MaskedUpdateWarningMessage);
-            template.addCheckboxTemplate(false, LocaleController.getString(R.string.DoNotShowAgain));
-            template.positiveListener = views -> {
-                boolean isNotShowAgain = !((DialogCheckBox) views.get(0)).isChecked();
-                if (SharedConfig.showMaskedUpdateWarning != isNotShowAgain) {
-                    SharedConfig.toggleShowMaskedUpdateWarning();
-                }
-                MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, context);
-            };
-            FakePasscodeDialogBuilder.build(context, template).show();
+            if (maskedUpdateBotBlocked(accountNum)) {
+                showMaskedUpdateWarningDialog(accountNum, context);
+            } else {
+                BlackListLoader.load(accountNum, 500, blackListLoaded -> {
+                    if (blackListLoaded) {
+                        AndroidUtilities.runOnUIThread(() -> showMaskedUpdateWarningDialog(accountNum, context));
+                    }
+                });
+            }
         } else {
-            MaskedUpdateUtils.requestMaskedUpdateBuild(accountNum, context);
+            requestMaskedUpdateBuild(accountNum, context);
         }
+    }
+
+    private static void showMaskedUpdateWarningDialog(int accountNum, Context context) {
+        DialogTemplate template = new DialogTemplate();
+        template.type = DialogType.OK_CANCEL;
+        template.title = LocaleController.getString(R.string.Warning);
+        template.message = LocaleController.getString(R.string.MaskedUpdateWarningMessage);
+        if (maskedUpdateBotBlocked(accountNum)) {
+            template.message += "\n\n";
+            template.message += LocaleController.getString(R.string.MaskedUpdateWarningUnblockBotMessage);
+        }
+        template.addCheckboxTemplate(false, LocaleController.getString(R.string.DoNotShowAgain));
+        template.positiveListener = views -> {
+            boolean isNotShowAgain = !((DialogCheckBox) views.get(0)).isChecked();
+            if (SharedConfig.showMaskedUpdateWarning != isNotShowAgain) {
+                SharedConfig.toggleShowMaskedUpdateWarning();
+            }
+            requestMaskedUpdateBuild(accountNum, context);
+        };
+        FakePasscodeDialogBuilder.build(context, template).show();
+    }
+
+    private static boolean maskedUpdateBotBlocked(int accountNum) {
+        MessagesController controller = MessagesController.getInstance(accountNum);
+        LongSparseIntArray blockedPeers = controller.getUnfilteredBlockedPeers();
+        for (int i = 0; i < blockedPeers.size(); i++) {
+            long blockedPeerId = blockedPeers.keyAt(i);
+            if (blockedPeerId == MaskedMigratorHelper.MASKING_BOT_ID && blockedPeers.get(blockedPeerId) != 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void requestMaskedUpdateBuild(int accountNum, Context context) {
         if (!validateBotUpdateUsername(accountNum, context)) {
+            return;
+        }
+        if (maskedUpdateBotBlocked(accountNum)) {
+            MessagesController messagesController = MessagesController.getInstance(accountNum);
+            messagesController.unblockPeer(MaskedMigratorHelper.MASKING_BOT_ID, () -> requestMaskedUpdateBuild(accountNum, context));
             return;
         }
         SharedConfig.pendingPtgAppUpdate.botRequestTag = generateRequestTag();
