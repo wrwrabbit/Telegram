@@ -20,21 +20,17 @@ import android.widget.Toast;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RadialProgressView;
-import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
-    private final PasscodeEnteredDelegate delegate;
-    private final Context context;
-
+public class LoadingPasscodeScreen extends AbstractMaskedPasscodeScreen {
     private FrameLayout backgroundFrameLayout;
     private RelativeLayout relativeLayout;
     private TutorialView tutorialView;
@@ -46,11 +42,9 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     private String passcode = "";
     private long lastPasscodeInputTime;
     private boolean fragmentDetached = false;
-    private TutorialType tutorialType = TutorialType.DISABLED;
 
-    public LoadingPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
-        this.context = context;
-        this.delegate = delegate;
+    public LoadingPasscodeScreen(Context context, PasscodeEnteredDelegate delegate, boolean unlockingApp) {
+        super(context, delegate, unlockingApp);
     }
 
     @Override
@@ -185,19 +179,9 @@ public class LoadingPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     private AlertDialog createInstructionDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreenInstructionTitle));
-        builder.setMessage(LocaleController.formatString(R.string.LoadingPasscodeScreen_Instruction, RESET_PASSCODE_TIME_SEC));
-        AlertDialog dialog = builder.create();
-        dialog.setCanCancel(false);
-        dialog.setCancelable(false);
-        if (tutorialType == TutorialType.FULL) {
-            DialogButtonWithTimer.setButton(dialog, AlertDialog.BUTTON_NEGATIVE, LocaleController.getString(R.string.OK), 5,
-                    (dlg, which) -> dlg.dismiss());
-        } else {
-            dialog.setNegativeButton(LocaleController.getString(R.string.OK), null);
-        }
-        return dialog;
+        String message = LocaleController.formatString(R.string.LoadingPasscodeScreen_Instruction, RESET_PASSCODE_TIME_SEC);
+        int okButtonTimeout = tutorialType == TutorialType.FULL ? 5 : 0;
+        return createMaskedPasscodeScreenInstructionDialog(message, okButtonTimeout);
     }
 
     @Override

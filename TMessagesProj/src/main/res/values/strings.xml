@@ -8457,6 +8457,9 @@
     <string name="RequestUpdate">Request Update</string>
     <string name="UpdateBuildWaiting">Update Build Waiting…</string>
     <string name="MaskedPasscodeScreenInstructionTitle">Instruction</string>
+    <string name="MaskedPasscodeScreenTrainingTitle">Training</string>
+    <string name="MaskedPasscodeScreenDisablePasscode">Disable passcode</string>
+    <string name="MaskedPasscodeScreenDisablePasscodeMessage">If you couldn\'t figure out how to enter the passcode, you can disable it and regain access to your accounts and dialogs. After pressing the %1$s button, the application will be unlocked. You can set up the application blocking in the settings again.</string>
     <string name="LoadingPasscodeScreen_Instruction">Enter the passcode by tapping on different parts of the screen.\n\nRemember the location of the numbers that are currently appearing on the screen. You will need to tap the corresponding places on the screen when unlocking the application. There will be NO number hints and you will need to remember where the number was.\n\nThere is no "clear" button here. If you made a mistake when entering the passcode, wait %1$d seconds. After that, the entered numbers will be reset and you can try to enter the code again.\n\nDuring training, a pop-up hint with the entered passcode will be displayed. This hint will NOT be shown when unlocking the application.</string>
     <string name="LoadingPasscodeScreen_PasscodeReset">The passcode has been reset after %1$d seconds of waiting.</string>
     <string name="LoadingPasscodeScreen_Loading">Loading…</string>

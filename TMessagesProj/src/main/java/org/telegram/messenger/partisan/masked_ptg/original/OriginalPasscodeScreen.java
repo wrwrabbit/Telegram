@@ -49,7 +49,7 @@ import org.telegram.messenger.FingerprintController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
@@ -66,11 +66,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
+public class OriginalPasscodeScreen extends AbstractMaskedPasscodeScreen {
     private final static float BACKGROUND_SPRING_STIFFNESS = 300f;
-
-    private PasscodeEnteredDelegate delegate;
-    private Context context;
 
     private final int BUTTON_X_MARGIN = 28;
     private final int BUTTON_Y_MARGIN = 16;
@@ -98,9 +95,8 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
     private int backgroundFrameLayoutColor;
     private boolean showed = false;
 
-    public OriginalPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
-        this.context = context;
-        this.delegate = delegate;
+    public OriginalPasscodeScreen(Context context, PasscodeEnteredDelegate delegate, boolean unlockingApp) {
+        super(context, delegate, unlockingApp);
     }
 
     @Override
@@ -965,6 +961,7 @@ public class OriginalPasscodeScreen implements MaskedPasscodeScreen {
 
     @Override
     public void onShow(boolean fingerprint, boolean animated, TutorialType tutorialType) {
+        this.tutorialType = tutorialType;
         showed = false;
         checkFingerprintButton();
         Activity parentActivity = AndroidUtilities.findActivity(context);

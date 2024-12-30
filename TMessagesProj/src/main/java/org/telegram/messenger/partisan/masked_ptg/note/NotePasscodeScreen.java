@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.messenger.partisan.masked_ptg.TutorialType;
@@ -21,27 +21,19 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
 
-public class NotePasscodeScreen implements MaskedPasscodeScreen
-        , NoteListSubscreen.NoteListSubscreenDelegate
+public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
+        implements NoteListSubscreen.NoteListSubscreenDelegate
         , EditNoteSubcreen.NoteListSubscreenDelegate {
 
     private Note currentNote;
     private int currentNotePos = -1;
 
-    private final PasscodeEnteredDelegate delegate;
-    private final Context context;
-
     private FrameLayout backgroundFrameLayout;
     private NoteListSubscreen noteListSubscreen;
     private EditNoteSubcreen editNoteSubscreen;
 
-    private TutorialType tutorialType;
-
-
-
-    public NotePasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
-        this.context = context;
-        this.delegate = delegate;
+    public NotePasscodeScreen(Context context, PasscodeEnteredDelegate delegate, boolean unlockingApp) {
+        super(context, delegate, unlockingApp);
         NoteStorage.loadNotes();
     }
 
@@ -99,14 +91,8 @@ public class NotePasscodeScreen implements MaskedPasscodeScreen
     }
 
     private AlertDialog createInstructionDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreenInstructionTitle));
-        builder.setMessage(LocaleController.getString(R.string.NotePasscodeScreen_Instruction));
-        AlertDialog dialog = builder.create();
-        dialog.setCanCancel(false);
-        dialog.setCancelable(false);
-        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
-        return dialog;
+        String message = LocaleController.getString(R.string.NotePasscodeScreen_Instruction);
+        return createMaskedPasscodeScreenInstructionDialog(message, 0);
     }
 
     @Override

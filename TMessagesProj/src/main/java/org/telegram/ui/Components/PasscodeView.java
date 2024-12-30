@@ -19,7 +19,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 
@@ -45,7 +45,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
     private PasscodeViewDelegate delegate;
 
-    MaskedPasscodeScreen screen;
+    AbstractMaskedPasscodeScreen screen;
 
     public PasscodeView(final Context context) {
         super(context);
@@ -54,7 +54,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         setWillNotDraw(false);
         setVisibility(GONE);
 
-        screen = MaskedPtgConfig.createScreen(context, password -> processDone(false, password));
+        screen = MaskedPtgConfig.createScreen(context, password -> processDone(false, password), true);
         addView(screen.createView());
         if (screen != null) {
             return;
@@ -70,14 +70,14 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
     public void processDone(boolean fingerprint, String password) {
         if (!fingerprint) {
-            if (password.length() == 0) {
+            if (password.length() == 0 && SharedConfig.passcodeEnabled()) {
                 if (screen != null) {
                     screen.onPasscodeError();
                 }
                 return;
             }
             SharedConfig.PasscodeCheckResult result;
-            if (SharedConfig.passcodeRetryInMs > 0) {
+            if (SharedConfig.passcodeRetryInMs > 0 && SharedConfig.passcodeEnabled()) {
                 result = SharedConfig.PasscodeCheckResult.createFailedResult();
             } else {
                 result = SharedConfig.checkPasscode(password);

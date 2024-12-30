@@ -72,7 +72,7 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.appmigration.MaskedMigrationIssue;
 import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.messenger.partisan.masked_ptg.TutorialType;
@@ -133,7 +133,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
     private RLottieImageView lockImageView;
 
-    private MaskedPasscodeScreen screen;
+    private AbstractMaskedPasscodeScreen screen;
     private View maskedScreenView;
     private FrameLayout frameLayout;
 
@@ -857,7 +857,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }
 
         if (type == TYPE_SETUP_CODE) {
-            screen = MaskedPtgConfig.createScreen(getContext(), this::processDone);
+            screen = MaskedPtgConfig.createScreen(getContext(), this::processDone, false);
             maskedScreenView = screen.createView();
             maskedScreenView.setVisibility(View.GONE);
             frameLayout.addView(maskedScreenView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));

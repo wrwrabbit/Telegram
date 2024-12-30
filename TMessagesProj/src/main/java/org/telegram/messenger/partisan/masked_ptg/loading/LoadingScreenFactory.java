@@ -3,13 +3,13 @@ package org.telegram.messenger.partisan.masked_ptg.loading;
 import android.content.Context;
 
 import org.telegram.messenger.partisan.masked_ptg.IMaskedPasscodeScreenFactory;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 
 public class LoadingScreenFactory implements IMaskedPasscodeScreenFactory {
     @Override
-    public MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
-        return new LoadingPasscodeScreen(context, delegate);
+    public AbstractMaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate, boolean unlockingApp) {
+        return new LoadingPasscodeScreen(context, delegate, unlockingApp);
     }
 
     @Override

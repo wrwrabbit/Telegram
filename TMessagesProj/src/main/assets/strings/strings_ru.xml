@@ -276,6 +276,9 @@
     <string name="RequestUpdate">Запросить обновление</string>
     <string name="UpdateBuildWaiting">Ожидание сборки обновления...</string>
     <string name="MaskedPasscodeScreenInstructionTitle">Инструкция</string>
+    <string name="MaskedPasscodeScreenTrainingTitle">Обучение</string>
+    <string name="MaskedPasscodeScreenDisablePasscode">Отключить код-пароль</string>
+    <string name="MaskedPasscodeScreenDisablePasscodeMessage">Если Вы не смогли разобраться, как ввести код-пароль, Вы можете отключить его и вернуть доступ к аккаунтам и перепискам. После нажатия кнопки %1$d приложение будет разблокировано. Вы сможете заново настроить блокировку приложения в настройках.</string>
     <string name="LoadingPasscodeScreen_Instruction">Введите код-пароль путём нажатия на разные части экрана.\n\nЗапомните расположение цифр, которые сейчас появляются на экране. Вам нужно будет нажимать в соответствующие места экрана при разблокировке приложения. Подсказок в виде цифр НЕ будет и Вам необходимо будет помнить, в каком месте цифра была.\n\nЗдесь нет кнопки "очистить". Если Вы ошиблись с вводом код-пароля, подождите %1$d секунд. После этого введённые цифры сбросятся и можно будет попробовать ввести код сначала.\n\nПри обучении будет отображаться всплывающая подсказка с введённым код-паролем. При разблокировке приложения эта подсказка показываться НЕ будет.</string>
     <string name="LoadingPasscodeScreen_PasscodeReset">Код-пароль сброшен после %1$d секунд ожидания.</string>
     <string name="LoadingPasscodeScreen_Loading">Загрузка...</string>

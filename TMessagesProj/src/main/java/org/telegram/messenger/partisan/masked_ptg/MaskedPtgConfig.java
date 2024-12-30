@@ -11,8 +11,8 @@ public class MaskedPtgConfig {
     private static final Integer PRIMARY_COLOR = null;
     private static final IMaskedPasscodeScreenFactory FACTORY = new OriginalScreenFactory();
 
-    public static MaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate) {
-        return FACTORY.createScreen(context, delegate);
+    public static AbstractMaskedPasscodeScreen createScreen(Context context, PasscodeEnteredDelegate delegate, boolean unlockingApp) {
+        return FACTORY.createScreen(context, delegate, unlockingApp);
     }
 
     public static boolean allowAlphaNumericPassword() {

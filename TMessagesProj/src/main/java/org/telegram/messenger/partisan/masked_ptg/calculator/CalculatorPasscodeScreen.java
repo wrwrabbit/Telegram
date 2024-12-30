@@ -19,7 +19,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.messenger.partisan.masked_ptg.MaskedPasscodeScreen;
+import org.telegram.messenger.partisan.masked_ptg.AbstractMaskedPasscodeScreen;
 import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.masked_ptg.PasscodeEnteredDelegate;
 import org.telegram.messenger.partisan.masked_ptg.TutorialType;
@@ -33,10 +33,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
-    private PasscodeEnteredDelegate delegate;
-    private Context context;
-
+public class CalculatorPasscodeScreen extends AbstractMaskedPasscodeScreen {
     private final int BUTTON_X_MARGIN = 28;
     private final int BUTTON_Y_MARGIN = 16;
     private final int BUTTON_SIZE = 80;
@@ -51,11 +48,8 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     private FrameLayout buttonsFrameLayout;
     private ArrayList<Button> buttons;
 
-    private TutorialType tutorialType;
-
-    public CalculatorPasscodeScreen(Context context, PasscodeEnteredDelegate delegate) {
-        this.context = context;
-        this.delegate = delegate;
+    public CalculatorPasscodeScreen(Context context, PasscodeEnteredDelegate delegate, boolean unlockingApp) {
+        super(context, delegate, unlockingApp);
     }
 
     @Override
@@ -224,14 +218,8 @@ public class CalculatorPasscodeScreen implements MaskedPasscodeScreen {
     }
 
     private AlertDialog createInstructionDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreenInstructionTitle));
-        builder.setMessage(LocaleController.getString(R.string.CalculatorPasscodeScreen_Instruction));
-        AlertDialog dialog = builder.create();
-        dialog.setCanCancel(false);
-        dialog.setCancelable(false);
-        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
-        return dialog;
+        String message = LocaleController.getString(R.string.CalculatorPasscodeScreen_Instruction);
+        return createMaskedPasscodeScreenInstructionDialog(message, 0);
     }
 
     @Override

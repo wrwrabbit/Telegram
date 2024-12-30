@@ -1235,6 +1235,9 @@ public class SharedConfig {
 
     public static PasscodeCheckResult checkPasscode(String passcode, boolean originalPasscodePrioritized) {
         synchronized (FakePasscode.class) {
+            if (!passcodeEnabled()) {
+                return new PasscodeCheckResult(true, null);
+            }
             if (passcodeSalt.length == 0) {
                 boolean result = Utilities.MD5(passcode).equals(passcodeHash);
                 if (result) {

@@ -9,6 +9,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.BasePermissionsActivity;
+import org.telegram.ui.DialogBuilder.DialogButtonWithTimer;
 
 import java.util.Arrays;
 import java.util.HashSet;
