@@ -60,6 +60,8 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeSerializer;
 import org.telegram.messenger.fakepasscode.SelectionMode;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
+import org.telegram.messenger.partisan.appmigration.MaskedMigrationIssue;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -436,6 +438,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             if (listAdapter != null) {
                                 listAdapter.notifyDataSetChanged();
                             }
+                            if (!fakePasscode.passwordlessMode && SharedConfig.fakePasscodes.stream().noneMatch(passcode -> passcode.passwordlessMode)) {
+                                MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.PASSWORDLESS_MODE);
+                            }
                         };
                         if (!fakePasscode.passwordlessMode && fakePasscode.hasPasswordlessIncompatibleSettings()) {
                             if (getParentActivity() == null) {
@@ -526,6 +531,9 @@ public class FakePasscodeActivity extends BaseFragment {
                                     .filter(a -> a != fakePasscode).collect(Collectors.toCollection(ArrayList::new));
                             if (SharedConfig.fakePasscodes.isEmpty()) {
                                 SharedConfig.fakePasscodeIndex = 1;
+                            }
+                            if (SharedConfig.fakePasscodes.stream().noneMatch(passcode -> passcode.passwordlessMode)) {
+                                MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.PASSWORDLESS_MODE);
                             }
                             SharedConfig.saveConfig();
                             finishFragment();

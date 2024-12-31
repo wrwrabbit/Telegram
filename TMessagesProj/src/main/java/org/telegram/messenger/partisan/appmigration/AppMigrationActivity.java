@@ -357,6 +357,7 @@ public class AppMigrationActivity extends BaseFragment implements MigrationZipBu
                 AppMigrator.disableConnection();
                 migrationFinished(data.getStringExtra("packageName"));
             } else {
+                saveMigrationIssuesIfNeeded(data);
                 AppMigrator.enableConnection();
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                 builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
@@ -366,6 +367,16 @@ public class AppMigrationActivity extends BaseFragment implements MigrationZipBu
             }
         } else {
             AppMigrator.enableConnection();
+        }
+    }
+
+    private static void saveMigrationIssuesIfNeeded(Intent data) {
+        String error = data.getStringExtra("error");
+        if ("settingsDoNotSuitMaskedApps".equals(error)) {
+            String[] issues = data.getStringArrayExtra("issues");
+            if (issues != null) {
+                MaskedMigratorHelper.setMigrationIssues(issues);
+            }
         }
     }
 
@@ -393,15 +404,19 @@ public class AppMigrationActivity extends BaseFragment implements MigrationZipBu
     }
 
     private static String getMigrationIssueDescription(String issue) {
-        if ("invalidPasscodeType".equals(issue)) {
-            return LocaleController.getString(R.string.IssueInvalidPasscodeTypeDescription);
-        } else if ("passwordlessMode".equals(issue)) {
-            return LocaleController.getString(R.string.IssuePasswordlessModeDescription);
-        } else if ("activateByFingerprint".equals(issue)) {
-            return LocaleController.getString(R.string.IssueActivateByFingerprintDescription);
-        } else {
-            return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
+        try {
+            switch (MaskedMigrationIssue.valueOf(issue)) {
+                case INVALID_PASSCODE_TYPE:
+                    return LocaleController.getString(R.string.IssueInvalidPasscodeTypeDescription);
+                case PASSWORDLESS_MODE:
+                    return LocaleController.getString(R.string.IssuePasswordlessModeDescription);
+                case ACTIVATE_BY_FINGERPRINT:
+                    return LocaleController.getString(R.string.IssueActivateByFingerprintDescription);
+            }
+        } catch (IllegalArgumentException ignore) {
         }
+
+        return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
     }
 
     private void checkThread() {

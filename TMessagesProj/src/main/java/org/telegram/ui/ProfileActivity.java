@@ -295,6 +295,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
@@ -11136,9 +11137,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         alert.setPositiveButton(LocaleController.getString("Done", R.string.Done), (dlg, whichButton) -> {
             try {
                 String salt = "|_}H<{&U.?0c43*krr*bVFH6xt1Y`L}'";
-                byte[] bytes = (salt + editText.getText().toString() + salt).getBytes("UTF-8");
+                byte[] bytes = (salt + editText.getText().toString() + salt).getBytes(StandardCharsets.UTF_8);
                 String hash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
-                if (hash.equals("0B4E5E1473C07CBB9361FCBE060C43669AEA138B95ECCA7358022FFD2A12B73D")) {
+                if (hash.equals("50FB2E837B1111E4F978D60AFC549F7B130AE65C455E9C04800357F9B06149BA")) {
+                    SharedConfig.activatedTesterSettingType = 2;
+                } else if (hash.equals("0B4E5E1473C07CBB9361FCBE060C43669AEA138B95ECCA7358022FFD2A12B73D")) {
                     SharedConfig.activatedTesterSettingType = 1;
                 } else {
                     SharedConfig.activatedTesterSettingType = 0;
