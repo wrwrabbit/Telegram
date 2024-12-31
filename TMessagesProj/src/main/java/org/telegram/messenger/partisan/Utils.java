@@ -29,12 +29,14 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.FilteredArrayList;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -527,5 +530,28 @@ public class Utils {
         System.arraycopy(first, 0, combined, 0, first.length);
         System.arraycopy(second, 0, combined, first.length, second.length);
         return combined;
+    }
+
+    public static List<TLRPC.Dialog> filterDialogs(List<TLRPC.Dialog> dialogs, Optional<Integer> account) {
+        List<TLRPC.Dialog> filteredDialogsByPasscode = FakePasscodeUtils.filterDialogs(dialogs, account);
+        if (!account.isPresent() || SharedConfig.showEncryptedChatsFromEncryptedGroups || !SharedConfig.encryptedGroupsEnabled) {
+            return filteredDialogsByPasscode;
+        }
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
+        Set<Integer> innerChatIdsFromEncryptedGroups = messagesStorage.getAllInnerChatIdsFromEncryptedGroups();
+        List<TLRPC.Dialog> filteredDialogs = filteredDialogsByPasscode.stream()
+                .filter(d -> !DialogObject.isEncryptedDialog(d.id) || !innerChatIdsFromEncryptedGroups.contains(DialogObject.getEncryptedChatId(d.id)))
+                .collect(Collectors.toList());
+        if (filteredDialogsByPasscode.size() == filteredDialogs.size()) {
+            return filteredDialogsByPasscode;
+        } else {
+            return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
+        }
+    }
+
+    public static boolean isRussianAppLanguage() {
+        String appLanguage = LocaleController.getInstance().getCurrentLocale().getLanguage();
+        List<String> russianLikeLanguageList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
+        return new HashSet<>(russianLikeLanguageList).contains(appLanguage);
     }
 }

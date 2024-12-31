@@ -59,6 +59,9 @@ import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
+import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChat;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
 import org.telegram.messenger.voip.VoIPPreNotificationService;
@@ -133,6 +136,7 @@ public class MessagesController extends BaseController implements NotificationCe
     public int lastKnownSessionsCount;
     private final ConcurrentHashMap<Long, TLRPC.Chat> chats = new ConcurrentHashMap<>(100, 1.0f, 2);
     private final ConcurrentHashMap<Integer, TLRPC.EncryptedChat> encryptedChats = new ConcurrentHashMap<>(10, 1.0f, 2);
+    private final ConcurrentHashMap<Integer, EncryptedGroup> encryptedGroups = new ConcurrentHashMap<>(10, 1.0f, 2);
     private final ConcurrentHashMap<Long, TLRPC.User> users = new ConcurrentHashMap<>(100, 1.0f, 3);
     private final ConcurrentHashMap<String, TLObject> objectsByUsernames = new ConcurrentHashMap<>(100, 1.0f, 2);
     public static int stableIdPointer = 100;
@@ -6155,6 +6159,14 @@ public class MessagesController extends BaseController implements NotificationCe
         return encryptedChats.get(id);
     }
 
+    public EncryptedGroup getEncryptedGroup(Integer id) {
+        return encryptedGroups.get(id);
+    }
+
+    public EncryptedGroup getEncryptedGroupByExternalId(long externalId) {
+        return encryptedGroups.values().stream().filter(g -> g.getExternalId() == externalId).findAny().orElse(null);
+    }
+
     public TLRPC.EncryptedChat getEncryptedChatDB(int chatId, boolean created) {
         TLRPC.EncryptedChat chat = encryptedChats.get(chatId);
         if (chat == null || created && (chat instanceof TLRPC.TL_encryptedChatWaiting || chat instanceof TLRPC.TL_encryptedChatRequested)) {
@@ -6584,6 +6596,21 @@ public class MessagesController extends BaseController implements NotificationCe
         } else {
             encryptedChats.put(encryptedChat.id, encryptedChat);
         }
+    }
+
+    public void putEncryptedGroup(EncryptedGroup encryptedGroup, boolean fromCache) {
+        if (encryptedGroup == null) {
+            return;
+        }
+        if (fromCache) {
+            encryptedGroups.putIfAbsent(encryptedGroup.getInternalId(), encryptedGroup);
+        } else {
+            encryptedGroups.put(encryptedGroup.getInternalId(), encryptedGroup);
+        }
+    }
+
+    public void addDialog(TLRPC.Dialog dialog) {
+        allDialogs.add(dialog);
     }
 
     public void putEncryptedChats(ArrayList<TLRPC.EncryptedChat> encryptedChats, boolean fromCache) {
@@ -8843,6 +8870,9 @@ public class MessagesController extends BaseController implements NotificationCe
     public void removeDraftDialogIfNeed(long dialogId) {
         TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
         if (dialog != null && dialog.top_message == 0) {
+            if (DialogObject.isEncryptedDialog(dialogId) && getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId)) != null) {
+                return;
+            }
             dialogs_dict.remove(dialog.id);
             allDialogs.remove(dialog);
         }
@@ -8960,6 +8990,16 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     protected void deleteDialog(long did, int first, int onlyHistory, int max_id, boolean revoke, TLRPC.InputPeer peer, long taskId) {
+        if (DialogObject.isEncryptedDialog(did)) {
+            EncryptedGroup encryptedGroup = getEncryptedGroup(DialogObject.getEncryptedChatId(did));
+            if (encryptedGroup != null) {
+                for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
+                    if (innerChat.getDialogId().isPresent()) {
+                        deleteDialog(innerChat.getDialogId().get(), onlyHistory, revoke);
+                    }
+                }
+            }
+        }
         if (onlyHistory == 2) {
             if (did == getUserConfig().getClientUserId()) {
                 getSavedMessagesController().deleteAllDialogs();
@@ -10340,7 +10380,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 return false;
             }
             TLRPC.EncryptedChat chat = getEncryptedChat(DialogObject.getEncryptedChatId(dialogId));
-            if (chat.auth_key != null && chat.auth_key.length > 1 && chat instanceof TLRPC.TL_encryptedChat) {
+            if (chat != null && chat.auth_key != null && chat.auth_key.length > 1 && chat instanceof TLRPC.TL_encryptedChat) {
                 TLRPC.TL_messages_setEncryptedTyping req = new TLRPC.TL_messages_setEncryptedTyping();
                 req.peer = new TLRPC.TL_inputEncryptedChat();
                 req.peer.chat_id = chat.id;
@@ -12235,6 +12275,10 @@ public class MessagesController extends BaseController implements NotificationCe
     private int DIALOGS_LOAD_TYPE_UNKNOWN = 3;
 
     public void processLoadedDialogs(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, ArrayList<TLRPC.UserFull> fullUsers, int folderId, int offset, int count, int loadType, boolean resetEnd, boolean migrate, boolean fromCache) {
+        processLoadedDialogs(dialogsRes, encChats, fullUsers, folderId, offset, count, loadType, resetEnd, migrate, fromCache, null);
+    }
+
+    public void processLoadedDialogs(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, ArrayList<TLRPC.UserFull> fullUsers, int folderId, int offset, int count, int loadType, boolean resetEnd, boolean migrate, boolean fromCache, ArrayList<EncryptedGroup> encGroups) {
         Utilities.stageQueue.postRunnable(() -> {
             if (!firstGettingTask) {
                 getNewDeleteTask(null, null);
@@ -12272,6 +12316,7 @@ public class MessagesController extends BaseController implements NotificationCe
 
             LongSparseArray<TLRPC.Dialog> new_dialogs_dict = new LongSparseArray<>();
             SparseArray<TLRPC.EncryptedChat> enc_chats_dict;
+            SparseArray<EncryptedGroup> enc_groups_dict;
             LongSparseArray<ArrayList<MessageObject>> new_dialogMessage = new LongSparseArray<>();
             LongSparseArray<TLRPC.User> usersDict = new LongSparseArray<>();
             LongSparseArray<TLRPC.Chat> chatsDict = new LongSparseArray<>();
@@ -12292,6 +12337,15 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             } else {
                 enc_chats_dict = null;
+            }
+            if (encGroups != null) {
+                enc_groups_dict = new SparseArray<>();
+                for (int a = 0, N = encGroups.size(); a < N; a++) {
+                    EncryptedGroup encryptedGroup = encGroups.get(a);
+                    enc_groups_dict.put(encryptedGroup.getInternalId(), encryptedGroup);
+                }
+            } else {
+                enc_groups_dict = null;
             }
             if (loadType == DIALOGS_LOAD_TYPE_CACHE) {
                 nextDialogsCacheOffset.put(folderId, offset + count);
@@ -12327,6 +12381,20 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 arrayList.add(messageObject);
                 new_dialogMessage.put(did, arrayList);
+                if (encGroups != null && !encGroups.isEmpty() && DialogObject.isEncryptedDialog(did)) {
+                    int encryptedChatId = DialogObject.getEncryptedChatId(did);
+                    EncryptedGroup encryptedGroup = encGroups.stream()
+                            .filter(g -> g.getInnerEncryptedChatIds(false).contains(encryptedChatId))
+                            .findAny()
+                            .orElse(null);
+                    if (encryptedGroup != null) {
+                        long encryptedGroupDialogId = DialogObject.makeEncryptedDialogId(encryptedGroup.getInternalId());
+                        ArrayList<MessageObject> prevMessage = new_dialogMessage.get(encryptedGroupDialogId);
+                        if (prevMessage == null || arrayList.get(0).messageOwner.date > prevMessage.get(0).messageOwner.date) {
+                            new_dialogMessage.put(encryptedGroupDialogId, arrayList);
+                        }
+                    }
+                }
             }
             if (!fromCache && !migrate && dialogsLoadOffset[UserConfig.i_dialogsLoadOffsetId] != -1 && loadType == 0) {
                 int totalDialogsLoadCount = getUserConfig().getTotalDialogsCount(folderId);
@@ -12399,8 +12467,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (removeChatsResult != null && removeChatsResult.isRemovedChat(d.id)) {
                     continue;
                 }
-                if (DialogObject.isEncryptedDialog(d.id) && enc_chats_dict != null) {
-                    if (enc_chats_dict.get(DialogObject.getEncryptedChatId(d.id)) == null) {
+                if (DialogObject.isEncryptedDialog(d.id) && (enc_chats_dict != null || enc_groups_dict != null)) {
+                    if (enc_chats_dict.get(DialogObject.getEncryptedChatId(d.id)) == null
+                        && enc_groups_dict.get(DialogObject.getEncryptedChatId(d.id)) == null) {
                         continue;
                     }
                 }
@@ -12522,6 +12591,11 @@ public class MessagesController extends BaseController implements NotificationCe
                             getSecretChatHelper().sendNotifyLayerMessage(encryptedChat, null);
                         }
                         putEncryptedChat(encryptedChat, true);
+                    }
+                }
+                if (encGroups != null) {
+                    for (EncryptedGroup encryptedGroup : encGroups) {
+                        putEncryptedGroup(encryptedGroup, true);
                     }
                 }
                 if (!migrate && loadType != DIALOGS_LOAD_TYPE_UNKNOWN && loadType != DIALOGS_LOAD_TYPE_CHANNEL) {
@@ -12810,6 +12884,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     if (currentDialog != null) {
                         int prevCount = currentDialog.unread_count;
                         currentDialog.unread_count = dialogsToUpdate.valueAt(a);
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                            EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroupId, currentAccount);
+                        });
                         if (BuildVars.DEBUG_PRIVATE_VERSION) {
                             FileLog.d("update dialog " + dialogId + " with new unread " + currentDialog.unread_count);
                         }
@@ -13144,6 +13221,9 @@ public class MessagesController extends BaseController implements NotificationCe
                             FileLog.d("processDialogsUpdate dialog not null");
                         }
                         currentDialog.unread_count = value.unread_count;
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(currentDialog.id, currentAccount, encryptedGroupId -> {
+                            EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroupId, currentAccount);
+                        });
                         if (currentDialog.unread_mentions_count != value.unread_mentions_count) {
                             currentDialog.unread_mentions_count = value.unread_mentions_count;
                             if (createdDialogMainThreadIds.contains(currentDialog.id)) {
@@ -13212,6 +13292,9 @@ public class MessagesController extends BaseController implements NotificationCe
                             if (oldMsgsDeleted || messagesMaxDate(newMsgs) > messagesMaxDate(oldMsgs)) {
                                 dialogs_dict.put(key, value);
                                 dialogMessage.put(key, newMsgs);
+                                EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(key, currentAccount, encryptedGroupId -> {
+                                    EncryptedGroupUtils.updateEncryptedGroupLastMessage(encryptedGroupId, currentAccount);
+                                });
                                 if (oldMsgs != null) {
                                     for (int i = 0; i < oldMsgs.size(); ++i) {
                                         MessageObject oldMsg = oldMsgs.get(i);
@@ -13539,7 +13622,7 @@ public class MessagesController extends BaseController implements NotificationCe
             });
         } else {
             TLRPC.EncryptedChat chat = getEncryptedChat(DialogObject.getEncryptedChatId(task.dialogId));
-            if (chat.auth_key != null && chat.auth_key.length > 1 && chat instanceof TLRPC.TL_encryptedChat) {
+            if (chat != null && chat.auth_key != null && chat.auth_key.length > 1 && chat instanceof TLRPC.TL_encryptedChat) {
                 TLRPC.TL_messages_readEncryptedHistory req = new TLRPC.TL_messages_readEncryptedHistory();
                 req.peer = new TLRPC.TL_inputEncryptedChat();
                 req.peer.chat_id = chat.id;
@@ -13702,6 +13785,9 @@ public class MessagesController extends BaseController implements NotificationCe
                                 dialog.unread_count = maxNegativeId - dialog.top_message;
                             }
                         }
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                            EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroupId, currentAccount);
+                        });
                         boolean wasUnread;
                         if (wasUnread = dialog.unread_mark) {
                             dialog.unread_mark = false;
@@ -17637,6 +17723,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     for (int a = 0, size = decryptedMessages.size(); a < size; a++) {
                         TLRPC.Message message = decryptedMessages.get(a);
+                        if (PartisanMessagesInterceptionController.intercept(currentAccount, message).isPreventMessageSaving()) {
+                            continue;
+                        }
                         ImageLoader.saveMessageThumbs(message);
                         if (messagesArr == null) {
                             messagesArr = new ArrayList<>();
@@ -20175,6 +20264,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 dialog.top_message = lastMessage.getId();
                 dialog.last_message_date = lastMessage.messageOwner.date;
+                EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                    EncryptedGroupUtils.updateEncryptedGroupLastMessageDate(encryptedGroupId, currentAccount);
+                });
                 changed = true;
                 ArrayList<MessageObject> arrayList = new ArrayList<>(1);
                 for (int i = 0; i < messages.size(); ++i) {
@@ -20184,6 +20276,10 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
                 dialogMessage.put(dialogId, arrayList);
+                EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                    EncryptedGroupUtils.updateEncryptedGroupLastMessage(encryptedGroupId, currentAccount);
+                });
+
                 getTranslateController().checkDialogMessage(dialogId);
                 if (lastMessage.messageOwner.peer_id.channel_id == 0) {
                     dialogMessagesByIds.put(lastMessage.getId(), lastMessage);

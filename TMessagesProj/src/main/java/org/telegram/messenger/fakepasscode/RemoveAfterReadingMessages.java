@@ -358,9 +358,12 @@ public class RemoveAfterReadingMessages {
                 null, 0, false, false);
     }
 
-    public static boolean isShowDeleteAfterReadButton(TLRPC.User user, TLRPC.Chat chat) {
+    public static boolean isShowDeleteAfterReadButton(TLRPC.User user, TLRPC.Chat chat, boolean isEncryptedGroup) {
         if (FakePasscodeUtils.isFakePasscodeActivated() || !SharedConfig.showDeleteAfterRead) {
             return false;
+        }
+        if (isEncryptedGroup) {
+            return true;
         }
         if (user != null) {
             if (UserObject.isUserSelf(user)) {

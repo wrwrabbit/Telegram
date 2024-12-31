@@ -2,8 +2,12 @@ package org.telegram.messenger.fakepasscode.results;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.Action;
+import org.telegram.messenger.fakepasscode.ChatFilter;
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,8 +15,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,6 +60,25 @@ public class ActionsResult {
 
     public boolean isHideAccount(int accountNum, boolean strictHiding) {
         return hiddenAccountEntries.stream().anyMatch(entry -> entry.isHideAccount(accountNum, strictHiding));
+    }
+
+    public List<ChatFilter> getChatFilters(Optional<Integer> accountNum) {
+        List<ChatFilter> result;
+        if (accountNum.isPresent()) {
+            result = new ArrayList<>();
+            if (removeChatsResults.containsKey(accountNum.get())) {
+                result.add(removeChatsResults.get(accountNum.get()));
+            }
+            result.add(new HideEncryptedChatsFromEncryptedGroups(accountNum.get()));
+        } else {
+            result = new ArrayList<>(removeChatsResults.values());
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (AccountInstance.getInstance(a).getUserConfig().isClientActivated()) {
+                    result.add(new HideEncryptedChatsFromEncryptedGroups(a));
+                }
+            }
+        }
+        return result;
     }
 
     private static <T> T putIfAbsent(Map<Integer, T> map, int accountNum, T value) {

@@ -17,6 +17,12 @@ public class PartisanLog {
         }
     }
 
+    public static void e(final String message) {
+        if (logsAllowed()) {
+            FileLog.e(message);
+        }
+    }
+
     public static void e(final String message, final Throwable exception) {
         if (logsAllowed()) {
             FileLog.e(message, exception);
@@ -38,7 +44,7 @@ public class PartisanLog {
         return logsEnabledFromSharedConfig;
     }
 
-    private static boolean logsAllowed() {
+    public static boolean logsAllowed() {
         return BuildVars.LOGS_ENABLED ||
                 getLogsEnabledFromSharedConfig() && !FakePasscodeUtils.isFakePasscodeActivated();
     }

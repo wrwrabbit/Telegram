@@ -52,6 +52,7 @@ import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -126,6 +127,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     private HashMap<String, ImportingStickers> importingStickersFiles = new HashMap<>();
     private HashMap<String, ImportingStickers> importingStickersMap = new HashMap<>();
+
+    public static boolean allowReloadDialogsByMessage = true;
 
     public static boolean checkUpdateStickersOrder(CharSequence text) {
         if (text instanceof Spannable) {
@@ -4279,6 +4282,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 newMsgObj.videoEditedInfo.notReadyYet = videoEditedInfo.notReadyYet;
             }
 
+            if (sendMessageParams.encryptedGroupId != null && sendMessageParams.encryptedGroupVirtualMessageId != null) {
+                int encryptedGroupId = sendMessageParams.encryptedGroupId;
+                int virtualMessageId = sendMessageParams.encryptedGroupVirtualMessageId;
+                int encryptedChatId = DialogObject.getEncryptedChatId(peer);
+                getMessagesStorage().addEncryptedVirtualMessageMapping(encryptedGroupId, virtualMessageId, encryptedChatId, newMsg.id);
+            }
+
             if (groupId == 0) {
                 ArrayList<MessageObject> objArr = new ArrayList<>();
                 objArr.add(newMsgObj);
@@ -4294,11 +4304,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 } else {
                     mode = 0;
                 }
-                if (!TelegramMessageAction.allowReloadDialogsByMessage) {
+                if (!allowReloadDialogsByMessage) {
                     TelegramMessageAction.sosMessageSent(newMsg);
                 }
                 MessagesStorage.getInstance(currentAccount).putMessages(arr, false, true, false, 0, mode, threadMessageId);
-                if (TelegramMessageAction.allowReloadDialogsByMessage) {
+                if (allowReloadDialogsByMessage) {
                     MessagesController.getInstance(currentAccount).updateInterfaceWithMessages(peer, objArr, mode);
                     if (scheduleDate == 0) {
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogsNeedReload);
@@ -9708,6 +9718,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         public TL_stories.StoryItem replyToStoryItem;
         public TL_stories.StoryItem sendingStory;
         public Integer autoDeleteDelay;
+        public Integer encryptedGroupId;
+        public Integer encryptedGroupVirtualMessageId;
         public ChatActivity.ReplyQuote replyQuote;
         public boolean invert_media;
         public String quick_reply_shortcut;
