@@ -160,6 +160,8 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.PartisanVersion;
 import org.telegram.messenger.partisan.SecurityChecker;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -5973,7 +5975,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         return;
                     }
                     Bundle args = new Bundle();
-                    args.putLong("user_id", userId);
+                    EncryptedGroup encryptedGroup = EncryptedGroupUtils.getEncryptedGroupByEncryptedChat(currentEncryptedChat, currentAccount);
+                    if (encryptedGroup != null && !SharedConfig.showEncryptedChatsFromEncryptedGroups) {
+                        args.putInt("enc_group_id", encryptedGroup.getInternalId());
+                    } else {
+                        args.putLong("user_id", userId);
+                    }
                     if (!getMessagesController().checkCanOpenChat(args, ProfileActivity.this)) {
                         return;
                     }
@@ -7901,9 +7908,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             }
-        }  else if (id == NotificationCenter.dialogsHidingChanged) {
+        } else if (id == NotificationCenter.dialogsHidingChanged) {
             if (!allowShowing()) {
-                finishFragment();
+                finishHiddenChatFragment();
             }
         } else if (id == NotificationCenter.privacyRulesUpdated) {
             if (qrItem != null) {
@@ -8069,7 +8076,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     public void onResume() {
         super.onResume();
         if (!allowShowing()) {
-            finishFragment();
+            finishHiddenChatFragment();
             return;
         }
 
@@ -9082,7 +9089,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 //                if (phoneRow != -1 || userInfoRow != -1 || usernameRow != -1 || bizHoursRow != -1 || bizLocationRow != -1) {
 //                    notificationsDividerRow = rowCount++;
 //                }
-                if (userId != getUserConfig().getClientUserId()) {
+                if (userId != getUserConfig().getClientUserId() && !EncryptedGroupUtils.isInnerEncryptedGroupChat(currentEncryptedChat, currentAccount)) {
                     notificationsRow = rowCount++;
                 }
                 if (isBot && user != null && user.bot_has_main_app) {
@@ -9122,7 +9129,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 if (currentEncryptedChat instanceof TLRPC.TL_encryptedChat) {
-                    settingsTimerRow = rowCount++;
+                    if (!EncryptedGroupUtils.isInnerEncryptedGroupChat(currentEncryptedChat, currentAccount)) {
+                        settingsTimerRow = rowCount++;
+                    }
                     settingsKeyRow = rowCount++;
                     secretSettingsSectionRow = rowCount++;
                 }
@@ -13856,9 +13865,35 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public boolean allowShowing() {
-        return !FakePasscodeUtils.isHideChat(arguments.getLong("dialog_id", 0), currentAccount)
-                && !FakePasscodeUtils.isHideChat(arguments.getLong("chat_id", 0), currentAccount)
-                && !FakePasscodeUtils.isHideChat(arguments.getLong("user_id", 0), currentAccount);
+        long dialog_id = arguments.getLong("dialog_id", 0);
+        long chat_id = arguments.getLong("chat_id", 0);
+        long user_id = arguments.getLong("user_id", 0);
+
+        if (dialog_id != 0 && FakePasscodeUtils.isHideChat(dialog_id, currentAccount)) {
+            if (!FakePasscodeUtils.isFakePasscodeActivated() && DialogObject.isEncryptedDialog(dialog_id)) {
+                int encryptedChatId = DialogObject.getEncryptedChatId(dialog_id);
+                Integer groupId = getMessagesStorage().getEncryptedGroupIdByInnerEncryptedChatId(encryptedChatId);
+                if (groupId == null) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        if (chat_id != 0 && FakePasscodeUtils.isHideChat(chat_id, currentAccount)) {
+            return false;
+        }
+        if (user_id != 0 && FakePasscodeUtils.isHideChat(user_id, currentAccount)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void finishHiddenChatFragment() {
+        if (!finishing) {
+            super.finishFragment(false);
+        }
     }
 
     @Override

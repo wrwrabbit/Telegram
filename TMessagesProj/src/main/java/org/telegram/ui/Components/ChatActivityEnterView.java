@@ -4568,7 +4568,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         MessagesController messagesController = accountInstance.getMessagesController();
         TLRPC.Chat chat = messagesController.getChat(-dialog_id);
         TLRPC.User user = messagesController.getUser(dialog_id);
-        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat);
+        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat, parentFragment.isEncryptedGroup());
     }
 
     private void createBotCommandsMenuContainer() {
@@ -5112,7 +5112,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         } else {
             messageEditText.setWindowView(parentActivity.getWindow().getDecorView());
         }
-        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChat() : null;
+        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChatSingle() : null;
         messageEditText.setAllowTextEntitiesIntersection(supportsSendingNewEntities());
         int flags = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         if (isKeyboardSupportIncognitoMode() && encryptedChat != null) {
@@ -6995,7 +6995,23 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     setWebPage(null, true);
                     parentFragment.fallbackFieldPanel();
                 }
-                SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                if (parentFragment != null && parentFragment.isEncryptedGroup()) {
+                    MessageObject replyToMsg = params.replyToMsg;
+                    Integer encryptedGroupId = parentFragment.getEncryptedGroupId();
+                    int virtualMessageId = 0;
+                    if (encryptedGroupId != null) {
+                        virtualMessageId = accountInstance.getMessagesStorage().createEncryptedVirtualMessage(encryptedGroupId);
+                    }
+                    for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList(true)) {
+                        params.peer = DialogObject.makeEncryptedDialogId(chat.id);
+                        params.replyToMsg = parentFragment.fixEncryptedGroupMessageObjectIfNeed(replyToMsg, params.peer);
+                        params.encryptedGroupId = encryptedGroupId;
+                        params.encryptedGroupVirtualMessageId = virtualMessageId;
+                        SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                    }
+                } else {
+                    SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                }
                 start = end + 1;
             } while (end != text.length());
             return true;
@@ -7015,7 +7031,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     }
 
     private boolean supportsSendingNewEntities() {
-        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChat() : null;
+        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChatSingle() : null;
         return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
     }
 
@@ -10356,7 +10372,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
                         if (gif instanceof TLRPC.Document) {
                             TLRPC.Document document = (TLRPC.Document) gif;
-                            SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                            parentFragment.forEachActiveDialogId(dialog_id -> {
+                                SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                            });
                             MediaDataController.getInstance(currentAccount).addRecentGif(document, (int) (System.currentTimeMillis() / 1000), true);
                             if (DialogObject.isEncryptedDialog(dialog_id)) {
                                 accountInstance.getMessagesController().saveGif(parent, document);
@@ -10379,9 +10397,13 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                             params.put("force_gif", "1");
 
                             if (storyItem == null) {
-                                SendMessagesHelper.prepareSendingBotContextResult(parentFragment, accountInstance, result, params, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, notify, scheduleDate, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                                parentFragment.forEachActiveDialogId(dialog_id -> {
+                                    SendMessagesHelper.prepareSendingBotContextResult(parentFragment, accountInstance, result, params, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, notify, scheduleDate, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                                });
                             } else {
-                                SendMessagesHelper.getInstance(currentAccount).sendSticker(result.document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                                parentFragment.forEachActiveDialogId(dialog_id -> {
+                                    SendMessagesHelper.getInstance(currentAccount).sendSticker(result.document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                                });
                             }
                             if (searchingType != 0) {
                                 setSearchingTypeInternal(0, true);
@@ -10645,7 +10667,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
                 setStickersExpanded(false, true, false);
                 TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
-                SendMessagesHelper.getInstance(currentAccount).sendSticker(sticker, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, sendAnimationData, notify, scheduleDate, parent instanceof TLRPC.TL_messages_stickerSet, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                parentFragment.forEachActiveDialogId(dialog_id -> {
+                    SendMessagesHelper.getInstance(currentAccount).sendSticker(sticker, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, sendAnimationData, notify, scheduleDate, parent instanceof TLRPC.TL_messages_stickerSet, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
+                });
                 if (delegate != null) {
                     delegate.onMessageSend(null, true, scheduleDate);
                 }

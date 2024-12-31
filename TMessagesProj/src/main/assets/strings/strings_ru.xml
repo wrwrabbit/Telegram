@@ -269,4 +269,27 @@
     <string name="IssueActivateByFingerprintDescription">Код-пароли с активацией по отпечатку пальца не разрешены в замаскированном приложении. Отключите эту опцию.</string>
     <string name="PasswordToPinSwitchWarning">Если у Вас были ложные код-пароли, состоящие не из 4 цифры, их не получится ввести. Мы рекомендуем изменить их.</string>
     <string name="ContinueMaskedMigrationDescription">Кажется, Вы исправили все проблемы. Хотите возобновить миграцию?</string>
+    <string name="NewEncryptedGroup">Создать секретную группу</string>
+    <string name="AreYouSureClearHistoryWithSecretGroup">Вы точно хотите удалить историю секретной группы **%1$s** только для себя? У других участников она останется доступной.</string>
+    <string name="AreYouSureDeleteThisSecretGroup">Вы точно хотите удалить эту секретную группу: **%1$s**?</string>
+    <string name="CreatingSecretChats">Создание секретных чатов</string>
+    <string name="JoiningNotConfirmed">Присоединение не подтверждено</string>
+    <string name="WaitingForSecretGroupInitializationConfirmation">Ждём подтверждения от участников</string>
+    <string name="WaitingForSecondaryChatsCreation">Ждём создания чатов между участниками</string>
+    <string name="SecretGroupInitializationFailed">Инициализация секретной группы не удалась</string>
+    <string name="SecretGroupCancelled">Секретная группа отменена</string>
+    <string name="EncryptedGroupTitleOutgoing">Вы создали секретную группу.</string>
+    <string name="EncryptedGroupPlaceholderTitleIncoming">%s пригласил Вас в секретную группу.</string>
+    <string name="EncryptedGroupDescriptionTitle">Секретные группы:</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Пригласил Вас в секретную группу. Вы хотите присоединиться к секретной группе?\n\n**Если Вы подтвердите присоединение, %1$s узнает, что Вы используете Партизанский Телеграм!** Если вы не знаете этого пользователя, нажмите **%2$s** или проигнорируйте этот диалог.</string>
+    <string name="JoinSecretGroup">Присоединиться</string>
+    <string name="DeclineJoiningToSecretGroup">Отклонить</string>
+    <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Секретные группы всегда скрываются ложным код-паролем.</string>
+    <string name="NotAllSelectedDialogsHaveThisOption">Не все выбранные диалоги имеют эту опцию.</string>
+    <string name="ThisFeatureIsNotImplemented">Эта функция ещё не реализована.</string>
+    <string name="DeleteSecretGroupOptionForMembers">Удалить сообщения для остальных</string>
+    <string name="PartisanExperimentalSettingsHeader">Экспериментальные настройки</string>
+    <string name="EnableSecretGroups">Включить секретные группы</string>
+    <string name="SecretGroupsEnabled">Секретные группы включены</string>
+    <string name="EnableSecretGroupsInfo">Секретные группы позволяют общаться нескольким пользователям общаться с использованием сквозного шифрования. Чтобы создать секретную группу, включите этот функционал при помощи кнопки выше, вернитесь в список диалогов нажмите на иконку карандаша в правом нижнем углу и выберите \"%1$s\".</string>
 </resources>

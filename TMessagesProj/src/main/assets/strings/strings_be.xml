@@ -264,4 +264,27 @@
     <string name="MigrationErrorUnknownDescription">Адбылася невядомая памылка. Абнавіце абодва прыкладанні і паспрабуйце яшчэ раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
     <string name="ContinueMaskedMigrationDescription">Здаецца, Вы выправілі ўсе праблемы. Жадаеце аднавіць міграцыю?</string>
+    <string name="NewEncryptedGroup">Новая сакрэтная група</string>
+    <string name="AreYouSureClearHistoryWithSecretGroup">Вы ўпэўненыя, што хочаце ачысціць гісторыю чата **%1$s** толькі для сябе? У іншых удзельнікаў яна застанецца даступнай.</string>
+    <string name="AreYouSureDeleteThisSecretGroup">Вы ўпэўненыя, што хочаце выгаліць гэтую сакрэтную групу: **%1$s**?</string>
+    <string name="CreatingSecretChats">Стварэнне сакрэтных чатаў</string>
+    <string name="JoiningNotConfirmed">Далучэнне не пацверджана</string>
+    <string name="WaitingForSecretGroupInitializationConfirmation">Чакаем пацверджання ад удзельнікаў</string>
+    <string name="WaitingForSecondaryChatsCreation">Чакаем стварэння чатаў паміж удзельнікамі</string>
+    <string name="SecretGroupInitializationFailed">Не атрымалася ініцыалізаваць сакрэтную групу</string>
+    <string name="SecretGroupCancelled">Сакрэтная група скасавана</string>
+    <string name="EncryptedGroupTitleOutgoing">Вы стварылі сакрэтную групу.</string>
+    <string name="EncryptedGroupPlaceholderTitleIncoming">%s запрасіў Вас у сакрэтную групу.</string>
+    <string name="EncryptedGroupDescriptionTitle">Сакрэтныя групы:</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Запрасіў Вас у сакрэтную групу. Вы хочаце далучыцца да сакрэтнай групы?\n\n**Калі Вы пацвердзіце далучэнне, %1$s даведаецца, што Вы выкарыстоўваеце Партызанскі Тэлеграм!** Калі вы не ведаеце гэтага карыстальніка, націсніце **%2$s** або праігнаруйце гэты дыялог.</string>
+    <string name="JoinSecretGroup">Далучыцца</string>
+    <string name="DeclineJoiningToSecretGroup">Адхіліць</string>
+    <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Сакрэтныя групы заўсёды хаваюцца несапраўдным кодам блакіроўкі.</string>
+    <string name="NotAllSelectedDialogsHaveThisOption">Не ўсе абраныя дыялогі маюць гэтую опцыю.</string>
+    <string name="ThisFeatureIsNotImplemented">Гэтая функцыя яшчэ не рэалізавана.</string>
+    <string name="DeleteSecretGroupOptionForMembers">Выдаліць паведамленні для астатніх</string>
+    <string name="PartisanExperimentalSettingsHeader">Эксперыментальныя налады</string>
+    <string name="EnableSecretGroups">Уключыць сакрэтныя групы</string>
+    <string name="SecretGroupsEnabled">Сакрэтныя групы ўключаныя</string>
+    <string name="EnableSecretGroupsInfo">Сакрэтныя групы дазваляюць размаўляць некалькім карыстальнікам з выкарыстаннем скразнога шыфравання. Каб стварыць сакрэтную групу, уключыце гэты функцыянал пры дапамозе кнопкі вышэй, вярніцеся ў спіс дыялогаў націсніце на іконку алоўка ў правым ніжнім куце і абярыце \"%1$s\".</string>
 </resources>

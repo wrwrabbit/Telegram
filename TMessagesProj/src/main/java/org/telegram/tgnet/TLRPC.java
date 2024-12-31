@@ -29852,6 +29852,9 @@ public class TLRPC {
                 case 0x73164160:
                     result = new TL_decryptedMessageService();
                     break;
+                case 0xaff56539:
+                    result = new org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage();
+                    break;
                 case 0xaa48327d:
                     result = new TL_decryptedMessageService_layer8();
                     break;

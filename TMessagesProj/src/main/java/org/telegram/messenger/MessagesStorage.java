@@ -35,8 +35,15 @@ import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
+import org.telegram.messenger.partisan.PartisanDatabaseMigrationHelper;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
+import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChat;
+import org.telegram.messenger.partisan.secretgroups.InnerEncryptedChatState;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -63,6 +70,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -111,7 +120,7 @@ public class MessagesStorage extends BaseController {
         }
     }
 
-    public final static int LAST_DB_VERSION = 159;
+    public final static int LAST_DB_VERSION = 160;// = 159;
     private boolean databaseMigrationInProgress;
     public boolean showClearDatabaseAlert;
     private LongSparseIntArray dialogIsForum = new LongSparseIntArray();
@@ -371,6 +380,7 @@ public class MessagesStorage extends BaseController {
                     }
                 }
             }
+            new PartisanDatabaseMigrationHelper(database).updateDb();
             databaseCreated = true;
         } catch (Exception e) {
             FileLog.e(e);
@@ -474,6 +484,10 @@ public class MessagesStorage extends BaseController {
             "users",
             "chats",
             "enc_chats",
+            "enc_groups",
+            "enc_group_inner_chats",
+            "enc_group_virtual_messages",
+            "enc_group_virtual_messages_to_messages_v2",
             "channel_users_v2",
             "channel_admins_v3",
             "contacts",
@@ -4172,6 +4186,7 @@ public class MessagesStorage extends BaseController {
                         }
                     } else {
                         database.executeFast("DELETE FROM enc_chats WHERE uid = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
+                        database.executeFast("DELETE FROM enc_groups WHERE encrypted_group_id = " + DialogObject.getEncryptedChatId(did)).stepThis().dispose();
                     }
                 } else if (messagesOnly == 2) {
                     cursor = database.queryFinalized("SELECT last_mid_i, last_mid FROM dialogs WHERE did = " + did);
@@ -5740,7 +5755,8 @@ public class MessagesStorage extends BaseController {
                 for (int a = 0, N = encryptedChats.size(); a < N; a++) {
                     TLRPC.EncryptedChat encryptedChat = encryptedChats.get(a);
                     TLRPC.User user = encUsersDict.get(encryptedChat.user_id);
-                    if (user == null || FakePasscodeUtils.isHideChat(DialogObject.makeEncryptedDialogId(encryptedChat.id), currentAccount)) {
+                    if (user == null || FakePasscodeUtils.isHideChat(DialogObject.makeEncryptedDialogId(encryptedChat.id), currentAccount)
+                            || EncryptedGroupUtils.isInnerEncryptedGroupChat(encryptedChat, currentAccount)) {
                         continue;
                     }
                     long did = DialogObject.makeEncryptedDialogId(encryptedChat.id);
@@ -9997,6 +10013,85 @@ public class MessagesStorage extends BaseController {
         });
     }
 
+    public void addEncryptedGroup(EncryptedGroup encryptedGroup, TLRPC.Dialog dialog) {
+        if (encryptedGroup == null) {
+            return;
+        }
+        storageQueue.postRunnable(() -> {
+            SQLitePreparedStatement state = null;
+            try {
+                state = database.executeFast("INSERT INTO enc_groups (encrypted_group_id, name, owner_user_id, state, external_group_id) VALUES (?, ?, ?, ?, ?)");
+
+                state.bindInteger(1, encryptedGroup.getInternalId());
+                state.bindString(2, encryptedGroup.getName());
+                state.bindLong(3, encryptedGroup.getOwnerUserId());
+                state.bindString(4, encryptedGroup.getState().toString());
+                state.bindLong(5, encryptedGroup.getExternalId());
+                state.step();
+                state.dispose();
+
+                state = database.executeFast("INSERT INTO enc_group_inner_chats (encrypted_group_id, user_id, encrypted_chat_id, state) VALUES (?, ?, ?, ?)");
+                for (InnerEncryptedChat innerChat : encryptedGroup.getInnerChats()) {
+                    state.requery();
+                    state.bindInteger(1, encryptedGroup.getInternalId());
+                    state.bindLong(2, innerChat.getUserId());
+                    if (innerChat.getEncryptedChatId().isPresent()) {
+                        state.bindInteger(3, innerChat.getEncryptedChatId().get());
+                    } else {
+                        state.bindNull(3);
+                    }
+                    state.bindString(4, innerChat.getState().toString());
+                    state.step();
+                }
+                state.dispose();
+                state = null;
+
+                if (dialog != null) {
+                    updateEncryptedGroupDialog(dialog);
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (state != null) {
+                    state.dispose();
+                }
+            }
+        });
+    }
+
+    public void updateEncryptedGroupDialog(TLRPC.Dialog dialog) {
+        SQLitePreparedStatement state = null;
+        try {
+            state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            state.bindLong(1, dialog.id);
+            state.bindInteger(2, dialog.last_message_date);
+            state.bindInteger(3, dialog.unread_count);
+            state.bindInteger(4, dialog.top_message);
+            state.bindInteger(5, dialog.read_inbox_max_id);
+            state.bindInteger(6, dialog.read_outbox_max_id);
+            state.bindInteger(7, 0);
+            state.bindInteger(8, dialog.unread_mentions_count);
+            state.bindInteger(9, dialog.pts);
+            state.bindInteger(10, 0);
+            state.bindInteger(11, dialog.pinnedNum);
+            state.bindInteger(12, dialog.flags);
+            state.bindInteger(13, dialog.folder_id);
+            state.bindNull(14);
+            state.bindInteger(15, dialog.unread_reactions_count);
+            state.bindInteger(16, 0);
+            state.bindInteger(17, dialog.ttl_period);
+            state.step();
+            state.dispose();
+            state = null;
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (state != null) {
+                state.dispose();
+            }
+        }
+    }
+
     private String formatUserSearchName(TLRPC.User user) {
         StringBuilder str = new StringBuilder();
         if (user.first_name != null && user.first_name.length() > 0) {
@@ -10387,6 +10482,207 @@ public class MessagesStorage extends BaseController {
             }
         }
         cursor.dispose();
+    }
+
+    private void getEncryptedGroupsInternal(String chatsToLoad, ArrayList<EncryptedGroup> result) throws Exception {
+        if (chatsToLoad == null || chatsToLoad.isEmpty() || result == null) {
+            return;
+        }
+        SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT encrypted_group_id, name, owner_user_id, state, external_group_id FROM enc_groups " +
+                "WHERE encrypted_group_id IN(%s)", chatsToLoad));
+        while (cursor.next()) {
+            try {
+                EncryptedGroup.EncryptedGroupBuilder builder = new EncryptedGroup.EncryptedGroupBuilder();
+                int id = cursor.intValue(0);
+                builder.setInternalId(id);
+                builder.setName(cursor.stringValue(1));
+                builder.setOwnerUserId(cursor.longValue(2));
+                EncryptedGroupState state = EncryptedGroupState.valueOf(cursor.stringValue(3));
+                builder.setState(state);
+                builder.setExternalId(cursor.longValue(4));
+                builder.setInnerChats(getEncryptedGroupInnerChats(id));
+                result.add(builder.create());
+            } catch (Exception e) {
+                checkSQLException(e);
+                PartisanLog.handleException(e);
+            }
+        }
+        cursor.dispose();
+    }
+
+    private List<InnerEncryptedChat> getEncryptedGroupInnerChats(int encryptedGroupId) {
+        String sql = "SELECT user_id, encrypted_chat_id, state FROM enc_group_inner_chats WHERE encrypted_group_id = ?";
+        Object[] args = {encryptedGroupId};
+        return partisanSelect(sql, args, cursor -> {
+            List<InnerEncryptedChat> innerChats = new ArrayList<>();
+            while (cursor.next()) {
+                long userId = cursor.longValue(0);
+                Optional<Integer> innerChatId;
+                if (cursor.isNull(1)) {
+                    innerChatId = Optional.empty();
+                } else {
+                    innerChatId = Optional.of(cursor.intValue(1));
+                }
+                InnerEncryptedChatState innerChatState = InnerEncryptedChatState.valueOf(cursor.stringValue(2));
+                InnerEncryptedChat innerEncryptedChat = new InnerEncryptedChat(userId, innerChatId);
+                innerEncryptedChat.setState(innerChatState);
+                innerChats.add(innerEncryptedChat);
+            }
+            return innerChats;
+        });
+    }
+
+    public void updateEncryptedGroup(EncryptedGroup encryptedGroup) {
+        partisanExecute("UPDATE enc_groups SET name = ?, state = ? WHERE encrypted_group_id = ?", state -> {
+            state.bindString(1, encryptedGroup.getName());
+            state.bindString(2, encryptedGroup.getState().toString());
+            state.bindInteger(3, encryptedGroup.getInternalId());
+            state.step();
+        });
+    }
+
+    public void updateEncryptedGroupInnerChat(int encryptedGroupId, InnerEncryptedChat innerChat) {
+        partisanExecute("UPDATE enc_group_inner_chats SET encrypted_chat_id = ?, state = ? WHERE encrypted_group_id = ? AND user_id = ?", state -> {
+            if (innerChat.getEncryptedChatId().isPresent()) {
+                state.bindInteger(1, innerChat.getEncryptedChatId().get());
+            } else {
+                state.bindNull(1);
+            }
+            state.bindString(2, innerChat.getState().toString());
+            state.bindInteger(3, encryptedGroupId);
+            state.bindLong(4, innerChat.getUserId());
+            state.step();
+        });
+    }
+
+    public void deleteEncryptedGroupInnerChat(int encryptedGroupId, long userId) {
+        partisanExecute("DELETE FROM enc_group_inner_chats WHERE encrypted_group_id = ? AND user_id = ?", state -> {
+            state.bindInteger(1, encryptedGroupId);
+            state.bindLong(2, userId);
+            state.step();
+        });
+    }
+
+    public boolean isEncryptedGroup(long dialogId) {
+        if (!DialogObject.isEncryptedDialog(dialogId)) {
+            return false;
+        }
+        String sql = "SELECT EXISTS(SELECT 1 FROM enc_groups WHERE encrypted_group_id=? LIMIT 1)";
+        Object[] args = {DialogObject.getEncryptedChatId(dialogId)};
+        return partisanSelect(sql, args, cursor -> {
+            if (cursor.next()) {
+                return cursor.intValue(0) == 1;
+            }
+            return false;
+        });
+    }
+
+    public Integer getEncryptedGroupIdByInnerEncryptedChatId(int encryptedChatId) {
+        String sql = "SELECT encrypted_group_id FROM enc_group_inner_chats WHERE encrypted_chat_id=?";
+        Object[] args = {encryptedChatId};
+        return partisanSelect(sql, args, cursor -> {
+            if (cursor.next()) {
+                return cursor.intValue(0);
+            }
+            return null;
+        });
+    }
+
+    public Set<Integer> getAllInnerChatIdsFromEncryptedGroups() {
+        return partisanSelect("SELECT DISTINCT encrypted_chat_id FROM enc_group_inner_chats", cursor -> {
+            Set<Integer> encryptedChatIds = new HashSet<>();
+            while (cursor.next()) {
+                int id = cursor.intValue(0);
+                encryptedChatIds.add(id);
+            }
+            return encryptedChatIds;
+        });
+    }
+
+    public Integer getEncryptedGroupVirtualMessageId(int encryptedGroupId, int encryptedChatId, int realMessageId) {
+        String sql = "SELECT virtual_message_id " +
+                "FROM enc_group_virtual_messages_to_messages_v2 " +
+                "WHERE encrypted_group_id = ? AND encrypted_chat_id = ? AND real_message_id = ?";
+        Object[] args = {encryptedGroupId, encryptedChatId, realMessageId};
+        return partisanSelect(sql, args, cursor -> {
+            if (cursor.next()) {
+                return cursor.intValue(0);
+            }
+            return null;
+        });
+    }
+
+    public int createEncryptedVirtualMessage(int encryptedGroupId) {
+        String sql = "SELECT MAX(virtual_message_id) FROM enc_group_virtual_messages WHERE encrypted_group_id = ?";
+        Object[] args = {encryptedGroupId};
+        int prevVirtualMessageId = partisanSelect(sql, args, cursor -> {
+            if (cursor.next()) {
+                return cursor.intValue(0);
+            }
+            return 0;
+        });
+        int virtualMessageId = prevVirtualMessageId + 1;
+        partisanExecute("INSERT INTO enc_group_virtual_messages VALUES(?, ?)", state -> {
+            int pointer = 1;
+            state.bindInteger(pointer++, encryptedGroupId);
+            state.bindInteger(pointer++, virtualMessageId);
+            state.step();
+        });
+        return virtualMessageId;
+    }
+
+    public void addEncryptedVirtualMessageMapping(int encryptedGroupId, int virtualMessageId, int encryptedChatId, int realMessageId) throws Exception {
+        partisanExecute("INSERT INTO enc_group_virtual_messages_to_messages_v2 VALUES(?, ?, ?, ?)", state -> {
+            int pointer = 1;
+            state.bindInteger(pointer++, encryptedGroupId);
+            state.bindInteger(pointer++, virtualMessageId);
+            state.bindInteger(pointer++, encryptedChatId);
+            state.bindInteger(pointer++, realMessageId);
+            state.step();
+        });
+    }
+
+    private interface SQLitePreparedStatementConsumer {
+        void accept(SQLitePreparedStatement state) throws SQLiteException;
+    }
+
+    private void partisanExecute(String sql, SQLitePreparedStatementConsumer action) {
+        SQLitePreparedStatement state = null;
+        try {
+            state = database.executeFast(sql);
+            action.accept(state);
+
+        } catch (SQLiteException e) {
+            checkSQLException(e);
+            PartisanLog.handleException(e);
+        }
+        if (state != null) {
+            state.dispose();
+        }
+    }
+
+    private interface SQLiteCursorConsumer<T> {
+        T accept(SQLiteCursor cursor) throws SQLiteException;
+    }
+
+    private <T> T partisanSelect(String sql, SQLiteCursorConsumer<T> action) {
+        return partisanSelect(sql, new Object[]{}, action);
+    }
+
+    private <T> T partisanSelect(String sql, Object[] args, SQLiteCursorConsumer<T> action) {
+        SQLiteCursor cursor = null;
+        T result = null;
+        try {
+            cursor = database.queryFinalized(sql, args);
+            result = action.accept(cursor);
+        } catch (Exception e) {
+            checkSQLException(e);
+            PartisanLog.handleException(e);
+        }
+        if (cursor != null) {
+            cursor.dispose();
+        }
+        return result;
     }
 
     private void putUsersAndChatsInternal(List<TLRPC.User> users, List<TLRPC.Chat> chats, boolean withTransaction) {
@@ -13836,6 +14132,15 @@ public class MessagesStorage extends BaseController {
                     int date = cursor.intValue(8);
                     if (date != 0) {
                         dialog.last_message_date = date;
+                        EncryptedGroupUtils.getEncryptedGroupIdByInnerEncryptedDialogIdAndExecute(dialogId, currentAccount, encryptedGroupId -> {
+                            Utilities.stageQueue.postRunnable(() -> {
+                                EncryptedGroupUtils.updateEncryptedGroupLastMessageDate(encryptedGroupId, currentAccount);
+                                AndroidUtilities.runOnUIThread(() -> {
+                                    getMessagesController().sortDialogs(null);
+                                    getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
+                                });
+                            }, 100);
+                        });
                     }
                     message.dialog_id = dialog.id;
                     dialogs.messages.add(message);
@@ -15495,6 +15800,7 @@ public class MessagesStorage extends BaseController {
         storageQueue.postRunnable(() -> {
             TLRPC.messages_Dialogs dialogs = new TLRPC.TL_messages_dialogs();
             ArrayList<TLRPC.EncryptedChat> encryptedChats = new ArrayList<>();
+            ArrayList<EncryptedGroup> encryptedGroups = new ArrayList<>();
             SQLiteCursor cursor = null;
             try {
                 ArrayList<Long> usersToLoad = new ArrayList<>();
@@ -15780,6 +16086,7 @@ public class MessagesStorage extends BaseController {
 
                 if (!encryptedToLoad.isEmpty()) {
                     getEncryptedChatsInternal(TextUtils.join(",", encryptedToLoad), encryptedChats, usersToLoad);
+                    getEncryptedGroupsInternal(TextUtils.join(",", encryptedToLoad), encryptedGroups);
                 }
                 if (!chatsToLoad.isEmpty()) {
                     getChatsInternal(TextUtils.join(",", chatsToLoad), dialogs.chats);
@@ -15801,14 +16108,15 @@ public class MessagesStorage extends BaseController {
                         fullUsers = loadUserInfos(fullUsersToLoad);
                     }
                 }
-                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, fullUsers, folderId, offset, count, 1, false, false, true);
+                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, fullUsers, folderId, offset, count, 1, false, false, true, encryptedGroups);
             } catch (Exception e) {
                 dialogs.dialogs.clear();
                 dialogs.users.clear();
                 dialogs.chats.clear();
                 encryptedChats.clear();
+                encryptedGroups.clear();
                 checkSQLException(e);
-                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, null, folderId, 0, 100, 1, true, false, true);
+                getMessagesController().processLoadedDialogs(dialogs, encryptedChats, null, folderId, 0, 100, 1, true, false, true, encryptedGroups);
             } finally {
                 if (cursor != null) {
                     cursor.dispose();

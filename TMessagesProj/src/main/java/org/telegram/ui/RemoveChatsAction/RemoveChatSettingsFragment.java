@@ -14,14 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AccountInstance;
-import org.telegram.messenger.ChatObject;
-import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -42,12 +39,15 @@ import org.telegram.ui.DialogBuilder.DialogCheckBox;
 import org.telegram.ui.DialogBuilder.DialogTemplate;
 import org.telegram.ui.DialogBuilder.DialogType;
 import org.telegram.ui.DialogBuilder.FakePasscodeDialogBuilder;
+import org.telegram.ui.RemoveChatsAction.items.EncryptedGroupItem;
 import org.telegram.ui.RemoveChatsAction.items.Item;
+import org.telegram.ui.RemoveChatsAction.items.OptionPermission;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class RemoveChatSettingsFragment extends BaseFragment {
     private ListAdapter listAdapter;
@@ -56,7 +56,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     private final FakePasscode fakePasscode;
     private final RemoveChatsAction action;
     int accountNum;
-    private final Collection<Item> items;
+    private final List<Item> items;
     private final List<RemoveChatsAction.RemoveChatEntry> removeChatEntries = new ArrayList<>();
     private final boolean isNew;
     private boolean changed;
@@ -82,7 +82,7 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         super();
         this.fakePasscode = fakePasscode;
         this.action = action;
-        this.items = items;
+        this.items = new ArrayList<>(items);
         this.isNew = false;
         this.accountNum = accountNum;
     }
@@ -138,20 +138,37 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         listView.setOnItemClickListener((view, position) -> {
             if (!view.isEnabled()) {
                 if (position == hideDialogRow) {
-                    String title;
                     String message;
-                    title = LocaleController.getString(R.string.CannotHideDialog);
                     if (fakePasscode.replaceOriginalPasscode) {
                         message = LocaleController.formatString(R.string.CannotEnableSettingDescription, LocaleController.getString(R.string.ReplaceOriginalPasscode));
-                    } else {
+                    } else if (anyItemMatch(Item::isSelf)) {
                         message = LocaleController.getString(R.string.CannotHideSavedMessages);
+                    } else if (anyItemMatch(item -> item instanceof EncryptedGroupItem)) {
+                        message = LocaleController.getString(R.string.SecretGroupsAreAlwaysHiddenByFakePasscode);
+                    } else {
+                        throw new RuntimeException("Dialog hiding disabled for an unknown reason");
                     }
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                     builder.setMessage(message);
-                    builder.setTitle(title);
+                    builder.setTitle(LocaleController.getString(R.string.CannotHideDialog));
                     builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                     AlertDialog alertDialog = builder.create();
                     showDialog(alertDialog);
+                } else {
+                    boolean notAllDialogsHaveOption = false;
+                    if (position == deleteFromCompanionRow || position == deleteNewMessagesRow || position == deleteAllMyMessagesRow) {
+                        notAllDialogsHaveOption = hasDeleteDialog();
+                    } else if (position == strictHidingRow) {
+                        notAllDialogsHaveOption = hasHideDialog();
+                    }
+                    if (notAllDialogsHaveOption) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                        builder.setMessage(LocaleController.getString(R.string.NotAllSelectedDialogsHaveThisOption));
+                        builder.setTitle(LocaleController.getString(R.string.AppName));
+                        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                        AlertDialog alertDialog = builder.create();
+                        showDialog(alertDialog);
+                    }
                 }
                 return;
             }
@@ -161,8 +178,10 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                     changed = true;
                 }
                 for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-                    entry.isExitFromChat = true;
-                    entry.strictHiding = false;
+                    if (getItemById(entry.chatId).getDeletePermission() == OptionPermission.ALLOW) {
+                        entry.isExitFromChat = true;
+                        entry.strictHiding = false;
+                    }
                 }
                 updateRows();
                 listAdapter.notifyDataSetChanged();
@@ -171,7 +190,9 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
                 for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-                    entry.isDeleteFromCompanion = !checked;
+                    if (getItemById(entry.chatId).getDeleteFromCompanionPermission() == OptionPermission.ALLOW) {
+                        entry.isDeleteFromCompanion = !checked;
+                    }
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
             } else if (position == deleteNewMessagesRow) {
@@ -179,7 +200,9 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
                 for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-                    entry.isDeleteNewMessages = !checked;
+                    if (getItemById(entry.chatId).getDeleteNewMessagesPermission() == OptionPermission.ALLOW) {
+                        entry.isDeleteNewMessages = !checked;
+                    }
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
             } else if (position == deleteAllMyMessagesRow) {
@@ -187,7 +210,9 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
                 for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-                    entry.isClearChat = !checked;
+                    if (getItemById(entry.chatId).getDeleteAllMyMessagesPermission() == OptionPermission.ALLOW) {
+                        entry.isClearChat = !checked;
+                    }
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
             } else if (position == hideDialogRow) {
@@ -199,10 +224,12 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                     changed = true;
                 }
                 for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-                    entry.isExitFromChat = false;
-                    entry.isClearChat = false;
-                    entry.isDeleteFromCompanion = false;
-                    entry.isDeleteNewMessages = false;
+                    if (getItemById(entry.chatId).getHidingPermission() == OptionPermission.ALLOW) {
+                        entry.isExitFromChat = false;
+                        entry.isClearChat = false;
+                        entry.isDeleteFromCompanion = false;
+                        entry.isDeleteNewMessages = false;
+                    }
                 }
                 updateRows();
                 listAdapter.notifyDataSetChanged();
@@ -211,7 +238,9 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 CheckBoxThreeStateCell checkBox = (CheckBoxThreeStateCell) view;
                 boolean checked = checkBox.getState() != CheckBoxSquareThreeState.State.UNCHECKED;
                 for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-                    entry.strictHiding = !checked;
+                    if (getItemById(entry.chatId).getStrictHidingPermission() == OptionPermission.ALLOW) {
+                        entry.strictHiding = !checked;
+                    }
                 }
                 checkBox.setState(checked ? CheckBoxSquareThreeState.State.UNCHECKED : CheckBoxSquareThreeState.State.CHECKED, true);
             }
@@ -270,31 +299,37 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         strictHidingRow = -1;
         strictHidingDetailsRow = -1;
 
-        deleteDialogRow = rowCount++;
+        if (anyItemAllows(Item::getDeletePermission)) {
+            deleteDialogRow = rowCount++;
 
-        if (hasUsers() || hasEncryptedChats()) {
-            deleteFromCompanionRow = rowCount++;
-            deleteFromCompanionDetailsRow = rowCount++;
+            boolean hasDeleteOptions = false;
+            if (anyItemAllows(Item::getDeleteFromCompanionPermission)) {
+                hasDeleteOptions = true;
+                deleteFromCompanionRow = rowCount++;
+                deleteFromCompanionDetailsRow = rowCount++;
+            }
+
+            if (anyItemAllows(Item::getDeleteNewMessagesPermission)) {
+                hasDeleteOptions = true;
+                deleteNewMessagesRow = rowCount++;
+                deleteNewMessagesDetailsRow = rowCount++;
+            }
+
+            if (anyItemAllows(Item::getDeleteAllMyMessagesPermission)) {
+                hasDeleteOptions = true;
+                deleteAllMyMessagesRow = rowCount++;
+                deleteAllMyMessagesDetailsRow = rowCount++;
+            }
+
+            if (!hasDeleteOptions) {
+                deleteDialogDetailsEmptyRow = rowCount++;
+            }
         }
 
-        if (hasUsers()) {
-            deleteNewMessagesRow = rowCount++;
-            deleteNewMessagesDetailsRow = rowCount++;
-        }
+        hideDialogRow = rowCount++;
+        hideDialogDetailsRow = rowCount++;
 
-        if (hasChats()) {
-            deleteAllMyMessagesRow = rowCount++;
-            deleteAllMyMessagesDetailsRow = rowCount++;
-        }
-
-        if (deleteDialogRow == rowCount - 1) {
-            deleteDialogDetailsEmptyRow = rowCount++;
-        }
-
-        if (!hasOnlySavedMessages()) {
-            hideDialogRow = rowCount++;
-            hideDialogDetailsRow = rowCount++;
-
+        if (anyItemAllows(Item::getStrictHidingPermission)) {
             strictHidingRow = rowCount++;
             strictHidingDetailsRow = rowCount++;
         }
@@ -311,8 +346,9 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 removeChatEntries.add(action.get(id).copy());
             } else {
                 String title = item.getDisplayName().toString();
-                boolean isExitFromChat = !fakePasscode.passwordlessMode || id == getUserConfig().clientUserId;
-                removeChatEntries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat));
+                boolean isExitFromChat = !fakePasscode.passwordlessMode || item.getHidingPermission() != OptionPermission.ALLOW;
+                boolean isDeleteNewMessages = isExitFromChat && item.getDeleteNewMessagesPermission() == OptionPermission.ALLOW;
+                removeChatEntries.add(new RemoveChatsAction.RemoveChatEntry(id, title, isExitFromChat, isDeleteNewMessages));
             }
         }
     }
@@ -337,30 +373,16 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         }
     }
 
-    private boolean hasUsers() {
-        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isUserDialog);
+    private boolean anyItemMatch(Predicate<? super Item> predicate) {
+        return items.stream().anyMatch(predicate);
     }
 
-    private boolean hasEncryptedChats() {
-        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(DialogObject::isEncryptedDialog);
+    private boolean anyItemAllows(Function<? super Item, OptionPermission> predicate) {
+        return anyItemMatch(item -> predicate.apply(item) == OptionPermission.ALLOW);
     }
 
-    private boolean hasChats() {
-        return removeChatEntries.stream().map(e -> (long)e.chatId).anyMatch(did -> {
-            if (!DialogObject.isChatDialog(did)) {
-                return false;
-            }
-            TLRPC.Chat chat = getMessagesController().getChat(-did);
-            return !ChatObject.isChannel(chat) || chat.megagroup;
-        });
-    }
-
-    private boolean hasSavedMessages() {
-        return removeChatEntries.stream().anyMatch(e -> e.chatId == getUserConfig().clientUserId);
-    }
-
-    private boolean hasOnlySavedMessages() {
-        return removeChatEntries.size() == 1 && removeChatEntries.get(0).chatId == getUserConfig().clientUserId;
+    private boolean noneItemDenies(Function<? super Item, OptionPermission> predicate) {
+        return !anyItemMatch(item -> predicate.apply(item) == OptionPermission.DENY);
     }
 
     private boolean hasDeleteDialog() {
@@ -394,6 +416,13 @@ public class RemoveChatSettingsFragment extends BaseFragment {
                 || getStrictHidingState() == CheckBoxSquareThreeState.State.INDETERMINATE;
     }
 
+    private Item getItemById(long id) {
+        return items.stream()
+                .filter(item -> item.getId() == id)
+                .findAny()
+                .orElse(null);
+    }
+
     private void confirmExit() {
         if (getParentActivity() == null) {
             return;
@@ -418,15 +447,20 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         return AccountInstance.getInstance(accountNum);
     }
 
-    private CheckBoxSquareThreeState.State getState(Function<RemoveChatsAction.RemoveChatEntry, Boolean> getValue) {
+    private CheckBoxSquareThreeState.State getState(Function<RemoveChatsAction.RemoveChatEntry, Boolean> getValue, Function<Item, OptionPermission> getPermission) {
         CheckBoxSquareThreeState.State state = null;
         for (RemoveChatsAction.RemoveChatEntry entry : removeChatEntries) {
-            CheckBoxSquareThreeState.State newState = getValue.apply(entry)
-                    ? CheckBoxSquareThreeState.State.CHECKED
-                    : CheckBoxSquareThreeState.State.UNCHECKED;
+            CheckBoxSquareThreeState.State newState;
+            if (getPermission.apply(getItemById(entry.chatId)) == OptionPermission.INDIFFERENT) {
+                newState = null;
+            } else {
+                newState = getValue.apply(entry)
+                        ? CheckBoxSquareThreeState.State.CHECKED
+                        : CheckBoxSquareThreeState.State.UNCHECKED;
+            }
             if (state == null) {
                 state = newState;
-            } else if (state != newState) {
+            } else if (newState != null && state != newState) {
                 return CheckBoxSquareThreeState.State.INDETERMINATE;
             }
         }
@@ -434,19 +468,19 @@ public class RemoveChatSettingsFragment extends BaseFragment {
     }
 
     private CheckBoxSquareThreeState.State getDeleteFromCompanionState() {
-        return getState(e -> e.isDeleteFromCompanion);
+        return getState(e -> e.isDeleteFromCompanion, Item::getDeleteFromCompanionPermission);
     }
 
     private CheckBoxSquareThreeState.State getDeleteNewMessagesState() {
-        return getState(e -> e.isDeleteNewMessages);
+        return getState(e -> e.isDeleteNewMessages, Item::getDeleteNewMessagesPermission);
     }
 
     private CheckBoxSquareThreeState.State getDeleteAllMyMessagesState() {
-        return getState(e -> e.isClearChat);
+        return getState(e -> e.isClearChat, Item::getDeleteAllMyMessagesPermission);
     }
 
     private CheckBoxSquareThreeState.State getStrictHidingState() {
-        return getState(e -> e.strictHiding);
+        return getState(e -> e.strictHiding, Item::getStrictHidingPermission);
     }
 
     @Override
@@ -475,13 +509,18 @@ public class RemoveChatSettingsFragment extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            if (position == deleteFromCompanionRow || position == deleteNewMessagesRow
-                    || position == deleteAllMyMessagesRow) {
-                return hasDeleteDialog();
+            if (position == deleteDialogRow) {
+                return noneItemDenies(Item::getDeletePermission);
+            } else if (position == deleteFromCompanionRow) {
+                return hasDeleteDialog() && noneItemDenies(Item::getDeleteFromCompanionPermission);
+            } else if (position == deleteNewMessagesRow) {
+                return hasDeleteDialog() && noneItemDenies(Item::getDeleteNewMessagesPermission);
+            } else if (position == deleteAllMyMessagesRow) {
+                return hasDeleteDialog() && noneItemDenies(Item::getDeleteAllMyMessagesPermission);
             } else if (position == hideDialogRow) {
-                return !hasSavedMessages() && !fakePasscode.replaceOriginalPasscode;
+                return noneItemDenies(Item::getHidingPermission) && !fakePasscode.replaceOriginalPasscode;
             } else if (position == strictHidingRow) {
-                return hasHideDialog();
+                return hasHideDialog() && noneItemDenies(Item::getStrictHidingPermission);
             }
             return true;
         }

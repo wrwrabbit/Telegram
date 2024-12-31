@@ -77,7 +77,9 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -433,6 +435,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private TLRPC.User user;
     private TLRPC.Chat chat;
     private TLRPC.EncryptedChat encryptedChat;
+    private EncryptedGroup encryptedGroup;
     private CharSequence lastPrintString;
     private int printingStringType;
     private boolean draftVoice;
@@ -967,7 +970,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     title = AndroidUtilities.removeDiacritics(ContactsController.formatName(currentUser.first_name, currentUser.last_name).replace('\n', ' '));
                 }
             } else {
-                continue;
+                EncryptedGroup currentEncryptedGroup = messagesController.getEncryptedGroup(DialogObject.getEncryptedChatId(dialog.id));
+                if (currentEncryptedGroup != null) {
+                    title = currentEncryptedGroup.getName();
+                } else {
+                    continue;
+                }
             }
             if (builder.length() > 0) {
                 builder.append(", ");
@@ -1009,7 +1017,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         }
         if (isDialogCell) {
             boolean needUpdate = updateHelper.update();
-            if (!needUpdate && currentDialogFolderId == 0 && encryptedChat == null) {
+            if (!needUpdate && currentDialogFolderId == 0 && encryptedChat == null && encryptedGroup == null) {
                 return;
             }
         }
@@ -1222,7 +1230,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 }
             }
 
-            if (encryptedChat != null) {
+            if (encryptedChat != null || encryptedGroup != null) {
                 if (currentDialogFolderId == 0) {
                     drawNameLock = true;
                     if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
@@ -1417,6 +1425,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     messageString = LocaleController.getString(R.string.EncryptedChatStartedIncoming);
                                 }
                             }
+                        } else if (encryptedGroup != null && encryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+                            currentMessagePaint = Theme.dialogs_messagePrintingPaint[paintIndex];
+                            messageString = EncryptedGroupUtils.getGroupStateDescription(encryptedGroup.getState());
                         } else {
                             if (dialogsType == DialogsActivity.DIALOGS_TYPE_FORWARD && UserObject.isUserSelf(user)) {
                                 messageString = LocaleController.getString(parentFragment != null && parentFragment.isQuote ? R.string.SavedMessagesInfoQuote : R.string.SavedMessagesInfo);
@@ -1946,6 +1957,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     } else {
                         nameString = AndroidUtilities.removeDiacritics(UserObject.getUserName(user, currentAccount));
                     }
+                } else if (encryptedGroup != null) {
+                    nameString = encryptedGroup.getName();
                 }
                 if (nameString != null && nameString.length() == 0) {
                     nameString = LocaleController.getString(R.string.HiddenName);
@@ -2863,6 +2876,14 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     if (mask == 0) {
                         clearingDialog = MessagesController.getInstance(currentAccount).isClearingDialog(dialog.id);
                         ArrayList<MessageObject> newMessage = MessagesController.getInstance(currentAccount).dialogMessage.get(dialog.id);
+                        if (DialogObject.isEncryptedDialog(dialog.id)) {
+                            int encryptedChatId = DialogObject.getEncryptedChatId(dialog.id);
+                            EncryptedGroup tempEncryptedGroup = MessagesController.getInstance(currentAccount).getEncryptedGroup(encryptedChatId);
+                            if (tempEncryptedGroup != null && tempEncryptedGroup.getState() != EncryptedGroupState.INITIALIZED) {
+                                newMessage = null;
+                                MessagesController.getInstance(currentAccount).dialogMessage.put(dialog.id, null);
+                            }
+                        }
                         if (newMessage == null || newMessage.isEmpty() || !FakePasscodeUtils.isHideMessage(currentAccount, dialog.id, newMessage.get(0).getId())) {
                             groupMessages = newMessage;
                         }
@@ -3057,6 +3078,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             user = null;
             chat = null;
             encryptedChat = null;
+            encryptedGroup = null;
 
             long dialogId;
             if (currentDialogFolderId != 0) {
@@ -3095,6 +3117,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     encryptedChat = MessagesController.getInstance(currentAccount).getEncryptedChat(DialogObject.getEncryptedChatId(dialogId));
                     if (encryptedChat != null) {
                         user = MessagesController.getInstance(currentAccount).getUser(encryptedChat.user_id);
+                    } else {
+                        encryptedGroup = MessagesController.getInstance(currentAccount).getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
                     }
                 } else if (DialogObject.isUserDialog(dialogId)) {
                     user = MessagesController.getInstance(currentAccount).getUser(dialogId);
@@ -3140,6 +3164,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 } else if (chat != null) {
                     avatarDrawable.setInfo(currentAccount, chat);
                     avatarImage.setForUserOrChat(chat, avatarDrawable);
+                } else if (encryptedGroup != null) {
+                    avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
+                    avatarImage.setImage(null, null, avatarDrawable, null, user, 0);
                 }
             }
 
@@ -3622,7 +3649,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 }
                 if (currentDialogFolderId != 0) {
                     Theme.dialogs_namePaint[paintIndex].setColor(Theme.dialogs_namePaint[paintIndex].linkColor = Theme.getColor(Theme.key_chats_nameArchived, resourcesProvider));
-                } else if (encryptedChat != null || customDialog != null && customDialog.type == 2) {
+                } else if (encryptedChat != null || encryptedGroup != null || customDialog != null && customDialog.type == 2) {
                     Theme.dialogs_namePaint[paintIndex].setColor(Theme.dialogs_namePaint[paintIndex].linkColor = Theme.getColor(Theme.key_chats_secretName, resourcesProvider));
                 } else {
                     Theme.dialogs_namePaint[paintIndex].setColor(Theme.dialogs_namePaint[paintIndex].linkColor = Theme.getColor(Theme.key_chats_name, resourcesProvider));

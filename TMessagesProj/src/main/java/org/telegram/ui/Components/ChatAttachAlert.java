@@ -2729,7 +2729,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             @Override
             protected void extendActionMode(ActionMode actionMode, Menu menu) {
                 if (baseFragment instanceof ChatActivity) {
-                    ChatActivity.fillActionModeMenu(menu, ((ChatActivity) baseFragment).getCurrentEncryptedChat(), true);
+                    ChatActivity.fillActionModeMenu(menu, ((ChatActivity) baseFragment).getCurrentEncryptedChatSingle(), true);
                 }
                 super.extendActionMode(actionMode, menu);
             }
@@ -2858,7 +2858,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             @Override
             protected void extendActionMode(ActionMode actionMode, Menu menu) {
                 if (baseFragment instanceof ChatActivity) {
-                    ChatActivity.fillActionModeMenu(menu, ((ChatActivity) baseFragment).getCurrentEncryptedChat(), true);
+                    ChatActivity.fillActionModeMenu(menu, ((ChatActivity) baseFragment).getCurrentEncryptedChatSingle(), true);
                 }
                 super.extendActionMode(actionMode, menu);
             }
@@ -3445,7 +3445,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 }
                 messageSendPreview.setStars(amount);
             }
-            if (RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat)) {
+            if (RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat, chatActivity.isEncryptedGroup())) {
                 options.add(R.drawable.msg_delete_auto, getString(R.string.DeleteAsRead), () -> {
                     RemoveAfterReadingMessages.load();
                     RemoveAfterReadingMessages.delays.putIfAbsent("" + currentAccount, 5 * 1000);

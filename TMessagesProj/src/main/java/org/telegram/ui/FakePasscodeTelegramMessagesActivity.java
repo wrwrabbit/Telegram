@@ -42,7 +42,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.partisan.Utils;
-import org.telegram.tgnet.TLObject;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -697,6 +697,9 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         }
                     }
                 } else if (DialogObject.isEncryptedDialog(id)) {
+                    if (EncryptedGroupUtils.isInnerEncryptedGroupChat(id, accountNum)) {
+                        continue;
+                    }
                     TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(id));
                     if (encryptedChat != null) {
                         contacts.add(encryptedChat);
@@ -730,6 +733,9 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                         }
                     }
                 } else if (DialogObject.isEncryptedDialog(dialog.id)) {
+                    if (EncryptedGroupUtils.isInnerEncryptedGroupChat(dialog.id, accountNum)) {
+                        continue;
+                    }
                     TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(dialog.id));
                     if (encryptedChat != null && !(encryptedChat instanceof TLRPC.TL_encryptedChatDiscarded)) {
                         contacts.add(encryptedChat);

@@ -8,13 +8,16 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 
 import org.telegram.messenger.AppStartReceiver;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.fakepasscode.results.TelegramMessageResult;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -25,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -95,11 +99,8 @@ public class FakePasscodeUtils {
             return items;
         }
         List<T> filteredItems = items;
-        for (Map.Entry<Integer, RemoveChatsResult> pair : actionsResult.removeChatsResults.entrySet()) {
-            Integer accountNum = pair.getKey();
-            if (accountNum != null && (!account.isPresent() || accountNum.equals(account.get()))) {
-                filteredItems = filteredItems.stream().filter(i -> filter.test(i, pair.getValue())).collect(Collectors.toList());
-            }
+        for (ChatFilter chatFilter : actionsResult.getChatFilters(account)) {
+            filteredItems = filteredItems.stream().filter(i -> filter.test(i, chatFilter)).collect(Collectors.toList());
         }
         if (passcode != null) {
             for (AccountActions actions : passcode.getFilteredAccountActions()) {
@@ -113,7 +114,16 @@ public class FakePasscodeUtils {
     }
 
     public static List<TLRPC.Dialog> filterDialogs(List<TLRPC.Dialog> dialogs, Optional<Integer> account) {
-        return filterItems(dialogs, account, (dialog, filter) -> !filter.isHideChat(Utils.getChatOrUserId(dialog.id, account)));
+        List<TLRPC.Dialog> filteredDialogs = filterItems(dialogs, account, (dialog, filter) -> !filter.isHideChat(Utils.getChatOrUserId(dialog.id, account)));
+        if (!isFakePasscodeActivated() || !account.isPresent()) {
+            return filteredDialogs;
+        }
+
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
+        List<TLRPC.Dialog> filteredDialogsWithoutEncryptedGroups = filteredDialogs.stream()
+                .filter(d -> !messagesStorage.isEncryptedGroup(d.id))
+                .collect(Collectors.toList());
+        return new FilteredArrayList<>(filteredDialogsWithoutEncryptedGroups, filteredDialogs);
     }
 
     public static List<TLRPC.TL_topPeer> filterHints(List<TLRPC.TL_topPeer> hints, int account) {
@@ -137,8 +147,7 @@ public class FakePasscodeUtils {
         if ((passcode == null && actionsResult == null) || peer == null) {
             return false;
         }
-        RemoveChatsResult result = actionsResult.getRemoveChatsResult(account);
-        if (result != null && result.isHidePeer(peer)) {
+        if (actionsResult.getChatFilters(Optional.of(account)).stream().anyMatch(filter -> filter.isHidePeer(peer))) {
             return true;
         }
         if (passcode != null) {
@@ -185,8 +194,7 @@ public class FakePasscodeUtils {
         if (passcode == null && actionsResult == null) {
             return false;
         }
-        RemoveChatsResult result = actionsResult.getRemoveChatsResult(account);
-        if (result != null && result.isHideChat(chatId)) {
+        if (actionsResult.getChatFilters(Optional.of(account)).stream().anyMatch(filter -> filter.isHideChat(chatId))) {
             return true;
         }
         if (passcode != null) {
@@ -203,8 +211,7 @@ public class FakePasscodeUtils {
         if (passcode == null && actionsResult == null) {
             return false;
         }
-        RemoveChatsResult result = actionsResult.getRemoveChatsResult(account);
-        if (result != null && result.isHideFolder(folderId)) {
+        if (actionsResult.getChatFilters(Optional.of(account)).stream().anyMatch(filter -> filter.isHideFolder(folderId))) {
             return true;
         }
         if (passcode != null) {
@@ -293,8 +300,8 @@ public class FakePasscodeUtils {
             return false;
         }
 
-        RemoveChatsResult removeChatsResult = actionsResult.getRemoveChatsResult(accountNum);
-        if (removeChatsResult != null && removeChatsResult.isHideChat(dialogId, strictHiding)) {
+
+        if (actionsResult.getChatFilters(Optional.of(accountNum)).stream().anyMatch(filter -> filter.isHideChat(dialogId, strictHiding))) {
             return true;
         }
         if (passcode != null) {
@@ -419,5 +426,20 @@ public class FakePasscodeUtils {
 
     public static void hideFakePasscodeTraces() {
         Utils.updateMessagesPreview();
+    }
+
+    public static long getMessageDialogId(TLRPC.Message message) {
+        if (message.dialog_id != 0) {
+            return message.dialog_id;
+        } else if (message.from_id != null) {
+            if (message.from_id instanceof TLRPC.TL_peerUser) {
+                return message.from_id.user_id;
+            } else if (message.from_id instanceof TLRPC.TL_peerChannel) {
+                return -message.from_id.channel_id;
+            } else if (message.from_id instanceof TLRPC.TL_peerChat) {
+                return -message.from_id.chat_id;
+            }
+        }
+        return 0;
     }
 }
