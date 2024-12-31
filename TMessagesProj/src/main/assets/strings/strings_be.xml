@@ -14,7 +14,6 @@
     <string name="DeleteFakePasscode">Выдаліць несапраўдны код блакіроўкі</string>
     <string name="ChangeFakePasscodeName">Змяніць назву</string>
     <string name="SendTelegramMessages">Адпраўляць паведамленні ў Telegram</string>
-    <string name="ChangeTelegramMessage">Змяніць паведамленне</string>
     <string name="ChangeMessage">Змяніць паведамленне</string>
     <string name="AreYouSureDeleteFakePasscode">Вы дакладна хочаце выдаліць гэты несапраўдны код блакіроўкі?</string>
     <string name="PasscodeInUse">Гэты код блакіроўкі ужо выкарыстоўваецца</string>
@@ -99,8 +98,8 @@
     <string name="CannotRemoveHiding">Немагчыма прыбраць хаванне</string>
     <string name="CannotHideAllAccounts">Вы не можаце схаваць усе акаўнты. Калі жадаеце схаваць гэты акаўнт, зніміце хаванне ці выхад з іншага акаўнта.</string>
     <string name="CannotHideAllAccountsLogout">Вы не можаце схаваць і наладзіць выхад з усіх акаўнтаў. Калі Вы жадаеце наладзіць выхад з гэтага акаўнта, зніміце хаванне ці выхад з іншага акаўнта.</string>
-    <string name="CannotShowManyAccounts">Вы не можаце пакінуць не схаванымі больш чым %d акаўнта. Калі жадаеце прыбраць хаванне з гэтага акаўнта, схавайце ці наладзьце вызад з іншага акаўнта.</string>
     <string name="CannotHideSingleAccount">Вы не можаце схаваць адзіны акаўнт. Хаванне працуе толькі ў выпадку, калі ў Тэлеграм 2 і больш акаўнта.</string>
+    <string name="CannotShowManyAccounts">Вы не можаце пакінуць не схаванымі больш чым %d акаўнта. Калі жадаеце прыбраць хаванне з гэтага акаўнта, схавайце ці наладзьце вызад з іншага акаўнта.</string>
     <string name="AccountHiddenTitle">Акаўнт будзе хавацца</string>
     <string name="AccountHiddenDescription">Акаўнт будзе хавацца ў некаторых код-паролях. Калі жадаеце, каб хаваліся іншыя акаўнты, наладзьце код-паролі.</string>
     <string name="TooManyAccountsHiddenTitle">Схавана занадта шмат акаўнтаў</string>
@@ -108,6 +107,7 @@
     <string name="SavedChannels">Захаваныя каналы</string>
     <string name="Saved">Захавана</string>
     <string name="PartisanSettings">Партызанскія налады</string>
+    <string name="PartisanSettingsInfo">Наладзьце іншыя опцыі прыкладання.</string>
     <string name="ShowVersion">Паказваць версію</string>
     <string name="ShowVersionInfo">Паказваць версію PTelegram у наладах.</string>
     <string name="ShowId">Паказваць ID</string>
@@ -126,7 +126,6 @@
     <string name="ReactToMessagesInfo">Дазволіць рэагаваць на паведамленні. Калі гэтая опцыя адключана, рэакцыі можна будзе глядзець, але немагчыма будзе націснуць на іх.</string>
     <string name="CutForeignAgentsText">Выразаць тэкст пра іншаагентаў</string>
     <string name="CutForeignAgentsTextInfo">Калі дадзеная опцыя ўключаная, з тэксту паведамленняў і пастоў будзе выразацца апавяшчэнне аб іншаагенце. Калі тэкст пастоў адлюстроўваецца некарэктна, адключыце гэтую опцыю. Пасля пераключэння пажадана ачысціць кэш.</string>
-    <string name="PartisanSettingsInfo">Наладзьце іншыя опцыі прыкладання.</string>
     <string name="ClearSavedChannels">Ачышчаць захаваныя каналы</string>
     <string name="OnScreenLockActionTitle">Дзеянне пры блакаваннi экрана</string>
     <string name="OnScreenLockActionInfo">Калі выбрана \'Згарнуць\', пры разблакіроўцы тэлефона адкрыецца хатні экран. Калі выбрана \'Закрыць\', прыкладанне будзе зачынена і выдалена са спісу адкрытых прыкладанняў. </string>
@@ -261,12 +260,17 @@
     <string name="MigrationErrorAlreadyHasAccountsDescription">Вы ўжо ўвайшлі ў акаўнты ў новым прыкладанні. Калі хочаце перанесці дадзеныя з гэтага прыкладання, выйдзіце з усіх акаўнтаў у новым прыкладанні.</string>
     <string name="MigrationErrorSrcVersionGreaterDescription">Версія новага прыкладання ніжэйшая за версію бягучага. Усталюйце апошнюю версію новага прыкладання і паспрабуйце яшчэ раз. %1$s</string>
     <string name="MigrationErrorSrcVersionOldDescription">Бягучае прыкладанне састарэла і не можа перадаць дадзеныя ў новае прыкладанне. Абнавіце яго і паспрабуйце яшчэ раз.</string>
+    <string name="MigrationErrorSettingsDoNotSuitMaskedAppsDescription">Некаторыя налады бягучага прыкладання не падыходзяць для новага замаскіраванага прыкладання. Выпраўце іх у наладах.</string>
     <string name="MigrationErrorUnknownDescription">Адбылася невядомая памылка. Абнавіце абодва прыкладанні і паспрабуйце яшчэ раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Калі памылка застаецца, калі ласка, звяжыцеся з тэхпадтрымкай Партызанскага Тэлеграма.</string>
+    <string name="IssueInvalidPasscodeTypeDescription">Літарна-лічбавы пароль не дазволены ў гэтым замаскіраваным дадатку. Змяніце яго на 4-цыферны код-пароль.</string>
+    <string name="IssuePasswordlessModeDescription">Несапраўдныя кады блакіроўкі з беспарольным рэжымам не дазволеныя ў замаскіраваным дадатку. Адключыце гэты рэжым у код-паролях або выдаліце гэтыя кады блакіроўкі.</string>
+    <string name="IssueActivateByFingerprintDescription">Кады блакіроўкі з актывацыяй па адбітку пальца не дазволеныя ў замаскіраваным дадатку. Адключыце гэтую опцыю.</string>
+    <string name="PasswordToPinSwitchWarning">Калі ў Вас былі несапраўдныя кады блакіроўкі, якія складаюцца не з 4 лічбаў, іх не атрымаецца ўвесці. Мы рэкамендуем змяніць іх. </string>
     <string name="ContinueMaskedMigrationDescription">Здаецца, Вы выправілі ўсе праблемы. Жадаеце аднавіць міграцыю?</string>
     <string name="NewEncryptedGroup">Новая сакрэтная група</string>
     <string name="AreYouSureClearHistoryWithSecretGroup">Вы ўпэўненыя, што хочаце ачысціць гісторыю чата **%1$s** толькі для сябе? У іншых удзельнікаў яна застанецца даступнай.</string>
-    <string name="AreYouSureDeleteThisSecretGroup">Вы ўпэўненыя, што хочаце выгаліць гэтую сакрэтную групу: **%1$s**?</string>
+    <string name="AreYouSureDeleteThisSecretGroup">Вы ўпэўненыя, што хочаце выдаліць гэтую сакрэтную групу: **%1$s**?</string>
     <string name="CreatingSecretChats">Стварэнне сакрэтных чатаў</string>
     <string name="JoiningNotConfirmed">Далучэнне не пацверджана</string>
     <string name="WaitingForSecretGroupInitializationConfirmation">Чакаем пацверджання ад удзельнікаў</string>
