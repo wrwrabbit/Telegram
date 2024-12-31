@@ -318,6 +318,9 @@ public class TesterSettingsActivity extends BaseFragment {
     private void updateRows() {
         rowCount = 0;
 
+        phoneOverrideRow = -1;
+        forceAllowScreenshotsRow = -1;
+
         sessionTerminateActionWarningRow = rowCount++;
         updateChannelIdRow = rowCount++;
         updateChannelUsernameRow = rowCount++;
@@ -327,14 +330,18 @@ public class TesterSettingsActivity extends BaseFragment {
         rowCount += simpleDataArray.length;
         simpleDataEndRow = rowCount;
         hideDialogIsNotSafeWarningRow = rowCount++;
-        phoneOverrideRow = rowCount++;
+        if (SharedConfig.activatedTesterSettingType >= 2) {
+            phoneOverrideRow = rowCount++;
+        }
         resetSecurityIssuesRow = rowCount++;
         activateAllSecurityIssuesRow = rowCount++;
         editSavedChannelsRow = rowCount++;
         resetUpdateRow = rowCount++;
         checkVerificationUpdatesRow = rowCount++;
         resetVerificationLastCheckTimeRow = rowCount++;
-        forceAllowScreenshotsRow = rowCount++;
+        if (SharedConfig.activatedTesterSettingType >= 2) {
+            forceAllowScreenshotsRow = rowCount++;
+        }
         saveLogcatAfterRestartRow = rowCount++;
         if (BuildVars.DEBUG_PRIVATE_VERSION) {
             showEncryptedChatsFromEncryptedGroupsRow = rowCount++;

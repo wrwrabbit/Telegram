@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.partisan.appmigration.intenthandlers.AbstractIntentHandler;
 import org.telegram.messenger.partisan.appmigration.intenthandlers.MigrationResultHandler;
-import org.telegram.messenger.partisan.appmigration.intenthandlers.SignatureConfirmationHandler;
 import org.telegram.messenger.partisan.appmigration.intenthandlers.ZipHandler;
 import org.telegram.messenger.partisan.appmigration.intenthandlers.ZipRequestHandler;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -16,7 +15,6 @@ import java.util.List;
 
 public class MigrationIntentHandler {
     private static final List<AbstractIntentHandler> handlers = List.of(
-            new SignatureConfirmationHandler(),
             new ZipRequestHandler(),
             new ZipHandler(),
             new MigrationResultHandler()
