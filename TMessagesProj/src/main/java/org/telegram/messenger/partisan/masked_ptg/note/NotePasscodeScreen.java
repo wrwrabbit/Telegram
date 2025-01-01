@@ -168,8 +168,10 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
         if (currentNotePos != -1) {
             noteListSubscreen.notifyNoteEdited(currentNotePos);
         } else {
-            NoteStorage.addNote(currentNote);
-            noteListSubscreen.notifyNoteAdded();
+            if (!currentNote.title.isEmpty() || !currentNote.description.isEmpty()) {
+                NoteStorage.addNote(currentNote);
+                noteListSubscreen.notifyNoteAdded();
+            }
         }
         NoteStorage.saveNotes();
         if (tutorialType != TutorialType.DISABLED) {
