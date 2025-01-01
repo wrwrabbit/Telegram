@@ -291,6 +291,8 @@
     <string name="EnableSecretGroups">Уключыць сакрэтныя групы</string>
     <string name="SecretGroupsEnabled">Сакрэтныя групы ўключаныя</string>
     <string name="EnableSecretGroupsInfo">Сакрэтныя групы дазваляюць размаўляць некалькім карыстальнікам з выкарыстаннем скразнога шыфравання. Каб стварыць сакрэтную групу, уключыце гэты функцыянал пры дапамозе кнопкі вышэй, вярніцеся ў спіс дыялогаў націсніце на іконку алоўка ў правым ніжнім куце і абярыце \"%1$s\".</string>
+    <string name="PermissionDisabledTitle">Дазвол адключаны</string>
+    <string name="PermissionDisabledMessage">Гэты дазвол адключаны ў вашай версіі Партызанскага Тэлеграма.</string>
     <string name="MaskedUpdateWarningMessage">PTelegram адправіць паведамленне боту-зборшчыку з запытам на зборку абнаўлення.</string>
     <string name="MaskedUpdateWarningUnblockBotMessage">Бот будзе разблакаваны!</string>
     <string name="RequestUpdate">Запрасіць Абнаўленне</string>
