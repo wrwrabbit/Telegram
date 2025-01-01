@@ -28,8 +28,10 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -285,7 +287,7 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else if (needPhonebook) {
                     return row != 1;
                 } else {
-                    return row != 3;
+                    return row != (3 + (EncryptedGroupUtils.encryptedGroupsEnabled() ? 2 : 0));
                 }
             } else {
                 if (isEmpty) {
@@ -373,7 +375,7 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                 } else if (needPhonebook) {
                     return 2;
                 } else {
-                    return 4;
+                    return 4 + (EncryptedGroupUtils.encryptedGroupsEnabled() ? 2 : 0);
                 }
             } else {
                 if (isEmpty) {
@@ -616,6 +618,8 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                             textCell.setTextAndIcon(LocaleController.getString(R.string.NewContact), R.drawable.msg_addcontact, false);
                         } else if (position == 2) {
                             textCell.setTextAndIcon(LocaleController.getString(R.string.NewChannel), R.drawable.msg_channel, false);
+                        } else if (position == 4) {
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewEncryptedGroup), R.drawable.msg_groups, false);
                         }
                     }
                 } else {
@@ -675,8 +679,18 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
                     if (position == 1) {
                         return isEmpty ? 5 : 2;
                     }
-                } else if (position == 3) {
-                    return isEmpty ? 5 : 2;
+                } else {
+                    if (EncryptedGroupUtils.encryptedGroupsEnabled()) {
+                        if (position == 3) {
+                            return 5;
+                        } else if (position == 5) {
+                            return isEmpty ? 5 : 2;
+                        }
+                    } else {
+                        if (position == 3) {
+                            return isEmpty ? 5 : 2;
+                        }
+                    }
                 }
             } else {
                 if (isEmpty) {

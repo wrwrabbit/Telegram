@@ -574,6 +574,9 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                     view = new ProfileSearchCell(mContext);
                 } else {
                     DialogCell dialogCell = new DialogCell(parentFragment, mContext, true, false, currentAccount, null);
+                    if (showOpenBotButton()) {
+                        dialogCell.allowBotOpenButton(true, this::onOpenBot);
+                    }
                     dialogCell.setArchivedPullAnimation(pullForegroundDrawable);
                     dialogCell.setPreloader(preloader);
                     dialogCell.setDialogCellDelegate(this);
@@ -1555,5 +1558,13 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
             }
         }
         return 0;
+    }
+
+    protected boolean showOpenBotButton() {
+        return false;
+    }
+
+    protected void onOpenBot(TLRPC.User user) {
+
     }
 }

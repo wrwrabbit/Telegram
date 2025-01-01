@@ -40,6 +40,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
@@ -47,6 +48,8 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Components.ForegroundDetector;
+import org.telegram.ui.Components.Premium.boosts.BoostRepository;
+import org.telegram.ui.IUpdateButton;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
 
@@ -282,6 +285,7 @@ public class ApplicationLoader extends Application {
 
     private static void checkFiledCopiedFromOldTelegram() {
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
+            PartisanLog.d("Remove migration preferences from config");
             SharedConfig.filesCopiedFromOldTelegram = true;
             if (SharedConfig.getPasscodeHash() != null && !SharedConfig.getPasscodeHash().isEmpty()) {
                 SharedConfig.needShowMaskedPasscodeScreenTutorial = true;
@@ -307,9 +311,9 @@ public class ApplicationLoader extends Application {
     public void onCreate() {
         File updaterFilesCopied = new File(getFilesDir(), "updater_files_copied");
         if (updaterFilesCopied.exists()) {
-            if (copyUpdaterDirectory("shared_prefs") | copyUpdaterDirectory("files")) {
-                filesCopiedFromUpdater = true;
-            }
+            filesCopiedFromUpdater = true;
+            copyUpdaterDirectory("shared_prefs");
+            copyUpdaterDirectory("files");
             updaterFilesCopied.delete();
         }
 
@@ -345,6 +349,7 @@ public class ApplicationLoader extends Application {
             } catch (Exception e) {
                 FileLog.e(e);
             }
+            FileLog.d("device = manufacturer=" + Build.MANUFACTURER + ", device=" + Build.DEVICE + ", model=" + Build.MODEL + ", product=" + Build.PRODUCT);
         }
         if (applicationContext == null) {
             applicationContext = getApplicationContext();
@@ -722,6 +727,10 @@ public class ApplicationLoader extends Application {
     }
 
     public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
+        return null;
+    }
+
+    public IUpdateButton takeUpdateButton(Context context) {
         return null;
     }
 

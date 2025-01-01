@@ -11,6 +11,8 @@ package org.telegram.ui.Components;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
+import static java.util.stream.Collectors.toCollection;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -96,11 +98,11 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.SpoofedLinkChecker;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -1223,7 +1225,7 @@ public class AlertsCreator {
         final String scheme = url == null ? null : Uri.parse(url).getScheme();
         SpoofedLinkChecker.SpoofedLinkInfo spoofedLinkInfo = SpoofedLinkChecker.isSpoofedLink(url, fragment, progress);
         if ((Browser.isInternalUrl(url, null) || !ask || "mailto".equalsIgnoreCase(scheme)) && !spoofedLinkInfo.isSpoofed) {
-            Browser.openUrl(fragment.getParentActivity(), Uri.parse(url), inlineReturn == 0, tryTelegraph, forceNotInternalForApps && checkInternalBotApp(url), progress, null, false, true);
+            Browser.openUrl(fragment.getParentActivity(), Uri.parse(url), inlineReturn == 0, tryTelegraph, forceNotInternalForApps && checkInternalBotApp(url), progress, null, false, true, false);
         } else {
             String urlFinal;
             if (punycode) {
@@ -1741,8 +1743,12 @@ public class AlertsCreator {
         }));
     }
 
-    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean canDeleteHistory, MessagesStorage.BooleanCallback onProcessRunnable) {
-        createClearOrDeleteDialogAlert(fragment, clear, false, false, chat, user, secret, false, canDeleteHistory, onProcessRunnable, null);
+    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean canDeleteHistory, Integer encryptedGroupId, MessagesStorage.BooleanCallback onProcessRunnable) {
+        createClearOrDeleteDialogAlert(fragment, clear, false, false, chat, user, secret, false, canDeleteHistory, encryptedGroupId, onProcessRunnable, null);
+    }
+
+    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, Integer encryptedGroupId, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
+        createClearOrDeleteDialogAlert(fragment, clear, chat != null && chat.creator, false, chat, user, secret, checkDeleteForAll, canDeleteHistory, encryptedGroupId, onProcessRunnable, resourcesProvider);
     }
 
     public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, MessagesStorage.BooleanCallback onProcessRunnable) {
@@ -1754,6 +1760,10 @@ public class AlertsCreator {
     }
 
     public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, boolean admin, boolean second, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
+        createClearOrDeleteDialogAlert(fragment, clear, admin, second, chat, user, secret, checkDeleteForAll, canDeleteHistory, null, onProcessRunnable, resourcesProvider);
+    }
+
+    public static void createClearOrDeleteDialogAlert(BaseFragment fragment, boolean clear, boolean admin, boolean second, TLRPC.Chat chat, TLRPC.User user, boolean secret, boolean checkDeleteForAll, boolean canDeleteHistory, Integer encryptedGroupId, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
         if (fragment == null || fragment.getParentActivity() == null || (chat == null && user == null)) {
             return;
         }
@@ -1860,10 +1870,10 @@ public class AlertsCreator {
             lastMessageIsJoined = true;
         }
 
-        if (user != null && user.bot) {
+        if (user != null && user.bot && user.id != UserObject.VERIFY) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
-            cell[0].setText(LocaleController.getString(R.string.BlockBot), "", false, false);
+            cell[0].setText(getString(R.string.BlockBot), "", false, false);
             cell[0].setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
             cell[0].setChecked(deleteForAll[0] = true, false);
             frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));
@@ -1872,20 +1882,22 @@ public class AlertsCreator {
                 deleteForAll[0] = !deleteForAll[0];
                 cell1.setChecked(deleteForAll[0], true);
             });
-        } else if (!second && (secret && !clear || canDeleteInbox) && !UserObject.isDeleted(user) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
+        } else if (!second && (secret && !clear || canDeleteInbox || encryptedGroupId != null && !clear) && (!UserObject.isDeleted(user) || encryptedGroupId != null) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
             if (deleteChatForAll) {
                 deleteForAll[0] = false;
                 if (ChatObject.isChannel(chat) && !chat.megagroup) {
-                    cell[0].setText(LocaleController.getString(R.string.DeleteChannelForAll), "", false, false);
+                    cell[0].setText(getString(R.string.DeleteChannelForAll), "", false, false);
                 } else {
-                    cell[0].setText(LocaleController.getString(R.string.DeleteGroupForAll), "", false, false);
+                    cell[0].setText(getString(R.string.DeleteGroupForAll), "", false, false);
                 }
             } else if (clear) {
-                cell[0].setText(LocaleController.formatString("ClearHistoryOptionAlso", R.string.ClearHistoryOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
+                cell[0].setText(LocaleController.formatString(R.string.ClearHistoryOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
+            } else if (encryptedGroupId != null) {
+                cell[0].setText(LocaleController.getString(R.string.DeleteSecretGroupOptionForMembers), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault, false);
             } else {
-                cell[0].setText(LocaleController.formatString("DeleteMessagesOptionAlso", R.string.DeleteMessagesOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
+                cell[0].setText(LocaleController.formatString(R.string.DeleteMessagesOptionAlso, UserObject.getFirstName(user)), "", !FakePasscodeUtils.isFakePasscodeActivated() && SharedConfig.deleteMessagesForAllByDefault && !admin, false);
             }
             cell[0].setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
             frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));
@@ -1897,7 +1909,11 @@ public class AlertsCreator {
         }
 
         if (user != null) {
-            if (UserObject.isReplyUser(user)) {
+            if (encryptedGroupId != null) {
+                avatarDrawable.setScaleSize(.8f);
+                avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
+                imageView.setImage(null, null, avatarDrawable, user);
+            } else if (UserObject.isReplyUser(user)) {
                 avatarDrawable.setScaleSize(.8f);
                 avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_REPLIES);
                 imageView.setImage(null, null, avatarDrawable, user);
@@ -1928,7 +1944,10 @@ public class AlertsCreator {
         } else {
             if (clear) {
                 if (user != null) {
-                    if (secret) {
+                    if (encryptedGroupId != null) {
+                        EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(encryptedGroupId);
+                        messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretGroup", R.string.AreYouSureClearHistoryWithSecretGroup, encryptedGroup != null ? encryptedGroup.getName() : "")));
+                    } else if (secret) {
                         messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureClearHistoryWithSecretUser", R.string.AreYouSureClearHistoryWithSecretUser, UserObject.getUserName(user, account))));
                     } else {
                         if (user.id == selfUserId) {
@@ -1959,7 +1978,10 @@ public class AlertsCreator {
                     }
                 } else {
                     if (user != null) {
-                        if (secret) {
+                        if (encryptedGroupId != null) {
+                            EncryptedGroup encryptedGroup = MessagesController.getInstance(account).getEncryptedGroup(encryptedGroupId);
+                            messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisSecretGroup", R.string.AreYouSureDeleteThisSecretGroup, encryptedGroup != null ? encryptedGroup.getName() : "")));
+                        } else if (secret) {
                             messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("AreYouSureDeleteThisChatWithSecretUser", R.string.AreYouSureDeleteThisChatWithSecretUser, UserObject.getUserName(user, account))));
                         } else {
                             if (user.id == selfUserId) {
@@ -6076,11 +6098,11 @@ public class AlertsCreator {
         void didPressedNewCard();
     }
 
-    public static void createDeleteMessagesAlert(BaseFragment fragment, TLRPC.User user, TLRPC.Chat chat, TLRPC.EncryptedChat encryptedChat, TLRPC.ChatFull chatInfo, long mergeDialogId, MessageObject selectedMessage, SparseArray<MessageObject>[] selectedMessages, MessageObject.GroupedMessages selectedGroup, int topicId, int mode, TLRPC.ChannelParticipant[] channelParticipants, Runnable onDelete, Runnable hideDim, Theme.ResourcesProvider resourcesProvider) {
+    public static void createDeleteMessagesAlert(BaseFragment fragment, TLRPC.User user, TLRPC.Chat chat, TLRPC.EncryptedChat encryptedChat, TLRPC.ChatFull chatInfo, long mergeDialogId, MessageObject selectedMessage, SparseArray<MessageObject>[] selectedMessages, MessageObject.GroupedMessages selectedGroup, int topicId, int mode, TLRPC.ChannelParticipant[] channelParticipants, Runnable onDelete, Runnable hideDim, Theme.ResourcesProvider resourcesProvider, Map<TLRPC.EncryptedChat, List<MessageObject>> encryptedGroupMessages) {
         final boolean scheduled = mode == ChatActivity.MODE_SCHEDULED;
         final boolean isSavedMessages = mode == ChatActivity.MODE_SAVED;
         final boolean quickReplies = mode == ChatActivity.MODE_QUICK_REPLIES;
-        if (fragment == null || user == null && chat == null && encryptedChat == null) {
+        if (fragment == null || user == null && chat == null && encryptedChat == null && encryptedGroupMessages == null) {
             return;
         }
         Activity activity = fragment.getParentActivity();
@@ -6105,8 +6127,10 @@ public class AlertsCreator {
             dialogId = DialogObject.makeEncryptedDialogId(encryptedChat.id);
         } else if (user != null) {
             dialogId = user.id;
-        } else {
+        } else if (chat != null) {
             dialogId = -chat.id;
+        } else {
+            dialogId = 0;
         }
 
         int currentDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
@@ -6225,7 +6249,7 @@ public class AlertsCreator {
                                 }
                                 progressDialog[0] = null;
 
-                                createDeleteMessagesAlert(fragment, user, chat, encryptedChat, chatInfo, mergeDialogId, selectedMessage, selectedMessages, selectedGroup, topicId, mode, channelParticipantsLoad, onDelete, hideDim, resourcesProvider);
+                                createDeleteMessagesAlert(fragment, user, chat, encryptedChat, chatInfo, mergeDialogId, selectedMessage, selectedMessages, selectedGroup, topicId, mode, channelParticipantsLoad, onDelete, hideDim, resourcesProvider, encryptedGroupMessages);
                             }
                         }));
                     }
@@ -6337,7 +6361,7 @@ public class AlertsCreator {
             }
         }
 
-        DialogInterface.OnClickListener deleteAction = (dialogInterface, i) -> {
+        DialogInterface.OnClickListener originalDeleteAction = (dialogInterface, i) -> {
             ArrayList<Integer> ids = null;
             long thisDialogId = dialogId;
             if (isSavedMessages) {
@@ -6392,6 +6416,29 @@ public class AlertsCreator {
                 onDelete.run();
             }
         };
+
+        DialogInterface.OnClickListener encryptedGroupDeleteAction = (dialogInterface, i) -> {
+            for (Map.Entry<TLRPC.EncryptedChat, List<MessageObject>> dialogEntry : encryptedGroupMessages.entrySet()) {
+                TLRPC.EncryptedChat currentEncryptedChat = dialogEntry.getKey();
+                List<MessageObject> messages = dialogEntry.getValue();
+                ArrayList<Integer> ids = messages.stream()
+                        .map(MessageObject::getId)
+                        .collect(toCollection(ArrayList::new));
+                ArrayList<Long> random_ids = messages.stream()
+                        .filter(m -> m.messageOwner.random_id != 0 && m.type != 10)
+                        .map(m -> m.messageOwner.random_id)
+                        .collect(toCollection(ArrayList::new));
+                MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, currentEncryptedChat,
+                        DialogObject.makeEncryptedDialogId(currentEncryptedChat.id), topicId, deleteForAll[0], mode);
+            }
+            if (onDelete != null) {
+                onDelete.run();
+            }
+        };
+
+        DialogInterface.OnClickListener deleteAction = encryptedGroupMessages != null
+                ? encryptedGroupDeleteAction
+                : originalDeleteAction;
 
         if (isSavedMessages) {
             if (count == 1) {

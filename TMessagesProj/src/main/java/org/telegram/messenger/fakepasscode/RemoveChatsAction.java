@@ -41,17 +41,14 @@ public class RemoveChatsAction extends AccountAction implements NotificationCent
         public boolean strictHiding;
 
         public RemoveChatEntry() {}
-        public RemoveChatEntry(long chatId) {
-            this(chatId, "Unknown", true);
-        }
-        public RemoveChatEntry(long chatId, String title, boolean isExitFromChat) {
+        public RemoveChatEntry(long chatId, String title, boolean isExitFromChat, boolean isDeleteNewMessages) {
             this.chatId = chatId;
-            isClearChat = false;
+            this.isClearChat = false;
             this.isExitFromChat = isExitFromChat;
-            isDeleteNewMessages = isExitFromChat;
-            isDeleteFromCompanion = false;
+            this.isDeleteNewMessages = isDeleteNewMessages;
+            this.isDeleteFromCompanion = false;
             this.title = title;
-            strictHiding = false;
+            this.strictHiding = false;
         }
 
         public RemoveChatEntry copy() {

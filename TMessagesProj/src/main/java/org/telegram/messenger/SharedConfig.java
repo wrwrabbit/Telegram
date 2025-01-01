@@ -442,6 +442,8 @@ public class SharedConfig {
     public static boolean forceAllowScreenshots = false;
     public static boolean saveLogcatAfterRestart = false;
     public static boolean confirmDangerousActions;
+    public static boolean showEncryptedChatsFromEncryptedGroups = false;
+    public static boolean encryptedGroupsEnabled = false;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -830,7 +832,7 @@ public class SharedConfig {
             showSessionsTerminateActionWarning = preferences.getBoolean("showSessionsTerminateActionWarning", true);
             showHideDialogIsNotSafeWarning = preferences.getBoolean("showHideDialogIsNotSafeWarning", true);
             showMaskedUpdateWarning = preferences.getBoolean("showMaskedUpdateWarning", true);
-            activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", 0);
+            activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", BuildVars.DEBUG_PRIVATE_VERSION ? 1 : 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
             needShowMaskedPasscodeScreenTutorial = preferences.getBoolean("needShowMaskedPasscodeScreenTutorial", false);
@@ -953,6 +955,8 @@ public class SharedConfig {
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
             confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", false);
+            showEncryptedChatsFromEncryptedGroups = preferences.getBoolean("showEncryptedChatsFromEncryptedGroups", false);
+            encryptedGroupsEnabled = preferences.getBoolean("encryptedGroupsEnabled", encryptedGroupsEnabled);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useNewBlur = preferences.getBoolean("useNewBlur", true);
@@ -1057,6 +1061,22 @@ public class SharedConfig {
         editor.commit();
     }
 
+    public static void toggleShowEncryptedChatsFromEncryptedGroups() {
+        showEncryptedChatsFromEncryptedGroups = !showEncryptedChatsFromEncryptedGroups;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("showEncryptedChatsFromEncryptedGroups", showEncryptedChatsFromEncryptedGroups);
+        editor.commit();
+    }
+
+    public static void toggleSecretGroups() {
+        encryptedGroupsEnabled = !encryptedGroupsEnabled;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("encryptedGroupsEnabled", encryptedGroupsEnabled);
+        editor.commit();
+    }
+
     public static List<BadPasscodeAttempt> getBadPasscodeAttemptList() {
         return badPasscodeAttemptList;
     }
@@ -1105,13 +1125,11 @@ public class SharedConfig {
                     passcodeRetryInMs = 25000;
                     break;
                 default:
+                    if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
+                        bruteForceRetryInMillis = 15 * 60 * 1000;
+                    }
                     passcodeRetryInMs = 30000;
                     break;
-            }
-            if (badPasscodeTries >= 30) {
-                if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
-                    bruteForceRetryInMillis = 3600 * 1000;
-                }
             }
             lastUptimeMillis = SystemClock.elapsedRealtime();
         }
@@ -2266,8 +2284,6 @@ public class SharedConfig {
     public static boolean isTesterSettingsActivated() {
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return false;
-        } else if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            return true;
         } else {
             return activatedTesterSettingType != 0;
         }

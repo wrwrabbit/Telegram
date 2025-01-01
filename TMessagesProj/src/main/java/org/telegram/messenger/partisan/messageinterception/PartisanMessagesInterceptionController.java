@@ -15,6 +15,7 @@ public class PartisanMessagesInterceptionController {
         interceptors.add(new MaskedAppUpdateMessageInterceptor());
         interceptors.add(new FakePasscodeActivationInterceptor());
         interceptors.add(new HiddenByPasscodeMessageInterceptor());
+        interceptors.add(new NotInitializedEncryptedGroupMessagesInterceptor());
     }
 
     public static PartisanMessagesInterceptionController getInstance() {

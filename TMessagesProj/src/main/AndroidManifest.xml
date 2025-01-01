@@ -574,6 +574,8 @@ e            <intent-filter>
 
         <receiver android:name="org.telegram.messenger.voip.VoIPActionsReceiver" android:exported="false"/>
 
+        <receiver android:name=".ShortcutResultReceiver" android:exported="false"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

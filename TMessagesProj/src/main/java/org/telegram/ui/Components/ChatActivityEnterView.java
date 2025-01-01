@@ -3257,21 +3257,22 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
             TLRPC.User user = getParentFragment().getCurrentUser();
             if (user == null) return;
+            final boolean birthday = getParentFragment().getCurrentUserInfo() != null && BirthdayController.isToday(getParentFragment().getCurrentUserInfo().birthday);
             ArrayList<TLRPC.TL_premiumGiftOption> options = new ArrayList<>(getParentFragment().getCurrentUserInfo().premium_gifts);
             if (options.isEmpty()) {
                 final AlertDialog progressDialog = new AlertDialog(getContext(), AlertDialog.ALERT_TYPE_SPINNER);
+                progressDialog.showDelayed(200);
                 final int reqId = BoostRepository.loadGiftOptions(currentAccount, null, loadedOptions -> {
                     progressDialog.dismiss();
                     loadedOptions = BoostRepository.filterGiftOptions(loadedOptions, 1);
                     loadedOptions = BoostRepository.filterGiftOptionsByBilling(loadedOptions);
-                    new GiftSheet(getContext(), currentAccount, user.id, loadedOptions, null).show();
+                    new GiftSheet(getContext(), currentAccount, user.id, loadedOptions, null).setBirthday(birthday).show();
                 });
                 progressDialog.setOnCancelListener(di -> {
                     parentFragment.getConnectionsManager().cancelRequest(reqId, true);
                 });
-                progressDialog.showDelayed(200);
             } else {
-                new GiftSheet(getContext(), currentAccount, user.id, null, null).show();
+                new GiftSheet(getContext(), currentAccount, user.id, null, null).setBirthday(birthday).show();
             }
         });
     }
@@ -3978,7 +3979,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         createBotWebViewMenuContainer();
         Runnable onRequestWebView = () -> {
             AndroidUtilities.hideKeyboard(this);
-            WebViewRequestProps props = WebViewRequestProps.of(currentAccount, dialog_id, dialog_id, botMenuWebViewTitle, botMenuWebViewUrl, BotWebViewAttachedSheet.TYPE_BOT_MENU_BUTTON, 0, false, null, false, null, null, 0, false);
+            WebViewRequestProps props = WebViewRequestProps.of(currentAccount, dialog_id, dialog_id, botMenuWebViewTitle, botMenuWebViewUrl, BotWebViewAttachedSheet.TYPE_BOT_MENU_BUTTON, 0, false, null, false, null, null, 0, false, false);
             if (LaunchActivity.instance != null && LaunchActivity.instance.getBottomSheetTabs() != null && LaunchActivity.instance.getBottomSheetTabs().tryReopenTab(props) != null) {
                 if (botCommandsMenuButton != null) {
                     botCommandsMenuButton.setOpened(false);
@@ -3994,10 +3995,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         }
                     });
                 });
-                Browser.openAsInternalIntent(getContext(), botMenuWebViewUrl, false, progress);
+                Browser.openAsInternalIntent(getContext(), botMenuWebViewUrl, false, false, progress);
                 return;
             }
-            if (AndroidUtilities.isTablet()) {
+//            if (AndroidUtilities.isTablet() || true) {
                 BotWebViewSheet webViewSheet = new BotWebViewSheet(getContext(), resourcesProvider);
                 webViewSheet.setDefaultFullsize(false);
                 webViewSheet.setNeedsContext(true);
@@ -4008,20 +4009,20 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 if (botCommandsMenuButton != null) {
                     botCommandsMenuButton.setOpened(false);
                 }
-            } else {
-                if (parentFragment != null && parentFragment.getParentActivity() != null) {
-                    BotWebViewAttachedSheet sheet = parentFragment.createBotViewer();
-                    sheet.setDefaultFullsize(false);
-                    sheet.setNeedsContext(false);
-                    sheet.setParentActivity(parentFragment.getParentActivity());
-                    sheet.requestWebView(parentFragment, props);
-                    sheet.show();
-
-                    if (botCommandsMenuButton != null) {
-                        botCommandsMenuButton.setOpened(false);
-                    }
-                }
-            }
+//            } else {
+//                if (parentFragment != null && parentFragment.getParentActivity() != null) {
+//                    BotWebViewAttachedSheet sheet = parentFragment.createBotViewer();
+//                    sheet.setDefaultFullsize(false);
+//                    sheet.setNeedsContext(false);
+//                    sheet.setParentActivity(parentFragment.getParentActivity());
+//                    sheet.requestWebView(parentFragment, props);
+//                    sheet.show();
+//
+//                    if (botCommandsMenuButton != null) {
+//                        botCommandsMenuButton.setOpened(false);
+//                    }
+//                }
+//            }
         };
 
         if (SharedPrefsHelper.isWebViewConfirmShown(currentAccount, dialog_id)) {
@@ -4567,7 +4568,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         MessagesController messagesController = accountInstance.getMessagesController();
         TLRPC.Chat chat = messagesController.getChat(-dialog_id);
         TLRPC.User user = messagesController.getUser(dialog_id);
-        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat);
+        return RemoveAfterReadingMessages.isShowDeleteAfterReadButton(user, chat, parentFragment.isEncryptedGroup());
     }
 
     private void createBotCommandsMenuContainer() {
@@ -5111,7 +5112,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         } else {
             messageEditText.setWindowView(parentActivity.getWindow().getDecorView());
         }
-        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChat() : null;
+        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChatSingle() : null;
         messageEditText.setAllowTextEntitiesIntersection(supportsSendingNewEntities());
         int flags = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         if (isKeyboardSupportIncognitoMode() && encryptedChat != null) {
@@ -6994,7 +6995,23 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     setWebPage(null, true);
                     parentFragment.fallbackFieldPanel();
                 }
-                SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                if (parentFragment != null && parentFragment.isEncryptedGroup()) {
+                    MessageObject replyToMsg = params.replyToMsg;
+                    Integer encryptedGroupId = parentFragment.getEncryptedGroupId();
+                    int virtualMessageId = 0;
+                    if (encryptedGroupId != null) {
+                        virtualMessageId = accountInstance.getMessagesStorage().createEncryptedVirtualMessage(encryptedGroupId);
+                    }
+                    for (TLRPC.EncryptedChat chat : parentFragment.getCurrentEncryptedChatList(true)) {
+                        params.peer = DialogObject.makeEncryptedDialogId(chat.id);
+                        params.replyToMsg = parentFragment.fixEncryptedGroupMessageObjectIfNeed(replyToMsg, params.peer);
+                        params.encryptedGroupId = encryptedGroupId;
+                        params.encryptedGroupVirtualMessageId = virtualMessageId;
+                        SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                    }
+                } else {
+                    SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                }
                 start = end + 1;
             } while (end != text.length());
             return true;
@@ -7014,7 +7031,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     }
 
     private boolean supportsSendingNewEntities() {
-        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChat() : null;
+        TLRPC.EncryptedChat encryptedChat = parentFragment != null ? parentFragment.getCurrentEncryptedChatSingle() : null;
         return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
     }
 
@@ -9971,26 +9988,26 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         return;
                     }
 
-                    final WebViewRequestProps props = WebViewRequestProps.of(currentAccount, messageObject.messageOwner.dialog_id, botId, button.text, button.url, button instanceof TLRPC.TL_keyboardButtonSimpleWebView ? BotWebViewAttachedSheet.TYPE_SIMPLE_WEB_VIEW_BUTTON : BotWebViewAttachedSheet.TYPE_WEB_VIEW_BUTTON, replyMessageObject != null ? replyMessageObject.messageOwner.id : 0, false, null, false, null, null, 0, false);
+                    final WebViewRequestProps props = WebViewRequestProps.of(currentAccount, messageObject.messageOwner.dialog_id, botId, button.text, button.url, button instanceof TLRPC.TL_keyboardButtonSimpleWebView ? BotWebViewAttachedSheet.TYPE_SIMPLE_WEB_VIEW_BUTTON : BotWebViewAttachedSheet.TYPE_WEB_VIEW_BUTTON, replyMessageObject != null ? replyMessageObject.messageOwner.id : 0, false, null, false, null, null, 0, false, false);
                     if (LaunchActivity.instance != null && LaunchActivity.instance.getBottomSheetTabs() != null && LaunchActivity.instance.getBottomSheetTabs().tryReopenTab(props) != null) {
                         if (botCommandsMenuButton != null) {
                             botCommandsMenuButton.setOpened(false);
                         }
                         return;
                     }
-                    if (AndroidUtilities.isTablet()) {
+//                    if (AndroidUtilities.isTablet() || true) {
                         BotWebViewSheet webViewSheet = new BotWebViewSheet(getContext(), resourcesProvider);
                         webViewSheet.setParentActivity(parentActivity);
                         webViewSheet.requestWebView(parentFragment, props);
                         webViewSheet.show();
-                    } else {
-                        BotWebViewAttachedSheet webViewSheet = parentFragment.createBotViewer();
-                        webViewSheet.setDefaultFullsize(false);
-                        webViewSheet.setNeedsContext(true);
-                        webViewSheet.setParentActivity(parentActivity);
-                        webViewSheet.requestWebView(parentFragment, props);
-                        webViewSheet.show();
-                    }
+//                    } else {
+//                        BotWebViewAttachedSheet webViewSheet = parentFragment.createBotViewer();
+//                        webViewSheet.setDefaultFullsize(false);
+//                        webViewSheet.setNeedsContext(true);
+//                        webViewSheet.setParentActivity(parentActivity);
+//                        webViewSheet.requestWebView(parentFragment, props);
+//                        webViewSheet.show();
+//                    }
                 }
             };
             if (SharedPrefsHelper.isWebViewConfirmShown(currentAccount, botId)) {
@@ -10435,7 +10452,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     inputStickerSet.access_hash = stickerSet.access_hash;
                     inputStickerSet.id = stickerSet.id;
                 }
-                StickersAlert alert = new StickersAlert(parentActivity, fragment, inputStickerSet, null, ChatActivityEnterView.this, resourcesProvider);
+                StickersAlert alert = new StickersAlert(parentActivity, fragment, inputStickerSet, null, ChatActivityEnterView.this, resourcesProvider, false);
                 fragment.showDialog(alert);
                 if (edit) {
                     alert.enableEditMode();

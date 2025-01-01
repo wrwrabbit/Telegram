@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -97,6 +98,8 @@ public class TesterSettingsActivity extends BaseFragment {
     private int resetMaskedUpdateTagRow;
     private int forceAllowScreenshotsRow;
     private int saveLogcatAfterRestartRow;
+    private int showEncryptedChatsFromEncryptedGroupsRow;
+    private int enableSecretGroupsRow;
 
     public static boolean showPlainBackup;
 
@@ -299,6 +302,12 @@ public class TesterSettingsActivity extends BaseFragment {
                 SharedConfig.saveLogcatAfterRestart = !SharedConfig.saveLogcatAfterRestart;
                 SharedConfig.saveConfig();
                 ((TextCheckCell) view).setChecked(SharedConfig.saveLogcatAfterRestart);
+            } else if (position == showEncryptedChatsFromEncryptedGroupsRow) {
+                SharedConfig.toggleShowEncryptedChatsFromEncryptedGroups();
+                ((TextCheckCell) view).setChecked(SharedConfig.showEncryptedChatsFromEncryptedGroups);
+            } else if (position == enableSecretGroupsRow) {
+                SharedConfig.toggleSecretGroups();
+                ((TextCheckCell) view).setChecked(SharedConfig.encryptedGroupsEnabled);
             }
         });
 
@@ -346,6 +355,12 @@ public class TesterSettingsActivity extends BaseFragment {
             forceAllowScreenshotsRow = rowCount++;
         }
         saveLogcatAfterRestartRow = rowCount++;
+        if (BuildVars.DEBUG_PRIVATE_VERSION) {
+            showEncryptedChatsFromEncryptedGroupsRow = rowCount++;
+        } else {
+            showEncryptedChatsFromEncryptedGroupsRow = -1;
+        }
+        enableSecretGroupsRow = rowCount++;
     }
 
     @Override
@@ -459,6 +474,12 @@ public class TesterSettingsActivity extends BaseFragment {
                     } else if (position == saveLogcatAfterRestartRow) {
                         textCell.setTextAndCheck("Save logcat after restart",
                                 SharedConfig.saveLogcatAfterRestart, true);
+                    } else if (position == showEncryptedChatsFromEncryptedGroupsRow) {
+                        textCell.setTextAndCheck("Show encrypted chats from encrypted groups",
+                                SharedConfig.showEncryptedChatsFromEncryptedGroups, true);
+                    } else if (position == enableSecretGroupsRow) {
+                        textCell.setTextAndCheck("Secret groups enabled",
+                                SharedConfig.encryptedGroupsEnabled, true);
                     }
                     break;
                 } case 1: {

@@ -4,6 +4,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
 
 import java.lang.reflect.Field;
@@ -158,21 +159,15 @@ class UpdateMessageParser {
     }
 
     private int getLangInaccuracy(String lang) {
-        String userLang = LocaleController.getInstance().getCurrentLocale().getLanguage();
-        if (lang.equals(userLang)) {
+        if (lang.equals(LocaleController.getInstance().getCurrentLocale().getLanguage())) {
             return 0;
-        } else if (lang.equals("ru") && isRu(userLang)) {
+        } else if (lang.equals("ru") && Utils.isRussianAppLanguage()) {
             return 1;
         } else if (lang.equals("en")) {
             return 2;
         } else {
             return 3;
         }
-    }
-
-    private static boolean isRu(String lang) {
-        List<String> ruLangList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
-        return new HashSet<>(ruLangList).contains(lang);
     }
 
     private void addMessageEntities(int start, int end) {
