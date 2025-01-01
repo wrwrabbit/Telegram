@@ -98,7 +98,7 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
     @Override
     public void onNoteClicked(int pos) {
         currentNotePos = pos;
-        editNoteSubscreen.bindNote(NoteStorage.notes.get(pos));
+        editNoteSubscreen.bindNote(NoteStorage.getNote(pos));
         showEditNoteSubscreen();
     }
 
@@ -117,8 +117,7 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
         dialogBuilder.setTitle(LocaleController.getString(R.string.AppName));
         dialogBuilder.setMessage("Delete the note?");
         dialogBuilder.setPositiveButton(LocaleController.getString("Delete", R.string.Delete), (dlg, which) -> {
-            NoteStorage.notes.remove(pos);
-            NoteStorage.saveNotes();
+            NoteStorage.removeNote(pos);
             noteListSubscreen.notifyNoteRemoved(pos);
         });
         dialogBuilder.setNeutralButton(LocaleController.getString("Cancel", R.string.Cancel), null);
@@ -142,6 +141,11 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
     public void onNoteEdited(Note note) {
         currentNote = note; // If passcode fails, onPasscodeError will be called. Otherwise the note with a correct passcode will not be added.
         delegate.passcodeEntered(note.title);
+        int noteIndex = NoteStorage.getNoteIndex(note);
+        if (noteIndex != -1) {
+            NoteStorage.removeNote(noteIndex);
+            noteListSubscreen.notifyNoteRemoved(noteIndex);
+        }
         currentNote = null;
         hideEditNoteSubscreen();
     }
@@ -164,7 +168,7 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
         if (currentNotePos != -1) {
             noteListSubscreen.notifyNoteEdited(currentNotePos);
         } else {
-            NoteStorage.notes.add(currentNote);
+            NoteStorage.addNote(currentNote);
             noteListSubscreen.notifyNoteAdded();
         }
         NoteStorage.saveNotes();

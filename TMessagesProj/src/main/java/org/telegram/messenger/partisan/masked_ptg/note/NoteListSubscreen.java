@@ -111,13 +111,13 @@ class NoteListSubscreen extends FrameLayout {
     }
 
     void notifyNoteAdded() {
-        listAdapter.notifyItemInserted(NoteStorage.notes.size() * 2 - 2);
-        listAdapter.notifyItemInserted(NoteStorage.notes.size() * 2 - 1);
+        listAdapter.notifyItemInserted(NoteStorage.getNotesCount() * 2 - 2);
+        listAdapter.notifyItemInserted(NoteStorage.getNotesCount() * 2 - 1);
     }
 
     void notifyNoteRemoved(int pos) {
         listAdapter.notifyItemRemoved(pos * 2);
-        if (pos < NoteStorage.notes.size()) {
+        if (pos < NoteStorage.getNotesCount()) {
             listAdapter.notifyItemInserted(pos * 2 + 1);
         }
     }
@@ -146,10 +146,10 @@ class NoteListSubscreen extends FrameLayout {
 
         @Override
         public int getItemCount() {
-            if (NoteStorage.notes.isEmpty()) {
+            if (NoteStorage.getNotesCount() == 0) {
                 return 0;
             } else {
-                return NoteStorage.notes.size() * 2 - 1;
+                return NoteStorage.getNotesCount() * 2 - 1;
             }
         }
 
@@ -173,7 +173,7 @@ class NoteListSubscreen extends FrameLayout {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
                 case 0: {
-                    Note note = NoteStorage.notes.get(position / 2);
+                    Note note = NoteStorage.getNote(position / 2);
                     NoteCell textCell = (NoteCell) holder.itemView;
                     textCell.setTitleAndDescription(note.title, note.description);
                     break;

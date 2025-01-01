@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class NoteStorage {
-    public static List<Note> notes;
+    private static List<Note> notes;
 
     private static class NoteListWrapper {
         public List<Note> notes;
@@ -58,5 +58,27 @@ class NoteStorage {
         notes.add(new Note("Recipe - Spaghetti Carbonara", "Ingredients - spaghetti, eggs, pancetta, Parmesan cheese, black pepper. Steps - cook spaghetti, fry pancetta, mix eggs and cheese, combine all ingredients."));
         notes.add(new Note("Book Summary - \"The Alchemist\" by Paulo Coelho", "Follows the journey of a shepherd named Santiago as he seeks his Personal Legend. Themes include destiny, following one's dreams, and the importance of listening to one's heart."));
         return notes;
+    }
+
+    public static Note getNote(int pos) {
+        return notes.get(pos);
+    }
+
+    public static void addNote(Note note) {
+        notes.add(note);
+        saveNotes();
+    }
+
+    public static void removeNote(int pos) {
+        notes.remove(pos);
+        saveNotes();
+    }
+
+    public static int getNotesCount() {
+        return notes.size();
+    }
+
+    public static int getNoteIndex(Note note) {
+        return notes.indexOf(note);
     }
 }
