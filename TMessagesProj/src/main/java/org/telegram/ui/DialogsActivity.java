@@ -10944,7 +10944,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
                 if (fileName.equals(name)) {
                     updateMenuButton(true);
-                    updateAppUpdateViews(true);
+                    updateButton.update(true);
                 }
             }
         } else if (id == NotificationCenter.onDatabaseMigration) {
