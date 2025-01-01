@@ -4215,9 +4215,16 @@ public class MessagesStorage extends BaseController {
                         cursor2.dispose();
                         cursor2 = null;
 
-                        database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
-                        if (did == getUserConfig().getClientUserId()) {
-                            database.executeFast("DELETE FROM messages_topics WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
+                        if (SharedConfig.encryptedGroupsEnabled && EncryptedGroupUtils.isInnerEncryptedGroupChat(did, currentAccount)){
+                            database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did).stepThis().dispose();
+                            if (did == getUserConfig().getClientUserId()) {
+                                database.executeFast("DELETE FROM messages_topics WHERE uid = " + did).stepThis().dispose();
+                            }
+                        } else {
+                            database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
+                            if (did == getUserConfig().getClientUserId()) {
+                                database.executeFast("DELETE FROM messages_topics WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
+                            }
                         }
                         database.executeFast("DELETE FROM messages_holes WHERE uid = " + did).stepThis().dispose();
                         database.executeFast("DELETE FROM bot_keyboard WHERE uid = " + did).stepThis().dispose();
