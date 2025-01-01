@@ -10,6 +10,7 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -20,6 +21,8 @@ import org.telegram.messenger.partisan.masked_ptg.TutorialType;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+
+import java.util.LinkedList;
 
 public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
         implements NoteListSubscreen.NoteListSubscreenDelegate
@@ -141,13 +144,34 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
     public void onNoteEdited(Note note) {
         currentNote = note; // If passcode fails, onPasscodeError will be called. Otherwise the note with a correct passcode will not be added.
         delegate.passcodeEntered(note.title);
-        int noteIndex = NoteStorage.getNoteIndex(note);
-        if (noteIndex != -1) {
-            NoteStorage.removeNote(noteIndex);
-            noteListSubscreen.notifyNoteRemoved(noteIndex);
+        if (currentNote != null) {
+            removeNotesWithTitleLikePassword(note.title);
+            currentNote = null;
         }
-        currentNote = null;
         hideEditNoteSubscreen();
+    }
+
+    private void removeNotesWithTitleLikePassword(String password) {
+        for (int i = NoteStorage.getNotesCount() - 1; i >= 0; i--) {
+            Note note = NoteStorage.getNote(i);
+            if (note.title.equals(password) || note.description.isEmpty() && stringAlmostEqualToPassword(note.title, password)) {
+                NoteStorage.removeNote(i);
+                noteListSubscreen.notifyNoteRemoved(i);
+            }
+        }
+    }
+
+    private boolean stringAlmostEqualToPassword(String str, String password) {
+        if (str.length() > password.length() * 1.25) {
+            return false;
+        }
+        DiffMatchPatch diffMatchPatch = new DiffMatchPatch();
+        int equalLength = diffMatchPatch.diffMain(str.toLowerCase(), password.toLowerCase(), false)
+                .stream()
+                .filter(diff -> diff.operation == DiffMatchPatch.Operation.EQUAL)
+                .mapToInt(diff -> diff.text.length())
+                .sum();
+        return equalLength >= password.length() * 0.75; // The string contains 75% of the password
     }
 
     private void hideEditNoteSubscreen() {
@@ -167,13 +191,14 @@ public class NotePasscodeScreen extends AbstractMaskedPasscodeScreen
     public void onPasscodeError() {
         if (currentNotePos != -1) {
             noteListSubscreen.notifyNoteEdited(currentNotePos);
+            NoteStorage.saveNotes();
         } else {
             if (!currentNote.title.isEmpty() || !currentNote.description.isEmpty()) {
                 NoteStorage.addNote(currentNote);
                 noteListSubscreen.notifyNoteAdded();
             }
         }
-        NoteStorage.saveNotes();
+        currentNote = null;
         if (tutorialType != TutorialType.DISABLED) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(LocaleController.getString(R.string.MaskedPasscodeScreen_Tutorial));
