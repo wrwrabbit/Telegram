@@ -10372,9 +10372,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
                         if (gif instanceof TLRPC.Document) {
                             TLRPC.Document document = (TLRPC.Document) gif;
-                            parentFragment.forEachActiveDialogId(dialog_id -> {
-                                SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
-                            });
+                            SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                             MediaDataController.getInstance(currentAccount).addRecentGif(document, (int) (System.currentTimeMillis() / 1000), true);
                             if (DialogObject.isEncryptedDialog(dialog_id)) {
                                 accountInstance.getMessagesController().saveGif(parent, document);
@@ -10397,13 +10395,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                             params.put("force_gif", "1");
 
                             if (storyItem == null) {
-                                parentFragment.forEachActiveDialogId(dialog_id -> {
-                                    SendMessagesHelper.prepareSendingBotContextResult(parentFragment, accountInstance, result, params, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, notify, scheduleDate, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
-                                });
+                                SendMessagesHelper.prepareSendingBotContextResult(parentFragment, accountInstance, result, params, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, notify, scheduleDate, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                             } else {
-                                parentFragment.forEachActiveDialogId(dialog_id -> {
-                                    SendMessagesHelper.getInstance(currentAccount).sendSticker(result.document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
-                                });
+                                SendMessagesHelper.getInstance(currentAccount).sendSticker(result.document, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, null, notify, scheduleDate, false, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                             }
                             if (searchingType != 0) {
                                 setSearchingTypeInternal(0, true);
@@ -10667,9 +10661,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
                 setStickersExpanded(false, true, false);
                 TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
-                parentFragment.forEachActiveDialogId(dialog_id -> {
-                    SendMessagesHelper.getInstance(currentAccount).sendSticker(sticker, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, sendAnimationData, notify, scheduleDate, parent instanceof TLRPC.TL_messages_stickerSet, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
-                });
+                SendMessagesHelper.getInstance(currentAccount).sendSticker(sticker, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, sendAnimationData, notify, scheduleDate, parent instanceof TLRPC.TL_messages_stickerSet, parent, parentFragment != null ? parentFragment.quickReplyShortcut : null, parentFragment != null ? parentFragment.getQuickReplyId() : 0);
                 if (delegate != null) {
                     delegate.onMessageSend(null, true, scheduleDate);
                 }

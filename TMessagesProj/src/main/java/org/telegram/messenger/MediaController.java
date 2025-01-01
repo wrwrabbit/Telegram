@@ -4270,13 +4270,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     audioToSend.attributes.add(attributeAudio);
                     if (duration > 700) {
                         if (send == 1) {
-                            raiseChat.forEachActiveDialogId(recordDialogId -> {
-                                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, recordingAudioFileToSend.getAbsolutePath(), recordDialogId, recordReplyingMsg, recordReplyingTopMsg, null, null, null, null, notify, scheduleDate, once ? 0x7FFFFFFF : 0, null, null, false);
-                                params.replyToStoryItem = recordReplyingStory;
-                                params.quick_reply_shortcut = recordQuickReplyShortcut;
-                                params.quick_reply_shortcut_id = recordQuickReplyShortcutId;
-                                SendMessagesHelper.getInstance(recordingCurrentAccount).sendMessage(params);
-                            });
+                            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, recordingAudioFileToSend.getAbsolutePath(), recordDialogId, recordReplyingMsg, recordReplyingTopMsg, null, null, null, null, notify, scheduleDate, once ? 0x7FFFFFFF : 0, null, null, false);
+                            params.replyToStoryItem = recordReplyingStory;
+                            params.quick_reply_shortcut = recordQuickReplyShortcut;
+                            params.quick_reply_shortcut_id = recordQuickReplyShortcutId;
+                            SendMessagesHelper.getInstance(recordingCurrentAccount).sendMessage(params);
                         }
                         NotificationCenter.getInstance(recordingCurrentAccount).postNotificationName(NotificationCenter.audioDidSent, recordingGuid, send == 2 ? audioToSend : null, send == 2 ? recordingAudioFileToSend.getAbsolutePath() : null);
                     } else {

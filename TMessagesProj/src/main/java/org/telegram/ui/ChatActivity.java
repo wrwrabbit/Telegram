@@ -12224,13 +12224,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     updateStickersOrder = photos.get(0).updateStickersOrder;
                                 }
                                 final boolean updateStickersOrderFinal = updateStickersOrder;
-                                forEachActiveDialogId(dialog_id -> {
-                                    if (autoDeleteDelay != null) {
-                                        SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrderFinal, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
-                                    } else {
-                                        SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrderFinal, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia);
-                                    }
-                                });
+                                if (autoDeleteDelay != null) {
+                                    SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrderFinal, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
+                                } else {
+                                    SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, button == 4 || forceDocument, arg, editingMessageObject, notify, scheduleDate, chatMode, updateStickersOrderFinal, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia);
+                                }
                             }
                             afterMessageSend();
                             chatActivityEnterView.setFieldText("");
@@ -13466,9 +13464,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             getSendMessagesHelper().sendMessage(fmessages, dialog_id, false, false, true, 0);
             final String captionFinal = caption;
-            forEachActiveDialogId(dialog_id -> {
-                SendMessagesHelper.prepareSendingDocuments(getAccountInstance(), files, files, null, captionFinal, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, scheduleDate, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
-            });
+            SendMessagesHelper.prepareSendingDocuments(getAccountInstance(), files, files, null, captionFinal, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, scheduleDate, null, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
             afterMessageSend();
         }
     }
@@ -13476,9 +13472,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     @Override
     public void didSelectPhotos(ArrayList<SendMessagesHelper.SendingMediaInfo> photos, boolean notify, int scheduleDate) {
         fillEditingMediaWithCaption(photos.get(0).caption, photos.get(0).entities);
-        forEachActiveDialogId(dialog_id -> {
-            SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, true, false, editingMessageObject, notify, scheduleDate, chatMode, photos.get(0).updateStickersOrder, null, quickReplyShortcut, getQuickReplyId(), 0, false);
-        });
+        SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, true, false, editingMessageObject, notify, scheduleDate, chatMode, photos.get(0).updateStickersOrder, null, quickReplyShortcut, getQuickReplyId(), 0, false);
         afterMessageSend();
         if (scheduleDate != 0) {
             if (scheduledMessagesCount == -1) {
@@ -19181,15 +19175,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         fillEditingMediaWithCaption(null, null);
         if (sendAsUri) {
             Uri finalUri = uri;
-            forEachActiveDialogId(dialog_id -> {
-                SendMessagesHelper.prepareSendingDocument(getAccountInstance(), null, null, finalUri, null, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, schedule_date, null, quickReplyShortcut, getQuickReplyId(), false);
-            });
+            SendMessagesHelper.prepareSendingDocument(getAccountInstance(), null, null, finalUri, null, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, schedule_date, null, quickReplyShortcut, getQuickReplyId(), false);
         } else {
             String finalTempPath = tempPath;
             String finalOriginalPath = originalPath;
-            forEachActiveDialogId(dialog_id -> {
-                SendMessagesHelper.prepareSendingDocument(getAccountInstance(), finalTempPath, finalOriginalPath, null, null, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, schedule_date, null, quickReplyShortcut, getQuickReplyId(), false);
-            });
+            SendMessagesHelper.prepareSendingDocument(getAccountInstance(), finalTempPath, finalOriginalPath, null, null, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, editingMessageObject, notify, schedule_date, null, quickReplyShortcut, getQuickReplyId(), false);
         }
         hideFieldPanel(false);
     }
@@ -33344,12 +33334,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override
     public void didSelectLocation(TLRPC.MessageMedia location, int locationType, boolean notify, int scheduleDate) {
-        forEachActiveDialogId(dialog_id -> {
-            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(location, dialog_id, replyingMessageObject, getThreadMessage(), null, null, notify, scheduleDate);
-            params.quick_reply_shortcut = quickReplyShortcut;
-            params.quick_reply_shortcut_id = getQuickReplyId();
-            getSendMessagesHelper().sendMessage(params);
-        });
+        SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(location, dialog_id, replyingMessageObject, getThreadMessage(), null, null, notify, scheduleDate);
+        params.quick_reply_shortcut = quickReplyShortcut;
+        params.quick_reply_shortcut_id = getQuickReplyId();
+        getSendMessagesHelper().sendMessage(params);
         if (chatMode == 0) {
             moveScrollToLastMessage(false);
         }
@@ -33454,50 +33442,44 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     public void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, long effectId, boolean invertMedia, Integer autoDeleteDelay) {
         if (checkSlowModeAlert()) {
             fillEditingMediaWithCaption(caption, null);
-            forEachActiveDialogId(dialog_id -> {
-                SendMessagesHelper.prepareSendingAudioDocuments(getAccountInstance(), audios, caption != null ? caption : null, dialog_id, replyingMessageObject, getThreadMessage(), null, notify, scheduleDate, editingMessageObject, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
-            });
+            SendMessagesHelper.prepareSendingAudioDocuments(getAccountInstance(), audios, caption != null ? caption : null, dialog_id, replyingMessageObject, getThreadMessage(), null, notify, scheduleDate, editingMessageObject, quickReplyShortcut, getQuickReplyId(), effectId, invertMedia, autoDeleteDelay);
             afterMessageSend();
         }
     }
 
     public void sendContact(TLRPC.User user, boolean notify, int scheduleDate, long effectId, boolean invertMedia) {
         if (checkSlowModeAlert()) {
-            forEachActiveDialogId(dialog_id -> {
-                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, replyingMessageObject, getThreadMessage(), null, null, notify, scheduleDate);
-                params.quick_reply_shortcut = quickReplyShortcut;
-                params.quick_reply_shortcut_id = getQuickReplyId();
-                params.effect_id = effectId;
-                params.invert_media = invertMedia;
-                getSendMessagesHelper().sendMessage(params);
-                afterMessageSend();
-            });
+            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, replyingMessageObject, getThreadMessage(), null, null, notify, scheduleDate);
+            params.quick_reply_shortcut = quickReplyShortcut;
+            params.quick_reply_shortcut_id = getQuickReplyId();
+            params.effect_id = effectId;
+            params.invert_media = invertMedia;
+            getSendMessagesHelper().sendMessage(params);
+            afterMessageSend();
         }
     }
 
     public void sendContacts(ArrayList<TLRPC.User> users, String caption, boolean notify, int scheduleDate, long effectId, boolean invertMedia) {
         if (checkSlowModeAlert()) {
-            forEachActiveDialogId(dialog_id -> {
-                long localEffectId = effectId;
-                if (!TextUtils.isEmpty(caption)) {
-                    SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(caption, dialog_id, null, null, null, true, null, null, null, true, 0, null, false);
-                    params.quick_reply_shortcut = quickReplyShortcut;
-                    params.quick_reply_shortcut_id = getQuickReplyId();
-                    params.effect_id = localEffectId;
-                    params.invert_media = invertMedia;
-                    localEffectId = 0;
-                    SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
-                }
-                for (TLRPC.User user : users) {
-                    SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, null, null, null, null, notify, scheduleDate);
-                    params.quick_reply_shortcut = quickReplyShortcut;
-                    params.quick_reply_shortcut_id = getQuickReplyId();
-                    params.effect_id = localEffectId;
-                    params.invert_media = invertMedia;
-                    localEffectId = 0;
-                    getSendMessagesHelper().sendMessage(params);
-                }
-            });
+            long localEffectId = effectId;
+            if (!TextUtils.isEmpty(caption)) {
+                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(caption, dialog_id, null, null, null, true, null, null, null, true, 0, null, false);
+                params.quick_reply_shortcut = quickReplyShortcut;
+                params.quick_reply_shortcut_id = getQuickReplyId();
+                params.effect_id = localEffectId;
+                params.invert_media = invertMedia;
+                localEffectId = 0;
+                SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+            }
+            for (TLRPC.User user : users) {
+                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(user, dialog_id, null, null, null, null, notify, scheduleDate);
+                params.quick_reply_shortcut = quickReplyShortcut;
+                params.quick_reply_shortcut_id = getQuickReplyId();
+                params.effect_id = localEffectId;
+                params.invert_media = invertMedia;
+                localEffectId = 0;
+                getSendMessagesHelper().sendMessage(params);
+            }
             afterMessageSend();
         }
     }
@@ -33523,17 +33505,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }, 3000);
         }
         fillEditingMediaWithCaption(photoEntry.caption, photoEntry.entities);
-        forEachActiveDialogId(dialog_id -> {
-            if (photoEntry.isVideo) {
-                SendMessagesHelper.prepareSendingVideo(getAccountInstance(), photoEntry.path, videoEditedInfo, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, photoEntry.entities, photoEntry.ttl, editingMessageObject, notify, scheduleDate, forceDocument, photoEntry.hasSpoiler, photoEntry.caption, quickReplyShortcut, getQuickReplyId(), photoEntry.effectId);
-            } else {
-                if (photoEntry.imagePath != null) {
-                    SendMessagesHelper.prepareSendingPhoto(getAccountInstance(), photoEntry.imagePath, photoEntry.thumbPath, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, photoEntry.entities, photoEntry.stickers, null, photoEntry.ttl, editingMessageObject, videoEditedInfo, notify, scheduleDate, 0, forceDocument, photoEntry.caption, quickReplyShortcut, getQuickReplyId(), photoEntry.effectId);
-                } else if (photoEntry.path != null) {
-                    SendMessagesHelper.prepareSendingPhoto(getAccountInstance(), photoEntry.path, photoEntry.thumbPath, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, photoEntry.entities, photoEntry.stickers, null, photoEntry.ttl, editingMessageObject, videoEditedInfo, notify, scheduleDate, 0, forceDocument, photoEntry.caption, quickReplyShortcut, getQuickReplyId(), photoEntry.effectId);
-                }
+        if (photoEntry.isVideo) {
+            SendMessagesHelper.prepareSendingVideo(getAccountInstance(), photoEntry.path, videoEditedInfo, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, photoEntry.entities, photoEntry.ttl, editingMessageObject, notify, scheduleDate, forceDocument, photoEntry.hasSpoiler, photoEntry.caption, quickReplyShortcut, getQuickReplyId(), photoEntry.effectId);
+        } else {
+            if (photoEntry.imagePath != null) {
+                SendMessagesHelper.prepareSendingPhoto(getAccountInstance(), photoEntry.imagePath, photoEntry.thumbPath, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, photoEntry.entities, photoEntry.stickers, null, photoEntry.ttl, editingMessageObject, videoEditedInfo, notify, scheduleDate, 0, forceDocument, photoEntry.caption, quickReplyShortcut, getQuickReplyId(), photoEntry.effectId);
+            } else if (photoEntry.path != null) {
+                SendMessagesHelper.prepareSendingPhoto(getAccountInstance(), photoEntry.path, photoEntry.thumbPath, null, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, photoEntry.entities, photoEntry.stickers, null, photoEntry.ttl, editingMessageObject, videoEditedInfo, notify, scheduleDate, 0, forceDocument, photoEntry.caption, quickReplyShortcut, getQuickReplyId(), photoEntry.effectId);
             }
-        });
+        }
         afterMessageSend();
     }
 
@@ -41736,16 +41716,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     public void forEachDialogId(Consumer<Long> action) {
         if (currentEncryptedGroup != null) {
             getCurrentEncryptedChatList(false).stream()
-                    .map(c -> DialogObject.makeEncryptedDialogId(c.id))
-                    .forEach(action);
-        } else {
-            action.accept(dialog_id);
-        }
-    }
-
-    public void forEachActiveDialogId(Consumer<Long> action) {
-        if (currentEncryptedGroup != null) {
-            getCurrentEncryptedChatList(true).stream()
                     .map(c -> DialogObject.makeEncryptedDialogId(c.id))
                     .forEach(action);
         } else {
