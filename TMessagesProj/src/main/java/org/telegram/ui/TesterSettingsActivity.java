@@ -355,11 +355,7 @@ public class TesterSettingsActivity extends BaseFragment {
             forceAllowScreenshotsRow = rowCount++;
         }
         saveLogcatAfterRestartRow = rowCount++;
-        if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            showEncryptedChatsFromEncryptedGroupsRow = rowCount++;
-        } else {
-            showEncryptedChatsFromEncryptedGroupsRow = -1;
-        }
+        showEncryptedChatsFromEncryptedGroupsRow = rowCount++;
         enableSecretGroupsRow = rowCount++;
     }
 

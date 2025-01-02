@@ -418,6 +418,9 @@ public class EncryptedGroupProtocol {
                 if (encryptedChat.history_deleted) {
                     encryptedGroup.removeInnerChat(encryptedChat.id);
                     getMessagesStorage().deleteEncryptedGroupInnerChat(encryptedGroup.getInternalId(), encryptedChat.user_id);
+                    EncryptedGroupUtils.updateEncryptedGroupLastMessage(encryptedGroup.getInternalId(), accountNum);
+                    EncryptedGroupUtils.updateEncryptedGroupUnreadCount(encryptedGroup.getInternalId(), accountNum);
+                    EncryptedGroupUtils.updateEncryptedGroupLastMessageDate(encryptedGroup.getInternalId(), accountNum);
                 } else {
                     InnerEncryptedChat innerChat = encryptedGroup.getInnerChatByEncryptedChatId(encryptedChat.id);
                     innerChat.setState(InnerEncryptedChatState.CANCELLED);
