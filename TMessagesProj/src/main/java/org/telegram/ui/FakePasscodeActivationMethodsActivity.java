@@ -202,7 +202,7 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                 if (getParentActivity() == null) {
                     return;
                 }
-                if (fakePasscode.passwordlessMode) {
+                if (fakePasscode.passwordlessMode || fakePasscode.activateByTimerTime != null) {
                     showTimerDialog(position);
                 } else {
                     showTimerWarningDialog(() -> showTimerDialog(position));
