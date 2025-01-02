@@ -2309,10 +2309,6 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         if (cameraView == null || cameraInitAnimation != null || parentAlert.isDismissed()) {
             return;
         }
-        if (parentAlert.baseFragment instanceof ChatActivity && ((ChatActivity)parentAlert.baseFragment).isEncryptedGroup()) {
-            EncryptedGroupUtils.showNotImplementedDialog(parentAlert.baseFragment);
-            return;
-        }
         cameraView.initTexture();
         if (shouldLoadAllMedia()) {
             tooltipTextView.setVisibility(VISIBLE);
