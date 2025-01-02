@@ -31,6 +31,7 @@ public class AppMigrationDialogs {
             if (AppMigratorPreferences.isMigrationToMaskedPtg()) {
                 AppMigratorPreferences.setInstalledMaskedPtgPackageName(null);
                 AppMigratorPreferences.setInstalledMaskedPtgPackageSignature(null);
+                AppMigratorPreferences.setStep(Step.NOT_STARTED);
             } else {
                 AppMigratorPreferences.updateMaxCancelledInstallationDate();
             }

@@ -11259,7 +11259,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             botShareDialogs = new ArrayList<>();
             if (allowUsers || allowBots) {
-                for (TLRPC.Dialog d : messagesController.dialogsUsersOnly) {
+                for (TLRPC.Dialog d : Utils.filterDialogs(messagesController.dialogsUsersOnly, Optional.of(currentAccount))) {
                     TLRPC.User user = messagesController.getUser(d.id);
                     if (user != null && !UserObject.isUserSelf(user) && (user.bot ? allowBots : allowUsers)) {
                         botShareDialogs.add(d);
@@ -11267,14 +11267,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
             if (allowGroups || (allowLegacyGroups && allowMegagroups)) {
-                for (TLRPC.Dialog d : messagesController.dialogsGroupsOnly) {
+                for (TLRPC.Dialog d : Utils.filterDialogs(messagesController.dialogsGroupsOnly, Optional.of(currentAccount))) {
                     TLRPC.Chat chat = messagesController.getChat(-d.id);
                     if (chat != null && !ChatObject.isChannelAndNotMegaGroup(chat) && messagesController.canAddToForward(d)) {
                         botShareDialogs.add(d);
                     }
                 }
             } else if (allowLegacyGroups || allowMegagroups) {
-                for (TLRPC.Dialog d : messagesController.dialogsGroupsOnly) {
+                for (TLRPC.Dialog d : Utils.filterDialogs(messagesController.dialogsGroupsOnly, Optional.of(currentAccount))) {
                     TLRPC.Chat chat = messagesController.getChat(-d.id);
                     if (chat != null && !ChatObject.isChannelAndNotMegaGroup(chat) && messagesController.canAddToForward(d) && (allowLegacyGroups && !ChatObject.isMegagroup(chat) || allowMegagroups && ChatObject.isMegagroup(chat))) {
                         botShareDialogs.add(d);
@@ -11282,7 +11282,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
             if (allowChannels) {
-                for (TLRPC.Dialog d : messagesController.dialogsChannelsOnly) {
+                for (TLRPC.Dialog d : Utils.filterDialogs(messagesController.dialogsChannelsOnly, Optional.of(currentAccount))) {
                     if (messagesController.canAddToForward(d)) {
                         botShareDialogs.add(d);
                     }
@@ -11295,14 +11295,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             TLRPC.User bot = messagesController.getUser(requestPeerBotId);
             if (requestPeerType instanceof TLRPC.TL_requestPeerTypeUser) {
                 ConcurrentHashMap<Long, TLRPC.User> users = messagesController.getUsers();
-                for (TLRPC.Dialog dialog : messagesController.dialogsUsersOnly) {
+                for (TLRPC.Dialog dialog : Utils.filterDialogs(messagesController.dialogsUsersOnly, Optional.of(currentAccount))) {
                     TLRPC.User user = getMessagesController().getUser(dialog.id);
                     if (meetRequestPeerRequirements(user)) {
                         dialogs.add(dialog);
                     }
                 }
                 for (TLRPC.User user : users.values()) {
-                    if (user != null && !messagesController.dialogs_dict.containsKey(user.id) && meetRequestPeerRequirements(user)) {
+                    if (user != null && !messagesController.dialogs_dict.containsKey(user.id) && meetRequestPeerRequirements(user) && !FakePasscodeUtils.isHideChat(user.id, currentAccount)) {
                         TLRPC.Dialog d = new TLRPC.TL_dialog();
                         d.peer = new TLRPC.TL_peerUser();
                         d.peer.user_id = user.id;
@@ -11313,14 +11313,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else if (requestPeerType instanceof TLRPC.TL_requestPeerTypeChat || requestPeerType instanceof TLRPC.TL_requestPeerTypeBroadcast) {
                 ConcurrentHashMap<Long, TLRPC.Chat> chats = messagesController.getChats();
                 ArrayList<TLRPC.Dialog> sourceDialogs = requestPeerType instanceof TLRPC.TL_requestPeerTypeChat ? messagesController.dialogsGroupsOnly : messagesController.dialogsChannelsOnly;
-                for (TLRPC.Dialog dialog : sourceDialogs) {
+                for (TLRPC.Dialog dialog : Utils.filterDialogs(sourceDialogs, Optional.of(currentAccount))) {
                     TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
                     if (meetRequestPeerRequirements(bot, chat)) {
                         dialogs.add(dialog);
                     }
                 }
                 for (TLRPC.Chat chat : chats.values()) {
-                    if (chat != null && !messagesController.dialogs_dict.containsKey(-chat.id) && meetRequestPeerRequirements(bot, chat)) {
+                    if (chat != null && !messagesController.dialogs_dict.containsKey(-chat.id) && meetRequestPeerRequirements(bot, chat) && !FakePasscodeUtils.isHideChat(chat.id, currentAccount)) {
                         TLRPC.Dialog d = new TLRPC.TL_dialog();
                         if (ChatObject.isChannel(chat)) {
                             d.peer = new TLRPC.TL_peerChannel();

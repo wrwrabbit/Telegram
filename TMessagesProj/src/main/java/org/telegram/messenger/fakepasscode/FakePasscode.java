@@ -439,6 +439,7 @@ public class FakePasscode {
             return;
         }
         SharedConfig.fakePasscodeActivatedIndex = -1;
+        SharedConfig.passcodeSalt = passcodeSalt;
         SharedConfig.setPasscode(passcodeHash);
         SharedConfig.fakePasscodes.remove(this);
     }

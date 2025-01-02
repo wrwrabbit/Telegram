@@ -57,13 +57,18 @@ public class AppMigrator {
     );
 
     private static final String signatureVerificationPublicKey =
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsz15+DMiBNud4pLLdixJ" +
-            "mRNLjqCCDYplCg2ev/UGZGDzEx2mbbV6SLu9z7qYTWgFHhwne0VS5uH4yht3Bq22" +
-            "AAFWNz+T90QtAWl9JvvoYPVGU9/WK2VKTwa7JJMexqm1sLTMlH37+ll2hDeHl1St" +
-            "k0XiwqO8wePqVDelkaNLAIfFqdyo+szAPNeJVAdMKrHcQADluPqyp4ToaKG0n2lN" +
-            "hv4LdGlJhQvFJubWYQ9lGhGpkGnWOGGIq0Y3ztM+SvQmKmZzOhh+Caxtr798FCLl" +
-            "dzmOQbVaU25D04s9j/VBUReFx4h41qP5HTomV5jYJ5pk3erELMiLW5K2/saUqP7E" +
-            "PwIDAQAB";
+            "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAzSwgLeGqIbn1QuBUDCej" +
+            "UrRGrMdAi//Rzef0sGrAuIvRMaTK1l2+DDB2SYhBz1w1ISbTyZysh7TqJ9yNDPtH" +
+            "6BYcLQNHofVnfZ0IyYqdRRBCEaWRwGEekmSwj1+FClBmGlZFuhYm1iT3qLDGQ4IQ" +
+            "LgKGltsWib6A2YL4p52ic2pOyh6Wwy7aIL9yAxNQn0Wbzn70ALQOH1rFab6TmJlh" +
+            "8PLaozW1TwxyaS/udYzMghkMppuFkEix1GxiKD1orL5B6onpRKOzkpaziiaXvkDa" +
+            "yXOdhwuqoWqpSQ7N2ekW5ucUpnTBbGic1vV32v+swxxxOinG6QWzx9tOlhcbv5Ib" +
+            "y3vR6hBnCMh47VjxScvRvXkgN2EX+TC/Ip/lt8p5+uBCatsCywvksTrEjdXkbDIN" +
+            "yWZuCH1NqVueOqc6rKhZ2pZMTURDVw/YcHIIZqtZ4+xn2no9nK4uV1ib/3fEgQSw" +
+            "pgwoKwE/JuFiQch4cwggP1jwbFyW+3STxFcrDWWHXmDy3XryDjMuKUUhL3HRdfXV" +
+            "OB/y0Zr6suBAo7TRVox+7u40+OdOb5tAjMj6RYo5o4CtHTfdaxrs1HwScXU/Oc3Q" +
+            "hxBG6pWvyqnU9Wh7Zxe+0DlooJ1VaMAOX+XksdYD+BNzI8ZqVGdnQLbnnz//59TQ" +
+            "1WEIWst/2YfqGBxznNpxPhkCAwEAAQ==";
 
     private static final String signedAppSignature = null;
 
