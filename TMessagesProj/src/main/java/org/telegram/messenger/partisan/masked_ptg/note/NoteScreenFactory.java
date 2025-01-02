@@ -29,7 +29,7 @@ public class NoteScreenFactory implements IMaskedPasscodeScreenFactory {
 
     @Override
     public boolean allowCallNotification() {
-        return false;
+        return true;
     }
 
     @Override
