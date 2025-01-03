@@ -3572,6 +3572,7 @@ public class NotificationsController extends BaseController {
             preferences.edit().putBoolean("groupsCreated5", true).commit();
             groupsCreated = true;
         }
+        // Removed from masked version
         /*
         if (!channelGroupsCreated) {
             List<NotificationChannelGroup> list = systemNotificationManager.getNotificationChannelGroups();

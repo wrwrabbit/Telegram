@@ -5559,6 +5559,7 @@ public class MediaDataController extends BaseController {
     }
     public void installShortcut(long dialogId, int type, Utilities.Callback<Boolean> callback) {
         try {
+            // Removed from masked version
             if (true) {
                 return;
             }
