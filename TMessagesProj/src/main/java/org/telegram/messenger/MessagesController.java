@@ -58,6 +58,7 @@ import org.telegram.messenger.partisan.Utils;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
@@ -18967,7 +18968,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 if (Build.VERSION.SDK_INT >= 33) {
                                     intent.putExtra("accept", true);
                                     VoIPPreNotificationService.show(ApplicationLoader.applicationContext, intent, call);
-                                } else if (!notificationsDisabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                } else if (!notificationsDisabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && MaskedPtgConfig.allowCallNotification()) {
                                     ApplicationLoader.applicationContext.startForegroundService(intent);
                                 } else {
                                     ApplicationLoader.applicationContext.startService(intent);

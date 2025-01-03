@@ -7,13 +7,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.update.AppVersion;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -23,6 +30,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -31,10 +43,13 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class MigrationZipReceiver {
     public interface ZipReceiverDelegate {
-        void onFinish(String error);
+        void onFinish(String error, Set<String> issues);
     }
 
     private final Activity activity;
@@ -56,9 +71,6 @@ public class MigrationZipReceiver {
             if (finishReceivingMigrationIfNeed()) {
                 return;
             }
-            AndroidUtilities.runOnUIThread(() -> {
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.telegramDataReceived);
-            });
             deleteSharedPrefs();
             ZipInputStream zipStream = createZipStream();
             unpackZip(zipStream);
@@ -84,6 +96,11 @@ public class MigrationZipReceiver {
             finishReceivingMigration("srcVersionGreater");
             return true;
         }
+        Set<String> zipIssues = getZipIssues();
+        if (!zipIssues.isEmpty()) {
+            finishReceivingMigration("settingsDoNotSuitMaskedApps", zipIssues);
+            return true;
+        }
         return false;
     }
 
@@ -91,6 +108,128 @@ public class MigrationZipReceiver {
         String srcVersionString = intent.getStringExtra("version");
         AppVersion srcVersion = AppVersion.parseVersion(srcVersionString);
         return srcVersion == null || srcVersion.greater(AppVersion.getCurrentVersion());
+    }
+
+    private @NonNull Set<String> getZipIssues() {
+        Document config = extractXmlDocumentFromZip("userconfing.xml");
+        if (config == null) {
+            return Collections.emptySet();
+        }
+        Set<String> issues = new HashSet<>();
+        if (!validatePasscodeType(config)) {
+            issues.add(MaskedMigrationIssue.INVALID_PASSCODE_TYPE.toString());
+        }
+        if (!validateMainPasscodeFingerprint(config)) {
+            issues.add(MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT.toString());
+        }
+
+        issues.addAll(getFakePasscodesIssues(config));
+        return issues;
+    }
+
+    private boolean validateMainPasscodeFingerprint(Document config) {
+        if (MaskedPtgConfig.allowFingerprint()) {
+            return true;
+        }
+        String type = getPreferenceValueFromAttribute(config, "boolean", "useFingerprint");
+        return !Objects.equals(type, "true");
+    }
+
+    private boolean validatePasscodeType(Document config) {
+        if (MaskedPtgConfig.allowAlphaNumericPassword()) {
+            return true;
+        }
+        String type = getPreferenceValueFromAttribute(config, "int", "passcodeType");
+        return Objects.equals(type, "0");
+    }
+
+    private String getPreferenceValueFromAttribute(Document config, String nodeType, String name) {
+        Node preferenceNode = getPreferenceNodeFromConfig(config, nodeType, name);
+        if (preferenceNode == null) {
+            return null;
+        }
+        return preferenceNode.getAttributes().getNamedItem("value").getNodeValue();
+    }
+
+    private Node getPreferenceNodeFromConfig(Document config, String nodeType, String name) {
+        NodeList nodeList = config.getElementsByTagName(nodeType);
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node tagNode = nodeList.item(i);
+            if (tagNode.getAttributes().getNamedItem("name").getNodeValue().equals(name)) {
+                return tagNode;
+            }
+        }
+        return null;
+    }
+
+    private @NonNull Set<String> getFakePasscodesIssues(Document config) {
+        List<FakePasscode> fakePasscodes = extractFakePasscodesFromConfig(config);
+        if (fakePasscodes == null) {
+            return Collections.emptySet();
+        }
+        Set<String> issues = new HashSet<>();
+        for (FakePasscode fakePasscode : fakePasscodes) {
+            if (fakePasscode.passwordlessMode) {
+                issues.add(MaskedMigrationIssue.PASSWORDLESS_MODE.toString());
+            }
+            if (!MaskedPtgConfig.allowFingerprint() && fakePasscode.activateByFingerprint) {
+                issues.add(MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT.toString());
+            }
+        }
+        return issues;
+    }
+
+    private List<FakePasscode> extractFakePasscodesFromConfig(Document config) {
+        Node preferenceNode = getPreferenceNodeFromConfig(config, "string", "fakePasscodes");
+        if (preferenceNode == null) {
+            return null;
+        }
+        Node childNode = preferenceNode.getFirstChild();
+        String fakePasscodesString = childNode.getNodeValue();
+        try {
+            SharedConfig.FakePasscodesWrapper wrapper = SharedConfig.fromJson(fakePasscodesString, SharedConfig.FakePasscodesWrapper.class);
+            return wrapper.fakePasscodes;
+        } catch (JsonProcessingException e) {
+            PartisanLog.e("ReceiveDataFromOtherPtg", e);
+            return null;
+        }
+    }
+
+    private Document extractXmlDocumentFromZip(String filename) {
+        try {
+            ZipInputStream zipStream = createZipStream();
+            ZipEntry zipEntry = findZipEntry(filename, zipStream);
+            if (zipEntry == null) {
+                return null;
+            }
+            Document document = readXmlZipEntry(zipStream);
+            zipStream.close();
+            return document;
+        } catch (Exception e) {
+            PartisanLog.e("ReceiveDataFromOtherPtg", e);
+            return null;
+        }
+    }
+
+    private static ZipEntry findZipEntry(String filename, ZipInputStream zipStream) throws IOException {
+        ZipEntry zipEntry = zipStream.getNextEntry();
+        while (zipEntry != null) {
+            if (zipEntry.getName() == null) {
+                continue;
+            }
+            String entryFilename = new File(zipEntry.getName()).getName();
+            if (Objects.equals(entryFilename, filename)) {
+               return zipEntry;
+            }
+            zipEntry = zipStream.getNextEntry();
+        }
+        return null;
+    }
+
+    private static Document readXmlZipEntry(ZipInputStream zipStream) throws IOException, SAXException, ParserConfigurationException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        return documentBuilder.parse(zipStream);
     }
 
     private void deleteSharedPrefs() {
@@ -189,8 +328,12 @@ public class MigrationZipReceiver {
     }
 
     private void finishReceivingMigration(String error) {
+        finishReceivingMigration(error, null);
+    }
+
+    private void finishReceivingMigration(String error, Set<String> issues) {
         if (delegate != null) {
-            delegate.onFinish(error);
+            delegate.onFinish(error, issues);
         }
     }
 

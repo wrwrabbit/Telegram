@@ -42,6 +42,7 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -435,8 +436,10 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     template.title = LocaleController.getString("ChangeMessage", R.string.ChangeMessage);
                     template.addEditTemplate(entry.text, LocaleController.getString("Message", R.string.Message), false);
                     List<View> viewsOutput = new ArrayList<>();
-                    template.addCheckboxTemplate(entry.addGeolocation, LocaleController.getString("AddGeolocation", R.string.AddGeolocation),
-                            getGeolocationCheckboxListener(entry, cell, viewsOutput));
+                    if (MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        template.addCheckboxTemplate(entry.addGeolocation, LocaleController.getString("AddGeolocation", R.string.AddGeolocation),
+                                getGeolocationCheckboxListener(entry, cell, viewsOutput));
+                    }
                     template.positiveListener = views -> {
                         entry.text = ((EditTextCaption)views.get(0)).getText().toString();
                         entry.addGeolocation = ((DialogCheckBox)views.get(1)).isChecked();
@@ -482,11 +485,13 @@ public class FakePasscodeTelegramMessagesActivity extends BaseFragment implement
                     template.title = LocaleController.getString("ChangeMessage", R.string.ChangeMessage);
                     template.addEditTemplate("", LocaleController.getString("Message", R.string.Message), false);
                     List<View> viewsOutput = new ArrayList<>();
-                    template.addCheckboxTemplate(false, LocaleController.getString(R.string.AddGeolocation),
-                            getGeolocationCheckboxListener(id, cell, viewsOutput));
+                    if (MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        template.addCheckboxTemplate(false, LocaleController.getString(R.string.AddGeolocation),
+                                getGeolocationCheckboxListener(id, cell, viewsOutput));
+                    }
                     template.positiveListener = views -> {
                         String message = ((EditTextCaption)views.get(0)).getText().toString();
-                        boolean addGeolocation = ((DialogCheckBox)views.get(1)).isChecked();
+                        boolean addGeolocation = views.size() > 1 && ((DialogCheckBox) views.get(1)).isChecked();
                         action.entries.add(new TelegramMessageAction.Entry(id, message, addGeolocation));
                         SharedConfig.saveConfig();
                         cell.setChecked(true, true);

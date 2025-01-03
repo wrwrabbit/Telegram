@@ -136,6 +136,7 @@ import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.messenger.utils.CustomHtml;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -206,6 +207,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -4090,6 +4092,10 @@ public class AndroidUtilities {
             }
             if (realMimeType != null && realMimeType.equals("application/vnd.android.package-archive")) {
                 if (restrict) return true;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !MaskedPtgUtils.hasPermission(activity, Manifest.permission.REQUEST_INSTALL_PACKAGES)) {
+                    MaskedPtgUtils.createPermissionDisabledDialog(activity).show();
+                    return true;
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ApplicationLoader.applicationContext.getPackageManager().canRequestPackageInstalls()) {
                     AlertsCreator.createApkRestrictedDialog(activity, resourcesProvider).show();
                     return true;

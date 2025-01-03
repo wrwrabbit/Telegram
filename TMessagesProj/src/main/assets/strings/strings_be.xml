@@ -291,4 +291,22 @@
     <string name="EnableSecretGroups">Уключыць сакрэтныя групы</string>
     <string name="SecretGroupsEnabled">Сакрэтныя групы ўключаныя</string>
     <string name="EnableSecretGroupsInfo">Сакрэтныя групы дазваляюць некалькім карыстальнікам размаўляць з выкарыстаннем скразнога шыфравання. Каб стварыць сакрэтную групу, уключыце гэты функцыянал пры дапамозе кнопкі вышэй, вярніцеся ў спіс дыялогаў, націсніце на іконку алоўка ў правым ніжнім куце і абярыце \"%1$s\".</string>
+    <string name="PermissionDisabledTitle">Дазвол адключаны</string>
+    <string name="PermissionDisabledMessage">Гэты дазвол адключаны ў вашай версіі Партызанскага Тэлеграма.</string>
+    <string name="MaskedUpdateWarningMessage">PTelegram адправіць паведамленне боту-зборшчыку з запытам на зборку абнаўлення.</string>
+    <string name="MaskedUpdateWarningUnblockBotMessage">Бот будзе разблакаваны!</string>
+    <string name="RequestUpdate">Запрасіць Абнаўленне</string>
+    <string name="UpdateBuildWaiting">Чаканне зборкі абнаўлення...</string>
+    <string name="MaskedPasscodeScreenInstructionTitle">Інструкцыя</string>
+    <string name="MaskedPasscodeScreenTrainingTitle">Навучанне</string>
+    <string name="MaskedPasscodeScreenDisablePasscode">Адключыць код блакіроўкі</string>
+    <string name="MaskedPasscodeScreenDisablePasscodeMessage">Калі Вы не змаглі разабрацца, як увесці код блакіроўкі, Вы можаце адключыць яго і вярнуць доступ да акаўнтаў і перапісак. Пасля націску кнопкі %1$s прыкладанне будзе разблакавана. Вы зможаце зноўку наладзіць блакаванне прыкладання ў наладах.</string>
+    <string name="LoadingPasscodeScreen_Instruction">Увядзіце код блакіроўкі шляхам націску на розныя часткі экрана.\n\nЗапомніце размяшчэнне лічбаў, якія зараз з'яўляюцца на экране. Вам трэба будзе націскаць у адпаведныя месцы экрана пры разблакіроўцы дадатку. Падказак у выглядзе лічбаў НЕ будзе і Вам неабходна будзе памятаць, дзе лічба была.\n\nТут няма кнопкі "ачысціць". Калі Вы памыліліся з уводам кода блакіроўкі, пачакайце %1$d секунд. Пасля гэтага ўведзеныя лічбы скінуцца і можна будзе паспрабаваць увесці код спачатку.\n\nПры навучанні будзе адлюстроўвацца ўсплывальная падказка з уведзеным кодам блакіроўкі. Пры разблакіроўцы дадатку гэтая падказка паказвацца НЕ будзе.</string>
+    <string name="LoadingPasscodeScreen_PasscodeReset">Код блакіроўкі скінуты пасля %1$d секунд чакання.</string>
+    <string name="LoadingPasscodeScreen_Loading">Загрузка...</string>
+    <string name="NotePasscodeScreen_Instruction">1. Націсніце кнопку стварэння нататкі.\n2. Увядзіце ў назву нататкі Ваш пароль.\n3. Націсніце кнопку дадання нататкі. Калі ўведзены правільны пароль, дадатак разблакуецца. Калі ўведзены няправільны пароль, створыцца нататка з уведзенай назвай.\n\nНататкі захоўваюцца паміж перазапускамі прыкладання. Вы можаце змяніць іх так, каб прыкладанне не выклікала падазрэнняў.</string>
+    <string name="CalculatorPasscodeScreen_Instruction">Увядзіце код блакіроўкі пры дапамозе лічбаў калькулятара.</string>
+    <string name="MaskedPasscodeScreenInstructionShownOnlyOnce">Гэтая інструкцыя паказваецца толькі пры першым запуску прыкладання ці пры першым стварэнні кода блакіроўкі. Пры сапраўдным разблакіроўцы прыкладання яна не будзе паказвацца.</string>
+    <string name="MaskedPasscodeScreen_Tutorial">Навучанне</string>
+    <string name="MaskedPasscodeScreen_WrongPasscode">Вы ўвялі няправільны код блакіроўкі. Паспрабуйце яшчэ раз.</string>
 </resources>

@@ -291,4 +291,22 @@
     <string name="EnableSecretGroups">Увімкнути секретні групи</string>
     <string name="SecretGroupsEnabled">Секретні групи включені</string>
     <string name="EnableSecretGroupsInfo">Секретні групи дозволяють декільком користувачам спілкуватися з використанням наскрізного шифрування. Щоб створити секретну групу, увімкніть цей функціонал за допомогою кнопки вище, поверніться до списку діалогів, натисніть на іконку олівця в правому нижньому кутку та виберіть \"%1$s\".</string>
+    <string name="PermissionDisabledTitle">Дозвіл вимкнено</string>
+    <string name="PermissionDisabledMessage">Цей дозвіл вимкнено у вашій версії Партизанського Телеграма.</string>
+    <string name="MaskedUpdateWarningMessage">PTelegram надішле повідомлення боту-збиральнику із запитом на складання оновлення.</string>
+    <string name="MaskedUpdateWarningUnblockBotMessage">Бот буде розблоковано!</string>
+    <string name="RequestUpdate">Запросити оновлення</string>
+    <string name="UpdateBuildWaiting">Чекання збирання оновлення...</string>
+    <string name="MaskedPasscodeScreenInstructionTitle">Інструкція</string>
+    <string name="MaskedPasscodeScreenTrainingTitle">Навчання</string>
+    <string name="MaskedPasscodeScreenDisablePasscode">Вимкнути код блокування</string>
+    <string name="MaskedPasscodeScreenDisablePasscodeMessage">Якщо Ви не змогли розібратися, як ввести код блокування, Ви можете вимкнути його і повернути доступ до облікових записів і листування. Після натискання кнопки %1$s програма буде розблокована. Ви зможете знову налаштувати блокування програми в налаштуваннях.</string>
+    <string name="LoadingPasscodeScreen_Instruction">Введіть код блокування шляхом натискання на різні частини екрана.\n\nЗапам'ятайте розташування цифр, які зараз відображаються на екрані. Вам потрібно буде натискати у відповідні місця екрана під час розблокування програми. Підказок у вигляді цифр НЕ буде і Вам необхідно пам'ятати, де цифра була.\n\nТут немає кнопки "очистити". Якщо Ви помилилися з введенням код-паролю, зачекайте %1$d секунд. Після цього введені цифри скинуться і можна спробувати ввести код спочатку.\n\nПід час навчання буде відображатися підказка з введеним кодом блокування. Під час розблокування програми ця підказка не відображатиметься.</string>
+    <string name="LoadingPasscodeScreen_PasscodeReset">Код блокування скинутий після %1$d секунд очікування.</string>
+    <string name="LoadingPasscodeScreen_Loading">Завантаження...</string>
+    <string name="NotePasscodeScreen_Instruction">1. Натисніть кнопку створення нотатки.\n2. Введіть у назву нотатки пароль.\n3. Натисніть кнопку додавання нотатки. Якщо введено правильний пароль, програма розблокується. Якщо введено неправильний пароль, буде створено нотатку із зазначеною назвою.\n\nНотатки зберігаються між перезапуском програми. Ви можете змінити їх так, щоб програма не викликала підозр.</string>
+    <string name="CalculatorPasscodeScreen_Instruction">Введіть код блокування за допомогою цифр калькулятора.</string>
+    <string name="MaskedPasscodeScreenInstructionShownOnlyOnce">Ця інструкція відображається лише при першому запуску програми або при першому створенні коду блокування. Під час цього розблокування програми вона не відображатиметься.</string>
+    <string name="MaskedPasscodeScreen_Tutorial">Навчання</string>
+    <string name="MaskedPasscodeScreen_WrongPasscode">Ви ввели неправильний пароль. Спробуйте ще раз.</string>
 </resources>

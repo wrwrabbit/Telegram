@@ -250,7 +250,7 @@ public class SharedConfig {
     private static String passcodeHash = "";
     public static long passcodeRetryInMs;
     public static long lastUptimeMillis;
-    public static boolean bruteForceProtectionEnabled = true;
+    public static boolean bruteForceProtectionEnabled = false;
     public static long bruteForceRetryInMillis = 0;
     public static boolean clearCacheOnLock = true;
     public static int badPasscodeTries;
@@ -428,9 +428,11 @@ public class SharedConfig {
     public static boolean onScreenLockActionClearCache;
     public static boolean showSessionsTerminateActionWarning;
     public static boolean showHideDialogIsNotSafeWarning;
+    public static boolean showMaskedUpdateWarning;
     public static int activatedTesterSettingType;
     public static long updateChannelIdOverride;
     public static String updateChannelUsernameOverride;
+    public static boolean needShowMaskedPasscodeScreenTutorial;
     public static boolean filesCopiedFromOldTelegram;
     public static boolean oldTelegramRemoved;
     public static int runNumber;
@@ -540,6 +542,10 @@ public class SharedConfig {
             if (isRealPasscodeSuccess || fakePasscode != null) {
                 fakePasscodeActivated(fakePasscodes.indexOf(fakePasscode));
             }
+        }
+
+        public static PasscodeCheckResult createFailedResult() {
+            return new PasscodeCheckResult(false, null);
         }
     }
 
@@ -655,6 +661,7 @@ public class SharedConfig {
                 editor.putInt("activatedTesterSettingType", activatedTesterSettingType);
                 editor.putLong("updateChannelIdOverride", updateChannelIdOverride);
                 editor.putString("updateChannelUsernameOverride", updateChannelUsernameOverride);
+                editor.putBoolean("needShowMaskedPasscodeScreenTutorial", needShowMaskedPasscodeScreenTutorial);
                 editor.putBoolean("filesCopiedFromOldTelegram", filesCopiedFromOldTelegram);
                 editor.putBoolean("oldTelegramRemoved", oldTelegramRemoved);
                 editor.putInt("runNumber", runNumber);
@@ -763,7 +770,7 @@ public class SharedConfig {
             passcodeType = preferences.getInt("passcodeType", 0);
             passcodeRetryInMs = preferences.getLong("passcodeRetryInMs", 0);
             lastUptimeMillis = preferences.getLong("lastUptimeMillis", 0);
-            bruteForceProtectionEnabled = preferences.getBoolean("bruteForceProtectionEnabled", true);
+            bruteForceProtectionEnabled = preferences.getBoolean("bruteForceProtectionEnabled", false);
             clearCacheOnLock = preferences.getBoolean("clearCacheOnLock", true);
             bruteForceRetryInMillis = preferences.getLong("bruteForceRetryInMillis", 0);
             badPasscodeTries = preferences.getInt("badPasscodeTries", 0);
@@ -824,9 +831,11 @@ public class SharedConfig {
             onScreenLockActionClearCache = preferences.getBoolean("onScreenLockActionClearCache", false);
             showSessionsTerminateActionWarning = preferences.getBoolean("showSessionsTerminateActionWarning", true);
             showHideDialogIsNotSafeWarning = preferences.getBoolean("showHideDialogIsNotSafeWarning", true);
+            showMaskedUpdateWarning = preferences.getBoolean("showMaskedUpdateWarning", true);
             activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", BuildVars.DEBUG_PRIVATE_VERSION ? 1 : 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
+            needShowMaskedPasscodeScreenTutorial = preferences.getBoolean("needShowMaskedPasscodeScreenTutorial", false);
             filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
             oldTelegramRemoved = preferences.getBoolean("oldTelegramRemoved", false);
             runNumber = preferences.getInt("runNumber", 0);
@@ -1036,6 +1045,14 @@ public class SharedConfig {
         editor.commit();
     }
 
+    public static void toggleShowMaskedUpdateWarning() {
+        showMaskedUpdateWarning = !showMaskedUpdateWarning;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("showMaskedUpdateWarning", showMaskedUpdateWarning);
+        editor.commit();
+    }
+
     public static void toggleIsConfirmDangerousActions() {
         confirmDangerousActions = !confirmDangerousActions;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
@@ -1108,8 +1125,10 @@ public class SharedConfig {
                     passcodeRetryInMs = 25000;
                     break;
                 default:
-                    if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
-                        bruteForceRetryInMillis = 15 * 60 * 1000;
+                    if (badPasscodeTries >= 50) {
+                        if (bruteForceProtectionEnabled && bruteForceRetryInMillis <= 0) {
+                            bruteForceRetryInMillis = 15 * 60 * 1000;
+                        }
                     }
                     passcodeRetryInMs = 30000;
                     break;
@@ -1236,6 +1255,9 @@ public class SharedConfig {
 
     public static PasscodeCheckResult checkPasscode(String passcode, boolean originalPasscodePrioritized) {
         synchronized (FakePasscode.class) {
+            if (!passcodeEnabled()) {
+                return new PasscodeCheckResult(true, null);
+            }
             if (passcodeSalt.length == 0) {
                 boolean result = Utilities.MD5(passcode).equals(passcodeHash);
                 if (result) {
@@ -1295,6 +1317,10 @@ public class SharedConfig {
         }
     }
 
+    public static String getPasscodeHash() {
+        return passcodeHash;
+    }
+
     public static void setPasscode(String passcode) {
         passcodeHash = passcode;
     }
@@ -1314,6 +1340,7 @@ public class SharedConfig {
             fakePasscodes.clear();
             fakePasscodeActivatedIndex = -1;
         }
+        needShowMaskedPasscodeScreenTutorial = false;
         filesCopiedFromOldTelegram = false;
         passcodeSalt = new byte[0];
         autoLockIn = 60 * 60;
@@ -1335,6 +1362,7 @@ public class SharedConfig {
         stealthModeSendMessageConfirm = 2;
         showSessionsTerminateActionWarning = true;
         showHideDialogIsNotSafeWarning = true;
+        showMaskedUpdateWarning = true;
         dayNightWallpaperSwitchHint = 0;
         saveConfig();
     }

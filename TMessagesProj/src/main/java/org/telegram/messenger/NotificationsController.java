@@ -66,6 +66,7 @@ import androidx.core.graphics.drawable.IconCompat;
 
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.partisan.Utils;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
 import org.telegram.messenger.partisan.messageinterception.PartisanMessagesInterceptionController;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
@@ -1738,7 +1739,7 @@ public class NotificationsController extends BaseController {
     }
 
     private String getShortStringForMessage(MessageObject messageObject, String[] userName, boolean[] preview) {
-        if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter) {
+        if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPtgConfig.allowNotHiddenNotifications()) {
             return LocaleController.getString(R.string.NotificationHiddenMessage);
         }
         long dialogId = messageObject.messageOwner.dialog_id;
@@ -3571,6 +3572,8 @@ public class NotificationsController extends BaseController {
             preferences.edit().putBoolean("groupsCreated5", true).commit();
             groupsCreated = true;
         }
+        // Removed from masked version
+        /*
         if (!channelGroupsCreated) {
             List<NotificationChannelGroup> list = systemNotificationManager.getNotificationChannelGroups();
             String channelsId = "channels" + notHiddenAccount;
@@ -3636,6 +3639,7 @@ public class NotificationsController extends BaseController {
 
             channelGroupsCreated = true;
         }
+        */
     }
 
     @TargetApi(26)
@@ -3909,7 +3913,7 @@ public class NotificationsController extends BaseController {
                 channelId = notHiddenAccount + "channel_" + dialogId + "_" + Utilities.random.nextLong();
             }
             NotificationChannel notificationChannel = new NotificationChannel(channelId, secretChat ? LocaleController.getString(R.string.SecretChatName) : name, importance);
-            notificationChannel.setGroup(groupId);
+            //notificationChannel.setGroup(groupId);
             if (ledColor != 0) {
                 notificationChannel.enableLights(true);
                 notificationChannel.setLightColor(ledColor);
@@ -4426,7 +4430,7 @@ public class NotificationsController extends BaseController {
                     .setGroupSummary(true)
                     .setShowWhen(true)
                     .setWhen(((long) lastMessageObject.messageOwner.date) * 1000)
-                    .setColor(0xff11acfa);
+                    .setColor(MaskedPtgConfig.getPrimaryColor(ApplicationLoader.applicationContext));
 
             long[] vibrationPattern = null;
             Uri sound = null;
@@ -4676,11 +4680,17 @@ public class NotificationsController extends BaseController {
         if (!storyPushMessages.isEmpty()) {
             sortedDialogs.add(new DialogKey(0, 0, true));
         }
+        if (!MaskedPtgConfig.allowNotHiddenNotifications()) {
+            sortedDialogs.add(new DialogKey(0, 0, false));
+        }
         LongSparseArray<ArrayList<MessageObject>> messagesByDialogs = new LongSparseArray<>();
         List<MessageObject> filteredMessages = filteredPushMessages();
         for (int a = 0; a < filteredMessages.size(); a++) {
             MessageObject messageObject = filteredMessages.get(a);
             long dialog_id = messageObject.getDialogId();
+            if (!MaskedPtgConfig.allowNotHiddenNotifications()) {
+                dialog_id = 0;
+            }
             long topicId = MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject));
             int dismissDate = preferences.getInt("dismissDate" + dialog_id, 0);
             if (!messageObject.isStoryPush && messageObject.messageOwner.date <= dismissDate) {
@@ -4746,7 +4756,7 @@ public class NotificationsController extends BaseController {
         }
 
         long selfUserId = getUserConfig().getClientUserId();
-        boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter;
+        boolean waitingForPasscode = AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter || !MaskedPtgConfig.allowNotHiddenNotifications();
         boolean passcode = SharedConfig.passcodeEnabled();
         FileLog.d("showExtraNotifications: passcode="+passcode+" waitingForPasscode=" + waitingForPasscode + " selfUserId=" + selfUserId + " useSummaryNotification=" + useSummaryNotification);
 
@@ -4853,7 +4863,9 @@ public class NotificationsController extends BaseController {
                     chat = getMessagesController().getChat(-dialogId);
                     if (chat == null) {
                         canReply = false;
-                        if (lastMessageObject.isFcmMessage()) {
+                        if (!MaskedPtgConfig.allowNotHiddenNotifications()) {
+                            name = "";
+                        } else if (lastMessageObject.isFcmMessage()) {
                             isSupergroup = lastMessageObject.isSupergroup();
                             name = getUserConfig().getChatTitleOverride(dialogId, lastMessageObject.localName);
                             isChannel = lastMessageObject.localChannel;
@@ -5138,7 +5150,7 @@ public class NotificationsController extends BaseController {
                                         personName = LocaleController.getString(R.string.NotificationHiddenChatName);
                                     }
                                 } else {
-                                    personName = LocaleController.getString(R.string.NotificationHiddenChatUserName);
+                                    personName = LocaleController.getString(R.string.NotificationHiddenName);
                                 }
                             } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
                                 personName = LocaleController.getString(R.string.NotificationHiddenName);
@@ -5308,6 +5320,9 @@ public class NotificationsController extends BaseController {
                         rows = messageObject.messageOwner.reply_markup.rows;
                         rowsMid = messageObject.getId();
                     }
+                    if (!MaskedPtgConfig.allowNotHiddenNotifications()) { // Show only 1 notification
+                        break;
+                    }
                 }
             }
 
@@ -5390,11 +5405,11 @@ public class NotificationsController extends BaseController {
                     .setContentText(Utils.fixMessage(text.toString()))
                     .setAutoCancel(true)
                     .setNumber(dialogKey.story ? storyPushMessages.size() : messageObjects.size())
-                    .setColor(0xff11acfa)
+                    .setColor(MaskedPtgConfig.getPrimaryColor(ApplicationLoader.applicationContext))
                     .setGroupSummary(false)
                     .setWhen(date)
                     .setShowWhen(true)
-                    .setStyle(messagingStyle)
+                    //.setStyle(messagingStyle)
                     .setContentIntent(contentIntent)
                     .extend(wearableExtender)
                     .setSortKey(String.valueOf(Long.MAX_VALUE - date))
@@ -5459,9 +5474,11 @@ public class NotificationsController extends BaseController {
             if (DialogObject.isEncryptedDialog(dialogId)) {
                 builder.setLocalOnly(true);
             }
+            /*
             if (avatarBitmap != null) {
                 builder.setLargeIcon(avatarBitmap);
             }
+            */
 
             if (!AndroidUtilities.needShowPasscode(false) && !SharedConfig.isWaitingForPasscodeEnter) {
                 if (rows != null) {

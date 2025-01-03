@@ -267,6 +267,7 @@ public class NotificationCenter {
     public static final int channelConnectedBotsUpdate = totalEvents++;
 
     //partisan
+    public static final int maskedUpdateReceived = totalEvents++;
     public static final int dialogDeletedByAction = totalEvents++;
     public static final int dialogCleared = totalEvents++;
     public static final int appDidLogoutByAction = totalEvents++;
@@ -277,7 +278,6 @@ public class NotificationCenter {
     public static final int searchCleared = totalEvents++;
     public static final int savedChannelsButtonStateChanged = totalEvents++;
     public static final int chatSearchResultsAvailableAll = totalEvents++;
-    public static final int telegramDataReceived = totalEvents++;
     public static final int telegramDataReceivingError = totalEvents++;
     public static final int cacheClearedByPtg = totalEvents++;
     public static final int securityIssuesChanged = totalEvents++;

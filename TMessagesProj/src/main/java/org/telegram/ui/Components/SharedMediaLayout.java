@@ -1768,6 +1768,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                             profileActivity.presentFragment(new ChatActivity(args), true);
                         })
                         .addGap()
+                        /*
                         .add(R.drawable.msg_home, getString(R.string.AddShortcut), () -> {
                             try {
                                 profileActivity.getMediaDataController().installShortcut(profileActivity.getUserConfig().getClientUserId(), MediaDataController.SHORTCUT_TYPE_USER_OR_CHAT);
@@ -1775,6 +1776,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                                 FileLog.e(e);
                             }
                         })
+                        */
                         .add(R.drawable.msg_delete, getString(R.string.DeleteAll), () -> {
                             TLRPC.User currentUser = profileActivity.getUserConfig().getCurrentUser();
                             AlertsCreator.createClearOrDeleteDialogAlert(profileActivity, false, null, currentUser, false, true, true, (param) -> {

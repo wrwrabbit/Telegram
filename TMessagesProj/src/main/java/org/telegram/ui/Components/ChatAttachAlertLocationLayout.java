@@ -63,6 +63,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
@@ -753,6 +754,10 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
             }
         });
         listView.setOnItemClickListener((view, position) -> {
+            if (!MaskedPtgUtils.hasPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+                MaskedPtgUtils.createPermissionDisabledDialog(getContext()).show();
+                return;
+            }
             if (locationType == LOCATION_TYPE_STORY) {
                 if (position == 1 && adapter.city != null) {
                     delegate.didSelectLocation(adapter.city, locationType, true, 0);

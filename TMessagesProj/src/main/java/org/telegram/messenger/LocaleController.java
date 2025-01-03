@@ -3976,6 +3976,7 @@ public class LocaleController {
         }
         assetValues.keySet().removeAll(newValues.keySet());
         newValues.putAll(assetValues);
+        newValues.putAll(getLocaleFileStrings(null, false, "strings/overrides.xml"));
         return newValues;
     }
 

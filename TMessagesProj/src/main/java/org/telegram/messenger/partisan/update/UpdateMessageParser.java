@@ -143,7 +143,7 @@ class UpdateMessageParser {
             }
             isFirstCharInNewLine = lineEnd;
         }
-        if (maskedUpdateType == MaskedUpdateType.ONLY) {
+        if (maskedUpdateType == MaskedUpdateType.PROHIBIT) {
             currentUpdate = null;
         }
         return currentUpdate;

@@ -137,6 +137,7 @@ import org.telegram.messenger.partisan.appmigration.MigrationZipBuilder;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupState;
 import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
+import org.telegram.messenger.partisan.update.UpdateChecker;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -2790,6 +2791,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didSetPasscode);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.appUpdateAvailable);
+            NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.maskedUpdateReceived);
         }
         getNotificationCenter().addObserver(this, NotificationCenter.messagesDeleted);
 
@@ -2959,6 +2961,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didSetPasscode);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.appUpdateAvailable);
+            NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.maskedUpdateReceived);
         }
         getNotificationCenter().removeObserver(this, NotificationCenter.messagesDeleted);
 
@@ -6884,7 +6887,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             Utilities.globalQueue.postRunnable(new ShowPasswordFragmentRunnable(this, passwordFragment, 200), 200);
             passwordFragment = null;
             return;
-        } else if (tosAccepted && folderId == 0 && checkPermission && !onlySelect && Build.VERSION.SDK_INT >= 23) {
+        } else if (tosAccepted && folderId == 0 && checkPermission && !onlySelect && Build.VERSION.SDK_INT >= 23 && !SharedConfig.isAppLocked()) {
             Activity activity = getParentActivity();
             if (activity != null) {
                 checkPermission = false;
@@ -7787,7 +7790,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private boolean allowNonPtgDialogs() {
-        if (anyPtgDialogShown) {
+        if (anyPtgDialogShown || SharedConfig.needShowMaskedPasscodeScreenTutorial) {
             return false;
         }
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
@@ -10933,12 +10936,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             SuggestClearDatabaseBottomSheet.dismissDialog();
         } else if (id == NotificationCenter.appUpdateAvailable) {
             updateMenuButton(true);
+        } else if (id == NotificationCenter.maskedUpdateReceived) {
+            updateMenuButton(true);
         } else if (id == NotificationCenter.fileLoaded || id == NotificationCenter.fileLoadFailed || id == NotificationCenter.fileLoadProgressChanged) {
             String name = (String) args[0];
             if (SharedConfig.isAppUpdateAvailable()) {
                 String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
                 if (fileName.equals(name)) {
                     updateMenuButton(true);
+                    updateButton.update(true);
                 }
             }
         } else if (id == NotificationCenter.onDatabaseMigration) {

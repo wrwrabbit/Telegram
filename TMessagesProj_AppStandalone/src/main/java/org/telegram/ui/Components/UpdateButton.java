@@ -24,12 +24,16 @@ import androidx.annotation.Keep;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.partisan.update.UpdateChecker;
+import org.telegram.messenger.web.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.IUpdateButton;
+import org.telegram.ui.LaunchActivity;
 
 import java.io.File;
 
@@ -53,6 +57,18 @@ public class UpdateButton extends IUpdateButton {
             if (!SharedConfig.isAppUpdateAvailable()) return;
             Activity activity = AndroidUtilities.findActivity(getContext());
             if (activity == null) return;
+
+            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
+            File path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
+            if (path.exists()) {
+                AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, activity);
+            } else if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
+                FileLoader.getInstance(UserConfig.selectedAccount).cancelLoadFile(SharedConfig.pendingPtgAppUpdate.document);
+                update(true);
+            } else {
+                UpdateChecker.startUpdateDownloading(UserConfig.selectedAccount);
+            }
+
             AndroidUtilities.openForView(SharedConfig.pendingPtgAppUpdate.document, true, activity);
         });
 
@@ -121,15 +137,29 @@ public class UpdateButton extends IUpdateButton {
     public void update(boolean animated) {
         final boolean show;
         if (SharedConfig.isAppUpdateAvailable()) {
-            final String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
-            final File path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
-            show = path.exists();
+            show = SharedConfig.pendingPtgAppUpdate.isMaskedUpdateDocument();
         } else {
             show = false;
         }
         if (show) {
+            /*
             if (getTag() != null) {
                 return;
+            }
+            */
+            String fileName = FileLoader.getAttachFileName(SharedConfig.pendingPtgAppUpdate.document);
+            File path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(SharedConfig.pendingPtgAppUpdate.document, true);
+            if (path.exists()) {
+                textView.setText(LocaleController.getString(R.string.AppUpdateNow).toUpperCase());
+                icon.setIcon(MediaActionDrawable.ICON_UPDATE, true, false);
+            } else if (FileLoader.getInstance(LaunchActivity.getUpdateAccountNum()).isLoadingFile(fileName)) {
+                icon.setIcon(MediaActionDrawable.ICON_CANCEL, true, animated);
+                icon.setProgress(0, false);
+                Float p = ImageLoader.getInstance().getFileProgress(fileName);
+                textView.setText(LocaleController.formatString("AppUpdateDownloading", R.string.AppUpdateDownloading, (int) ((p != null ? p : 0.0f) * 100)));
+            } else {
+                textView.setText(LocaleController.getString(R.string.AppUpdateDownloadNow).toUpperCase());
+                icon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, false);
             }
             if (animator != null) {
                 animator.cancel();

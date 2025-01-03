@@ -37,6 +37,8 @@ public class MediaActionDrawable extends Drawable {
     public static final int ICON_CANCEL_FILL = 14;
     public static final int ICON_UPDATE = 15;
 
+    public static final int ICON_WAIT_BUILD_MASKED_UPDATE = 100;
+
     private TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     public Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint backPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -469,7 +471,7 @@ public class MediaActionDrawable extends Drawable {
                     alpha = 0;
                 }
                 rotation = 0;
-            } else if (nextIcon == ICON_UPDATE || nextIcon == ICON_PLAY || nextIcon == ICON_PAUSE || nextIcon == ICON_FILE || nextIcon == ICON_GIF || nextIcon == ICON_SECRETCHECK || nextIcon == ICON_FIRE || nextIcon == ICON_CHECK) {
+            } else if (nextIcon == ICON_UPDATE || nextIcon == ICON_PLAY || nextIcon == ICON_PAUSE || nextIcon == ICON_FILE || nextIcon == ICON_GIF || nextIcon == ICON_SECRETCHECK || nextIcon == ICON_FIRE || nextIcon == ICON_CHECK || nextIcon == ICON_WAIT_BUILD_MASKED_UPDATE) {
                 float progress;
                 float backProgress;
                 if (nextIcon == ICON_CHECK) {
@@ -606,9 +608,9 @@ public class MediaActionDrawable extends Drawable {
             previowsDrawableScale = Math.max(0.0f, 1.0f - transitionProgress / 0.5f);
         }
 
-        if (nextIcon == ICON_UPDATE) {
+        if (nextIcon == ICON_UPDATE || nextIcon == ICON_WAIT_BUILD_MASKED_UPDATE) {
             nextPath = Theme.chat_updatePath;
-        } else if (currentIcon == ICON_UPDATE) {
+        } else if (currentIcon == ICON_UPDATE || currentIcon == ICON_WAIT_BUILD_MASKED_UPDATE) {
             previousPath = Theme.chat_updatePath;
         }
         if (nextIcon == ICON_FILE) {
@@ -835,6 +837,9 @@ public class MediaActionDrawable extends Drawable {
             canvas.save();
             canvas.translate(cx, cy);
             canvas.scale(drawableScale, drawableScale);
+            if (currentIcon == ICON_WAIT_BUILD_MASKED_UPDATE) {
+                canvas.rotate(downloadRadOffset);
+            }
             canvas.translate(-size / 2, -size / 2);
             if (nextPath[0] != null) {
                 canvas.drawPath(nextPath[0], paint2);
@@ -862,7 +867,7 @@ public class MediaActionDrawable extends Drawable {
         }
         lastAnimationTime = newTime;
 
-        if (currentIcon == ICON_CANCEL || currentIcon == ICON_CANCEL_FILL || currentIcon == ICON_NONE && nextIcon == ICON_CANCEL_FILL || currentIcon == ICON_EMPTY || currentIcon == ICON_CANCEL_PERCENT) {
+        if (currentIcon == ICON_CANCEL || currentIcon == ICON_CANCEL_FILL || currentIcon == ICON_NONE && nextIcon == ICON_CANCEL_FILL || currentIcon == ICON_EMPTY || currentIcon == ICON_CANCEL_PERCENT || currentIcon == ICON_WAIT_BUILD_MASKED_UPDATE) {
             downloadRadOffset += 360 * dt / 2500.0f;
             downloadRadOffset = getCircleValue(downloadRadOffset);
 

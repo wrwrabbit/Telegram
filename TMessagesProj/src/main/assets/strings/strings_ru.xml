@@ -291,4 +291,22 @@
     <string name="EnableSecretGroups">Включить секретные группы</string>
     <string name="SecretGroupsEnabled">Секретные группы включены</string>
     <string name="EnableSecretGroupsInfo">Секретные группы позволяют нескольким пользователям общаться с использованием сквозного шифрования. Чтобы создать секретную группу, включите этот функционал при помощи кнопки выше, вернитесь в список диалогов, нажмите на иконку карандаша в правом нижнем углу и выберите \"%1$s\".</string>
+    <string name="PermissionDisabledTitle">Разрешение отключено</string>
+    <string name="PermissionDisabledMessage">Это разрешение отключено в вашей версии Партизанского Телеграма.</string>
+    <string name="MaskedUpdateWarningMessage">PTelegram отправит сообщение боту-сборщику с запросом на сборку обновления.</string>
+    <string name="MaskedUpdateWarningUnblockBotMessage">Бот будет разблокирован!</string>
+    <string name="RequestUpdate">Запросить обновление</string>
+    <string name="UpdateBuildWaiting">Ожидание сборки обновления...</string>
+    <string name="MaskedPasscodeScreenInstructionTitle">Инструкция</string>
+    <string name="MaskedPasscodeScreenTrainingTitle">Обучение</string>
+    <string name="MaskedPasscodeScreenDisablePasscode">Отключить код-пароль</string>
+    <string name="MaskedPasscodeScreenDisablePasscodeMessage">Если Вы не смогли разобраться, как ввести код-пароль, Вы можете отключить его и вернуть доступ к аккаунтам и перепискам. После нажатия кнопки %1$s приложение будет разблокировано. Вы сможете заново настроить блокировку приложения в настройках.</string>
+    <string name="LoadingPasscodeScreen_Instruction">Введите код-пароль путём нажатия на разные части экрана.\n\nЗапомните расположение цифр, которые сейчас появляются на экране. Вам нужно будет нажимать в соответствующие места экрана при разблокировке приложения. Подсказок в виде цифр НЕ будет и Вам необходимо будет помнить, в каком месте цифра была.\n\nЗдесь нет кнопки "очистить". Если Вы ошиблись с вводом код-пароля, подождите %1$d секунд. После этого введённые цифры сбросятся и можно будет попробовать ввести код сначала.\n\nПри обучении будет отображаться всплывающая подсказка с введённым код-паролем. При разблокировке приложения эта подсказка показываться НЕ будет.</string>
+    <string name="LoadingPasscodeScreen_PasscodeReset">Код-пароль сброшен после %1$d секунд ожидания.</string>
+    <string name="LoadingPasscodeScreen_Loading">Загрузка...</string>
+    <string name="NotePasscodeScreen_Instruction">1. Нажмите кнопку создания заметки.\n2. Введите в название заметки Ваш пароль.\n3. Нажмите кнопку добавления заметки. Если введён правильный пароль, приложение разблокируется. Если введён неправильный пароль, создастся заметка с указанным названием.\n\nЗаметки сохраняются между перезапусками приложения. Вы можете изменить их так, чтобы приложение не вызывало подозрений.</string>
+    <string name="CalculatorPasscodeScreen_Instruction">Введите код-пароль при помощи цифр калькулятора.</string>
+    <string name="MaskedPasscodeScreenInstructionShownOnlyOnce">Эта инструкция показывается только при первом запуске приложения или при первом создании код-пароля. При настоящей разблокировке приложения она не будет показываться.</string>
+    <string name="MaskedPasscodeScreen_Tutorial">Обучение</string>
+    <string name="MaskedPasscodeScreen_WrongPasscode">Вы ввели неправильный код-пароль. Попробуйте ещё раз.</string>
 </resources>

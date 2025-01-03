@@ -260,7 +260,7 @@ public class BotWebViewMenuContainer extends FrameLayout implements Notification
             botMenuItem.addSubItem(R.id.menu_reload_page, R.drawable.msg_retry, LocaleController.getString(R.string.BotWebViewReloadPage));
             settingsItem = botMenuItem.addSubItem(R.id.menu_settings, R.drawable.msg_settings, LocaleController.getString(R.string.BotWebViewSettings));
             settingsItem.setVisibility(View.GONE);
-            addToHomeScreenItem = botMenuItem.addSubItem(R.id.menu_add_to_home_screen_bot, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
+            //addToHomeScreenItem = botMenuItem.addSubItem(R.id.menu_add_to_home_screen_bot, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
             if (botId != 0 && MediaDataController.getInstance(currentAccount).canCreateAttachedMenuBotShortcut(botId)) {
                 addToHomeScreenItem.setVisibility(View.VISIBLE);
             } else {

@@ -32,6 +32,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
@@ -44,7 +45,11 @@ import org.telegram.ui.web.BrowserHistory;
 import org.telegram.ui.web.WebBrowserSettings;
 import org.telegram.ui.web.WebMetadataCache;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -522,6 +527,79 @@ public class Utils {
             runnable.run();
         } else {
             ApplicationLoader.applicationHandler.postAtFrontOfQueue(runnable);
+        }
+    }
+
+    public static boolean sendBytesAsFile(int accountNum, long dialog_id, String fileName, byte[] data) {
+        if (fileAlreadySent(accountNum, fileName, data.length)) {
+            return false;
+        }
+
+        File f = createFileForSending(fileName, data);
+        String tempPath = f.getAbsolutePath();
+        String originalPath = f.getAbsolutePath();
+
+        SendMessagesHelper.prepareSendingDocument(AccountInstance.getInstance(accountNum), tempPath, originalPath, null, null, null, dialog_id, null, null, null, null, null, true, 0, null, null, 0, false);
+        return true;
+    }
+
+    private static boolean fileAlreadySent(int accountNum, String fileName, long fileSize) {
+        String path = fileName + fileSize;
+        Object[] sentDocuments = MessagesStorage.getInstance(accountNum).getSentFile(path, /*!isEncrypted ? 1 : */4);
+        return sentDocuments != null;
+    }
+
+    private static File createFileForSending(String fileName, byte[] data) {
+        AndroidUtilities.getSharingDirectory().mkdirs();
+        File f = new File(AndroidUtilities.getSharingDirectory(), fileName);
+        FileOutputStream output = null;
+        try {
+            output = new FileOutputStream(f);
+            output.write(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            } catch (Exception e2) {
+                PartisanLog.e("sendBytesAsFile", e2);
+            }
+        }
+        return f;
+    }
+
+    public static byte[] readAssetBytes(String fileName) {
+        InputStream stream = null;
+        ByteArrayOutputStream bos = null;
+        try {
+            stream = ApplicationLoader.applicationContext.getAssets().open(fileName);
+            bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = stream.read(buf, 0, 1024)) != -1) {
+                bos.write(buf, 0, len);
+            }
+            return bos.toByteArray();
+        } catch (Exception e) {
+            PartisanLog.e("readAssetBytes", e);
+            return null;
+        } finally {
+            try {
+                if (bos != null) {
+                    bos.close();
+                }
+            } catch (Exception e) {
+                PartisanLog.e("readAssetBytes", e);
+            }
+            try {
+                if (stream != null) {
+                    stream.close();
+                }
+            } catch (Exception e) {
+                PartisanLog.e("readAssetBytes", e);
+            }
         }
     }
 

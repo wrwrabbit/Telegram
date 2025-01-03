@@ -114,8 +114,9 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.XiaomiUtilities;
-import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgConfig;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -3666,8 +3667,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 
 			cpuWakelock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "telegram-voip");
 			cpuWakelock.acquire();
-
-			btAdapter = am.isBluetoothScoAvailableOffCall() ? BluetoothAdapter.getDefaultAdapter() : null;
+			btAdapter = am.isBluetoothScoAvailableOffCall() && MaskedPtgUtils.hasPermission(this, Manifest.permission.BLUETOOTH) ? BluetoothAdapter.getDefaultAdapter() : null;
 
 			IntentFilter filter = new IntentFilter();
 			filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -3715,7 +3715,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			}
 			callFailed();
 		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && MaskedPtgConfig.allowCallNotification()) {
 			if (callIShouldHavePutIntoIntent != null) {
 				NotificationsController.checkOtherNotificationsChannel();
 				Notification.Builder bldr = new Notification.Builder(this, NotificationsController.OTHER_NOTIFICATIONS_CHANNEL)
@@ -4188,6 +4188,9 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void showIncomingNotification(String name, TLObject userOrChat, boolean video, int additionalMemberCount) {
+		if (!MaskedPtgConfig.allowCallNotification()) {
+			return;
+		}
 		Intent intent = new Intent(this, LaunchActivity.class);
 		intent.setAction("voip");
 
@@ -4233,7 +4236,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
                 } catch (Exception e) {
                     FileLog.e(e);
                 }
-                chan.setDescription(LocaleController.getString(R.string.IncomingCallsSystemSettingDescription));
+                //chan.setDescription(LocaleController.getString(R.string.IncomingCallsSystemSettingDescription));
 				chan.enableVibration(false);
 				chan.enableLights(false);
 				chan.setBypassDnd(true);

@@ -337,26 +337,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name="org.telegram.ui.ChatsWidgetConfigActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
-            android:hardwareAccelerated="@bool/useHardwareAcceleration"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true">
-            <intent-filter android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="org.telegram.ui.ContactsWidgetConfigActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
-            android:hardwareAccelerated="@bool/useHardwareAcceleration"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true">
-            <intent-filter android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-            </intent-filter>
-        </activity>
 <!--        <activity-->
 <!--            android:name="org.telegram.ui.FeedWidgetConfigActivity"-->
 <!--            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"-->
@@ -398,7 +378,7 @@
                 android:theme="@style/Theme.TMessages.TransparentWithAlerts"/>
 
         <receiver
-            android:name=".AutoMessageHeardReceiver"
+            android:name="org.telegram.messenger.AutoMessageHeardReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="org.telegram.messenger.ACTION_MESSAGE_HEARD"/>
@@ -414,7 +394,7 @@
         </receiver>
 
         <receiver
-            android:name=".NotificationsDisabledReceiver"
+            android:name="org.telegram.messenger.NotificationsDisabledReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.app.action.NOTIFICATION_CHANNEL_BLOCK_STATE_CHANGED"/>
@@ -422,7 +402,7 @@
         </receiver>
 
         <receiver
-            android:name=".AutoMessageReplyReceiver"
+            android:name="org.telegram.messenger.AutoMessageReplyReceiver"
             android:exported="false">
 e            <intent-filter>
                 <action android:name="org.telegram.messenger.ACTION_MESSAGE_REPLY"/>
@@ -430,21 +410,21 @@ e            <intent-filter>
         </receiver>
 
         <receiver
-            android:name=".SmsReceiver"
+            android:name="org.telegram.messenger.SmsReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED"/>
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".CallReceiver" android:exported="false">
+        <receiver android:name="org.telegram.messenger.CallReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE"/>
             </intent-filter>
         </receiver>
 
         <service
-            android:name=".AuthenticatorService"
+            android:name="org.telegram.messenger.AuthenticatorService"
             android:exported="true"
             android:foregroundServiceType="dataSync"
         >
@@ -456,7 +436,7 @@ e            <intent-filter>
         </service>
 
         <service
-            android:name=".ContactsSyncAdapterService"
+            android:name="org.telegram.messenger.ContactsSyncAdapterService"
             android:exported="true"
             android:foregroundServiceType="dataSync"
         >
@@ -470,30 +450,30 @@ e            <intent-filter>
         </service>
 
         <service
-            android:name=".KeepAliveJob"
+            android:name="org.telegram.messenger.KeepAliveJob"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:foregroundServiceType="dataSync"
         />
         <service
-            android:name=".BringAppForegroundService"
+            android:name="org.telegram.messenger.BringAppForegroundService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
         />
         <service
-            android:name=".NotificationsService"
+            android:name="org.telegram.messenger.NotificationsService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="dataSync"
         />
         <service
-            android:name=".NotificationRepeat"
+            android:name="org.telegram.messenger.NotificationRepeat"
             android:exported="false"
             android:foregroundServiceType="dataSync"
         />
         <service
-            android:name=".VideoEncodingService"
+            android:name="org.telegram.messenger.VideoEncodingService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="dataSync"
@@ -505,31 +485,31 @@ e            <intent-filter>
             android:foregroundServiceType="dataSync"
         />
         <service
-            android:name=".ImportingService"
+            android:name="org.telegram.messenger.ImportingService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="dataSync"
         />
         <service
-            android:name=".LocationSharingService"
+            android:name="org.telegram.messenger.LocationSharingService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="location|dataSync"
         />
         <service
-            android:name=".voip.VoIPService"
+            android:name="org.telegram.messenger.voip.VoIPService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="camera|microphone|mediaPlayback|mediaProjection"
         />
         <service
-            android:name=".MusicPlayerService"
+            android:name="org.telegram.messenger.MusicPlayerService"
             android:exported="true"
             android:enabled="true"
             android:foregroundServiceType="mediaPlayback"
         />
         <service
-            android:name=".MusicBrowserService"
+            android:name="org.telegram.messenger.MusicBrowserService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
         >
@@ -538,7 +518,7 @@ e            <intent-filter>
             </intent-filter>
         </service>
         <service
-            android:name=".voip.TelegramConnectionService"
+            android:name="org.telegram.messenger.voip.TelegramConnectionService"
             android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
             android:exported="true"
             android:foregroundServiceType="dataSync"
@@ -548,7 +528,7 @@ e            <intent-filter>
             </intent-filter>
         </service>
 
-		<receiver android:name=".MusicPlayerReceiver" android:exported="false">
+		<receiver android:name="org.telegram.messenger.MusicPlayerReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="org.telegram.android.musicplayer.close" />
                 <action android:name="org.telegram.android.musicplayer.pause" />
@@ -559,40 +539,40 @@ e            <intent-filter>
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".voip.VoIPMediaButtonReceiver" android:exported="false">
+        <receiver android:name="org.telegram.messenger.voip.VoIPMediaButtonReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".AppStartReceiver" android:enabled="true" android:exported="false">
+        <receiver android:name="org.telegram.messenger.AppStartReceiver" android:enabled="true" android:exported="false">
             <intent-filter>
                 <action android:name="org.telegram.start" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".RefererReceiver" android:exported="true" android:permission="android.permission.INSTALL_PACKAGES">
+        <receiver android:name="org.telegram.messenger.RefererReceiver" android:exported="true" android:permission="android.permission.INSTALL_PACKAGES">
             <intent-filter>
                 <action android:name="com.android.vending.INSTALL_REFERRER" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".WearReplyReceiver" android:enabled="true"/>
+        <receiver android:name="org.telegram.messenger.WearReplyReceiver" android:enabled="true"/>
 
-        <receiver android:name=".StopLiveLocationReceiver" android:enabled="true"/>
+        <receiver android:name="org.telegram.messenger.StopLiveLocationReceiver" android:enabled="true"/>
 
-        <receiver android:name=".PopupReplyReceiver" android:enabled="true"/>
+        <receiver android:name="org.telegram.messenger.PopupReplyReceiver" android:enabled="true"/>
 
-        <receiver android:name=".NotificationCallbackReceiver" android:enabled="true" android:exported="false"/>
+        <receiver android:name="org.telegram.messenger.NotificationCallbackReceiver" android:enabled="true" android:exported="false"/>
 
-        <receiver android:name=".ShareBroadcastReceiver" android:enabled="true"/>
+        <receiver android:name="org.telegram.messenger.ShareBroadcastReceiver" android:enabled="true"/>
 
-        <receiver android:name=".CustomTabsCopyReceiver" android:enabled="true"/>
+        <receiver android:name="org.telegram.messenger.CustomTabsCopyReceiver" android:enabled="true"/>
 
-        <receiver android:name=".NotificationDismissReceiver" android:exported="false"/>
+        <receiver android:name="org.telegram.messenger.NotificationDismissReceiver" android:exported="false"/>
 
-        <receiver android:name=".voip.VoIPActionsReceiver" android:exported="false"/>
+        <receiver android:name="org.telegram.messenger.voip.VoIPActionsReceiver" android:exported="false"/>
 
         <receiver android:name=".ShortcutResultReceiver" android:exported="false"/>
 
@@ -608,16 +588,16 @@ e            <intent-filter>
 
         <provider
             android:authorities="${applicationId}.notification_image_provider"
-            android:name=".NotificationImageProvider"
+            android:name="org.telegram.messenger.NotificationImageProvider"
             android:exported="false"
             android:grantUriPermissions="true"/>
 
         <provider
             android:authorities="${applicationId}.call_sound_provider"
-            android:name=".voip.CallNotificationSoundProvider"
+            android:name="org.telegram.messenger.voip.CallNotificationSoundProvider"
             android:exported="true"/>
 
-        <receiver android:name=".ChatsWidgetProvider" android:exported="false">
+        <receiver android:name="org.telegram.messenger.ChatsWidgetProvider" android:exported="false">
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/chats_widget_info" />
             <intent-filter>
@@ -626,13 +606,13 @@ e            <intent-filter>
         </receiver>
 
         <service
-            android:name=".ChatsWidgetService"
+            android:name="org.telegram.messenger.ChatsWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:foregroundServiceType="dataSync"
             android:exported="false"
         />
 
-        <receiver android:name=".ContactsWidgetProvider" android:exported="false">
+        <receiver android:name="org.telegram.messenger.ContactsWidgetProvider" android:exported="false">
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/contacts_widget_info" />
             <intent-filter>
@@ -641,13 +621,13 @@ e            <intent-filter>
         </receiver>
 
         <service
-            android:name=".ContactsWidgetService"
+            android:name="org.telegram.messenger.ContactsWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false"
             android:foregroundServiceType="dataSync"
         />
 
-<!--        <receiver android:name=".FeedWidgetProvider">-->
+<!--        <receiver android:name="org.telegram.messenger.FeedWidgetProvider">-->
 <!--            <meta-data android:name="android.appwidget.provider"-->
 <!--                android:resource="@xml/feed_widget_info" />-->
 <!--            <intent-filter>-->
@@ -655,11 +635,11 @@ e            <intent-filter>
 <!--            </intent-filter>-->
 <!--        </receiver>-->
 
-<!--        <service android:name=".FeedWidgetService"-->
+<!--        <service android:name="org.telegram.messenger.FeedWidgetService"-->
 <!--            android:permission="android.permission.BIND_REMOTEVIEWS"-->
 <!--            android:exported="false" />-->
         <service
-            android:name=".FilesMigrationService"
+            android:name="org.telegram.messenger.FilesMigrationService"
             android:exported="false"
             android:foregroundServiceType="dataSync"
         />

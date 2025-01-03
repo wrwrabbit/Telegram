@@ -1002,7 +1002,7 @@ public class BotWebViewAttachedSheet implements NotificationCenter.NotificationC
         settingsItem.setVisibility(View.GONE);
         otherItem.addSubItem(R.id.menu_reload_page, R.drawable.msg_retry, LocaleController.getString(R.string.BotWebViewReloadPage));
         if (userbot != null && userbot.bot_has_main_app) {
-            otherItem.addSubItem(R.id.menu_add_to_home_screen_bot, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
+            //otherItem.addSubItem(R.id.menu_add_to_home_screen_bot, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
         }
         otherItem.addSubItem(R.id.menu_share_bot, R.drawable.msg_share, LocaleController.getString(R.string.BotShare));
         otherItem.addSubItem(R.id.menu_tos_bot, R.drawable.menu_intro, LocaleController.getString(R.string.BotWebViewToS));

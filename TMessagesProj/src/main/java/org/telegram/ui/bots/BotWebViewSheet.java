@@ -1653,7 +1653,7 @@ public class BotWebViewSheet extends Dialog implements NotificationCenter.Notifi
                 webViewContainer.loadFlickerAndSettingsItem(currentAccount, botId, null);
                 webViewContainer.reload();
             })
-            .addIf(userbot != null && userbot.bot_has_main_app, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut), () -> {
+            .addIf(false && userbot != null && userbot.bot_has_main_app, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut), () -> {
                 MediaDataController.getInstance(currentAccount).installShortcut(botId, MediaDataController.SHORTCUT_TYPE_ATTACHED_BOT);
             })
             .add(R.drawable.menu_intro, LocaleController.getString(R.string.BotWebViewToS), () -> {

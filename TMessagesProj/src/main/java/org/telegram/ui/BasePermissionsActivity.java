@@ -18,6 +18,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.camera.CameraController;
+import org.telegram.messenger.partisan.masked_ptg.MaskedPtgUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AlertsCreator;
@@ -45,6 +46,13 @@ public class BasePermissionsActivity extends FragmentActivity {
         }
 
         boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+        if (!granted && !MaskedPtgUtils.hasAllPermissions(this, permissions)) {
+            if (MaskedPtgUtils.needShowPermissionsDisabledDialog(requestCode, permissions)) {
+                MaskedPtgUtils.createPermissionDisabledDialog(this).show();
+            }
+            return false;
+        }
 
         if (requestCode == 104) {
             if (granted) {

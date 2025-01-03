@@ -69,7 +69,7 @@ android {
             debuggable true
             jniDebuggable true
             signingConfig signingConfigs.debug
-            applicationIdSuffix ".alpha"
+            //applicationIdSuffix ".alpha"
             minifyEnabled false
             shrinkResources false
             multiDexEnabled true
@@ -91,7 +91,7 @@ android {
             debuggable false
             jniDebuggable false
             signingConfig signingConfigs.release
-            applicationIdSuffix ".web"
+            //applicationIdSuffix ".web"
             minifyEnabled true
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'

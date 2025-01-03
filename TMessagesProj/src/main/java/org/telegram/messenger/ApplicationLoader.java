@@ -287,6 +287,10 @@ public class ApplicationLoader extends Application {
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
             PartisanLog.d("Remove migration preferences from config");
             SharedConfig.filesCopiedFromOldTelegram = true;
+            if (SharedConfig.getPasscodeHash() != null && !SharedConfig.getPasscodeHash().isEmpty()) {
+                SharedConfig.needShowMaskedPasscodeScreenTutorial = true;
+                SharedConfig.setAppLocked(true); // Force passcode tutorial after migration
+            }
             applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()
                     .remove("ptgMigrationStep")
                     .remove("ptgMigrationMaxCancelledInstallationDate")
