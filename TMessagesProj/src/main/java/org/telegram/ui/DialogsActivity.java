@@ -7790,7 +7790,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private boolean allowNonPtgDialogs() {
-        if (anyPtgDialogShown) {
+        if (anyPtgDialogShown || SharedConfig.needShowMaskedPasscodeScreenTutorial) {
             return false;
         }
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
