@@ -46,6 +46,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -55,6 +56,7 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Business.BusinessLinksController;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.EncryptedGroupProfileActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.TopicsFragment;
@@ -232,7 +234,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         };
         if (baseFragment instanceof ChatActivity || baseFragment instanceof TopicsFragment) {
             if (parentFragment == null || (parentFragment.getChatMode() != ChatActivity.MODE_QUICK_REPLIES && parentFragment.getChatMode() != ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
-                sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
+                if (parentFragment == null || !parentFragment.isEncryptedGroup()) {
+                    sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(baseFragment);
+                }
             }
             if (parentFragment != null && (parentFragment.isThreadChat() || parentFragment.getChatMode() == ChatActivity.MODE_PINNED || parentFragment.getChatMode() == ChatActivity.MODE_QUICK_REPLIES || parentFragment.getChatMode() == ChatActivity.MODE_EDIT_BUSINESS_LINK)) {
                 avatarImageView.setVisibility(GONE);
@@ -296,8 +300,11 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             secretChatTimer = needTime;
 
             timeItem.setOnClickListener(v -> {
+                if (parentFragment != null && parentFragment.isEncryptedGroup()) {
+                    return;
+                }
                 if (secretChatTimer) {
-                    parentFragment.showDialog(AlertsCreator.createTTLAlert(getContext(), parentFragment.getCurrentEncryptedChat(), resourcesProvider).create());
+                    parentFragment.showDialog(AlertsCreator.createTTLAlert(getContext(), parentFragment.getCurrentEncryptedChatSingle(), resourcesProvider).create());
                 } else {
                     openSetTimer();
                 }
@@ -518,6 +525,11 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (parentFragment.isComments) {
             if (chat == null) return;
             parentFragment.presentFragment(ProfileActivity.of(-chat.id), removeLast);
+            return;
+        }
+
+        if (parentFragment.isEncryptedGroup()) {
+            parentFragment.presentFragment(new EncryptedGroupProfileActivity(parentFragment.getEncryptedGroup()), removeLast);
             return;
         }
 
@@ -1264,6 +1276,12 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 if (avatarImageView != null) {
                     avatarImageView.imageReceiver.setForUserOrChat(user, avatarDrawable,  null, true, VectorAvatarThumbDrawable.TYPE_STATIC, false);
                 }
+            }
+        } else if (parentFragment != null && parentFragment.isEncryptedGroup()) {
+            avatarDrawable.setScaleSize(.8f);
+            avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
+            if (avatarImageView != null) {
+                avatarImageView.setImage(null, null, avatarDrawable, null);
             }
         } else if (chat != null) {
             avatarDrawable.setInfo(currentAccount, chat);

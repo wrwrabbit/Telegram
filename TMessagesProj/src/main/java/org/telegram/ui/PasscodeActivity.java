@@ -18,7 +18,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -71,6 +70,8 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.appmigration.MaskedMigrationIssue;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -119,6 +120,11 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     })
     public @interface PasscodeActivityType {}
 
+    private enum ErrorType {
+        PASSCODES_DO_NOT_MATCH,
+        PASSCODE_IN_USE
+    }
+
     private final static int ID_SWITCH_TYPE = 1;
 
     private RLottieImageView lockImageView;
@@ -130,7 +136,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private OutlineTextContainerView outlinePasswordView;
     private EditTextBoldCursor passwordEditText;
     private CodeFieldContainer codeFieldContainer;
-    private TextView passcodesDoNotMatchTextView;
+    private TextView passcodesErrorTextView;
 
     private ImageView passwordButton;
 
@@ -194,7 +200,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private boolean postedHidePasscodesDoNotMatch;
     private Runnable hidePasscodesDoNotMatch = () -> {
         postedHidePasscodesDoNotMatch = false;
-        AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, false);
+        AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, false);
     };
 
     private Runnable onShowKeyboardCallback;
@@ -202,6 +208,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     public PasscodeActivity(@PasscodeActivityType int type) {
         super();
         this.type = type;
+        if (type == TYPE_SETUP_CODE && !SharedConfig.fakePasscodes.isEmpty()) {
+            currentPasswordType = SharedConfig.passcodeType;
+        }
     }
 
     @Override
@@ -331,6 +340,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                             passcode.onDelete();
                                         }
                                         SharedConfig.fakePasscodes.clear();
+                                        MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.INVALID_PASSCODE_TYPE);
+                                        MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.PASSWORDLESS_MODE);
+                                        MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT);
                                     }
                                     SharedConfig.setAppLocked(false);
                                     SharedConfig.saveConfig();
@@ -350,11 +362,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         alertDialog.show();
                         ((TextView)alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     } else if (position == changePasscodeRow) {
-                        if (SharedConfig.fakePasscodes.isEmpty() || FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                            presentFragment(new PasscodeActivity(TYPE_SETUP_CODE));
-                        } else {
-                            requireFakePasscodesDeletionConfirmation((dialogInterface, i) -> presentFragment(new PasscodeActivity(TYPE_SETUP_CODE)));
-                        }
+                        presentFragment(new PasscodeActivity(TYPE_SETUP_CODE));
                     } else if (position == autoLockRow) {
                         if (getParentActivity() == null) {
                             return;
@@ -462,6 +470,13 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         SharedConfig.useFingerprintLock = !SharedConfig.useFingerprintLock;
                         if (FakePasscodeUtils.isFakePasscodeActivated()) {
                             FakePasscodeUtils.getActivatedFakePasscode().activateByFingerprint = SharedConfig.useFingerprintLock;
+                        } else if (!SharedConfig.useFingerprintLock) {
+                            for (FakePasscode fakePasscode : SharedConfig.fakePasscodes) {
+                                fakePasscode.activateByFingerprint = false;
+                            }
+                        }
+                        if (!SharedConfig.useFingerprintLock) {
+                            MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.ACTIVATE_BY_FINGERPRINT);
                         }
                         UserConfig.getInstance(currentAccount).saveConfig(false);
                         ((TextCheckCell) view).setChecked(SharedConfig.useFingerprintLock);
@@ -500,7 +515,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     ActionBarMenuSubItem switchItem;
                     if (type == TYPE_SETUP_CODE) {
                         otherItem = menu.addItem(0, R.drawable.ic_ab_other);
-                        switchItem = otherItem.addSubItem(ID_SWITCH_TYPE, R.drawable.msg_permissions, LocaleController.getString(R.string.PasscodeSwitchToPassword));
+                        switchItem = otherItem.addSubItem(ID_SWITCH_TYPE, R.drawable.msg_permissions, LocaleController.getString(currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? R.string.PasscodeSwitchToPassword : R.string.PasscodeSwitchToPIN));
                     } else switchItem = null;
 
                     actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -510,6 +525,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                 finishFragment();
                             } else if (id == ID_SWITCH_TYPE) {
                                 currentPasswordType = currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? SharedConfig.PASSCODE_TYPE_PASSWORD : SharedConfig.PASSCODE_TYPE_PIN;
+                                if (!SharedConfig.fakePasscodes.isEmpty() && SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD && currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN) {
+                                    showPasswordToPinSwitchWarning();
+                                }
                                 AndroidUtilities.runOnUIThread(()->{
                                     switchItem.setText(LocaleController.getString(currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? R.string.PasscodeSwitchToPassword : R.string.PasscodeSwitchToPIN));
                                     switchItem.setIcon(currentPasswordType == SharedConfig.PASSCODE_TYPE_PIN ? R.drawable.msg_permissions : R.drawable.msg_pin_code);
@@ -585,13 +603,13 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                 frameLayout.addView(forgotPasswordButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? 56 : 60, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
                 VerticalPositionAutoAnimator.attach(forgotPasswordButton);
 
-                passcodesDoNotMatchTextView = new TextView(context);
-                passcodesDoNotMatchTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                passcodesDoNotMatchTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
-                passcodesDoNotMatchTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
-                passcodesDoNotMatchTextView.setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12));
-                AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, false, 1f, false);
-                frameLayout.addView(passcodesDoNotMatchTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
+                passcodesErrorTextView = new TextView(context);
+                passcodesErrorTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+                passcodesErrorTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
+                passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
+                passcodesErrorTextView.setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12));
+                AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, false, 1f, false);
+                frameLayout.addView(passcodesErrorTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
 
                 outlinePasswordView = new OutlineTextContainerView(context);
                 outlinePasswordView.setText(LocaleController.getString(R.string.EnterPassword));
@@ -1195,6 +1213,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             otherItem.setVisibility(View.GONE);
         }
 
+        if (checkPasscodeInUse()) {
+            return;
+        }
+
         titleTextView.setText(LocaleController.getString(R.string.ConfirmCreatePasscode));
         descriptionTextSwitcher.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.PasscodeReinstallNotice)));
         firstPassword = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
@@ -1203,6 +1225,21 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         for (CodeNumberField f : codeFieldContainer.codeField) f.setText("");
         showKeyboard();
         passcodeSetStep = 1;
+    }
+
+    private boolean checkPasscodeInUse() {
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            return false;
+        }
+        String passcode = SharedConfig.passcodeType == SharedConfig.PASSCODE_TYPE_PASSWORD
+                ? passwordEditText.getText().toString()
+                : codeFieldContainer.getCode();
+        SharedConfig.PasscodeCheckResult passcodeCheckResult = SharedConfig.checkPasscode(passcode);
+        if (passcodeCheckResult.fakePasscode != null) {
+            showPasscodeError(ErrorType.PASSCODE_IN_USE);
+            return true;
+        }
+        return false;
     }
 
     private boolean isPinCode() {
@@ -1223,44 +1260,24 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         String password = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         if (type == TYPE_SETUP_CODE) {
             if (!firstPassword.equals(password) || isNewPasscodeIdenticalOtherPasscode(password)) {
-                AndroidUtilities.updateViewVisibilityAnimated(passcodesDoNotMatchTextView, true);
-                for (CodeNumberField f : codeFieldContainer.codeField) {
-                    f.setText("");
-                }
-                if (isPinCode()) {
-                    codeFieldContainer.codeField[0].requestFocus();
-                }
-                passwordEditText.setText("");
-                onPasscodeError();
-
-                codeFieldContainer.removeCallbacks(hidePasscodesDoNotMatch);
-                codeFieldContainer.post(()->{
-                    codeFieldContainer.postDelayed(hidePasscodesDoNotMatch, 3000);
-                    postedHidePasscodesDoNotMatch = true;
-                });
+                showPasscodeError(ErrorType.PASSCODES_DO_NOT_MATCH);
                 return;
             }
 
             boolean isFirst = !SharedConfig.passcodeEnabled();
             try {
-                if (FakePasscodeUtils.getActivatedFakePasscode() == null) {
-                    SharedConfig.passcodeSalt = new byte[16];
-                    Utilities.random.nextBytes(SharedConfig.passcodeSalt);
-                }
-                byte[] passcodeBytes = firstPassword.getBytes("UTF-8");
-                byte[] bytes = new byte[32 + passcodeBytes.length];
-                System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, 0, 16);
-                System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
-                System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
-                if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
-                    FakePasscodeUtils.getActivatedFakePasscode().passcodeHash = Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length));
+                if (FakePasscodeUtils.isFakePasscodeActivated()) {
+                    FakePasscodeUtils.getActivatedFakePasscode().generatePasscodeHash(firstPassword);
                     FakePasscodeUtils.getActivatedFakePasscode().passwordDisabled = false;
                 } else {
+                    SharedConfig.passcodeSalt = new byte[16];
+                    Utilities.random.nextBytes(SharedConfig.passcodeSalt);
+                    byte[] passcodeBytes = firstPassword.getBytes("UTF-8");
+                    byte[] bytes = new byte[32 + passcodeBytes.length];
+                    System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, 0, 16);
+                    System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
+                    System.arraycopy(SharedConfig.passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
                     SharedConfig.setPasscode(Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)));
-                    for (FakePasscode passcode: SharedConfig.fakePasscodes) {
-                        passcode.onDelete();
-                    }
-                    SharedConfig.fakePasscodes.clear();
                 }
             } catch (Exception e) {
                 FileLog.e(e);
@@ -1268,6 +1285,11 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
             if (FakePasscodeUtils.getActivatedFakePasscode() != null) {
                 SharedConfig.allowScreenCapture = true;
+            }
+
+            boolean passcodeTypeChanged = SharedConfig.passcodeType != currentPasswordType;
+            if (passcodeTypeChanged) {
+                MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.INVALID_PASSCODE_TYPE);
             }
 
             SharedConfig.passcodeType = currentPasswordType;
@@ -1353,6 +1375,30 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         return false;
     }
 
+    private void showPasscodeError(ErrorType errorType) {
+        if (errorType == ErrorType.PASSCODES_DO_NOT_MATCH) {
+            passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodesDoNotMatchTryAgain));
+        } else if (errorType == ErrorType.PASSCODE_IN_USE) {
+            passcodesErrorTextView.setText(LocaleController.getString(R.string.PasscodeInUse));
+        }
+
+        AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, true);
+        for (CodeNumberField f : codeFieldContainer.codeField) {
+            f.setText("");
+        }
+        if (isPinCode()) {
+            codeFieldContainer.codeField[0].requestFocus();
+        }
+        passwordEditText.setText("");
+        onPasscodeError();
+
+        codeFieldContainer.removeCallbacks(hidePasscodesDoNotMatch);
+        codeFieldContainer.post(()->{
+            codeFieldContainer.postDelayed(hidePasscodesDoNotMatch, 3000);
+            postedHidePasscodesDoNotMatch = true;
+        });
+    }
+
     private void onPasscodeError() {
         if (getParentActivity() == null) return;
         try {
@@ -1376,16 +1422,6 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }, isPinCode() ? 150 : 1000));
     }
 
-    private void requireFakePasscodesDeletionConfirmation(final DialogInterface.OnClickListener listener) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setMessage(LocaleController.getString("AllFakePasscodesWillBeDeleted", R.string.AllFakePasscodesWillBeDeleted));
-        builder.setTitle(LocaleController.getString(R.string.ConfirmAction));
-        builder.setPositiveButton(LocaleController.getString("Continue", R.string.Continue), listener);
-        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-        AlertDialog alertDialog = builder.create();
-        showDialog(alertDialog);
-    }
-
     private void showPhotoWarning(Runnable callback) {
         if (SharedConfig.takePhotoWithBadPasscodeFront || SharedConfig.takePhotoWithBadPasscodeBack) {
             callback.run();
@@ -1397,6 +1433,15 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
             AlertDialog alertDialog = builder.create();
             showDialog(alertDialog);
         }
+    }
+
+    private void showPasswordToPinSwitchWarning() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString(R.string.Warning));
+        builder.setMessage(LocaleController.getString(R.string.PasswordToPinSwitchWarning));
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        AlertDialog alertDialog = builder.create();
+        showDialog(alertDialog);
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

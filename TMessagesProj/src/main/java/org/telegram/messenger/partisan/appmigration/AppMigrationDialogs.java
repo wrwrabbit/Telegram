@@ -15,15 +15,27 @@ public class AppMigrationDialogs {
         return !FakePasscodeUtils.isFakePasscodeActivated()
                 && !AppMigrator.isMigrationStarted()
                 && !AppMigrator.isConnectionDisabled()
-                && AppMigrator.isNewerPtgInstalled(context, true);
+                && targetPtgPackageInstalled(context);
+    }
+
+    private static boolean targetPtgPackageInstalled(Context context) {
+        return AppMigrator.isNewerPtgInstalled(context, true)
+                || AppMigratorPreferences.isMigrationToMaskedPtg();
     }
 
     public static AlertDialog createNewerPtgInstalledDialog(BaseFragment fragment) {
         AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
         builder.setTitle(LocaleController.getString(R.string.OtherPTelegramAlertTitle));
         builder.setMessage(LocaleController.getString(R.string.OtherPTelegramAlert));
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) ->
-                AppMigrator.updateMaxCancelledInstallationDate());
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dlg, which) -> {
+            if (AppMigratorPreferences.isMigrationToMaskedPtg()) {
+                AppMigratorPreferences.setInstalledMaskedPtgPackageName(null);
+                AppMigratorPreferences.setInstalledMaskedPtgPackageSignature(null);
+                AppMigratorPreferences.setStep(Step.NOT_STARTED);
+            } else {
+                AppMigratorPreferences.updateMaxCancelledInstallationDate();
+            }
+        });
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dlg, which) ->
                 fragment.presentFragment(new AppMigrationActivity()));
         return builder.create();

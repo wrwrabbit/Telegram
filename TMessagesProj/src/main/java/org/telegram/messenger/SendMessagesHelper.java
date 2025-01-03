@@ -52,6 +52,7 @@ import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.RemoveAsReadMessage;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -126,6 +127,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     private HashMap<String, ImportingStickers> importingStickersFiles = new HashMap<>();
     private HashMap<String, ImportingStickers> importingStickersMap = new HashMap<>();
+
+    public static boolean allowReloadDialogsByMessage = true;
 
     public static boolean checkUpdateStickersOrder(CharSequence text) {
         if (text instanceof Spannable) {
@@ -1732,7 +1735,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (DialogObject.isEncryptedDialog(peer)) {
             int encryptedId = DialogObject.getEncryptedChatId(peer);
             TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(encryptedId);
-            if (encryptedChat == null) {
+            if (encryptedChat == null && (!SharedConfig.encryptedGroupsEnabled || getMessagesController().getEncryptedGroup(encryptedId) == null)) {
                 return;
             }
             TLRPC.TL_document_layer82 newDocument = new TLRPC.TL_document_layer82();
@@ -3559,6 +3562,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void sendMessage(SendMessageParams sendMessageParams) {
+        if (sendMessageToEncryptedGroupIfNeeded(sendMessageParams)) {
+            return;
+        }
         String message = sendMessageParams.message;
         String caption = sendMessageParams.caption;
         TLRPC.MessageMedia location = sendMessageParams.location;
@@ -4279,6 +4285,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 newMsgObj.videoEditedInfo.notReadyYet = videoEditedInfo.notReadyYet;
             }
 
+            if (sendMessageParams.encryptedGroupId != null && sendMessageParams.encryptedGroupVirtualMessageId != null) {
+                int encryptedGroupId = sendMessageParams.encryptedGroupId;
+                int virtualMessageId = sendMessageParams.encryptedGroupVirtualMessageId;
+                int encryptedChatId = DialogObject.getEncryptedChatId(peer);
+                getMessagesStorage().addEncryptedVirtualMessageMapping(encryptedGroupId, virtualMessageId, encryptedChatId, newMsg.id);
+            }
+
             if (groupId == 0) {
                 ArrayList<MessageObject> objArr = new ArrayList<>();
                 objArr.add(newMsgObj);
@@ -4294,11 +4307,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 } else {
                     mode = 0;
                 }
-                if (!TelegramMessageAction.allowReloadDialogsByMessage) {
+                if (!allowReloadDialogsByMessage) {
                     TelegramMessageAction.sosMessageSent(newMsg);
                 }
                 MessagesStorage.getInstance(currentAccount).putMessages(arr, false, true, false, 0, mode, threadMessageId);
-                if (TelegramMessageAction.allowReloadDialogsByMessage) {
+                if (allowReloadDialogsByMessage) {
                     MessagesController.getInstance(currentAccount).updateInterfaceWithMessages(peer, objArr, mode);
                     if (scheduleDate == 0) {
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogsNeedReload);
@@ -5306,6 +5319,25 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             RemoveAsReadMessage messageToRemove = new RemoveAsReadMessage(newMsg.id, MessageObject.getTopicId(currentAccount, newMsg, false), newMsg.random_id, newMsg.date, sendMessageParams.autoDeleteDelay);
             RemoveAfterReadingMessages.addMessageToRemove(currentAccount, newMsg.dialog_id, messageToRemove);
         }
+    }
+
+    private boolean sendMessageToEncryptedGroupIfNeeded(SendMessageParams sendMessageParams) {
+        long dialogId = sendMessageParams.peer;
+        if (!DialogObject.isEncryptedDialog(dialogId) || !SharedConfig.encryptedGroupsEnabled) {
+            return false;
+        }
+        EncryptedGroup encryptedGroup = getMessagesController().getEncryptedGroup(DialogObject.getEncryptedChatId(dialogId));
+        if (encryptedGroup == null) {
+            return false;
+        }
+        sendMessageParams.encryptedGroupId = encryptedGroup.getInternalId();
+        sendMessageParams.encryptedGroupVirtualMessageId = getMessagesStorage()
+                .createEncryptedVirtualMessage(sendMessageParams.encryptedGroupId);
+        for (int encryptedChatId : encryptedGroup.getInnerEncryptedChatIds(true)) {
+            sendMessageParams.peer = DialogObject.makeEncryptedDialogId(encryptedChatId);
+            sendMessage(sendMessageParams);
+        }
+        return true;
     }
 
     private void performSendDelayedMessage(final DelayedMessage message) {
@@ -7701,7 +7733,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 if (isEncrypted) {
                     int encryptedChatId = DialogObject.getEncryptedChatId(dialogId);
                     TLRPC.EncryptedChat encryptedChat = accountInstance.getMessagesController().getEncryptedChat(encryptedChatId);
-                    if (encryptedChat == null) {
+                    if (encryptedChat == null && (!SharedConfig.encryptedGroupsEnabled || accountInstance.getMessagesController().getEncryptedGroup(encryptedChatId) == null)) {
                         return;
                     }
                 }
@@ -9551,7 +9583,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     if (isEncrypted) {
                         int encryptedChatId = DialogObject.getEncryptedChatId(dialogId);
                         TLRPC.EncryptedChat encryptedChat = accountInstance.getMessagesController().getEncryptedChat(encryptedChatId);
-                        if (encryptedChat == null) {
+                        if (encryptedChat == null && (!SharedConfig.encryptedGroupsEnabled || accountInstance.getMessagesController().getEncryptedGroup(encryptedChatId) == null)) {
                             return;
                         }
                         attributeVideo = new TLRPC.TL_documentAttributeVideo_layer159();
@@ -9708,6 +9740,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         public TL_stories.StoryItem replyToStoryItem;
         public TL_stories.StoryItem sendingStory;
         public Integer autoDeleteDelay;
+        public Integer encryptedGroupId;
+        public Integer encryptedGroupVirtualMessageId;
         public ChatActivity.ReplyQuote replyQuote;
         public boolean invert_media;
         public String quick_reply_shortcut;

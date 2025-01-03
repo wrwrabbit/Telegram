@@ -40,7 +40,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
-import org.telegram.messenger.partisan.appmigration.AppMigrator;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
@@ -285,12 +285,14 @@ public class ApplicationLoader extends Application {
 
     private static void checkFiledCopiedFromOldTelegram() {
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
+            PartisanLog.d("Remove migration preferences from config");
             SharedConfig.filesCopiedFromOldTelegram = true;
             applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()
                     .remove("ptgMigrationStep")
                     .remove("ptgMigrationMaxCancelledInstallationDate")
                     .remove("migratedPackageName")
                     .remove("migratedDate")
+                    .remove("installedMaskedPtgPackageName")
                     .apply();
             SharedConfig.saveConfig();
             SharedConfig.reloadConfig();
@@ -305,9 +307,9 @@ public class ApplicationLoader extends Application {
     public void onCreate() {
         File updaterFilesCopied = new File(getFilesDir(), "updater_files_copied");
         if (updaterFilesCopied.exists()) {
-            if (copyUpdaterDirectory("shared_prefs") | copyUpdaterDirectory("files")) {
-                filesCopiedFromUpdater = true;
-            }
+            filesCopiedFromUpdater = true;
+            copyUpdaterDirectory("shared_prefs");
+            copyUpdaterDirectory("files");
             updaterFilesCopied.delete();
         }
 

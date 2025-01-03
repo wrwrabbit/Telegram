@@ -49,7 +49,6 @@ public class TelegramMessageAction extends AccountAction implements Notification
     }
 
     public List<Entry> entries = new ArrayList<>();
-    public static boolean allowReloadDialogsByMessage = true;
     public static TelegramMessageAction activeAction = null;
 
     @JsonIgnore
@@ -102,11 +101,11 @@ public class TelegramMessageAction extends AccountAction implements Notification
         if (entry.addGeolocation) {
             text += geolocation;
         }
-        allowReloadDialogsByMessage = false;
+        SendMessagesHelper.allowReloadDialogsByMessage = false;
         activeAction = this;
         getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of(text, entry.userId, null, null, null, false,
                 null, null, null, true, 0, null, false));
-        allowReloadDialogsByMessage = true;
+        SendMessagesHelper.allowReloadDialogsByMessage = true;
         activeAction = null;
         entry.dialogDeleted = false;
     }

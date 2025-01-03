@@ -440,6 +440,8 @@ public class SharedConfig {
     public static boolean forceAllowScreenshots = false;
     public static boolean saveLogcatAfterRestart = false;
     public static boolean confirmDangerousActions;
+    public static boolean showEncryptedChatsFromEncryptedGroups = false;
+    public static boolean encryptedGroupsEnabled = false;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -822,7 +824,7 @@ public class SharedConfig {
             onScreenLockActionClearCache = preferences.getBoolean("onScreenLockActionClearCache", false);
             showSessionsTerminateActionWarning = preferences.getBoolean("showSessionsTerminateActionWarning", true);
             showHideDialogIsNotSafeWarning = preferences.getBoolean("showHideDialogIsNotSafeWarning", true);
-            activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", 0);
+            activatedTesterSettingType = preferences.getInt("activatedTesterSettingType", BuildVars.DEBUG_PRIVATE_VERSION ? 1 : 0);
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
             filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
@@ -944,6 +946,8 @@ public class SharedConfig {
             clearAllDraftsOnScreenLock = preferences.getBoolean("clearAllDraftsOnScreenLock", false);
             deleteMessagesForAllByDefault = preferences.getBoolean("deleteMessagesForAllByDefault", false);
             confirmDangerousActions = preferences.getBoolean("confirmDangerousActions", false);
+            showEncryptedChatsFromEncryptedGroups = preferences.getBoolean("showEncryptedChatsFromEncryptedGroups", false);
+            encryptedGroupsEnabled = preferences.getBoolean("encryptedGroupsEnabled", encryptedGroupsEnabled);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useNewBlur = preferences.getBoolean("useNewBlur", true);
@@ -1037,6 +1041,22 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("confirmDangerousActions", confirmDangerousActions);
+        editor.commit();
+    }
+
+    public static void toggleShowEncryptedChatsFromEncryptedGroups() {
+        showEncryptedChatsFromEncryptedGroups = !showEncryptedChatsFromEncryptedGroups;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("showEncryptedChatsFromEncryptedGroups", showEncryptedChatsFromEncryptedGroups);
+        editor.commit();
+    }
+
+    public static void toggleSecretGroups() {
+        encryptedGroupsEnabled = !encryptedGroupsEnabled;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("encryptedGroupsEnabled", encryptedGroupsEnabled);
         editor.commit();
     }
 
@@ -1134,10 +1154,8 @@ public class SharedConfig {
             }
         }
         FakePasscode passcode = FakePasscodeUtils.getActivatedFakePasscode();
-        if (passcode != null && passcode.replaceOriginalPasscode) {
-            fakePasscodeActivatedIndex = -1;
-            passcodeHash = passcode.passcodeHash;
-            fakePasscodes.remove(fakePasscodeIndex);
+        if (passcode != null) {
+            passcode.replaceOriginalPasscodeIfNeed();
         }
     }
 
@@ -1252,11 +1270,11 @@ public class SharedConfig {
                     if ((originalPasscodePrioritized || !FakePasscodeUtils.isFakePasscodeActivated()) && passcodeHash.equals(hash)) {
                         return new PasscodeCheckResult(true, null);
                     }
-                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().passcodeHash.equals(hash)) {
+                    if (FakePasscodeUtils.isFakePasscodeActivated() && FakePasscodeUtils.getActivatedFakePasscode().validatePasscode(passcode)) {
                         return new PasscodeCheckResult(false, FakePasscodeUtils.getActivatedFakePasscode());
                     }
                     for (FakePasscode fakePasscode : fakePasscodes) {
-                        if (fakePasscode.passcodeHash.equals(hash)) {
+                        if (fakePasscode.validatePasscode(passcode)) {
                             return new PasscodeCheckResult(false, fakePasscode);
                         }
                     }
@@ -1296,6 +1314,7 @@ public class SharedConfig {
             fakePasscodes.clear();
             fakePasscodeActivatedIndex = -1;
         }
+        filesCopiedFromOldTelegram = false;
         passcodeSalt = new byte[0];
         autoLockIn = 60 * 60;
         lastPauseTime = 0;
@@ -2239,8 +2258,6 @@ public class SharedConfig {
     public static boolean isTesterSettingsActivated() {
         if (FakePasscodeUtils.isFakePasscodeActivated()) {
             return false;
-        } else if (BuildVars.DEBUG_PRIVATE_VERSION) {
-            return true;
         } else {
             return activatedTesterSettingType != 0;
         }

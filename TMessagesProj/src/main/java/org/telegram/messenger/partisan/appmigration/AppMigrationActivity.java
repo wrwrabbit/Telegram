@@ -32,7 +32,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class AppMigrationActivity extends BaseFragment implements AppMigrator.MakeZipDelegate {
+public class AppMigrationActivity extends BaseFragment implements MigrationZipBuilder.MakeZipDelegate {
     RelativeLayout relativeLayout;
     private TextView titleTextView;
     private TextView descriptionText;
@@ -40,6 +40,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     private TextView buttonTextView;
     private boolean destroyed;
     private long spaceSizeNeeded;
+    private Intent migrationResultIntent;
 
     private final static int cancel = 100;
 
@@ -56,10 +57,13 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         createTitleTextView(context);
         createProgressBar(context);
         createButton(context);
-        if (AppMigrator.getStep() == Step.NOT_STARTED) {
-            AppMigrator.setStep(Step.MAKE_ZIP);
+        if (AppMigratorPreferences.getStep() == Step.NOT_STARTED) {
+            AppMigratorPreferences.setStep(Step.MAKE_ZIP);
         }
-        if (AppMigrator.getStep() == Step.MAKE_ZIP) {
+        if (AppMigratorPreferences.getStep().simplify() == Step.MAKE_ZIP && migrationResultIntent == null) {
+            if (AppMigratorPreferences.getStep() != Step.MAKE_ZIP) {
+                AppMigratorPreferences.setStep(Step.MAKE_ZIP);
+            }
             makeZip();
         }
 
@@ -78,10 +82,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                 if (id == -1) {
                     finishFragment();
                 } else if (id == cancel) {
-                    setStep(Step.NOT_STARTED);
-                    if (!AppMigrator.isNewerPtgInstalled(getContext(), false)) {
-                        AppMigrator.enableConnection();
-                    }
+                    cancelMigration();
                     finishFragment();
                 }
             }
@@ -89,6 +90,18 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
 
         ActionBarMenu menu = actionBar.createMenu();
         menu.addItem(cancel, new BackDrawable(true));
+    }
+
+    private void cancelMigration() {
+        if (AppMigratorPreferences.getStep() != Step.UNINSTALL_SELF) {
+            AppMigratorPreferences.updateMaxCancelledInstallationDate();
+        }
+        AppMigratorPreferences.setInstalledMaskedPtgPackageName(null);
+        AppMigratorPreferences.setInstalledMaskedPtgPackageSignature(null);
+        setStep(Step.NOT_STARTED);
+        if (!AppMigrator.isNewerPtgInstalled(getContext(), false)) {
+            AppMigrator.enableConnection();
+        }
     }
 
     private void createFragmentView(Context context) {
@@ -203,16 +216,16 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private void setStep(Step step) {
-        AppMigrator.setStep(step);
+        AppMigratorPreferences.setStep(step);
         AndroidUtilities.runOnUIThread(this::updateUI);
     }
 
     private void updateUI() {
-        titleTextView.setText(getStepName(AppMigrator.getStep()));
+        titleTextView.setText(getStepName(AppMigratorPreferences.getStep()));
         descriptionText.setText(AndroidUtilities.replaceTags(getStepDescription()));
         buttonTextView.setText(getButtonName());
-        buttonTextView.setEnabled(getStepButtonEnabled(AppMigrator.getStep()));
-        progressBar.setVisibility(AppMigrator.getStep() == Step.MAKE_ZIP ? View.VISIBLE : View.GONE);
+        buttonTextView.setEnabled(getStepButtonEnabled(AppMigratorPreferences.getStep()));
+        progressBar.setVisibility(AppMigratorPreferences.getStep() == Step.MAKE_ZIP ? View.VISIBLE : View.GONE);
     }
 
     private static String getStepName(Step step) {
@@ -227,7 +240,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private String getStepDescription() {
-        switch (AppMigrator.getStep()) {
+        switch (AppMigratorPreferences.getStep()) {
             case MAKE_ZIP:
             default:
                 return LocaleController.formatString(R.string.ZipPreparingDescription, LocaleController.getString(R.string.TransferFilesToAnotherTelegramButton));
@@ -245,7 +258,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private String getButtonName() {
-        switch (AppMigrator.getStep()) {
+        switch (AppMigratorPreferences.getStep()) {
             default:
             case MAKE_ZIP:
             case MAKE_ZIP_COMPLETED:
@@ -272,17 +285,19 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private synchronized void buttonClicked() {
-        switch (AppMigrator.getStep()) {
+        switch (AppMigratorPreferences.getStep()) {
             case MAKE_ZIP:
             case MAKE_ZIP_FAILED:
             case OPEN_NEW_TELEGRAM_FAILED:
                 makeZip();
                 break;
             case MAKE_ZIP_COMPLETED:
-                if (AppMigrator.allowStartNewTelegram()) {
+                if (AppMigrator.readyToStartNewTelegram()) {
                     boolean success = AppMigrator.startNewTelegram(getParentActivity());
                     if (!success) {
                         setStep(Step.OPEN_NEW_TELEGRAM_FAILED);
+                    } else if (AppMigratorPreferences.isMigrationToMaskedPtg()) {
+                        finishFragment();
                     }
                 } else {
                     makeZip();
@@ -292,6 +307,10 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
                 AppMigrator.uninstallSelf(getParentActivity());
                 break;
         }
+    }
+
+    public void setMigrationResultIntent(Intent migrationResultIntent) {
+        this.migrationResultIntent = migrationResultIntent;
     }
 
     @Override
@@ -316,43 +335,88 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         setStep(Step.MAKE_ZIP);
         new Thread(() -> {
             AppMigrator.enableConnection();
-            AppMigrator.makeZip(getParentActivity(), this);
+            MigrationZipBuilder.makeZip(getParentActivity(), this);
         }).start();
     }
 
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
         super.onActivityResultFragment(requestCode, resultCode, data);
-        if (requestCode == 20202020) {
-            if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra("success")) {
-                if (data.getBooleanExtra("success", false)) {
-                    AppMigrator.disableConnection();
-                    migrationFinished(data.getStringExtra("packageName"));
-                } else {
-                    AppMigrator.enableConnection();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                    builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
-                    String error = data.getStringExtra("error");
-                    builder.setMessage(getErrorMessage(error));
-                    builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
-                    showDialog(builder.create());
-                }
+        if (requestCode == AppMigrator.MIGRATE_TO_REGULAR_PTG_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                handleMigrationResultIntent(data);
             } else {
                 AppMigrator.enableConnection();
             }
         }
     }
 
-    private static String getErrorMessage(String error) {
+    private void handleMigrationResultIntent(Intent data) {
+        if (data != null && data.hasExtra("success")) {
+            if (data.getBooleanExtra("success", false)) {
+                AppMigrator.disableConnection();
+                migrationFinished(data.getStringExtra("packageName"));
+            } else {
+                saveMigrationIssuesIfNeeded(data);
+                AppMigrator.enableConnection();
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString(R.string.MigrationTitle));
+                builder.setMessage(getErrorMessage(data));
+                builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                showDialog(builder.create());
+            }
+        } else {
+            AppMigrator.enableConnection();
+        }
+    }
+
+    private static void saveMigrationIssuesIfNeeded(Intent data) {
+        String error = data.getStringExtra("error");
+        if ("settingsDoNotSuitMaskedApps".equals(error)) {
+            String[] issues = data.getStringArrayExtra("issues");
+            if (issues != null) {
+                MaskedMigratorHelper.setMigrationIssues(issues);
+            }
+        }
+    }
+
+    private static String getErrorMessage(Intent data) {
+        String error = data.getStringExtra("error");
         if ("alreadyHasAccounts".equals(error)) {
             return LocaleController.getString(R.string.MigrationErrorAlreadyHasAccountsDescription);
         } else if ("srcVersionGreater".equals(error)) {
             return LocaleController.formatString(R.string.MigrationErrorSrcVersionGreaterDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
         } else if ("srcVersionOld".equals(error)) {
             return LocaleController.getString(R.string.MigrationErrorSrcVersionOldDescription);
+        } else if ("settingsDoNotSuitMaskedApps".equals(error)) {
+            StringBuilder stringBuilder = new StringBuilder(LocaleController.getString(R.string.MigrationErrorSettingsDoNotSuitMaskedAppsDescription));
+            String[] issues = data.getStringArrayExtra("issues");
+            if (issues != null) {
+                for (String issue : issues) {
+                    stringBuilder.append("\n\n");
+                    stringBuilder.append(getMigrationIssueDescription(issue));
+                }
+            }
+            return stringBuilder.toString();
         } else {
             return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
         }
+    }
+
+    private static String getMigrationIssueDescription(String issue) {
+        try {
+            switch (MaskedMigrationIssue.valueOf(issue)) {
+                case INVALID_PASSCODE_TYPE:
+                    return LocaleController.getString(R.string.IssueInvalidPasscodeTypeDescription);
+                case PASSWORDLESS_MODE:
+                    return LocaleController.getString(R.string.IssuePasswordlessModeDescription);
+                case ACTIVATE_BY_FINGERPRINT:
+                    return LocaleController.getString(R.string.IssueActivateByFingerprintDescription);
+            }
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        return LocaleController.formatString(R.string.MigrationErrorUnknownDescription, LocaleController.getString(R.string.MigrationContactPtgSupport));
     }
 
     private void checkThread() {
@@ -360,7 +424,7 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
             try {
                 synchronized (this) {
                     long freeSize = getFreeMemorySize();
-                    if (AppMigrator.getStep() == Step.MAKE_ZIP_LOCKED) {
+                    if (AppMigratorPreferences.getStep() == Step.MAKE_ZIP_LOCKED) {
                         if (calculateZipSize() <= freeSize) {
                             makeZip();
                         }
@@ -389,8 +453,8 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
     }
 
     private void migrationFinished(String packageName) {
-        AppMigrator.setMigrationFinished(packageName);
-        AppMigrator.deleteZipFile();
+        AppMigratorPreferences.setMigrationFinished(packageName);
+        MigrationZipBuilder.deleteZipFile();
         setStep(Step.UNINSTALL_SELF);
     }
 
@@ -412,11 +476,21 @@ public class AppMigrationActivity extends BaseFragment implements AppMigrator.Ma
         return result;
     }
 
+    private boolean isFinishingFragment = false;
     @Override
     public void onResume() {
         super.onResume();
         if (!AppMigrator.checkMigrationNeedToResume(getContext())) {
-            finishFragment();
+            if (!isFinishingFragment) { // workaround for stack overflow
+                isFinishingFragment = true;
+                finishFragment();
+                isFinishingFragment = false;
+            } else {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        }
+        if (migrationResultIntent != null) {
+            handleMigrationResultIntent(migrationResultIntent);
         }
     }
 

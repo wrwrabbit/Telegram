@@ -44,6 +44,7 @@ import androidx.core.graphics.ColorUtils;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupUtils;
 import org.telegram.messenger.ringtone.RingtoneDataStore;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.ConnectionsManager;
@@ -193,6 +194,9 @@ public class MessageObject {
     public float forceSeekTo = -1;
     public int audioProgressMs;
     public float bufferedProgress;
+
+    public Integer encryptedGroupVirtualMessageId;
+
     public float gifState;
     public int audioProgressSec;
     public int audioPlayerDuration;
@@ -9856,6 +9860,9 @@ public class MessageObject {
             return false;
         }
         if (ChatObject.isChannelAndNotMegaGroup(chat) && message.action instanceof TLRPC.TL_messageActionChatJoinedByRequest) {
+            return false;
+        }
+        if (EncryptedGroupUtils.isInnerEncryptedGroupChat(message.dialog_id, currentAccount) && !isOut(message)) {
             return false;
         }
         if (message.id < 0) {

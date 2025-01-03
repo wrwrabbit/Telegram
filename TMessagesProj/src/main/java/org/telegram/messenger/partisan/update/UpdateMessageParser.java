@@ -4,6 +4,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.partisan.PartisanLog;
+import org.telegram.messenger.partisan.Utils;
 import org.telegram.tgnet.TLRPC;
 
 import java.lang.reflect.Field;
@@ -19,6 +20,7 @@ class UpdateMessageParser {
     private MessageObject currentMessage;
     private String lang = "en";
     private int langInaccuracy = 0;
+    private MaskedUpdateType maskedUpdateType = MaskedUpdateType.ALLOW;
 
     private final int currentAccount;
     private final Map<Long, List<MessageObject>> messagesByGroupId = new HashMap<>();
@@ -141,6 +143,9 @@ class UpdateMessageParser {
             }
             isFirstCharInNewLine = lineEnd;
         }
+        if (maskedUpdateType == MaskedUpdateType.ONLY) {
+            currentUpdate = null;
+        }
         return currentUpdate;
     }
 
@@ -154,21 +159,15 @@ class UpdateMessageParser {
     }
 
     private int getLangInaccuracy(String lang) {
-        String userLang = LocaleController.getInstance().getCurrentLocale().getLanguage();
-        if (lang.equals(userLang)) {
+        if (lang.equals(LocaleController.getInstance().getCurrentLocale().getLanguage())) {
             return 0;
-        } else if (lang.equals("ru") && isRu(userLang)) {
+        } else if (lang.equals("ru") && Utils.isRussianAppLanguage()) {
             return 1;
         } else if (lang.equals("en")) {
             return 2;
         } else {
             return 3;
         }
-    }
-
-    private static boolean isRu(String lang) {
-        List<String> ruLangList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
-        return new HashSet<>(ruLangList).contains(lang);
     }
 
     private void addMessageEntities(int start, int end) {
@@ -226,6 +225,16 @@ class UpdateMessageParser {
                     currentUpdate.formatVersion = Integer.parseInt(value);
                 } catch (NumberFormatException ignore) {
                 }
+            }
+        } else if (name.equals("masked")) {
+            if ("allow".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.ALLOW;
+            } else if ("prohibit".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.PROHIBIT;
+            } else if ("only".equalsIgnoreCase(value)) {
+                maskedUpdateType = MaskedUpdateType.ONLY;
+            } else {
+                maskedUpdateType = MaskedUpdateType.ALLOW;
             }
         }
     }

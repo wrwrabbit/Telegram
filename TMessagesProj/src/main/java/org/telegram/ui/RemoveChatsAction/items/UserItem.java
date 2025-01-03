@@ -6,6 +6,9 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.Components.AvatarDrawable;
+
+import java.util.Optional;
 
 class UserItem extends AbstractUserItem {
     UserItem(int accountNum, TLRPC.User user) {
@@ -67,5 +70,14 @@ class UserItem extends AbstractUserItem {
 
     private boolean isBlocked() {
         return getMessagesController().getUnfilteredBlockedPeers().get(user.id) == 1;
+    }
+
+    @Override
+    public Optional<Integer> getAvatarType() {
+        if (isSelf()) {
+            return Optional.of(AvatarDrawable.AVATAR_TYPE_SAVED);
+        } else {
+            return super.getAvatarType();
+        }
     }
 }

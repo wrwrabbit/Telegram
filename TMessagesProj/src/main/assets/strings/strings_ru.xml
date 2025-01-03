@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="FakePasscode">Ложный код-пароль</string>
+    <string name="FakePassword">Ложный пароль</string>
     <string name="ChangeFakePasscode">Сменить ложный код-пароль</string>
     <string name="FakePasscodeActionsInfo">При вводе ложного код-пароля выполняются выбранные действия.</string>
     <string name="AllowFakePasscodeLogin">Разрешить вход c ложным паролем</string>
@@ -13,7 +14,6 @@
     <string name="DeleteFakePasscode">Удалить ложный код-пароль</string>
     <string name="ChangeFakePasscodeName">Изменить название</string>
     <string name="SendTelegramMessages">Отправлять сообщения в Telegram</string>
-    <string name="ChangeTelegramMessage">Изменить сообщение</string>
     <string name="ChangeMessage">Изменить сообщение</string>
     <string name="AreYouSureDeleteFakePasscode">Вы точно хотите удалить этот ложный код-пароль?</string>
     <string name="PasscodeInUse">Этот код-пароль уже используется</string>
@@ -255,11 +255,40 @@
     <string name="TransferDataToAnotherPtgButton">Перенести данные в другое приложение</string>
     <string name="TransferDataToOtherPtgInfo">Вы установили другую версию Партизанского Телеграма. Нажмите на кнопку, если хотите перенести данные.</string>
     <string name="MigrationTitle">Миграция</string>
-    <string name="MigrationDescription">Файлы копируются в новую версию Партизанского Телеграмма. Пожалуйста, подождите.</string>
+    <string name="MigrationDescription">Файлы копируются в новую версию Партизанского Телеграма. Пожалуйста, подождите.</string>
     <string name="OpenNewTelegramFailedDescription">Не удалось открыть новую версию Партизанского Телеграма. Нажмите на кнопку \"%1$s\", чтобы попробовать ещё раз. %2$s</string>
     <string name="MigrationErrorAlreadyHasAccountsDescription">Вы уже вошли в аккаунты в новом приложении. Если хотите перенести данные из этого приложения, выйдите из всех аккаунтов в новом приложении.</string>
     <string name="MigrationErrorSrcVersionGreaterDescription">Версия целевого приложения ниже версии текущего. Установите последнюю версию целевого приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationErrorSrcVersionOldDescription">Текущее приложение устарело и не может передать данные в новое приложение. Обновите его и повторите попытку.</string>
+    <string name="MigrationErrorSettingsDoNotSuitMaskedAppsDescription">Некоторые настройки текущего приложения не подходят для нового замаскированного приложения. Исправьте их в настройках.</string>
     <string name="MigrationErrorUnknownDescription">Произошла неизвестная ошибка. Обновите оба приложения и попробуйте ещё раз. %1$s</string>
     <string name="MigrationContactPtgSupport">Если ошибка остаётся, пожалуйста, свяжитесь с техподдержкой Партизанского Телеграма.</string>
+    <string name="IssueInvalidPasscodeTypeDescription">Буквенно-цифровой пароль не разрешён в этом замаскированном приложении. Измените его на 4-циферный код-пароль.</string>
+    <string name="IssuePasswordlessModeDescription">Ложные код-пароли с беспарольным режимом не разрешёны в замаскированном приложении. Отключите этот режим в код-паролях или удалите эти код-пароли.</string>
+    <string name="IssueActivateByFingerprintDescription">Код-пароли с активацией по отпечатку пальца не разрешены в замаскированном приложении. Отключите эту опцию.</string>
+    <string name="PasswordToPinSwitchWarning">Если у Вас были ложные код-пароли, состоящие не из 4 цифры, их не получится ввести. Мы рекомендуем изменить их.</string>
+    <string name="ContinueMaskedMigrationDescription">Кажется, Вы исправили все проблемы. Хотите возобновить миграцию?</string>
+    <string name="NewEncryptedGroup">Создать секретную группу</string>
+    <string name="AreYouSureClearHistoryWithSecretGroup">Вы точно хотите удалить историю секретной группы **%1$s** только для себя? У других участников она останется доступной.</string>
+    <string name="AreYouSureDeleteThisSecretGroup">Вы точно хотите удалить эту секретную группу: **%1$s**?</string>
+    <string name="CreatingSecretChats">Создание секретных чатов</string>
+    <string name="JoiningNotConfirmed">Присоединение не подтверждено</string>
+    <string name="WaitingForSecretGroupInitializationConfirmation">Ждём подтверждения от участников</string>
+    <string name="WaitingForSecondaryChatsCreation">Ждём создания чатов между участниками</string>
+    <string name="SecretGroupInitializationFailed">Инициализация секретной группы не удалась</string>
+    <string name="SecretGroupCancelled">Секретная группа отменена</string>
+    <string name="EncryptedGroupTitleOutgoing">Вы создали секретную группу.</string>
+    <string name="EncryptedGroupPlaceholderTitleIncoming">%s пригласил Вас в секретную группу.</string>
+    <string name="EncryptedGroupDescriptionTitle">Секретные группы:</string>
+    <string name="SecretGroupJoiningConfirmation">**%1$s** Пригласил Вас в секретную группу. Вы хотите присоединиться к секретной группе?\n\n**Если Вы подтвердите присоединение, %1$s узнает, что Вы используете Партизанский Телеграм!** Если вы не знаете этого пользователя, нажмите **%2$s** или проигнорируйте этот диалог.</string>
+    <string name="JoinSecretGroup">Присоединиться</string>
+    <string name="DeclineJoiningToSecretGroup">Отклонить</string>
+    <string name="SecretGroupsAreAlwaysHiddenByFakePasscode">Секретные группы всегда скрываются ложным код-паролем.</string>
+    <string name="NotAllSelectedDialogsHaveThisOption">Не все выбранные диалоги имеют эту опцию.</string>
+    <string name="ThisFeatureIsNotImplemented">Эта функция ещё не реализована.</string>
+    <string name="DeleteSecretGroupOptionForMembers">Удалить сообщения для остальных</string>
+    <string name="PartisanExperimentalSettingsHeader">Экспериментальные настройки</string>
+    <string name="EnableSecretGroups">Включить секретные группы</string>
+    <string name="SecretGroupsEnabled">Секретные группы включены</string>
+    <string name="EnableSecretGroupsInfo">Секретные группы позволяют нескольким пользователям общаться с использованием сквозного шифрования. Чтобы создать секретную группу, включите этот функционал при помощи кнопки выше, вернитесь в список диалогов, нажмите на иконку карандаша в правом нижнем углу и выберите \"%1$s\".</string>
 </resources>

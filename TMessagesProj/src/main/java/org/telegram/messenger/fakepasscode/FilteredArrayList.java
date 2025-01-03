@@ -114,4 +114,27 @@ public class FilteredArrayList <E> extends ArrayList<E> {
         originalList.sort(c);
         super.sort(c);
     }
+
+    @Override
+    public E set(int index, E element) {
+        E e = get(index);
+        int previousSameElementCount = 0;
+        for (int i = 0; i < index; i++) {
+            if (get(i) == e) {
+                previousSameElementCount++;
+            }
+        }
+        int originalIndex = -1;
+        for (int i = 0; i < originalList.size(); i++) {
+            if (originalList.get(i) == e) {
+                previousSameElementCount--;
+                if (previousSameElementCount < 0) {
+                    originalIndex = i;
+                    break;
+                }
+            }
+        }
+        originalList.set(originalIndex, element);
+        return super.set(index, element);
+    }
 }
