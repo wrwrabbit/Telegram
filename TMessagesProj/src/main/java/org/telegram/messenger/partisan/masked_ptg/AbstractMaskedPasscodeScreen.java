@@ -38,7 +38,8 @@ public abstract class AbstractMaskedPasscodeScreen {
                 ? R.string.MaskedPasscodeScreenTrainingTitle
                 : R.string.MaskedPasscodeScreenInstructionTitle;
         builder.setTitle(LocaleController.getString(titleRes));
-        builder.setMessage(message);
+        String finalMessage = message + "\n\n" + LocaleController.getString(R.string.MaskedPasscodeScreenInstructionShownOnlyOnce);
+        builder.setMessage(finalMessage);
         AlertDialog dialog = builder.create();
         dialog.setCanCancel(false);
         dialog.setCancelable(false);
