@@ -10515,7 +10515,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @TargetApi(Build.VERSION_CODES.M)
     private void askForPermissons(boolean alert) {
         Activity activity = getParentActivity();
-        if (activity == null) {
+        if (activity == null || !allowNonPtgDialogs()) {
             return;
         }
         ArrayList<String> permissons = new ArrayList<>();
