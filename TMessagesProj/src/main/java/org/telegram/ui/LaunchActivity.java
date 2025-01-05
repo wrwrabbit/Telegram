@@ -1795,7 +1795,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.passcodeDismissed, view);
             try {
-                NotificationsController.getInstance(UserConfig.selectedAccount).showNotifications();
+                if (!SharedConfig.needShowMaskedPasscodeScreenTutorial) {
+                    NotificationsController.getInstance(UserConfig.selectedAccount).showNotifications();
+                }
             } catch (Exception e) {
                 FileLog.e(e);
             }
@@ -1805,7 +1807,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             overlay.setDelegate(delegate);
         }
         try {
-            NotificationsController.getInstance(UserConfig.selectedAccount).showNotifications();
+            if (!SharedConfig.needShowMaskedPasscodeScreenTutorial) {
+                NotificationsController.getInstance(UserConfig.selectedAccount).showNotifications();
+            }
         } catch (Exception e) {
             FileLog.e(e);
         }
