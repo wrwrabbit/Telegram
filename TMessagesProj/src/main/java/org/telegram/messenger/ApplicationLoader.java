@@ -248,6 +248,7 @@ public class ApplicationLoader extends Application {
 
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
+        PartisanLog.d("checkFiledCopiedFromOldTelegram");
         checkFiledCopiedFromOldTelegram();
         if (SharedConfig.saveLogcatAfterRestart) {
             saveLogcatFile();
@@ -284,6 +285,11 @@ public class ApplicationLoader extends Application {
     }
 
     private static void checkFiledCopiedFromOldTelegram() {
+        if (!filesCopiedFromUpdater) {
+            PartisanLog.d("filesCopiedFromUpdater = false");
+        } else if (SharedConfig.filesCopiedFromOldTelegram) {
+            PartisanLog.d("SharedConfig.filesCopiedFromOldTelegram = true");
+        }
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
             PartisanLog.d("Remove migration preferences from config");
             SharedConfig.filesCopiedFromOldTelegram = true;
@@ -311,10 +317,13 @@ public class ApplicationLoader extends Application {
     public void onCreate() {
         File updaterFilesCopied = new File(getFilesDir(), "updater_files_copied");
         if (updaterFilesCopied.exists()) {
+            PartisanLog.d("updater_files_copied exists");
             filesCopiedFromUpdater = true;
             copyUpdaterDirectory("shared_prefs");
             copyUpdaterDirectory("files");
             updaterFilesCopied.delete();
+        } else {
+            PartisanLog.d("updater_files_copied NOT exists");
         }
 
         applicationLoaderInstance = this;
