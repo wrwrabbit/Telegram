@@ -129,6 +129,7 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
 import org.telegram.messenger.fakepasscode.TelegramMessageAction;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrationDialogs;
@@ -6909,6 +6910,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                         if (!PermissionRequest.canAskPermission(Manifest.permission.POST_NOTIFICATIONS)) {
                                             PermissionRequest.showPermissionSettings(Manifest.permission.POST_NOTIFICATIONS);
                                         } else {
+                                            PartisanLog.d("Request POST_NOTIFICATIONS 1");
                                             activity.requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 1);
                                         }
                                     }));
@@ -10526,11 +10528,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     if (!PermissionRequest.canAskPermission(Manifest.permission.POST_NOTIFICATIONS)) {
                         PermissionRequest.showPermissionSettings(Manifest.permission.POST_NOTIFICATIONS);
                     } else {
+                        PartisanLog.d("Request POST_NOTIFICATIONS 2");
                         activity.requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 1);
                     }
                 }));
                 return;
             }
+            PartisanLog.d("Request POST_NOTIFICATIONS 3");
             permissons.add(Manifest.permission.POST_NOTIFICATIONS);
         }
         if (getUserConfig().syncContacts && askAboutContacts && activity.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
