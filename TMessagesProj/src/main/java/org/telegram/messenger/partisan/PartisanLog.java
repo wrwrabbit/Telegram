@@ -45,7 +45,6 @@ public class PartisanLog {
     }
 
     public static boolean logsAllowed() {
-        return true || BuildVars.LOGS_ENABLED ||
-                getLogsEnabledFromSharedConfig() && !FakePasscodeUtils.isFakePasscodeActivated();
+        return true;
     }
 }
