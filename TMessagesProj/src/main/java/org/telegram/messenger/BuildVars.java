@@ -19,7 +19,7 @@ import java.util.Objects;
 public class BuildVars {
 
     public static boolean DEBUG_VERSION = true;
-    public static boolean LOGS_ENABLED = BuildConfig.DEBUG_VERSION;
+    public static final boolean LOGS_ENABLED = true;
     public static boolean DEBUG_PRIVATE_VERSION = BuildConfig.DEBUG_PRIVATE_VERSION;
     public static boolean USE_CLOUD_STRINGS = true;
     public static boolean CHECK_UPDATES = true;
@@ -42,7 +42,7 @@ public class BuildVars {
     static {
         if (ApplicationLoader.applicationContext != null) {
             SharedPreferences sharedPreferences = ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE);
-            LOGS_ENABLED = DEBUG_VERSION || sharedPreferences.getBoolean("logsEnabled", DEBUG_VERSION);
+            //LOGS_ENABLED = DEBUG_VERSION || sharedPreferences.getBoolean("logsEnabled", DEBUG_VERSION);
             if (LOGS_ENABLED) {
                 Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
                     FileLog.fatal(exception, true);

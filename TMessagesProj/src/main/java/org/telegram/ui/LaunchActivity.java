@@ -3231,7 +3231,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     bulletinText = "Locked in release.";
                 } else if (open_settings == 7) {
                     bulletinText = "Logs enabled.";
-                    ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE).edit().putBoolean("logsEnabled", BuildVars.LOGS_ENABLED = true).commit();
+                    //ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE).edit().putBoolean("logsEnabled", BuildVars.LOGS_ENABLED = true).commit();
                     Thread.setDefaultUncaughtExceptionHandler(BuildVars.LOGS_ENABLED ? (thread, exception) -> {
                         if (thread == Looper.getMainLooper().getThread()) {
                             FileLog.fatal(exception, true);
@@ -3241,7 +3241,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     ProfileActivity.sendLogs(LaunchActivity.this, false);
                 } else if (open_settings == 9) {
                     bulletinText = "Logs disabled.";
-                    ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE).edit().putBoolean("logsEnabled", BuildVars.LOGS_ENABLED = false).commit();
+                    //ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE).edit().putBoolean("logsEnabled", BuildVars.LOGS_ENABLED = false).commit();
                     Thread.setDefaultUncaughtExceptionHandler(BuildVars.LOGS_ENABLED ? (thread, exception) -> {
                         if (thread == Looper.getMainLooper().getThread()) {
                             FileLog.fatal(exception, true);
