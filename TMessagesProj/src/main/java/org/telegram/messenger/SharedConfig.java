@@ -836,7 +836,11 @@ public class SharedConfig {
             updateChannelIdOverride = preferences.getLong("updateChannelIdOverride", 0);
             updateChannelUsernameOverride = preferences.getString("updateChannelUsernameOverride", "");
             needShowMaskedPasscodeScreenTutorial = preferences.getBoolean("needShowMaskedPasscodeScreenTutorial", false);
-            filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
+            if (!ApplicationLoader.filesCopiedFromUpdater) {
+                filesCopiedFromOldTelegram = preferences.getBoolean("filesCopiedFromOldTelegram", false);
+            } else {
+                filesCopiedFromOldTelegram = false;
+            }
             oldTelegramRemoved = preferences.getBoolean("oldTelegramRemoved", false);
             runNumber = preferences.getInt("runNumber", 0);
             premiumDisabled = preferences.getBoolean("premiumDisabled", false);
