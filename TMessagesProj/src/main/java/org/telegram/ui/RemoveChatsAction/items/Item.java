@@ -8,9 +8,11 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.fakepasscode.RemoveChatsAction;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroup;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class Item {
@@ -55,6 +57,11 @@ public abstract class Item {
             TLRPC.EncryptedChat encryptedChat = messagesController.getEncryptedChat(encryptedChatId);
             if (encryptedChat != null) {
                 return new EncryptedChatItem(accountNum, encryptedChat);
+            } else {
+                EncryptedGroup encryptedGroup = messagesController.getEncryptedGroup(encryptedChatId);
+                if (encryptedGroup != null) {
+                    return new EncryptedGroupItem(accountNum, encryptedGroup);
+                }
             }
         }
         RemoveChatsAction.RemoveChatEntry removeChatEntry = action.get(id);
@@ -117,6 +124,52 @@ public abstract class Item {
         String lowercaseQuery = query.toLowerCase();
         return lowercaseName.startsWith(lowercaseQuery)
                 || lowercaseName.contains(" " + lowercaseQuery);
+    }
+
+    public Optional<Integer> getAvatarType() {
+        return Optional.empty();
+    }
+
+    public OptionPermission getDeletePermission() {
+        return OptionPermission.ALLOW;
+    }
+
+    public OptionPermission getDeleteFromCompanionPermission() {
+        return isUserId() && !isSelf() || isEncryptedDialogId() ? OptionPermission.ALLOW : OptionPermission.DENY;
+    }
+
+    public OptionPermission getDeleteNewMessagesPermission() {
+        if (isUserId() && !isSelf()) {
+            return OptionPermission.ALLOW;
+        } else if (isEncryptedDialogId()) {
+            return OptionPermission.INDIFFERENT;
+        } else {
+            return OptionPermission.DENY;
+        }
+    }
+
+    public OptionPermission getDeleteAllMyMessagesPermission() {
+        return isChatId() ? OptionPermission.ALLOW : OptionPermission.DENY;
+    }
+
+    public OptionPermission getHidingPermission() {
+        return !isSelf() ? OptionPermission.ALLOW : OptionPermission.DENY;
+    }
+
+    public OptionPermission getStrictHidingPermission() {
+        return getHidingPermission();
+    }
+
+    private boolean isUserId() {
+        return DialogObject.isUserDialog(getId());
+    }
+
+    private boolean isChatId() {
+        return DialogObject.isChatDialog(getId());
+    }
+
+    private boolean isEncryptedDialogId() {
+        return DialogObject.isEncryptedDialog(getId());
     }
 
     private AccountInstance getAccountInstance() {

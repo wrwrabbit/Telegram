@@ -1,9 +1,7 @@
 package org.telegram.ui;
 
 import android.graphics.Canvas;
-import android.graphics.Typeface;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -32,12 +30,10 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ChatActionCell;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.Bulletin;
-import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.Reactions.AnimatedEmojiEffect;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.RecyclerListView;
@@ -840,16 +836,16 @@ public class EmojiAnimationsOverlay implements NotificationCenter.NotificationCe
         }
         StickerSetBulletinLayout layout = new StickerSetBulletinLayout(contentLayout.getContext(), null, StickerSetBulletinLayout.TYPE_EMPTY, messageObject.getDocument(), chatActivity.getResourceProvider());
         layout.titleTextView.setText(stickerSet.set.title);
-        layout.subtitleTextView.setText(LocaleController.getString("PremiumStickerTooltip", R.string.PremiumStickerTooltip));
+        layout.subtitleTextView.setText(LocaleController.getString(R.string.PremiumStickerTooltip));
 
         Bulletin.UndoButton viewButton = new Bulletin.UndoButton(chatActivity.getParentActivity(), true, chatActivity.getResourceProvider());
         layout.setButton(viewButton);
         viewButton.setUndoAction(() -> {
-            StickersAlert alert = new StickersAlert(chatActivity.getParentActivity(), chatActivity, messageObject.getInputStickerSet(), null, chatActivity.chatActivityEnterView, chatActivity.getResourceProvider());
+            StickersAlert alert = new StickersAlert(chatActivity.getParentActivity(), chatActivity, messageObject.getInputStickerSet(), null, chatActivity.chatActivityEnterView, chatActivity.getResourceProvider(), false);
             alert.setCalcMandatoryInsets(chatActivity.isKeyboardVisible());
             chatActivity.showDialog(alert);
         });
-        viewButton.setText(LocaleController.getString("ViewAction", R.string.ViewAction));
+        viewButton.setText(LocaleController.getString(R.string.ViewAction));
         Bulletin bulletin = Bulletin.make(chatActivity, layout, Bulletin.DURATION_LONG);
         bulletin.hash = messageObject.getId();
         bulletin.show();

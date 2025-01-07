@@ -91,6 +91,12 @@ public class LayoutHelper {
         return new FrameLayout.LayoutParams(getSize(width), getSize(height), gravity);
     }
 
+    public static FrameLayout.LayoutParams createFrame(float width, float height, int gravity, float leftMargin, float topMargin, float rightMargin, float bottomMargin) {
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(getSize(width), getSize(height), gravity);
+        layoutParams.setMargins(AndroidUtilities.dp(leftMargin), AndroidUtilities.dp(topMargin), AndroidUtilities.dp(rightMargin), AndroidUtilities.dp(bottomMargin));
+        return layoutParams;
+    }
+
     public static FrameLayout.LayoutParams createFrameRelatively(float width, float height, int gravity, float startMargin, float topMargin, float endMargin, float bottomMargin) {
         final FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(getSize(width), getSize(height), getAbsoluteGravity(gravity));
         layoutParams.leftMargin = AndroidUtilities.dp(LocaleController.isRTL ? endMargin : startMargin);
@@ -195,6 +201,12 @@ public class LayoutHelper {
     }
 
     public static LinearLayout.LayoutParams createLinear(int width, int height, int gravity) {
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height));
+        layoutParams.gravity = gravity;
+        return layoutParams;
+    }
+
+    public static LinearLayout.LayoutParams createLinear(float width, float height, int gravity) {
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height));
         layoutParams.gravity = gravity;
         return layoutParams;

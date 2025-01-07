@@ -8,19 +8,19 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.biometric.BiometricManager;
 import androidx.core.util.Consumer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -202,7 +202,7 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                 if (getParentActivity() == null) {
                     return;
                 }
-                if (fakePasscode.passwordlessMode) {
+                if (fakePasscode.passwordlessMode || fakePasscode.activateByTimerTime != null) {
                     showTimerDialog(position);
                 } else {
                     showTimerWarningDialog(() -> showTimerDialog(position));
@@ -213,6 +213,7 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
                 if (fakePasscode.activateByFingerprint) {
                     fakePasscode.allowLogin = true;
                 }
+                SharedConfig.useFingerprintLock = fakePasscode.activateByFingerprint;
                 SharedConfig.saveConfig();
                 cell.setChecked(fakePasscode.activateByFingerprint);
                 updateRows();
@@ -285,24 +286,21 @@ public class FakePasscodeActivationMethodsActivity extends BaseFragment {
         activateByTimerRow = rowCount++;
         activateByTimerDetailRow = rowCount++;
 
+        fingerprintRow = -1;
+        fingerprintDetailRow = -1;
+
         try {
             if (Build.VERSION.SDK_INT >= 23) {
-                FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(ApplicationLoader.applicationContext);
-                if (fingerprintManager.isHardwareDetected() && AndroidUtilities.isKeyguardSecure() && SharedConfig.useFingerprintLock) {
+                boolean allowFingerprint = SharedConfig.useFingerprintLock ||
+                        BiometricManager.from(ApplicationLoader.applicationContext).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS &&
+                                AndroidUtilities.isKeyguardSecure();
+                if (allowFingerprint) {
                     fingerprintRow = rowCount++;
                     fingerprintDetailRow = rowCount++;
-                } else {
-                    fingerprintRow = -1;
-                    fingerprintDetailRow = -1;
                 }
-            } else {
-                fingerprintRow = -1;
-                fingerprintDetailRow = -1;
             }
-        } catch (Throwable e) {
-            FileLog.e(e);
-            fingerprintRow = -1;
-            fingerprintDetailRow = -1;
+        } catch (Exception e) {
+            PartisanLog.e("Fingerprint error", e);
         }
     }
 

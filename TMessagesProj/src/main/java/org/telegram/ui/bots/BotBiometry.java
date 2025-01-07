@@ -8,10 +8,13 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.LongSparseArray;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.view.WindowCallbackWrapper;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
@@ -45,7 +48,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 
 import javax.crypto.Cipher;
@@ -68,7 +73,18 @@ public class BotBiometry {
     private String encrypted_token;
     private String iv;
 
-    public BotBiometry(Context context, int currentAccount, long botId) {
+    private final static WeakHashMap<Pair<Integer, Long>, BotBiometry> instances = new WeakHashMap<>();
+
+    public static BotBiometry get(Context context, int currentAccount, long botId) {
+        final Pair<Integer, Long> key = new Pair<>(currentAccount, botId);
+        BotBiometry instance = instances.get(key);
+        if (instance == null) {
+            instances.put(key, instance = new BotBiometry(context, currentAccount, botId));
+        }
+        return instance;
+    }
+
+    private BotBiometry(Context context, int currentAccount, long botId) {
         this.context = context;
         this.currentAccount = currentAccount;
         this.botId = botId;
@@ -82,6 +98,20 @@ public class BotBiometry {
         this.access_granted = this.encrypted_token != null;
         this.access_requested = this.access_granted || prefs.getBoolean(botId + "_requested", false);
         this.disabled = prefs.getBoolean(botId + "_disabled", false);
+    }
+
+    public boolean asked() {
+        return access_requested;
+    }
+
+    public boolean granted() {
+        return access_granted;
+    }
+
+    public void setGranted(boolean granted) {
+        this.access_requested = true;
+        this.access_granted = granted;
+        save();
     }
 
     @Nullable
@@ -102,7 +132,7 @@ public class BotBiometry {
     private BiometricPrompt prompt;
 
     public void requestToken(String reason, Utilities.Callback2<Boolean, String> whenDecrypted) {
-        prompt(reason, true, null, result -> {
+        prompt(reason, true, null, (success, result) -> {
             String token = null;
             if (result != null) {
                 try {
@@ -130,15 +160,15 @@ public class BotBiometry {
                 } catch (Exception e) {
                     FileLog.e(e);
                     result = null;
+                    success = false;
                 }
             }
-            whenDecrypted.run(result != null, token);
+            whenDecrypted.run(success, token);
         });
     }
 
     public void updateToken(String reason, String token, Utilities.Callback<Boolean> whenDone) {
-        prompt(reason, false, token, result -> {
-            boolean success = result != null;
+        prompt(reason, false, token, (success, result) -> {
             if (result != null) {
                 try {
                     BiometricPrompt.CryptoObject cryptoObject = result.getCryptoObject();
@@ -179,9 +209,9 @@ public class BotBiometry {
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 FileLog.d("BotBiometry onAuthenticationError " + errorCode + " \"" + errString + "\"");
                 if (callback != null) {
-                    Utilities.Callback<BiometricPrompt.AuthenticationResult> thisCallback = callback;
+                    Utilities.Callback2<Boolean, BiometricPrompt.AuthenticationResult> thisCallback = callback;
                     callback = null;
-                    thisCallback.run(null);
+                    thisCallback.run(false, null);
                 }
             }
 
@@ -189,9 +219,9 @@ public class BotBiometry {
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 FileLog.d("BotBiometry onAuthenticationSucceeded");
                 if (callback != null) {
-                    Utilities.Callback<BiometricPrompt.AuthenticationResult> thisCallback = callback;
+                    Utilities.Callback2<Boolean, BiometricPrompt.AuthenticationResult> thisCallback = callback;
                     callback = null;
-                    thisCallback.run(result);
+                    thisCallback.run(true, result);
                 }
             }
 
@@ -225,19 +255,19 @@ public class BotBiometry {
         return null;
     }
 
-    private Utilities.Callback<BiometricPrompt.AuthenticationResult> callback;
+    private Utilities.Callback2<Boolean, BiometricPrompt.AuthenticationResult> callback;
     private void prompt(
         String text,
         boolean decrypt,
         String token,
-        Utilities.Callback<BiometricPrompt.AuthenticationResult> whenDone
+        Utilities.Callback2<Boolean, BiometricPrompt.AuthenticationResult> whenDone
     ) {
         this.callback = whenDone;
         try {
             initPrompt();
         } catch (Exception e) {
             FileLog.e(e);
-            whenDone.run(null);
+            whenDone.run(false, null);
             return;
         }
         BiometricPrompt.CryptoObject cryptoObject = makeCryptoObject(decrypt);
@@ -262,7 +292,7 @@ public class BotBiometry {
                 }
                 save();
                 this.callback = null;
-                whenDone.run(null);
+                whenDone.run(true, null);
                 return;
             } catch (Exception e) {
                 FileLog.e(e);
@@ -386,22 +416,25 @@ public class BotBiometry {
         final SharedPreferences prefs = context.getSharedPreferences(PREF + currentAccount, Activity.MODE_PRIVATE);
 
         final ArrayList<Long> botIds = new ArrayList<>();
-        final ArrayList<Boolean> botDisabled = new ArrayList<>();
         final Map<String, ?> values = prefs.getAll();
         for (Map.Entry<String, ?> entry : values.entrySet()) {
-            if (!entry.getKey().startsWith("device_id") || !(entry.getValue() instanceof String)) continue;
+            final String key = entry.getKey();
+            if (!key.endsWith("_requested")) continue;
             long botId;
-            boolean disabled;
             try {
-                botId = Long.parseLong(entry.getKey().substring("device_id".length()));
-                Boolean disabledValue = (Boolean) values.get(botId + "_disabled");
-                disabled = disabledValue != null && disabledValue;
+                botId = Long.parseLong(key.substring(0, key.length() - "_requested".length()));
             } catch (Exception e) {
                 FileLog.e(e);
                 continue;
             }
             botIds.add(botId);
-            botDisabled.add(disabled);
+        }
+
+        final HashMap<Long, Boolean> botEnabled = new HashMap<>();
+        for (long botId : botIds) {
+            final BotBiometry biometry = BotBiometry.get(context, currentAccount, botId);
+            if (!biometry.access_granted || !biometry.access_requested) continue;
+            botEnabled.put(botId, !biometry.disabled);
         }
 
         if (botIds.isEmpty()) {
@@ -414,7 +447,9 @@ public class BotBiometry {
             AndroidUtilities.runOnUIThread(() -> {
                 ArrayList<Bot> result = new ArrayList<>();
                 for (int i = 0; i < bots.size(); ++i) {
-                    result.add(new Bot(bots.get(i), i < botDisabled.size() && botDisabled.get(i)));
+                    final TLRPC.User user = bots.get(i);
+                    final Boolean bool = botEnabled.get(user.id);
+                    result.add(new Bot(user, bool == null || !bool));
                 }
                 whenDone.run(result);
             });
@@ -465,6 +500,7 @@ public class BotBiometry {
             final SharedPreferences prefs = context.getSharedPreferences(PREF + i, Activity.MODE_PRIVATE);
             prefs.edit().clear().apply();
         }
+        instances.clear();
     }
 
 }

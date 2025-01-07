@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
+import org.telegram.messenger.FileLog;
 
 /** An HLS {@link MediaChunk}. */
 /* package */ final class HlsMediaChunk extends MediaChunk {
@@ -427,7 +428,7 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
         initDataSource,
         initDataSpec,
         initSegmentEncrypted,
-        /* initializeTimestampAdjuster= */ false);
+        /* initializeTimestampAdjuster= */ true);
     nextLoadPosition = 0;
     initDataLoadRequired = false;
   }
@@ -482,6 +483,8 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
       } finally {
         nextLoadPosition = (int) (input.getPosition() - dataSpec.position);
       }
+    } catch (Exception e) {
+      FileLog.e(e);
     } finally {
       DataSourceUtil.closeQuietly(dataSource);
     }

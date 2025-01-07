@@ -34,6 +34,7 @@ public class ChatBigEmptyView extends LinearLayout {
     private ArrayList<ImageView> imageViews = new ArrayList<>();
 
     public final static int EMPTY_VIEW_TYPE_SECRET = 0;
+    public final static int EMPTY_VIEW_TYPE_SECRET_GROUP = 100;
     public final static int EMPTY_VIEW_TYPE_GROUP = 1;
     public final static int EMPTY_VIEW_TYPE_SAVED = 2;
 
@@ -45,7 +46,7 @@ public class ChatBigEmptyView extends LinearLayout {
         setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
         setOrientation(LinearLayout.VERTICAL);
 
-        if (type == EMPTY_VIEW_TYPE_SECRET) {
+        if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
             statusTextView = new TextView(context);
             statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             statusTextView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
@@ -71,13 +72,16 @@ public class ChatBigEmptyView extends LinearLayout {
 
         TextView textView = new TextView(context);
         if (type == EMPTY_VIEW_TYPE_SECRET) {
-            textView.setText(LocaleController.getString("EncryptedDescriptionTitle", R.string.EncryptedDescriptionTitle));
+            textView.setText(LocaleController.getString(R.string.EncryptedDescriptionTitle));
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        } else if (type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
+            textView.setText(LocaleController.getString(R.string.EncryptedGroupDescriptionTitle));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         } else if (type == EMPTY_VIEW_TYPE_GROUP) {
-            textView.setText(LocaleController.getString("GroupEmptyTitle2", R.string.GroupEmptyTitle2));
+            textView.setText(LocaleController.getString(R.string.GroupEmptyTitle2));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         } else {
-            textView.setText(LocaleController.getString("ChatYourSelfTitle", R.string.ChatYourSelfTitle));
+            textView.setText(LocaleController.getString(R.string.ChatYourSelfTitle));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             textView.setTypeface(AndroidUtilities.bold());
             textView.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -94,7 +98,7 @@ public class ChatBigEmptyView extends LinearLayout {
 
             ImageView imageView = new ImageView(context);
             imageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_serviceText), PorterDuff.Mode.MULTIPLY));
-            if (type == EMPTY_VIEW_TYPE_SECRET) {
+            if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
                 imageView.setImageResource(R.drawable.ic_lock_white);
             } else if (type == EMPTY_VIEW_TYPE_SAVED) {
                 imageView.setImageResource(R.drawable.list_circle);
@@ -112,46 +116,46 @@ public class ChatBigEmptyView extends LinearLayout {
 
             switch (a) {
                 case 0:
-                    if (type == EMPTY_VIEW_TYPE_SECRET) {
-                        textView.setText(LocaleController.getString("EncryptedDescription1", R.string.EncryptedDescription1));
+                    if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
+                        textView.setText(LocaleController.getString(R.string.EncryptedDescription1));
                     } else if (type == EMPTY_VIEW_TYPE_SAVED) {
-                        textView.setText(LocaleController.getString("ChatYourSelfDescription1", R.string.ChatYourSelfDescription1));
+                        textView.setText(LocaleController.getString(R.string.ChatYourSelfDescription1));
                     } else {
-                        textView.setText(LocaleController.getString("GroupDescription1", R.string.GroupDescription1));
+                        textView.setText(LocaleController.getString(R.string.GroupDescription1));
                     }
                     break;
                 case 1:
-                    if (type == EMPTY_VIEW_TYPE_SECRET) {
-                        textView.setText(LocaleController.getString("EncryptedDescription2", R.string.EncryptedDescription2));
+                    if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
+                        textView.setText(LocaleController.getString(R.string.EncryptedDescription2));
                     } else if (type == EMPTY_VIEW_TYPE_SAVED) {
-                        textView.setText(LocaleController.getString("ChatYourSelfDescription2", R.string.ChatYourSelfDescription2));
+                        textView.setText(LocaleController.getString(R.string.ChatYourSelfDescription2));
                     } else {
-                        textView.setText(LocaleController.getString("GroupDescription2", R.string.GroupDescription2));
+                        textView.setText(LocaleController.getString(R.string.GroupDescription2));
                     }
                     break;
                 case 2:
-                    if (type == EMPTY_VIEW_TYPE_SECRET) {
-                        textView.setText(LocaleController.getString("EncryptedDescription3", R.string.EncryptedDescription3));
+                    if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
+                        textView.setText(LocaleController.getString(R.string.EncryptedDescription3));
                     } else if (type == EMPTY_VIEW_TYPE_SAVED) {
-                        textView.setText(LocaleController.getString("ChatYourSelfDescription3", R.string.ChatYourSelfDescription3));
+                        textView.setText(LocaleController.getString(R.string.ChatYourSelfDescription3));
                     } else {
-                        textView.setText(LocaleController.getString("GroupDescription3", R.string.GroupDescription3));
+                        textView.setText(LocaleController.getString(R.string.GroupDescription3));
                     }
                     break;
                 case 3:
-                    if (type == EMPTY_VIEW_TYPE_SECRET) {
-                        textView.setText(LocaleController.getString("EncryptedDescription4", R.string.EncryptedDescription4));
+                    if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
+                        textView.setText(LocaleController.getString(R.string.EncryptedDescription4));
                     } else if (type == EMPTY_VIEW_TYPE_SAVED) {
-                        textView.setText(LocaleController.getString("ChatYourSelfDescription4", R.string.ChatYourSelfDescription4));
+                        textView.setText(LocaleController.getString(R.string.ChatYourSelfDescription4));
                     } else {
-                        textView.setText(LocaleController.getString("GroupDescription4", R.string.GroupDescription4));
+                        textView.setText(LocaleController.getString(R.string.GroupDescription4));
                     }
                     break;
             }
 
             if (LocaleController.isRTL) {
                 linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-                if (type == EMPTY_VIEW_TYPE_SECRET) {
+                if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
                     linearLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 8, 3, 0, 0));
                 } else if (type == EMPTY_VIEW_TYPE_SAVED) {
                     linearLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 8, 7, 0, 0));
@@ -159,7 +163,7 @@ public class ChatBigEmptyView extends LinearLayout {
                     linearLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 8, 3, 0, 0));
                 }
             } else {
-                if (type == EMPTY_VIEW_TYPE_SECRET) {
+                if (type == EMPTY_VIEW_TYPE_SECRET || type == EMPTY_VIEW_TYPE_SECRET_GROUP) {
                     linearLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 4, 8, 0));
                 } else if (type == EMPTY_VIEW_TYPE_SAVED) {
                     linearLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 8, 8, 0));

@@ -623,6 +623,28 @@ public class FileLoader extends BaseController {
         }
     }
 
+    public void cancel(FileLoadOperation operation) {
+        if (operation == null) return;
+        final String fileName = operation.getFileName();
+        LoadOperationUIObject uiObject = loadOperationPathsUI.remove(fileName);
+        Runnable runnable = uiObject != null ? uiObject.loadInternalRunnable : null;
+        boolean removed = uiObject != null;
+        if (runnable != null) {
+            fileLoaderQueue.cancelRunnable(runnable);
+        }
+        fileLoaderQueue.postRunnable(() -> {
+            FileLoadOperation operation2 = loadOperationPaths.remove(fileName);
+            if (operation2 != null) {
+                operation2.getQueue().cancel(operation2);
+            }
+        });
+        if (removed) {
+            AndroidUtilities.runOnUIThread(() -> {
+                getNotificationCenter().postNotificationName(NotificationCenter.onDownloadingFilesChanged);
+            });
+        }
+    }
+
     public void changePriority(int priority, final TLRPC.Document document, final SecureDocument secureDocument, final WebFile webDocument, final TLRPC.FileLocation location, final String locationExt, String name) {
         if (location == null && document == null && webDocument == null && secureDocument == null && TextUtils.isEmpty(name)) {
             return;
@@ -682,11 +704,8 @@ public class FileLoader extends BaseController {
 
     public FileUploadOperation findUploadOperationByRequestToken(final int requestToken) {
         for (FileUploadOperation operation : uploadOperationPaths.values()) {
-            if (operation == null) continue;
-            for (int i = 0; i < operation.requestTokens.size(); ++i) {
-                if (operation.requestTokens.valueAt(i) == requestToken) {
-                    return operation;
-                }
+            if (operation != null && operation.uiRequestTokens.contains(requestToken)) {
+                return operation;
             }
         }
         return null;
@@ -704,11 +723,8 @@ public class FileLoader extends BaseController {
 
     public FileLoadOperation findLoadOperationByRequestToken(final int requestToken) {
         for (FileLoadOperation operation : loadOperationPaths.values()) {
-            if (operation == null || operation.requestInfos == null) continue;
-            for (FileLoadOperation.RequestInfo requestInfo : operation.requestInfos) {
-                if (requestInfo.requestToken == requestToken) {
-                    return operation;
-                }
+            if (operation != null && operation.uiRequestTokens.contains(requestToken)) {
+                return operation;
             }
         }
         return null;
@@ -821,7 +837,7 @@ public class FileLoader extends BaseController {
             if (priorityChanged) {
                 operation.getQueue().checkLoadingOperations();
             }
-            FileLog.d("load operation update position fileName=" + finalFileName + " position in queue " + operation.getPositionInQueue() + " preloadFinish " + operation.isPreloadFinished() + " priority=" + operation.getPriority());
+//            FileLog.d("load operation update position fileName=" + finalFileName + " position in queue " + operation.getPositionInQueue() + " preloadFinish " + operation.isPreloadFinished() + " priority=" + operation.getPriority());
             return operation;
         }
 

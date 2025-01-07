@@ -85,6 +85,10 @@ jint getCurrentTime(JNIEnv *env, jclass c, jint instanceNum) {
     return ConnectionsManager::getInstance(instanceNum).getCurrentTime();
 }
 
+jint getCurrentPingTime(JNIEnv *env, jclass c, jint instanceNum) {
+    return ConnectionsManager::getInstance(instanceNum).getCurrentPingTime();
+}
+
 jint getCurrentDatacenterId(JNIEnv *env, jclass c, jint instanceNum) {
     return ConnectionsManager::getInstance(instanceNum).getCurrentDatacenterId();
 }
@@ -100,7 +104,7 @@ jint getTimeDifference(JNIEnv *env, jclass c, jint instanceNum) {
 void sendRequest(JNIEnv *env, jclass c, jint instanceNum, jlong object, jint flags, jint datacenterId, jint connectionType, jboolean immediate, jint token) {
     TL_api_request *request = new TL_api_request();
     request->request = (NativeByteBuffer *) (intptr_t) object;
-    ConnectionsManager::getInstance(instanceNum).sendRequest(request, ([instanceNum, token](TLObject *response, TL_error *error, int32_t networkType, int64_t responseTime, int64_t msgId) {
+    ConnectionsManager::getInstance(instanceNum).sendRequest(request, ([instanceNum, token](TLObject *response, TL_error *error, int32_t networkType, int64_t responseTime, int64_t msgId, int32_t dcId) {
         TL_api_response *resp = (TL_api_response *) response;
         jlong ptr = 0;
         jint errorCode = 0;
@@ -117,7 +121,7 @@ void sendRequest(JNIEnv *env, jclass c, jint instanceNum, jlong object, jint fla
                 errorText = jniEnv[instanceNum]->NewStringUTF("UTF-8 ERROR");
             }
         }
-        jniEnv[instanceNum]->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onRequestComplete, instanceNum, token, ptr, errorCode, errorText, networkType, responseTime, msgId);
+        jniEnv[instanceNum]->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onRequestComplete, instanceNum, token, ptr, errorCode, errorText, networkType, responseTime, msgId, dcId);
         if (errorText != nullptr) {
             jniEnv[instanceNum]->DeleteLocalRef(errorText);
         }
@@ -486,6 +490,7 @@ static const char *ConnectionsManagerClassPathName = "org/telegram/tgnet/Connect
 static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_getCurrentTimeMillis", "(I)J", (void *) getCurrentTimeMillis},
         {"native_getCurrentTime", "(I)I", (void *) getCurrentTime},
+        {"native_getCurrentPingTime", "(I)I", (void *) getCurrentPingTime},
         {"native_getCurrentDatacenterId", "(I)I", (void *) getCurrentDatacenterId},
         {"native_isTestBackend", "(I)I", (void *) isTestBackend},
         {"native_getTimeDifference", "(I)I", (void *) getTimeDifference},
@@ -561,7 +566,7 @@ extern "C" int registerNativeTgNetFunctions(JavaVM *vm, JNIEnv *env) {
     if (jclass_ConnectionsManager_onRequestClear == 0) {
         return JNI_FALSE;
     }
-    jclass_ConnectionsManager_onRequestComplete = env->GetStaticMethodID(jclass_ConnectionsManager, "onRequestComplete", "(IIJILjava/lang/String;IJJ)V");
+    jclass_ConnectionsManager_onRequestComplete = env->GetStaticMethodID(jclass_ConnectionsManager, "onRequestComplete", "(IIJILjava/lang/String;IJJI)V");
     if (jclass_ConnectionsManager_onRequestComplete == 0) {
         return JNI_FALSE;
     }

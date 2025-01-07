@@ -208,6 +208,7 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
     public final static int PREMIUM_FEATURE_FOLDER_TAGS = 35;
     public final static int PREMIUM_FEATURE_BUSINESS_INTRO = 36;
     public final static int PREMIUM_FEATURE_BUSINESS_CHAT_LINKS = 37;
+    public final static int PREMIUM_FEATURE_MESSAGE_EFFECTS = 38;
 
     private int statusBarHeight;
     private int firstViewHeight;
@@ -263,6 +264,8 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
                 return PREMIUM_FEATURE_EMOJI_STATUS;
             case "translations":
                 return PREMIUM_FEATURE_TRANSLATIONS;
+            case "effects":
+                return PREMIUM_FEATURE_MESSAGE_EFFECTS;
 
             case "stories":
                 return PREMIUM_FEATURE_STORIES;
@@ -348,6 +351,8 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
                 return "emoji_status";
             case PREMIUM_FEATURE_TRANSLATIONS:
                 return "translations";
+            case PREMIUM_FEATURE_MESSAGE_EFFECTS:
+                return "effects";
             case PREMIUM_FEATURE_STORIES:
                 return "stories";
             case PREMIUM_FEATURE_STORIES_STEALTH_MODE:
@@ -871,13 +876,13 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
     public static void fillPremiumFeaturesList(ArrayList<PremiumFeatureData> premiumFeatures, int currentAccount, boolean all) {
         MessagesController messagesController = MessagesController.getInstance(currentAccount);
 
-        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_LIMITS, R.drawable.msg_premium_limits, getString("PremiumPreviewLimits", R.string.PremiumPreviewLimits), LocaleController.formatString("PremiumPreviewLimitsDescription", R.string.PremiumPreviewLimitsDescription,
+        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_LIMITS, R.drawable.msg_premium_limits, getString(R.string.PremiumPreviewLimits), LocaleController.formatString(R.string.PremiumPreviewLimitsDescription,
                 messagesController.channelsLimitPremium, messagesController.dialogFiltersLimitPremium, messagesController.dialogFiltersPinnedLimitPremium, messagesController.publicLinksLimitPremium, 4)));
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_STORIES, R.drawable.msg_filled_stories, getString(R.string.PremiumPreviewStories), LocaleController.formatString(R.string.PremiumPreviewStoriesDescription)));
-        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_UPLOAD_LIMIT, R.drawable.msg_premium_uploads, getString("PremiumPreviewUploads", R.string.PremiumPreviewUploads), getString("PremiumPreviewUploadsDescription", R.string.PremiumPreviewUploadsDescription)));
-        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_DOWNLOAD_SPEED, R.drawable.msg_premium_speed, getString("PremiumPreviewDownloadSpeed", R.string.PremiumPreviewDownloadSpeed), getString("PremiumPreviewDownloadSpeedDescription", R.string.PremiumPreviewDownloadSpeedDescription)));
-        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_VOICE_TO_TEXT, R.drawable.msg_premium_voice, getString("PremiumPreviewVoiceToText", R.string.PremiumPreviewVoiceToText), getString("PremiumPreviewVoiceToTextDescription", R.string.PremiumPreviewVoiceToTextDescription)));
-        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_ADS, R.drawable.msg_premium_ads, getString("PremiumPreviewNoAds", R.string.PremiumPreviewNoAds), getString("PremiumPreviewNoAdsDescription", R.string.PremiumPreviewNoAdsDescription)));
+        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_UPLOAD_LIMIT, R.drawable.msg_premium_uploads, getString(R.string.PremiumPreviewUploads), getString(R.string.PremiumPreviewUploadsDescription)));
+        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_DOWNLOAD_SPEED, R.drawable.msg_premium_speed, getString(R.string.PremiumPreviewDownloadSpeed), getString(R.string.PremiumPreviewDownloadSpeedDescription)));
+        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_VOICE_TO_TEXT, R.drawable.msg_premium_voice, getString(R.string.PremiumPreviewVoiceToText), getString(R.string.PremiumPreviewVoiceToTextDescription)));
+        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_ADS, R.drawable.msg_premium_ads, getString(R.string.PremiumPreviewNoAds), getString(R.string.PremiumPreviewNoAdsDescription)));
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_REACTIONS, R.drawable.msg_premium_reactions, getString(R.string.PremiumPreviewReactions2), getString(R.string.PremiumPreviewReactions2Description)));
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_STICKERS, R.drawable.msg_premium_stickers, getString(R.string.PremiumPreviewStickers), getString(R.string.PremiumPreviewStickersDescription)));
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_ANIMATED_EMOJI, R.drawable.msg_premium_emoji, getString(R.string.PremiumPreviewEmoji), getString(R.string.PremiumPreviewEmojiDescription)));
@@ -893,6 +898,7 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_LAST_SEEN, R.drawable.menu_premium_seen, getString(R.string.PremiumPreviewLastSeen), getString(R.string.PremiumPreviewLastSeenDescription)));
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_MESSAGE_PRIVACY, R.drawable.menu_premium_privacy, getString(R.string.PremiumPreviewMessagePrivacy), getString(R.string.PremiumPreviewMessagePrivacyDescription)));
         premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_BUSINESS, R.drawable.filled_premium_business, applyNewSpan(getString(R.string.TelegramBusiness)), getString(R.string.PremiumPreviewBusinessDescription)));
+        premiumFeatures.add(new PremiumFeatureData(PREMIUM_FEATURE_MESSAGE_EFFECTS, R.drawable.menu_premium_effects, applyNewSpan(getString(R.string.PremiumPreviewEffects)), getString(R.string.PremiumPreviewEffectsDescription)));
 
         if (messagesController.premiumFeaturesTypesToPosition.size() > 0) {
             for (int i = 0; i < premiumFeatures.size(); i++) {
@@ -945,9 +951,12 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
     }
 
     public static CharSequence applyNewSpan(String str) {
+        return applyNewSpan(str, -1);
+    }
+    public static CharSequence applyNewSpan(String str, int fontSize) {
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(str);
         spannableStringBuilder.append("  d");
-        FilterCreateActivity.NewSpan span = new FilterCreateActivity.NewSpan(false);
+        FilterCreateActivity.NewSpan span = new FilterCreateActivity.NewSpan(false, fontSize);
         span.setColor(Theme.getColor(Theme.key_premiumGradient1));
         spannableStringBuilder.setSpan(span, spannableStringBuilder.length() - 1, spannableStringBuilder.length(), 0);
         return spannableStringBuilder;
@@ -1453,7 +1462,7 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
 
                 if (position == showAdsInfoRow) {
                     privacyCell.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.ShowAdsInfo), () -> {
-                        showDialog(new RevenueSharingAdsInfoBottomSheet(PremiumPreviewFragment.this, getContext(), getResourceProvider()));
+                        showDialog(new RevenueSharingAdsInfoBottomSheet(getContext(), false, getResourceProvider(), null));
                     }), true));
                 } else if (position == statusRow && type == FEATURES_BUSINESS) {
                     privacyCell.setText(getString(R.string.PremiumPreviewMoreBusinessFeaturesInfo));
@@ -1958,7 +1967,8 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
                 if (currentSubscriptionTier != null && currentSubscriptionTier.subscriptionOption != null && currentSubscriptionTier.subscriptionOption.transaction != null) {
                     updateParams = BillingFlowParams.SubscriptionUpdateParams.newBuilder()
                             .setOldPurchaseToken(BillingController.getInstance().getLastPremiumToken())
-                            .setReplaceProrationMode(BillingFlowParams.ProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE)
+//                            .setReplaceProrationMode(BillingFlowParams.ProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE)
+                            .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE)
                             .build();
                 }
                 buyPremium(this, tier, "settings", true, updateParams);

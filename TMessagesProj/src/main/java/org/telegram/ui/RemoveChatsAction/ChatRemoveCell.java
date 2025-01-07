@@ -166,8 +166,8 @@ public class ChatRemoveCell extends FrameLayout {
     }
 
     private void updateAvatar() {
-        if (item.isSelf()) {
-            avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_SAVED);
+        if (item.getAvatarType().isPresent()) {
+            avatarDrawable.setAvatarType(item.getAvatarType().get());
             avatarImageView.setImage(null, "50_50", avatarDrawable, item.getProfileObject());
         } else if (item.getProfileObject() != null) {
             avatarDrawable.setInfo(currentAccount, item.getProfileObject());

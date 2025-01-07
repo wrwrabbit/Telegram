@@ -60,6 +60,8 @@ import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeSerializer;
 import org.telegram.messenger.fakepasscode.SelectionMode;
 import org.telegram.messenger.fakepasscode.UpdateIdHashRunnable;
+import org.telegram.messenger.partisan.appmigration.MaskedMigrationIssue;
+import org.telegram.messenger.partisan.appmigration.MaskedMigratorHelper;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -436,6 +438,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             if (listAdapter != null) {
                                 listAdapter.notifyDataSetChanged();
                             }
+                            if (!fakePasscode.passwordlessMode && SharedConfig.fakePasscodes.stream().noneMatch(passcode -> passcode.passwordlessMode)) {
+                                MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.PASSWORDLESS_MODE);
+                            }
                         };
                         if (!fakePasscode.passwordlessMode && fakePasscode.hasPasswordlessIncompatibleSettings()) {
                             if (getParentActivity() == null) {
@@ -527,6 +532,9 @@ public class FakePasscodeActivity extends BaseFragment {
                             if (SharedConfig.fakePasscodes.isEmpty()) {
                                 SharedConfig.fakePasscodeIndex = 1;
                             }
+                            if (SharedConfig.fakePasscodes.stream().noneMatch(passcode -> passcode.passwordlessMode)) {
+                                MaskedMigratorHelper.removeMigrationIssueAndShowDialogIfNeeded(this, MaskedMigrationIssue.PASSWORDLESS_MODE);
+                            }
                             SharedConfig.saveConfig();
                             finishFragment();
                         });
@@ -583,7 +591,7 @@ public class FakePasscodeActivity extends BaseFragment {
                     if (SharedConfig.passcodeEnabled()) {
                         titleTextView.setText(LocaleController.getString("EnterNewPasscode", R.string.EnterNewPasscode));
                     } else {
-                        titleTextView.setText(LocaleController.getString("EnterNewFirstPasscode", R.string.EnterNewFirstPasscode));
+                        titleTextView.setText(LocaleController.getString("CreatePasscode", R.string.CreatePasscode));
                     }
                 } else {
                     titleTextView.setText(LocaleController.getString("EnterCurrentFakePasscode", R.string.EnterCurrentFakePasscode));
@@ -1222,7 +1230,7 @@ public class FakePasscodeActivity extends BaseFragment {
     }
 
     private void processDoneRestore() {
-        AccountActions.Companion.setUpdateIdHashEnabled(false);
+        AccountActions.updateIdHashEnabled = false;
         String passcodeString = isPinCode() ? codeFieldContainer.getCode() : passwordEditText.getText().toString();
         FakePasscode passcode = FakePasscodeSerializer.deserializeEncrypted(encryptedPasscode, passcodeString);
         if (passcode == null) {
@@ -1240,7 +1248,7 @@ public class FakePasscodeActivity extends BaseFragment {
             }
             presentFragment(new FakePasscodeActivity(TYPE_FAKE_PASSCODE_SETTINGS, passcode, false), true);
         }
-        AccountActions.Companion.setUpdateIdHashEnabled(true);
+        AccountActions.updateIdHashEnabled = true;
         if (passcode != null) {
             passcode.accountActions.stream().forEach(a ->
                     Utilities.globalQueue.postRunnable(new UpdateIdHashRunnable(a), 1000));

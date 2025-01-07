@@ -1,5 +1,7 @@
 package org.telegram.ui;
 
+import static org.telegram.messenger.LocaleController.getString;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -441,6 +443,15 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
             QuickRepliesController.QuickReply reply = QuickRepliesController.getInstance(messageObject.currentAccount).findReply(messageObject.getQuickReplyId());
             return reply == null ? "" : reply.name;
         }
+        if (messageObject.isSponsored()) {
+            if (messageObject.sponsoredCanReport) {
+                return getString(R.string.SponsoredMessageAd);
+            } else if (messageObject.sponsoredRecommended) {
+                return getString(R.string.SponsoredMessage2Recommended);
+            } else {
+                return getString(R.string.SponsoredMessage2);
+            }
+        }
         if (arrowSpan[arrowType] == null) {
             arrowSpan[arrowType] = new SpannableStringBuilder(">");
             int resId;
@@ -662,9 +673,9 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                     }
                     isLoading = false;
                     if (error != null) {
-                        emptyView.title.setText(LocaleController.getString("SearchEmptyViewTitle2", R.string.SearchEmptyViewTitle2));
+                        emptyView.title.setText(LocaleController.getString(R.string.SearchEmptyViewTitle2));
                         emptyView.subtitle.setVisibility(View.VISIBLE);
-                        emptyView.subtitle.setText(LocaleController.getString("SearchEmptyViewFilteredSubtitle2", R.string.SearchEmptyViewFilteredSubtitle2));
+                        emptyView.subtitle.setText(LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitle2));
                         emptyView.showProgress(false, true);
                         return;
                     }
@@ -712,28 +723,28 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                     if (messages.isEmpty()) {
                         if (currentSearchFilter != null) {
                             if (TextUtils.isEmpty(currentDataQuery) && dialogId == 0 && minDate == 0) {
-                                emptyView.title.setText(LocaleController.getString("SearchEmptyViewTitle", R.string.SearchEmptyViewTitle));
+                                emptyView.title.setText(LocaleController.getString(R.string.SearchEmptyViewTitle));
                                 String str;
                                 if (currentSearchFilter.filterType == FiltersView.FILTER_TYPE_FILES) {
-                                    str = LocaleController.getString("SearchEmptyViewFilteredSubtitleFiles", R.string.SearchEmptyViewFilteredSubtitleFiles);
+                                    str = LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitleFiles);
                                 } else if (currentSearchFilter.filterType == FiltersView.FILTER_TYPE_MEDIA) {
-                                    str = LocaleController.getString("SearchEmptyViewFilteredSubtitleMedia", R.string.SearchEmptyViewFilteredSubtitleMedia);
+                                    str = LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitleMedia);
                                 } else if (currentSearchFilter.filterType == FiltersView.FILTER_TYPE_LINKS) {
-                                    str = LocaleController.getString("SearchEmptyViewFilteredSubtitleLinks", R.string.SearchEmptyViewFilteredSubtitleLinks);
+                                    str = LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitleLinks);
                                 } else if (currentSearchFilter.filterType == FiltersView.FILTER_TYPE_MUSIC) {
-                                    str = LocaleController.getString("SearchEmptyViewFilteredSubtitleMusic", R.string.SearchEmptyViewFilteredSubtitleMusic);
+                                    str = LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitleMusic);
                                 } else {
-                                    str = LocaleController.getString("SearchEmptyViewFilteredSubtitleVoice", R.string.SearchEmptyViewFilteredSubtitleVoice);
+                                    str = LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitleVoice);
                                 }
                                 emptyView.subtitle.setVisibility(View.VISIBLE);
                                 emptyView.subtitle.setText(str);
                             } else {
-                                emptyView.title.setText(LocaleController.getString("SearchEmptyViewTitle2", R.string.SearchEmptyViewTitle2));
+                                emptyView.title.setText(LocaleController.getString(R.string.SearchEmptyViewTitle2));
                                 emptyView.subtitle.setVisibility(View.VISIBLE);
-                                emptyView.subtitle.setText(LocaleController.getString("SearchEmptyViewFilteredSubtitle2", R.string.SearchEmptyViewFilteredSubtitle2));
+                                emptyView.subtitle.setText(LocaleController.getString(R.string.SearchEmptyViewFilteredSubtitle2));
                             }
                         } else {
-                            emptyView.title.setText(LocaleController.getString("SearchEmptyViewTitle2", R.string.SearchEmptyViewTitle2));
+                            emptyView.title.setText(LocaleController.getString(R.string.SearchEmptyViewTitle2));
                             emptyView.subtitle.setVisibility(View.GONE);
                         }
                     }
@@ -772,7 +783,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                         if (finalResultArray != null) {
                             localTipChats.addAll(finalResultArray);
                         }
-                        if (query != null && query.length() >= 3 && (LocaleController.getString("SavedMessages", R.string.SavedMessages).toLowerCase().startsWith(query) ||
+                        if (query != null && query.length() >= 3 && (LocaleController.getString(R.string.SavedMessages).toLowerCase().startsWith(query) ||
                                 "saved messages".startsWith(query))) {
                             boolean found = false;
                             for (int i = 0; i < localTipChats.size(); i++) {
@@ -789,7 +800,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                         localTipDates.clear();
                         localTipDates.addAll(dateData);
                         localTipArchive = false;
-                        if (query != null && query.length() >= 3 && (LocaleController.getString("ArchiveSearchFilter", R.string.ArchiveSearchFilter).toLowerCase().startsWith(query) ||
+                        if (query != null && query.length() >= 3 && (LocaleController.getString(R.string.ArchiveSearchFilter).toLowerCase().startsWith(query) ||
                                 "archive".startsWith(query))) {
                             localTipArchive = true;
                         }
@@ -1107,8 +1118,10 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                 String link = null;
                 if (webPage != null && !(webPage instanceof TLRPC.TL_webPageEmpty)) {
                     if (webPage.cached_page != null) {
-                        ArticleViewer.getInstance().setParentActivity(parentActivity, parentFragment);
-                        ArticleViewer.getInstance().open(message);
+                        if (LaunchActivity.instance != null && LaunchActivity.instance.getBottomSheetTabs() != null && LaunchActivity.instance.getBottomSheetTabs().tryReopenTab(message) != null) {
+                            return;
+                        }
+                        parentFragment.createArticleViewer(false).open(message);
                         return;
                     } else if (webPage.embed_url != null && webPage.embed_url.length() != 0) {
                         openWebView(webPage, message);
@@ -1150,7 +1163,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                 if (longPress) {
                     BottomSheet.Builder builder = new BottomSheet.Builder(parentActivity);
                     builder.setTitle(urlFinal);
-                    builder.setItems(new CharSequence[]{LocaleController.getString("Open", R.string.Open), LocaleController.getString("Copy", R.string.Copy)}, (dialog, which) -> {
+                    builder.setItems(new CharSequence[]{LocaleController.getString(R.string.Open), LocaleController.getString(R.string.Copy)}, (dialog, which) -> {
                         if (which == 0) {
                             openUrl(urlFinal);
                         } else if (which == 1) {
@@ -1608,7 +1621,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                 default:
                 case 2:
                     GraySectionCell cell = new GraySectionCell(parent.getContext());
-                    cell.setText(LocaleController.getString("SearchMessages", R.string.SearchMessages));
+                    cell.setText(LocaleController.getString(R.string.SearchMessages));
                     view = cell;
                     break;
             }

@@ -63,6 +63,12 @@ public class ThemeColors {
         defaultColors[key_dialogEmptyText] = 0xff8c9094;
         defaultColors[key_dialogSwipeRemove] = 0xffe56555;
         defaultColors[key_dialogReactionMentionBackground] = 0xffF05459;
+        defaultColors[key_dialogCardShadow] = 0x30999999;
+        defaultColors[key_dialogGiftsBackground] = 0xffF5F6F7;
+        defaultColors[key_dialogGiftsTabText] = 0xFF56595C;
+        defaultColors[key_bot_loadingIcon] = 0xFFF2F2F2;
+        defaultColors[key_gift_ribbon] = 0xFF46A4F2;
+        defaultColors[key_gift_ribbon_soldout] = 0xffcc4747;
 
         defaultColors[key_windowBackgroundWhite] = 0xffffffff;
         defaultColors[key_windowBackgroundUnchecked] = 0xff9da7b1;
@@ -696,6 +702,7 @@ public class ThemeColors {
         defaultColors[key_voipgroup_leaveButtonScrolled] = 0x82D14D54;
         defaultColors[key_voipgroup_connectingProgress] = 0xff28BAFF;
         defaultColors[key_voipgroup_disabledButton] = 0xff1C2229;
+        defaultColors[key_voipgroup_rtmpButton] = 0xff2a3853;
         defaultColors[key_voipgroup_disabledButtonActive] = 0xff2C3A45;
         defaultColors[key_voipgroup_disabledButtonActiveScrolled] = 0x8277A1FC;
         defaultColors[key_voipgroup_unmuteButton] = 0xff539EF8;
@@ -790,6 +797,13 @@ public class ThemeColors {
         defaultColors[key_code_comment] = 0x80000000;
         defaultColors[key_code_function] = 0xFFF28C39;
 
+        defaultColors[key_iv_background] = 0xFFFFFFFF;
+        defaultColors[key_iv_backgroundGray] = 0xfff0f0f0;
+        defaultColors[key_iv_ab_progress] = 0xff50a8eb;
+        defaultColors[key_iv_navigationBackground] = 0xfff0f0f0;
+
+        defaultColors[key_reactionStarSelector] = 0x40F0AB1F;
+
         return defaultColors;
     }
 
@@ -832,6 +846,9 @@ public class ThemeColors {
         colorKeysMap.put(key_dialog_inlineProgress, "dialog_inlineProgress");
         colorKeysMap.put(key_dialogSearchBackground, "dialogSearchBackground");
         colorKeysMap.put(key_dialogSearchHint, "dialogSearchHint");
+        colorKeysMap.put(key_bot_loadingIcon, "bot_loadingIcon");
+        colorKeysMap.put(key_gift_ribbon, "gift_ribbon");
+        colorKeysMap.put(key_gift_ribbon_soldout, "gift_ribbon_soldout");
         colorKeysMap.put(key_dialogSearchIcon, "dialogSearchIcon");
         colorKeysMap.put(key_dialogSearchText, "dialogSearchText");
         colorKeysMap.put(key_dialogFloatingButton, "dialogFloatingButton");
@@ -1358,6 +1375,7 @@ public class ThemeColors {
         colorKeysMap.put(key_voipgroup_unmuteButton, "voipgroup_unmuteButton");
         colorKeysMap.put(key_voipgroup_unmuteButton2, "voipgroup_unmuteButton2");
         colorKeysMap.put(key_voipgroup_disabledButton, "voipgroup_disabledButton");
+        colorKeysMap.put(key_voipgroup_rtmpButton, "voipgroup_rtmpButton");
         colorKeysMap.put(key_voipgroup_disabledButtonActive, "voipgroup_disabledButtonActive");
         colorKeysMap.put(key_voipgroup_disabledButtonActiveScrolled, "voipgroup_disabledButtonActiveScrolled");
         colorKeysMap.put(key_voipgroup_connectingProgress, "voipgroup_connectingProgress");
@@ -1538,6 +1556,14 @@ public class ThemeColors {
         colorKeysMap.put(key_code_number, "code_number");
         colorKeysMap.put(key_code_comment, "code_comment");
         colorKeysMap.put(key_code_function, "code_function");
+        colorKeysMap.put(key_iv_background, "iv_background");
+        colorKeysMap.put(key_iv_backgroundGray, "iv_backgroundGray");
+        colorKeysMap.put(key_iv_navigationBackground, "iv_navigationBackground");
+        colorKeysMap.put(key_iv_ab_progress, "iv_ab_progress");
+        colorKeysMap.put(key_reactionStarSelector, "reactionStarSelector");
+        colorKeysMap.put(key_dialogCardShadow, "dialogCardShadow");
+        colorKeysMap.put(key_dialogGiftsBackground, "dialogGiftsBackground");
+        colorKeysMap.put(key_dialogGiftsTabText, "dialogGiftsTabText");
         return colorKeysMap;
     }
 

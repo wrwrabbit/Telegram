@@ -544,7 +544,7 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                         MediaDataController.getInstance(currentAccount).loadReplyMessagesForMessages(missingReplies, -currentChat.id, ChatActivity.MODE_DEFAULT, 0, () -> {
                             saveScrollPosition(false);
                             chatAdapter.notifyDataSetChanged();
-                        }, getClassGuid());
+                        }, getClassGuid(), null);
                     }
                     filterDeletedMessages();
 
@@ -1600,6 +1600,17 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
         final ArrayList<Integer> options = new ArrayList<>();
         final ArrayList<Integer> icons = new ArrayList<>();
 
+        if (currentChat != null && message.currentEvent != null && message.currentEvent.action instanceof TLRPC.TL_channelAdminLogEventActionParticipantJoinByInvite) {
+            TLRPC.TL_channelAdminLogEventActionParticipantJoinByInvite action = (TLRPC.TL_channelAdminLogEventActionParticipantJoinByInvite) message.currentEvent.action;
+            if (action.invite != null) {
+                TLRPC.ChatFull chatFull = getMessagesController().getChatFull(currentChat.id);
+                InviteLinkBottomSheet sheet = new InviteLinkBottomSheet(getContext(), action.invite, chatFull, null, this, currentChat.id, false, ChatObject.isChannelAndNotMegaGroup(currentChat));
+                sheet.setCanEdit(false);
+                sheet.show();
+                return true;
+            }
+        }
+
         if (message.currentEvent != null && (message.currentEvent.action instanceof TLRPC.TL_channelAdminLogEventActionDeleteMessage && message.currentEvent.user_id == getMessagesController().telegramAntispamUserId || message.currentEvent.action instanceof TLRPC.TL_channelAdminLogEventActionToggleAntiSpam)) {
             if (v instanceof ChatActionCell) {
                 SpannableString arrow = new SpannableString(">");
@@ -1655,7 +1666,7 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                     stickerSet = action.prev_stickerset;
                 }
                 if (stickerSet != null) {
-                    showDialog(new StickersAlert(getParentActivity(), ChannelAdminLogActivity.this, stickerSet, null, null));
+                    showDialog(new StickersAlert(getParentActivity(), ChannelAdminLogActivity.this, stickerSet, null, null, false));
                     return true;
                 }
             } else if (selectedObject.currentEvent != null && selectedObject.currentEvent.action instanceof TLRPC.TL_channelAdminLogEventActionChangeEmojiStickerSet) {
@@ -2198,7 +2209,7 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                 break;
             }
             case OPTION_SAVE_STICKER: {
-                showDialog(new StickersAlert(getParentActivity(), this, selectedObject.getInputStickerSet(), null, null));
+                showDialog(new StickersAlert(getParentActivity(), this, selectedObject.getInputStickerSet(), null, null, false));
                 break;
             }
             case OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC: {
@@ -2260,7 +2271,7 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                 getConnectionsManager().sendRequest(req, (res, err) -> {
                     AndroidUtilities.runOnUIThread(() -> {
                         if (res instanceof TLRPC.TL_boolTrue) {
-                            BulletinFactory.of(this).createSimpleBulletin(R.raw.msg_antispam, getString("ChannelAntiSpamFalsePositiveReported", R.string.ChannelAntiSpamFalsePositiveReported)).show();
+                            BulletinFactory.of(this).createSimpleBulletin(R.raw.msg_antispam, getString(R.string.ChannelAntiSpamFalsePositiveReported)).show();
                         } else if (res instanceof TLRPC.TL_boolFalse) {
                             BulletinFactory.of(this).createSimpleBulletin(R.raw.error, getString("UnknownError", R.string.UnknownError)).show();
                         } else {
@@ -3007,12 +3018,12 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                             if (peerId > 0) {
                                 TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(peerId);
                                 if (user != null) {
-                                    MessagesController.openChatOrProfileWith(user, null, ChannelAdminLogActivity.this, 0, false);
+                                    MessagesController.getInstance(currentAccount).openChatOrProfileWith(user, null, ChannelAdminLogActivity.this, 0, false);
                                 }
                             } else {
                                 TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-peerId);
                                 if (chat != null) {
-                                    MessagesController.openChatOrProfileWith(null, chat, ChannelAdminLogActivity.this, 0, false);
+                                    MessagesController.getInstance(currentAccount).openChatOrProfileWith(null, chat, ChannelAdminLogActivity.this, 0, false);
                                 }
                             }
                         } else if (url instanceof URLSpanNoUnderline) {
@@ -3051,8 +3062,10 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                                         String lowerUrl = urlFinal.toLowerCase();
                                         String lowerUrl2 = messageObject.messageOwner.media.webpage.url.toLowerCase();
                                         if ((Browser.isTelegraphUrl(lowerUrl, false) || lowerUrl.contains("t.me/iv")) && (lowerUrl.contains(lowerUrl2) || lowerUrl2.contains(lowerUrl))) {
-                                            ArticleViewer.getInstance().setParentActivity(getParentActivity(), ChannelAdminLogActivity.this);
-                                            ArticleViewer.getInstance().open(messageObject);
+                                            if (LaunchActivity.instance != null && LaunchActivity.instance.getBottomSheetTabs() != null && LaunchActivity.instance.getBottomSheetTabs().tryReopenTab(messageObject) != null) {
+                                                return;
+                                            }
+                                            ChannelAdminLogActivity.this.createArticleViewer(false).open(messageObject);
                                             return;
                                         }
                                     }
@@ -3068,7 +3081,7 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                     }
 
                     @Override
-                    public void didPressReplyMessage(ChatMessageCell cell, int id) {
+                    public void didPressReplyMessage(ChatMessageCell cell, int id, float x, float y, boolean longpress) {
                         MessageObject messageObject = cell.getMessageObject();
                         MessageObject reply = messageObject.replyMessageObject;
                         if (reply.getDialogId() == -currentChat.id) {
@@ -3095,7 +3108,7 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                     public void didPressImage(ChatMessageCell cell, float x, float y) {
                         MessageObject message = cell.getMessageObject();
                         if (message.getInputStickerSet() != null) {
-                            showDialog(new StickersAlert(getParentActivity(), ChannelAdminLogActivity.this, message.getInputStickerSet(), null, null));
+                            showDialog(new StickersAlert(getParentActivity(), ChannelAdminLogActivity.this, message.getInputStickerSet(), null, null, false));
                         } else if (message.isVideo() || message.type == MessageObject.TYPE_PHOTO || message.type == MessageObject.TYPE_TEXT && !message.isWebpageDocument() || message.isGif()) {
                             PhotoViewer.getInstance().setParentActivity(ChannelAdminLogActivity.this);
                             PhotoViewer.getInstance().openPhoto(message, null, 0, 0, 0, provider);
@@ -3185,8 +3198,10 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                             presentFragment(chatActivity);
                         } else if (type == 0) {
                             if (messageObject.messageOwner.media != null && messageObject.messageOwner.media.webpage != null && messageObject.messageOwner.media.webpage.cached_page != null) {
-                                ArticleViewer.getInstance().setParentActivity(getParentActivity(), ChannelAdminLogActivity.this);
-                                ArticleViewer.getInstance().open(messageObject);
+                                if (LaunchActivity.instance != null && LaunchActivity.instance.getBottomSheetTabs() != null && LaunchActivity.instance.getBottomSheetTabs().tryReopenTab(messageObject) != null) {
+                                    return;
+                                }
+                                ChannelAdminLogActivity.this.createArticleViewer(false).open(messageObject);
                             }
                         } else if (type == 5) {
                             openVCard(getMessagesController().getUser(messageObject.messageOwner.media.user_id), messageObject.messageOwner.media.vcard, messageObject.messageOwner.media.first_name, messageObject.messageOwner.media.last_name);

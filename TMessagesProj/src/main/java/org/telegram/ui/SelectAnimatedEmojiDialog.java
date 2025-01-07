@@ -668,7 +668,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                     if (index > 0 && sectionToPosition.indexOfKey(index - 1) >= 0) {
                         position = sectionToPosition.get(index - 1);
                     }
-                    scrollToPosition(position, AndroidUtilities.dp(-2));
+                    scrollToPosition(position, AndroidUtilities.dp(-2 + (type == TYPE_CHAT_REACTIONS ? 7 : 0)));
                     SelectAnimatedEmojiDialog.this.emojiTabs.select(index);
                     emojiGridView.scrolledByUserOnce = true;
                     search(null);
@@ -762,7 +762,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
         emojiItemAnimator.setMoveInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
         emojiItemAnimator.setDelayAnimations(false);
         emojiGridView.setItemAnimator(emojiItemAnimator);
-        emojiGridView.setPadding(dp(5), dp(type == TYPE_CHAT_REACTIONS ? 8 : 2), dp(5), dp(2 + 36));
+        emojiGridView.setPadding(dp(5), dp(2), dp(5), dp(2 + 36));
         adapter = new Adapter();
         emojiGridView.setAdapter(adapter);
 
@@ -869,15 +869,15 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
         }
         TextView emptyViewText = new TextView(context);
         if (type == TYPE_AVATAR_CONSTRUCTOR) {
-            emptyViewText.setText(LocaleController.getString("NoEmojiOrStickersFound", R.string.NoEmojiOrStickersFound));
+            emptyViewText.setText(LocaleController.getString(R.string.NoEmojiOrStickersFound));
         } else if (type == TYPE_EMOJI_STATUS || type == TYPE_STICKER_SET_EMOJI || type == TYPE_EMOJI_STATUS_TOP || type == TYPE_TAGS || type == TYPE_EMOJI_STATUS_CHANNEL || type == TYPE_EMOJI_STATUS_CHANNEL_TOP) {
-            emptyViewText.setText(LocaleController.getString("NoEmojiFound", R.string.NoEmojiFound));
+            emptyViewText.setText(LocaleController.getString(R.string.NoEmojiFound));
         } else if (type == TYPE_REACTIONS || type == TYPE_SET_DEFAULT_REACTION) {
-            emptyViewText.setText(LocaleController.getString("NoReactionsFound", R.string.NoReactionsFound));
+            emptyViewText.setText(LocaleController.getString(R.string.NoReactionsFound));
         } else if (type == TYPE_EFFECTS) {
-            emptyViewText.setText(LocaleController.getString("NoEffectsFound", R.string.NoEffectsFound));
+            emptyViewText.setText(LocaleController.getString(R.string.NoEffectsFound));
         } else {
-            emptyViewText.setText(LocaleController.getString("NoIconsFound", R.string.NoIconsFound));
+            emptyViewText.setText(LocaleController.getString(R.string.NoIconsFound));
         }
 
         emptyViewText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -1044,7 +1044,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
         RecyclerListView.OnItemClickListener onItemClick = (view, position) -> {
             if (view instanceof ImageViewEmoji) {
                 ImageViewEmoji viewEmoji = (ImageViewEmoji) view;
-                if (viewEmoji.isDefaultReaction || type == TYPE_STICKER_SET_EMOJI || type == TYPE_EFFECTS) {
+                if (viewEmoji.isDefaultReaction || viewEmoji.reaction != null && viewEmoji.reaction.isStar || type == TYPE_STICKER_SET_EMOJI || type == TYPE_EFFECTS) {
                     incrementHintUse();
                     onReactionClick(viewEmoji, viewEmoji.reaction);
                 } else if (viewEmoji.isStaticIcon && viewEmoji.document != null) {
@@ -1179,14 +1179,14 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
 
     private void onRecentLongClick() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), null);
-        builder.setTitle(LocaleController.getString("ClearRecentEmojiStatusesTitle", R.string.ClearRecentEmojiStatusesTitle));
-        builder.setMessage(LocaleController.getString("ClearRecentEmojiStatusesText", R.string.ClearRecentEmojiStatusesText));
-        builder.setPositiveButton(LocaleController.getString("Clear", R.string.Clear), (dialogInterface, i) -> {
+        builder.setTitle(LocaleController.getString(R.string.ClearRecentEmojiStatusesTitle));
+        builder.setMessage(LocaleController.getString(R.string.ClearRecentEmojiStatusesText));
+        builder.setPositiveButton(LocaleController.getString(R.string.Clear), (dialogInterface, i) -> {
             ConnectionsManager.getInstance(currentAccount).sendRequest(new TLRPC.TL_account_clearRecentEmojiStatuses(), null);
             MediaDataController.getInstance(currentAccount).clearRecentEmojiStatuses();
             updateRows(false, true);
         });
-        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         builder.setDimEnabled(false);
         builder.setOnDismissListener(di -> {
             setDim(0, true);
@@ -1900,6 +1900,20 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                             next.run();
                         });
                     };
+                    final Utilities.Callback<Runnable> serverSearch = next -> {
+                        if (ConnectionsManager.getInstance(currentAccount).getConnectionState() != ConnectionsManager.ConnectionStateConnected) {
+                            next.run();
+                            return;
+                        }
+                        final String lang_code = newLanguage == null || newLanguage.length == 0 ? "" : newLanguage[0];
+                        MediaDataController.getInstance(currentAccount).searchStickers(true, lang_code, query, documents -> {
+                            AnimatedEmojiDrawable.getDocumentFetcher(currentAccount).putDocuments(documents);
+                            for (TLRPC.Document doc : documents) {
+                                documentIds.add(doc.id);
+                            }
+                            next.run();
+                        });
+                    };
                     final Utilities.Callback<Runnable> searchEmojiSuggestions = next -> {
                         if (queryFullyConsistsOfEmojis) {
                             ArrayList<TLRPC.TL_messages_stickerSet> stickerSets = MediaDataController.getInstance(currentAccount).getStickerSets(MediaDataController.TYPE_EMOJIPACKS);
@@ -2059,7 +2073,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                         next.run();
                     };
 
-                    Utilities.doCallbacks(searchCategories, searchByKeywords, searchEmojiSuggestions, searchAvatarConstructor, searchFromSets, applySearch);
+                    Utilities.doCallbacks(searchCategories, searchByKeywords, serverSearch, searchEmojiSuggestions, searchAvatarConstructor, searchFromSets, applySearch);
                 }
             }, delay ? 425 : 0);
             if (searchBox != null) {
@@ -2182,7 +2196,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                         header.setText(((SetTitleDocument) d).title, lastQuery, false);
                     }
                 } else if (position == emojiHeaderRow) {
-                    header.setText(LocaleController.getString("Emoji", R.string.Emoji), false);
+                    header.setText(LocaleController.getString(R.string.Emoji), false);
                 } else {
                     if (type == TYPE_EFFECTS) {
                         header.setText(LocaleController.getString(R.string.StickerEffects), false);
@@ -2482,11 +2496,11 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                 };
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
                 if (type == TYPE_TOPIC_ICON) {
-                    textView.setText(LocaleController.getString("SelectTopicIconHint", R.string.SelectTopicIconHint));
+                    textView.setText(LocaleController.getString(R.string.SelectTopicIconHint));
                 } else if (type == TYPE_EMOJI_STATUS || type == TYPE_EMOJI_STATUS_TOP || type == TYPE_EMOJI_STATUS_CHANNEL || type == TYPE_EMOJI_STATUS_CHANNEL_TOP) {
-                    textView.setText(LocaleController.getString("EmojiLongtapHint", R.string.EmojiLongtapHint));
+                    textView.setText(LocaleController.getString(R.string.EmojiLongtapHint));
                 } else {
-                    textView.setText(LocaleController.getString("ReactionsLongtapHint", R.string.ReactionsLongtapHint));
+                    textView.setText(LocaleController.getString(R.string.ReactionsLongtapHint));
                 }
                 textView.setGravity(Gravity.CENTER);
                 textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
@@ -2551,12 +2565,12 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
             } else if (viewType == VIEW_TYPE_HEADER) {
                 HeaderView header = (HeaderView) holder.itemView;
                 if (position == topicEmojiHeaderRow) {
-                    header.setText(LocaleController.getString("SelectTopicIconHint", R.string.SelectTopicIconHint), false);
+                    header.setText(LocaleController.getString(R.string.SelectTopicIconHint), false);
                     header.closeIcon.setVisibility(View.GONE);
                     return;
                 }
                 if (position == recentReactionsSectionRow) {
-                    header.setText(LocaleController.getString("RecentlyUsed", R.string.RecentlyUsed), false);
+                    header.setText(LocaleController.getString(R.string.RecentlyUsed), false);
                     header.closeIcon.setVisibility(View.GONE);
                     return;
                 }
@@ -2567,13 +2581,17 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                 }
                 header.closeIcon.setVisibility(View.GONE);
                 if (position == popularSectionRow) {
-                    header.setText(LocaleController.getString("PopularReactions", R.string.PopularReactions), false);
+                    header.setText(LocaleController.getString(R.string.PopularReactions), false);
                     return;
                 }
 
                 int index = positionToSection.get(position);
                 if (index >= 0) {
                     EmojiView.EmojiPack pack = packs.get(index);
+                    if (pack.needLoadSet != null) {
+                        MediaDataController.getInstance(currentAccount).getStickerSet(pack.needLoadSet, false);
+                        pack.needLoadSet = null;
+                    }
                     header.setText(pack.set.title, !pack.free && !UserConfig.getInstance(currentAccount).isPremium() && type != TYPE_AVATAR_CONSTRUCTOR && type != TYPE_SET_REPLY_ICON && type != TYPE_SET_REPLY_ICON_BOTTOM && type != TYPE_CHAT_REACTIONS);
                 } else {
                     header.setText(null, false);
@@ -3002,7 +3020,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
 
         public void updateInstall(boolean installed, boolean animated) {
             CharSequence text = installed ?
-                    LocaleController.getString("Added", R.string.Added) :
+                    LocaleController.getString(R.string.Added) :
                     LocaleController.formatString("AddStickersCount", R.string.AddStickersCount, lastTitle);
             addButtonTextView.setText(text, animated);
             if (installFadeAway != null) {
@@ -3574,7 +3592,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
         recentStickers.clear();
         standardEmojis.clear();
 
-        if ((!installedEmojipacks.isEmpty() || type == TYPE_AVATAR_CONSTRUCTOR) && type != TYPE_SET_REPLY_ICON && type != TYPE_SET_REPLY_ICON_BOTTOM && type != TYPE_CHAT_REACTIONS && type != TYPE_EXPANDABLE_REACTIONS) {
+        if ((!installedEmojipacks.isEmpty() || type == TYPE_AVATAR_CONSTRUCTOR) && type != TYPE_SET_REPLY_ICON && type != TYPE_SET_REPLY_ICON_BOTTOM && type != TYPE_EXPANDABLE_REACTIONS) {
             searchRow = totalCount++;
             rowHashCodes.add(9L);
         } else {
@@ -3899,12 +3917,17 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                     continue;
                 }
 
+                TLRPC.InputStickerSet needLoadSet = null;
                 ArrayList<TLRPC.Document> documents = null;
                 if (set1 instanceof TLRPC.TL_stickerSetNoCovered) {
                     TLRPC.TL_messages_stickerSet fullSet = mediaDataController.getStickerSet(MediaDataController.getInputStickerSet(set1.set), set1.set.hash, true);
                     if (fullSet != null) {
                         documents = fullSet.documents;
                         isPremiumPack = MessageObject.isPremiumEmojiPack(fullSet);
+                    } else {
+                        needLoadSet = MediaDataController.getInputStickerSet(set1.set);
+                        documents = new ArrayList<>();
+                        isPremiumPack = true;
                     }
                 } else if (set1 instanceof TLRPC.TL_stickerSetFullCovered) {
                     documents = ((TLRPC.TL_stickerSetFullCovered) set1).documents;
@@ -3928,6 +3951,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                 rowHashCodes.add(9211 + 13L * set.id);
 
                 EmojiView.EmojiPack pack = new EmojiView.EmojiPack();
+                pack.needLoadSet = needLoadSet;
                 pack.installed = installedEmojiSets.contains(set.id);
                 pack.featured = true;
                 pack.free = !isPremiumPack;
@@ -5064,7 +5088,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
             input.setBackground(null);
             input.setPadding(0, 0, AndroidUtilities.dp(4), 0);
             input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-            input.setHint(LocaleController.getString("Search", R.string.Search));
+            input.setHint(LocaleController.getString(R.string.Search));
 
             input.setHintTextColor(Theme.getColor(Theme.key_chat_emojiSearchIcon, resourcesProvider));
             input.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
@@ -5789,15 +5813,15 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
             linearLayoutView.addView(menuView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 0, 0, 0));
 
 
-            ActionBarMenuItem.addItem(true, false, menuView, 0, LocaleController.getString("SetEmojiStatusUntil1Hour", R.string.SetEmojiStatusUntil1Hour), false, resourcesProvider)
+            ActionBarMenuItem.addItem(true, false, menuView, 0, LocaleController.getString(R.string.SetEmojiStatusUntil1Hour), false, resourcesProvider)
                     .setOnClickListener(e -> done((int) (System.currentTimeMillis() / 1000 + 60 * 60)));
-            ActionBarMenuItem.addItem(false, false, menuView, 0, LocaleController.getString("SetEmojiStatusUntil2Hours", R.string.SetEmojiStatusUntil2Hours), false, resourcesProvider)
+            ActionBarMenuItem.addItem(false, false, menuView, 0, LocaleController.getString(R.string.SetEmojiStatusUntil2Hours), false, resourcesProvider)
                     .setOnClickListener(e -> done((int) (System.currentTimeMillis() / 1000 + 2 * 60 * 60)));
-            ActionBarMenuItem.addItem(false, false, menuView, 0, LocaleController.getString("SetEmojiStatusUntil8Hours", R.string.SetEmojiStatusUntil8Hours), false, resourcesProvider)
+            ActionBarMenuItem.addItem(false, false, menuView, 0, LocaleController.getString(R.string.SetEmojiStatusUntil8Hours), false, resourcesProvider)
                     .setOnClickListener(e -> done((int) (System.currentTimeMillis() / 1000 + 8 * 60 * 60)));
-            ActionBarMenuItem.addItem(false, false, menuView, 0, LocaleController.getString("SetEmojiStatusUntil2Days", R.string.SetEmojiStatusUntil2Days), false, resourcesProvider)
+            ActionBarMenuItem.addItem(false, false, menuView, 0, LocaleController.getString(R.string.SetEmojiStatusUntil2Days), false, resourcesProvider)
                     .setOnClickListener(e -> done((int) (System.currentTimeMillis() / 1000 + 2 * 24 * 60 * 60)));
-            ActionBarMenuItem.addItem(false, true, menuView, 0, LocaleController.getString("SetEmojiStatusUntilOther", R.string.SetEmojiStatusUntilOther), false, resourcesProvider)
+            ActionBarMenuItem.addItem(false, true, menuView, 0, LocaleController.getString(R.string.SetEmojiStatusUntilOther), false, resourcesProvider)
                     .setOnClickListener(e -> {
                         if (dateBottomSheet != null) {
                             return;

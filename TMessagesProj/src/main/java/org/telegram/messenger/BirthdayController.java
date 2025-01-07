@@ -3,6 +3,7 @@ package org.telegram.messenger;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.tgnet.AbstractSerializedData;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class BirthdayController {
@@ -65,7 +67,7 @@ public class BirthdayController {
                             TLRPC.TL_contacts_contactBirthdays contacts = new TLRPC.TL_contacts_contactBirthdays();
                             contacts.contacts = birthdays.contacts;
                             contacts.users = users;
-                            state = BirthdayState.from(contacts);
+                            state = BirthdayState.from(contacts, currentAccount);
                         });
                     });
                 }
@@ -108,7 +110,7 @@ public class BirthdayController {
             if (res instanceof TLRPC.TL_contacts_contactBirthdays) {
                 lastCheckDate = System.currentTimeMillis();
                 TLRPC.TL_contacts_contactBirthdays response = (TLRPC.TL_contacts_contactBirthdays) res;
-                state = BirthdayState.from(response);
+                state = BirthdayState.from(response, currentAccount);
 
                 MessagesController.getInstance(currentAccount).putUsers(response.users, false);
                 MessagesStorage.getInstance(currentAccount).putUsersAndChats(response.users, null, true, true);
@@ -139,6 +141,11 @@ public class BirthdayController {
             return null;
         if (hiddenDays.contains(state.todayKey))
             return null;
+        if (FakePasscodeUtils.isFakePasscodeActivated()) {
+            state.today.removeIf(u -> FakePasscodeUtils.isHideChat(u.id, currentAccount));
+            state.yesterday.removeIf(u -> FakePasscodeUtils.isHideChat(u.id, currentAccount));
+            state.tomorrow.removeIf(u -> FakePasscodeUtils.isHideChat(u.id, currentAccount));
+        }
         return state;
     }
 
@@ -171,7 +178,7 @@ public class BirthdayController {
             this.tomorrowKey = tomorrowKey;
         }
 
-        public static BirthdayState from(TLRPC.TL_contacts_contactBirthdays tl) {
+        public static BirthdayState from(TLRPC.TL_contacts_contactBirthdays tl, int account) {
             Calendar calendar = Calendar.getInstance();
             int todayDay = calendar.get(Calendar.DAY_OF_MONTH);
             int todayMonth = 1 + calendar.get(Calendar.MONTH);
@@ -211,7 +218,7 @@ public class BirthdayController {
                             break;
                         }
                     }
-                    if (user != null && !UserObject.isUserSelf(user)) {
+                    if (user != null && !UserObject.isUserSelf(user) && !FakePasscodeUtils.isHideChat(user.id, account)) {
                         array.add(user);
                     }
                 }
@@ -283,6 +290,15 @@ public class BirthdayController {
                 contacts.get(i).serializeToStream(stream);
             }
         }
+    }
+
+    public boolean isToday(long userId) {
+        if (state != null && state.contains(userId))
+            return true;
+        final TLRPC.UserFull userFull = MessagesController.getInstance(currentAccount).getUserFull(userId);
+        if (userFull != null && isToday(userFull.birthday))
+            return true;
+        return false;
     }
 
     public static boolean isToday(TLRPC.UserFull userFull) {

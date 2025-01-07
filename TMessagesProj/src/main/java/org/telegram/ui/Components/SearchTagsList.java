@@ -491,7 +491,7 @@ public class SearchTagsList extends BlurredFrameLayout implements NotificationCe
             MessagesController.getInstance(currentAccount).renameSavedReactionTag(ReactionsLayoutInBubble.VisibleReaction.fromTL(reaction), text);
             dialogInterface.dismiss();
         });
-        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialogInterface, i) -> {
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dialogInterface, i) -> {
             dialogInterface.dismiss();
         });
         if (adaptive) {
@@ -901,7 +901,7 @@ public class SearchTagsList extends BlurredFrameLayout implements NotificationCe
 
         @Override
         protected void onDraw(Canvas canvas) {
-            reactionButton.draw(canvas, (getWidth() - reactionButton.width) / 2f, (getHeight() - reactionButton.height) / 2f, progress.set(1f), 1f, false);
+            reactionButton.draw(canvas, (getWidth() - reactionButton.width) / 2f, (getHeight() - reactionButton.height) / 2f, progress.set(1f), 1f, false, false, 0.0f);
         }
 
         private boolean attached;

@@ -73,7 +73,7 @@ public class FeaturedStickersActivity extends BaseFragment implements Notificati
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString("FeaturedStickers", R.string.FeaturedStickers));
+        actionBar.setTitle(LocaleController.getString(R.string.FeaturedStickers));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -117,7 +117,7 @@ public class FeaturedStickersActivity extends BaseFragment implements Notificati
                     inputStickerSet.short_name = stickerSet.set.short_name;
                 }
                 inputStickerSet.access_hash = stickerSet.set.access_hash;
-                StickersAlert stickersAlert = new StickersAlert(getParentActivity(), FeaturedStickersActivity.this, inputStickerSet, null, null);
+                StickersAlert stickersAlert = new StickersAlert(getParentActivity(), FeaturedStickersActivity.this, inputStickerSet, null, null, false);
                 stickersAlert.setInstallDelegate(new StickersAlert.StickersAlertInstallDelegate() {
                     @Override
                     public void onStickerSetInstalled() {

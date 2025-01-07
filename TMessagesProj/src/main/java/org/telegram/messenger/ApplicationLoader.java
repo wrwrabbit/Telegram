@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -39,6 +40,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.RemoveAfterReadingMessages;
+import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.update.UpdateData;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
@@ -46,6 +48,8 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Components.ForegroundDetector;
+import org.telegram.ui.Components.Premium.boosts.BoostRepository;
+import org.telegram.ui.IUpdateButton;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
 
@@ -57,6 +61,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ApplicationLoader extends Application {
 
@@ -87,7 +92,7 @@ public class ApplicationLoader extends Application {
     private static IMapsProvider mapsProvider;
     private static ILocationServiceProvider locationServiceProvider;
 
-    private static boolean filesCopiedFromUpdater;
+    public static boolean filesCopiedFromUpdater;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -280,6 +285,7 @@ public class ApplicationLoader extends Application {
 
     private static void checkFiledCopiedFromOldTelegram() {
         if (filesCopiedFromUpdater && !SharedConfig.filesCopiedFromOldTelegram) {
+            PartisanLog.d("Remove migration preferences from config");
             SharedConfig.filesCopiedFromOldTelegram = true;
             applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit()
                     .remove("ptgMigrationStep")
@@ -301,9 +307,9 @@ public class ApplicationLoader extends Application {
     public void onCreate() {
         File updaterFilesCopied = new File(getFilesDir(), "updater_files_copied");
         if (updaterFilesCopied.exists()) {
-            if (copyUpdaterDirectory("shared_prefs") | copyUpdaterDirectory("files")) {
-                filesCopiedFromUpdater = true;
-            }
+            filesCopiedFromUpdater = true;
+            copyUpdaterDirectory("shared_prefs");
+            copyUpdaterDirectory("files");
             updaterFilesCopied.delete();
         }
 
@@ -319,10 +325,27 @@ public class ApplicationLoader extends Application {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("app start time = " + (startTime = SystemClock.elapsedRealtime()));
             try {
-                FileLog.d("buildVersion = " + ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0).versionCode);
+                final PackageInfo info = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
+                final String abi;
+                switch (info.versionCode % 10) {
+                    case 1:
+                    case 2:
+                        abi = "store bundled " + Build.CPU_ABI + " " + Build.CPU_ABI2;
+                        break;
+                    default:
+                    case 9:
+                        if (ApplicationLoader.isStandaloneBuild()) {
+                            abi = "direct " + Build.CPU_ABI + " " + Build.CPU_ABI2;
+                        } else {
+                            abi = "universal " + Build.CPU_ABI + " " + Build.CPU_ABI2;
+                        }
+                        break;
+                }
+                FileLog.d("buildVersion = " + String.format(Locale.US, "v%s (%d[%d]) %s", info.versionName, info.versionCode / 10, info.versionCode % 10, abi));
             } catch (Exception e) {
                 FileLog.e(e);
             }
+            FileLog.d("device = manufacturer=" + Build.MANUFACTURER + ", device=" + Build.DEVICE + ", model=" + Build.MODEL + ", product=" + Build.PRODUCT);
         }
         if (applicationContext == null) {
             applicationContext = getApplicationContext();
@@ -703,6 +726,10 @@ public class ApplicationLoader extends Application {
         return null;
     }
 
+    public IUpdateButton takeUpdateButton(Context context) {
+        return null;
+    }
+
     public TLRPC.Update parseTLUpdate(int constructor) {
         return null;
     }
@@ -742,5 +769,4 @@ public class ApplicationLoader extends Application {
     public BaseFragment openSettings(int n) {
         return null;
     }
-
 }

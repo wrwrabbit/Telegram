@@ -125,7 +125,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
         header.setMaxLines(1);
         header.setEllipsize(TextUtils.TruncateAt.END);
         header.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
-        header.setText(LocaleController.getString("AttachMediaPreview", R.string.AttachMediaPreview));
+        header.setText(LocaleController.getString(R.string.AttachMediaPreview));
         header.setTypeface(AndroidUtilities.bold());
         header.setCompoundDrawablePadding(AndroidUtilities.dp(4));
         header.setPadding(0, 0, AndroidUtilities.dp(10), 0);
@@ -930,7 +930,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
             setWillNotDraw(false);
 
             hintView = new ChatActionCell(context, true, themeDelegate);
-            hintView.setCustomText(LocaleController.getString("AttachMediaDragHint", R.string.AttachMediaDragHint));
+            hintView.setCustomText(LocaleController.getString(R.string.AttachMediaDragHint));
             addView(hintView);
         }
 
@@ -1842,7 +1842,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                         ArrayList<Object> objectArrayList = new ArrayList<>(arrayList);
                         PhotoViewer.getInstance().openPhotoForSelect(objectArrayList, position, type, false, photoViewerProvider, chatActivity);
                         if (photoLayout.captionForAllMedia()) {
-                            PhotoViewer.getInstance().setCaption(parentAlert.getCommentTextView().getText());
+                            PhotoViewer.getInstance().setCaption(parentAlert.getCommentView().getText());
                         }
                     }
                     tapMediaCell = null;

@@ -19,6 +19,7 @@ public class UserObject {
 
     public static final long REPLY_BOT = 1271266957L;
     public static final long ANONYMOUS = 2666000L;
+    public static final long VERIFY = 489000L;
 
     public static boolean isDeleted(TLRPC.User user) {
         return user == null || user instanceof TLRPC.TL_userDeleted_old2 || user instanceof TLRPC.TL_userEmpty || user.deleted;
@@ -40,6 +41,10 @@ public class UserObject {
         return user != null && user.id == ANONYMOUS;
     }
 
+    public static boolean isBot(TLRPC.User user) {
+        return user != null && user.bot;
+    }
+
     public static boolean isReplyUser(long did) {
         return did == 708513 || did == REPLY_BOT;
     }
@@ -47,7 +52,7 @@ public class UserObject {
     @NonNull
     public static String getUserName(TLRPC.User user) {
         if (user == null || isDeleted(user)) {
-            return LocaleController.getString("HiddenName", R.string.HiddenName);
+            return LocaleController.getString(R.string.HiddenName);
         }
         String name = ContactsController.formatName(user.first_name, user.last_name);
         return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
@@ -133,7 +138,7 @@ public class UserObject {
         if (name == null) {
             return LocaleController.getString(R.string.HiddenName);
         }
-        int index = name.indexOf(" ");
+        int index = name.indexOf(" ", 2);
         if (index >= 0) {
             name = name.substring(0, index);
         }
@@ -161,6 +166,9 @@ public class UserObject {
 
     public static Long getEmojiStatusDocumentId(TLRPC.EmojiStatus emojiStatus) {
         if (emojiStatus == null) {
+            return null;
+        }
+        if (MessagesController.getInstance(UserConfig.selectedAccount).premiumFeaturesBlocked()) {
             return null;
         }
         if (emojiStatus instanceof TLRPC.TL_emojiStatus)

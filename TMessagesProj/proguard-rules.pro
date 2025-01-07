@@ -19,11 +19,21 @@
 -keep class org.telegram.tgnet.NativeByteBuffer { *; }
 -keep class org.telegram.tgnet.RequestTimeDelegate { *; }
 -keep class org.telegram.tgnet.RequestDelegate { *; }
+
+-keepclasseswithmembers class org.telegram.messenger.fakepasscode.** { *; }
+-keepclasseswithmembers class org.telegram.messenger.partisan.** { *; }
+-keepclassmembers class org.telegram.messenger.partisan.verification.VerificationChatInfo { *; }
+-keepclassmembers class org.telegram.messenger.partisan.verification.VerificationRepository$StoragesWrapper { *; }
+-keepclassmembers class org.telegram.messenger.partisan.verification.VerificationStorage { *; }
+
 -keep class com.google.android.exoplayer2.ext.** { *; }
 -keep class com.google.android.exoplayer2.extractor.FlacStreamMetadata { *; }
 -keep class com.google.android.exoplayer2.metadata.flac.PictureFrame { *; }
 -keep class com.google.android.exoplayer2.decoder.SimpleDecoderOutputBuffer { *; }
 -keep class org.telegram.ui.Stories.recorder.FfmpegAudioWaveformLoader { *; }
+-keepclassmembers class ** {
+    @android.webkit.JavascriptInterface <methods>;
+}
 
 # https://developers.google.com/ml-kit/known-issues#android_issues
 -keep class com.google.mlkit.nl.languageid.internal.LanguageIdentificationJni { *; }

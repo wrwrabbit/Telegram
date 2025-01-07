@@ -4,17 +4,16 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.webkit.WebStorage;
+import android.webkit.WebView;
 
 import androidx.core.content.ContextCompat;
 
@@ -25,23 +24,27 @@ import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.fakepasscode.FilteredArrayList;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.CacheControlActivity;
+import org.telegram.ui.web.BrowserHistory;
+import org.telegram.ui.web.WebBrowserSettings;
+import org.telegram.ui.web.WebMetadataCache;
 
 import java.io.File;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -86,8 +90,11 @@ public class Utils {
         }
     }
 
-    public static void clearCache(Runnable callback) {
+    public static void clearCache(Context context, Runnable callback) {
         Utilities.globalQueue.postRunnable(() -> {
+            AndroidUtilities.runOnUIThread(() -> clearWebBrowserCache(context));
+            BrowserHistory.clearHistory();
+
             for (int a = 0; a < 8; a++) {
                 int type = -1;
                 int documentsMusicType = 0;
@@ -185,6 +192,39 @@ public class Utils {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.cacheClearedByPtg);
             });
         });
+    }
+
+    public static void clearWebBrowserCache(Context context) {
+        ApplicationLoader.applicationContext.deleteDatabase("webview.db");
+        ApplicationLoader.applicationContext.deleteDatabase("webviewCache.db");
+        WebStorage.getInstance().deleteAllData();
+        try {
+            WebView webView = new WebView(context);
+            webView.clearCache(true);
+            webView.clearHistory();
+            webView.destroy();
+        } catch (Exception e) {}
+        try {
+            File dir = new File(ApplicationLoader.applicationContext.getApplicationInfo().dataDir, "app_webview");
+            if (dir.exists()) {
+                WebBrowserSettings.deleteDirectory(dir, false);
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        try {
+            File dir = new File(ApplicationLoader.applicationContext.getApplicationInfo().dataDir, "cache/WebView");
+            if (dir.exists()) {
+                WebBrowserSettings.deleteDirectory(dir, null);
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        File cacheFile = WebMetadataCache.getInstance().getCacheFile();
+        if (cacheFile.exists()) {
+            WebMetadataCache.getInstance().clear();
+            cacheFile.delete();
+        }
     }
 
     public static void deleteDialog(int accountNum, long id) {
@@ -331,8 +371,8 @@ public class Utils {
             CharSequence endCharSequence = message.subSequence(lastEnd, message.length());
             if (builder.length() != 0 && endCharSequence.length() != 0) {
                 builder.append("\n\n");
-                builder.append(endCharSequence);
             }
+            builder.append(endCharSequence);
             if (builder.length() != 0) {
                 int end = builder.length() - 1;
                 while (end > 0 && Character.isWhitespace(builder.charAt(end))) {
@@ -490,5 +530,28 @@ public class Utils {
         System.arraycopy(first, 0, combined, 0, first.length);
         System.arraycopy(second, 0, combined, first.length, second.length);
         return combined;
+    }
+
+    public static List<TLRPC.Dialog> filterDialogs(List<TLRPC.Dialog> dialogs, Optional<Integer> account) {
+        List<TLRPC.Dialog> filteredDialogsByPasscode = FakePasscodeUtils.filterDialogs(dialogs, account);
+        if (!account.isPresent() || SharedConfig.showEncryptedChatsFromEncryptedGroups || !SharedConfig.encryptedGroupsEnabled) {
+            return filteredDialogsByPasscode;
+        }
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(account.get());
+        Set<Integer> innerChatIdsFromEncryptedGroups = messagesStorage.getAllInnerChatIdsFromEncryptedGroups();
+        List<TLRPC.Dialog> filteredDialogs = filteredDialogsByPasscode.stream()
+                .filter(d -> !DialogObject.isEncryptedDialog(d.id) || !innerChatIdsFromEncryptedGroups.contains(DialogObject.getEncryptedChatId(d.id)))
+                .collect(Collectors.toList());
+        if (filteredDialogsByPasscode.size() == filteredDialogs.size()) {
+            return filteredDialogsByPasscode;
+        } else {
+            return new FilteredArrayList<>(filteredDialogs, filteredDialogsByPasscode);
+        }
+    }
+
+    public static boolean isRussianAppLanguage() {
+        String appLanguage = LocaleController.getInstance().getCurrentLocale().getLanguage();
+        List<String> russianLikeLanguageList = Arrays.asList("ru", "be", "uk", "kk", "ky", "mo", "hy", "ka", "az", "uz");
+        return new HashSet<>(russianLikeLanguageList).contains(appLanguage);
     }
 }

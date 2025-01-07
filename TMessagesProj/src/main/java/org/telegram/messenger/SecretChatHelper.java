@@ -15,7 +15,10 @@ import android.text.TextUtils;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
+import com.google.android.exoplayer2.util.Consumer;
+
 import org.telegram.SQLite.SQLiteCursor;
+import org.telegram.messenger.partisan.secretgroups.EncryptedGroupProtocol;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.AbstractSerializedData;
 import org.telegram.tgnet.ConnectionsManager;
@@ -244,6 +247,7 @@ public class SecretChatHelper extends BaseController {
                 getNotificationCenter().postNotificationName(NotificationCenter.encryptedChatUpdated, newChat);
             });
         }
+        AndroidUtilities.runOnUIThread(() -> new EncryptedGroupProtocol(currentAccount).processEncryptedChatUpdate(newChat));
         if (newChat instanceof TLRPC.TL_encryptedChatDiscarded && newChat.history_deleted) {
             AndroidUtilities.runOnUIThread(() -> getMessagesController().deleteDialog(dialog_id, 0));
         }
@@ -587,7 +591,7 @@ public class SecretChatHelper extends BaseController {
         }
     }
 
-    protected void performSendEncryptedRequest(TLRPC.DecryptedMessage req, TLRPC.Message newMsgObj, TLRPC.EncryptedChat chat, TLRPC.InputEncryptedFile encryptedFile, String originalPath, MessageObject newMsg) {
+    public void performSendEncryptedRequest(TLRPC.DecryptedMessage req, TLRPC.Message newMsgObj, TLRPC.EncryptedChat chat, TLRPC.InputEncryptedFile encryptedFile, String originalPath, MessageObject newMsg) {
         if (req == null || chat.auth_key == null || chat instanceof TLRPC.TL_encryptedChatRequested || chat instanceof TLRPC.TL_encryptedChatWaiting) {
             return;
         }
@@ -680,7 +684,7 @@ public class SecretChatHelper extends BaseController {
                 TLObject reqToSend;
 
                 if (encryptedFile == null) {
-                    if (req instanceof TLRPC.TL_decryptedMessageService) {
+                    if (req instanceof TLRPC.TL_decryptedMessageService || req instanceof org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage) {
                         TLRPC.TL_messages_sendEncryptedService req2 = new TLRPC.TL_messages_sendEncryptedService();
                         req2.data = data;
                         req2.random_id = req.random_id;
@@ -1320,6 +1324,9 @@ public class SecretChatHelper extends BaseController {
                 } else {
                     return null;
                 }
+            } else if (object instanceof org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage) {
+                new org.telegram.messenger.partisan.secretgroups.EncryptedGroupProtocol(currentAccount)
+                        .handleServiceMessage(chat, (org.telegram.messenger.partisan.secretgroups.EncryptedGroupsServiceMessage)object);
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("unknown message " + object);
@@ -1917,6 +1924,10 @@ public class SecretChatHelper extends BaseController {
     }
 
     public void startSecretChat(Context context, TLRPC.User user) {
+        startSecretChat(context, user, null);
+    }
+
+    public void startSecretChat(Context context, TLRPC.User user, Consumer<TLRPC.EncryptedChat> onComplete) {
         if (user == null || context == null) {
             return;
         }
@@ -1998,6 +2009,9 @@ public class SecretChatHelper extends BaseController {
                                     delayedEncryptedChatUpdates.clear();
                                 }
                             });
+                            if (onComplete != null) {
+                                onComplete.accept(chat);
+                            }
                         });
                     } else {
                         delayedEncryptedChatUpdates.clear();
@@ -2010,12 +2024,15 @@ public class SecretChatHelper extends BaseController {
                                     FileLog.e(e);
                                 }
                                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                                builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
-                                builder.setMessage(LocaleController.getString("CreateEncryptedChatError", R.string.CreateEncryptedChatError));
-                                builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+                                builder.setTitle(LocaleController.getString(R.string.AppName));
+                                builder.setMessage(LocaleController.getString(R.string.CreateEncryptedChatError));
+                                builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
                                 builder.show().setCanceledOnTouchOutside(true);
                             }
                         });
+                        if (onComplete != null) {
+                            onComplete.accept(null);
+                        }
                     }
                 }, ConnectionsManager.RequestFlagFailOnServerErrors);
             } else {
