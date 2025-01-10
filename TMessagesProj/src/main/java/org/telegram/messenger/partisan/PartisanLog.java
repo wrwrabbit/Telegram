@@ -29,12 +29,6 @@ public class PartisanLog {
         }
     }
 
-    public static void e(final String message) {
-        if (logsAllowed()) {
-            FileLog.e(message);
-        }
-    }
-
     public static void d(final String message) {
         if (logsAllowed()) {
             FileLog.d(message);
