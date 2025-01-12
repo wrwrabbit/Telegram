@@ -19,27 +19,27 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
             "messages_v2", "chats", "contacts", "dialogs", "messages_holes"
     ));
     private enum DbSelector {
-        REAL_DB,
+        FILE_DB,
         MEMORY_DB,
         BOTH_DB
     }
 
-    private SQLiteDatabase realDatabase;
-    private SQLiteDatabase memoryDatabase;
+    private final SQLiteDatabase fileDatabase;
+    private final SQLiteDatabase memoryDatabase;
 
     public SQLiteDatabaseWrapper(String fileName) throws SQLiteException {
         super(fileName);
-        realDatabase = new SQLiteDatabase(fileName);
+        fileDatabase = new SQLiteDatabase(fileName);
         memoryDatabase = new SQLiteDatabase(":memory:");
-        realDatabase.backup(memoryDatabase);
+        fileDatabase.backup(memoryDatabase);
     }
 
     public long getSQLiteHandle() {
-        return realDatabase.getSQLiteHandle();
+        return fileDatabase.getSQLiteHandle();
     }
 
     public boolean tableExists(String tableName) throws SQLiteException {
-        return realDatabase.tableExists(tableName);
+        return fileDatabase.tableExists(tableName);
     }
 
     private DbSelector checkSqlForMemoryDatabase(String sql) {
@@ -78,8 +78,8 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
 
     private <R> List<R> executeFunctionInSpecificDB(DbSelector dbSelector, DbFunction<R> function) throws SQLiteException {
         switch (dbSelector) {
-            case REAL_DB:
-                return Collections.singletonList(function.apply(realDatabase));
+            case FILE_DB:
+                return Collections.singletonList(function.apply(fileDatabase));
             case MEMORY_DB:
                 return Collections.singletonList(function.apply(memoryDatabase));
             default:
@@ -92,7 +92,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
                     PartisanLog.e("e", e);
                     throw e;
                 }
-                second = function.apply(realDatabase);
+                second = function.apply(fileDatabase);
                 return Arrays.asList(first, second);
         }
     }
@@ -132,7 +132,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
 
     @Override
     public void close() {
-        realDatabase.close();
+        fileDatabase.close();
         memoryDatabase.close();
     }
 
@@ -144,13 +144,13 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
 
     @Override
     public void beginTransaction() throws SQLiteException {
-        realDatabase.beginTransaction();
+        fileDatabase.beginTransaction();
         memoryDatabase.beginTransaction();
     }
 
     @Override
     public void commitTransaction() {
-        realDatabase.commitTransaction();
+        fileDatabase.commitTransaction();
         memoryDatabase.commitTransaction();
     }
 }
