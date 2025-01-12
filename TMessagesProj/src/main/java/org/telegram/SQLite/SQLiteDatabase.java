@@ -129,6 +129,6 @@ public class SQLiteDatabase {
 	native long opendb(String fileName, String tempDir) throws SQLiteException;
 	native void closedb(long sqliteHandle) throws SQLiteException;
     native void beginTransaction(long sqliteHandle);
-	native void commitTransaction(long sqliteHandle);
-	native void internalBackup(long sqliteHandle, long otherSqliteHandle);
+    native void commitTransaction(long sqliteHandle);
+    native void internalBackup(long sqliteHandle, long otherSqliteHandle);
 }
