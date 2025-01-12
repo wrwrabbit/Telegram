@@ -29,12 +29,13 @@ import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 
 import org.telegram.PhoneFormat.PhoneFormat;
+import org.telegram.SQLite.DbSelector;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteDatabaseWrapper;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
-import org.telegram.SQLite.SQLitePreparedStatementMultiple;
+import org.telegram.SQLite.SQLitePreparedStatementWrapper;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
 import org.telegram.messenger.fakepasscode.results.RemoveChatsResult;
 import org.telegram.messenger.partisan.PartisanDatabaseMigrationHelper;
@@ -4527,7 +4528,9 @@ public class MessagesStorage extends BaseController {
                     state = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                     for (int a = 0; a < messages.size(); a++) {
                         TLRPC.Message message = messages.get(a);
-                        ((SQLitePreparedStatementMultiple)state).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
+                        if (state instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(message.dialog_id)) {
+                            ((SQLitePreparedStatementWrapper)state).setDbSelector(DbSelector.MEMORY_DB);
+                        }
 
                         MessageObject.normalizeFlags(message);
                         NativeByteBuffer data = new NativeByteBuffer(message.getObjectSize());
@@ -9992,7 +9995,9 @@ public class MessagesStorage extends BaseController {
                 data5.reuse();
                 if (dialog != null) {
                     state = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    ((SQLitePreparedStatementMultiple)state).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialog.id) ? -1 : 0);
+                    if (state instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(dialog.id)) {
+                        ((SQLitePreparedStatementWrapper)state).setDbSelector(DbSelector.MEMORY_DB);
+                    }
                     state.bindLong(1, dialog.id);
                     state.bindInteger(2, dialog.last_message_date);
                     state.bindInteger(3, dialog.unread_count);
@@ -11662,7 +11667,9 @@ public class MessagesStorage extends BaseController {
 
                 for (int a = 0; a < messages.size(); a++) {
                     TLRPC.Message message = messages.get(a);
-                    ((SQLitePreparedStatementMultiple)state_messages).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
+                    if (state_messages instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(message.dialog_id)) {
+                        ((SQLitePreparedStatementWrapper)state_messages).setDbSelector(DbSelector.MEMORY_DB);
+                    }
 
                     int messageId = message.id;
                     MessageObject.getDialogId(message);
@@ -12485,7 +12492,9 @@ public class MessagesStorage extends BaseController {
                             state_dialogs_update_without_message.step();
                         }
                     } else {
-                        ((SQLitePreparedStatementMultiple)state_dialogs_replace).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
+                        if (state_dialogs_replace instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(message.dialog_id)) {
+                            ((SQLitePreparedStatementWrapper)state_dialogs_replace).setDbSelector(DbSelector.MEMORY_DB);
+                        }
                         state_dialogs_replace.requery();
                         state_dialogs_replace.bindLong(1, key);
                         state_dialogs_replace.bindInteger(2, message != null && (!doNotUpdateDialogDate || dialog_date == 0) ? message.date : dialog_date);
@@ -14839,7 +14848,9 @@ public class MessagesStorage extends BaseController {
                         }
                     } else {
                         state = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
-                        ((SQLitePreparedStatementMultiple)state).setForcedStatementIndex(DialogObject.isEncryptedDialog(message.dialog_id) ? -1 : 0);
+                        if (state instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(message.dialog_id)) {
+                            ((SQLitePreparedStatementWrapper)state).setDbSelector(DbSelector.MEMORY_DB);
+                        }
                     }
                     state.requery();
 
@@ -15289,7 +15300,9 @@ public class MessagesStorage extends BaseController {
                                 state3.bindLong(8, dialogId);
                             } else {
                                 state3 = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                                ((SQLitePreparedStatementMultiple)state3).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialogId) ? -1 : 0);
+                                if (state3 instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(dialogId)) {
+                                    ((SQLitePreparedStatementWrapper)state3).setDbSelector(DbSelector.MEMORY_DB);
+                                }
                                 state3.bindLong(1, dialogId);
                                 state3.bindInteger(2, message.date);
                                 state3.bindInteger(3, 0);
@@ -16273,7 +16286,9 @@ public class MessagesStorage extends BaseController {
 
                     TLRPC.Message message = new_dialogMessage.get(dialog.id);
                     if (message != null) {
-                        ((SQLitePreparedStatementMultiple)state_messages).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialog.id) ? -1 : 0);
+                        if (state_messages instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(dialog.id)) {
+                            ((SQLitePreparedStatementWrapper)state_messages).setDbSelector(DbSelector.MEMORY_DB);
+                        }
                         messageDate = Math.max(message.date, messageDate);
 
                         if (isValidKeyboardToSave(message)) {
@@ -16378,7 +16393,9 @@ public class MessagesStorage extends BaseController {
                         }
                     }
 
-                    ((SQLitePreparedStatementMultiple)state_dialogs).setForcedStatementIndex(DialogObject.isEncryptedDialog(dialog.id) ? -1 : 0);
+                    if (state_dialogs instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(dialog.id)) {
+                        ((SQLitePreparedStatementWrapper)state_dialogs).setDbSelector(DbSelector.MEMORY_DB);
+                    }
                     state_dialogs.requery();
                     state_dialogs.bindLong(1, dialog.id);
                     state_dialogs.bindInteger(2, messageDate);

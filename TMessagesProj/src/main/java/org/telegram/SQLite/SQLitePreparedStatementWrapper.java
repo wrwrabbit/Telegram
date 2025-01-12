@@ -3,18 +3,18 @@ package org.telegram.SQLite;
 import org.telegram.tgnet.NativeByteBuffer;
 
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.Map;
 
-public class SQLitePreparedStatementMultiple extends SQLitePreparedStatement {
-    private final List<SQLitePreparedStatement> statements;
-    private int forceStatementIndex = -1;
+public class SQLitePreparedStatementWrapper extends SQLitePreparedStatement {
+    private final Map<DbSelector, SQLitePreparedStatement> statements;
+    private DbSelector dbSelector = DbSelector.BOTH_DB;
 
-    public SQLitePreparedStatementMultiple(List<SQLitePreparedStatement> statements) {
+    public SQLitePreparedStatementWrapper(Map<DbSelector, SQLitePreparedStatement> statements) {
         this.statements = statements;
     }
 
-    public void setForcedStatementIndex(int forceStatementIndex) {
-        this.forceStatementIndex = forceStatementIndex;
+    public void setDbSelector(DbSelector dbSelector) {
+        this.dbSelector = dbSelector;
     }
 
     private interface StatementFunction<R> {
@@ -30,12 +30,13 @@ public class SQLitePreparedStatementMultiple extends SQLitePreparedStatement {
         if (statements.isEmpty()) {
             throw new RuntimeException();
         }
-        if (forceStatementIndex != -1) {
-            result = function.apply(statements.get(forceStatementIndex));
-        } else {
-            for (SQLitePreparedStatement statement : statements) {
+        if (dbSelector == DbSelector.BOTH_DB) {
+            for (SQLitePreparedStatement statement : statements.values()) {
                 result = function.apply(statement);
             }
+
+        } else {
+            result = function.apply(statements.get(dbSelector));
         }
         return result;
     }
