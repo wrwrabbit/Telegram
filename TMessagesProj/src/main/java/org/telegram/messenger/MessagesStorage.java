@@ -84,7 +84,7 @@ import java.util.function.Consumer;
 public class MessagesStorage extends BaseController {
 
     private DispatchQueue storageQueue;
-    private SQLiteDatabaseWrapper database;
+    private SQLiteDatabase database;
     private File cacheFile;
     private File walCacheFile;
     private File shmCacheFile;
@@ -4525,7 +4525,7 @@ public class MessagesStorage extends BaseController {
                 cursor = null;
                 deleteFromDownloadQueue(idsToDelete, true);
                 if (!messages.isEmpty()) {
-                    state = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                    state = executeFastForBothDbIfNeeded("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                     for (int a = 0; a < messages.size(); a++) {
                         TLRPC.Message message = messages.get(a);
                         if (state instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(message.dialog_id)) {
@@ -9994,7 +9994,7 @@ public class MessagesStorage extends BaseController {
                 data4.reuse();
                 data5.reuse();
                 if (dialog != null) {
-                    state = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    state = executeFastForBothDbIfNeeded("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     if (state instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(dialog.id)) {
                         ((SQLitePreparedStatementWrapper)state).setDbSelector(DbSelector.MEMORY_DB);
                     }
@@ -10699,6 +10699,14 @@ public class MessagesStorage extends BaseController {
             cursor.dispose();
         }
         return result;
+    }
+
+    private SQLitePreparedStatement executeFastForBothDbIfNeeded(String sql) throws SQLiteException {
+        if (database instanceof SQLiteDatabaseWrapper) {
+            return ((SQLiteDatabaseWrapper)database).executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+        } else {
+            return database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+        }
     }
 
     private void putUsersAndChatsInternal(List<TLRPC.User> users, List<TLRPC.Chat> chats, boolean withTransaction) {
@@ -11655,7 +11663,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<TLRPC.Message> createNewTopics = null;
                 ArrayList<TLRPC.Message> changedSavedMessages = null;
 
-                state_messages = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                state_messages = executeFastForBothDbIfNeeded("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                 state_messages_topic = database.executeFast("REPLACE INTO messages_topics VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
                 state_media = null;
                 state_randoms = database.executeFast("REPLACE INTO randoms_v2 VALUES(?, ?, ?)");
@@ -12410,7 +12418,7 @@ public class MessagesStorage extends BaseController {
                     }
                 }
 
-                state_dialogs_replace = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                state_dialogs_replace = executeFastForBothDbIfNeeded("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 state_dialogs_update = database.executeFast("UPDATE dialogs SET date = ?, unread_count = ?, last_mid = ?, last_mid_group = ?, unread_count_i = ? WHERE did = ?");
                 state_dialogs_update_without_message = database.executeFast("UPDATE dialogs SET unread_count = ?, unread_count_i = ? WHERE did = ?");
                 state_topics_update = database.executeFast("UPDATE topics SET unread_count = ?, top_message = ?, unread_mentions = ?, total_messages_count = ? WHERE did = ? AND topic_id = ?");
@@ -14847,7 +14855,7 @@ public class MessagesStorage extends BaseController {
                             changedSavedMessages.add(message);
                         }
                     } else {
-                        state = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+                        state = executeFastForBothDbIfNeeded("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
                         if (state instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(message.dialog_id)) {
                             ((SQLitePreparedStatementWrapper)state).setDbSelector(DbSelector.MEMORY_DB);
                         }
@@ -15299,7 +15307,7 @@ public class MessagesStorage extends BaseController {
                                 state3.bindInteger(7, message.date);
                                 state3.bindLong(8, dialogId);
                             } else {
-                                state3 = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                state3 = executeFastForBothDbIfNeeded("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                                 if (state3 instanceof SQLitePreparedStatementWrapper && !DialogObject.isEncryptedDialog(dialogId)) {
                                     ((SQLitePreparedStatementWrapper)state3).setDbSelector(DbSelector.MEMORY_DB);
                                 }
@@ -16236,8 +16244,8 @@ public class MessagesStorage extends BaseController {
             }
 
             if (!dialogs.dialogs.isEmpty()) {
-                state_messages = database.executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)");
-                state_dialogs = database.executeFastForBothDb("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                state_messages = executeFastForBothDbIfNeeded("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)");
+                state_dialogs = executeFastForBothDbIfNeeded("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 state_media = database.executeFast("REPLACE INTO media_v4 VALUES(?, ?, ?, ?, ?)");
                 state_settings = database.executeFast("REPLACE INTO dialog_settings VALUES(?, ?)");
                 state_holes = database.executeFast("REPLACE INTO messages_holes VALUES(?, ?, ?)");
