@@ -31,7 +31,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
         super(fileName);
         fileDatabase = new SQLiteDatabase(fileName);
         memoryDatabase = new SQLiteDatabase(":memory:");
-        fileDatabase.backup(memoryDatabase);
+        fileDatabase.backup(memoryDatabase); // copy file database to memory
     }
 
     public long getSQLiteHandle() {
@@ -42,7 +42,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
         return fileDatabase.tableExists(tableName);
     }
 
-    private DbSelector checkSqlForMemoryDatabase(String sql) {
+    private DbSelector getDbSelectorBySqlQuery(String sql) {
         if (sqlPrefixesForBothDB.stream().anyMatch(sql::startsWith)) {
             return DbSelector.BOTH_DB;
         } else if (queryStartsForSpecificDB.stream().anyMatch(sql::startsWith)) {
@@ -73,7 +73,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     }
 
     private <R> List<R> executeFunctionInSpecificDB(String sql, DbFunction<R> function) throws SQLiteException {
-        return executeFunctionInSpecificDB(checkSqlForMemoryDatabase(sql), function);
+        return executeFunctionInSpecificDB(getDbSelectorBySqlQuery(sql), function);
     }
 
     private <R> List<R> executeFunctionInSpecificDB(DbSelector dbSelector, DbFunction<R> function) throws SQLiteException {
@@ -82,18 +82,18 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
                 return Collections.singletonList(function.apply(fileDatabase));
             case MEMORY_DB:
                 return Collections.singletonList(function.apply(memoryDatabase));
-            default:
             case BOTH_DB:
-                R first;
-                R second;
+            default:
+                R memoryDbResult;
+                R fileDbResult;
                 try {
-                    first = function.apply(memoryDatabase);
+                    memoryDbResult = function.apply(memoryDatabase);
                 } catch (Exception e) {
-                    PartisanLog.e("e", e);
+                    PartisanLog.e("Memory database error", e);
                     throw e;
                 }
-                second = function.apply(fileDatabase);
-                return Arrays.asList(first, second);
+                fileDbResult = function.apply(fileDatabase);
+                return Arrays.asList(memoryDbResult, fileDbResult);
         }
     }
 
