@@ -19,9 +19,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
@@ -55,10 +57,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class PartisanSettingsActivity extends BaseFragment {
+public class PartisanSettingsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     private ListAdapter listAdapter;
     private RecyclerListView listView;
@@ -97,6 +100,8 @@ public class PartisanSettingsActivity extends BaseFragment {
     private int verifiedDetailRow;
     private int confirmDangerousActionRow;
     private int confirmDangerousActionDetailRow;
+    private int fileProtectionRow;
+    private int fileProtectionDetailRow;
     private int transferDataToOtherPtgRow;
     private int transferDataToOtherPtgDetailRow;
 
@@ -104,12 +109,15 @@ public class PartisanSettingsActivity extends BaseFragment {
     private int enableSecretGroupsRow;
     private int enableSecretGroupsDetailRow;
 
+    private AlertDialog enablingFileProtectionDialog;
+    Set<Integer> accountsWithEnabledFileProtection = new HashSet<>();
+
     private class DangerousSettingSwitcher {
         public Context context;
         public View view;
         public boolean value;
         public Consumer<Boolean> setValue;
-        public Consumer<UserConfig> dangerousAction;
+        public Consumer<AccountInstance> dangerousAction;
         public Function<UserConfig, Boolean> isChanged;
         public String dangerousActionTitle;
         public String positiveButtonText;
@@ -135,7 +143,7 @@ public class PartisanSettingsActivity extends BaseFragment {
             SharedConfig.saveConfig();
             ((TextCheckCell) view).setChecked(!value);
             if (runDangerousAction) {
-                foreachActivatedConfig(dangerousAction);
+                foreachActivatedAccountInstance(dangerousAction);
             }
         }
 
@@ -158,9 +166,22 @@ public class PartisanSettingsActivity extends BaseFragment {
 
     @Override
     public boolean onFragmentCreate() {
+        foreachActivatedAccountInstance(accountInstance -> {
+            accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseReset);
+            accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onFileProtectionEnabled);
+        });
         super.onFragmentCreate();
         updateRows();
         return true;
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        super.onFragmentDestroy();
+        foreachActivatedAccountInstance(accountInstance -> {
+            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseReset);
+            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onFileProtectionEnabled);
+        });
     }
 
     @Override
@@ -217,11 +238,11 @@ public class PartisanSettingsActivity extends BaseFragment {
                 switcher.positiveButtonText = LocaleController.getString("Reset", R.string.Reset);
                 switcher.negativeButtonText = LocaleController.getString("NotReset", R.string.NotReset);
                 switcher.neutralButtonText = LocaleController.getString("Cancel", R.string.Cancel);
-                switcher.dangerousAction = config -> {
-                    for (UserConfig.ChatInfoOverride override : config.chatInfoOverrides.values()) {
+                switcher.dangerousAction = accountInstance -> {
+                    for (UserConfig.ChatInfoOverride override : accountInstance.getUserConfig().chatInfoOverrides.values()) {
                         override.avatarEnabled = true;
                     }
-                    config.saveConfig(false);
+                    accountInstance.getUserConfig().saveConfig(false);
                 };
                 switcher.switchSetting();
             } else if (position == renameChatRow) {
@@ -235,11 +256,11 @@ public class PartisanSettingsActivity extends BaseFragment {
                 switcher.positiveButtonText = LocaleController.getString("Reset", R.string.Reset);
                 switcher.negativeButtonText = LocaleController.getString("NotReset", R.string.NotReset);
                 switcher.neutralButtonText = LocaleController.getString("Cancel", R.string.Cancel);
-                switcher.dangerousAction = config -> {
-                    for (UserConfig.ChatInfoOverride override : config.chatInfoOverrides.values()) {
+                switcher.dangerousAction = accountInstance -> {
+                    for (UserConfig.ChatInfoOverride override : accountInstance.getUserConfig().chatInfoOverrides.values()) {
                         override.title = null;
                     }
-                    config.saveConfig(false);
+                    accountInstance.getUserConfig().saveConfig(false);
                 };
                 switcher.switchSetting();
             } else if (position == deleteMyMessagesRow) {
@@ -271,7 +292,8 @@ public class PartisanSettingsActivity extends BaseFragment {
                 switcher.positiveButtonText = LocaleController.getString("ClearButton", R.string.ClearButton);
                 switcher.negativeButtonText = LocaleController.getString("NotClear", R.string.NotClear);
                 switcher.neutralButtonText = LocaleController.getString("Cancel", R.string.Cancel);
-                switcher.dangerousAction = (config) -> {
+                switcher.dangerousAction = accountInstance -> {
+                    UserConfig config = accountInstance.getUserConfig();
                     List<String> savedChannels = Arrays.asList(config.defaultChannels.split(","));
                     config.savedChannels = new HashSet<>(savedChannels);
                     config.pinnedSavedChannels = new ArrayList<>(savedChannels);
@@ -304,6 +326,22 @@ public class PartisanSettingsActivity extends BaseFragment {
             } else if (position == confirmDangerousActionRow) {
                 SharedConfig.toggleIsConfirmDangerousActions();
                 ((TextCheckCell) view).setChecked(SharedConfig.confirmDangerousActions);
+            } else if (position == fileProtectionRow) {
+
+                AlertsCreator.showConfirmationDialog(this, getContext(), LocaleController.getString(R.string.Continue), () -> {
+                    if (!SharedConfig.fileProtectionForAllAccountsEnabled) {
+                        accountsWithEnabledFileProtection.clear();
+                        foreachActivatedAccountInstance(accountInstance -> {
+                            accountInstance.getMessagesStorage().clearLocalDatabase();
+                        });
+                        enablingFileProtectionDialog = new AlertDialog(getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER);
+                        showDialog(enablingFileProtectionDialog);
+                    } else {
+                        SharedConfig.toggleFileProtectionForAllAccountsEnabled();
+                        ((TextCheckCell) view).setChecked(SharedConfig.fileProtectionForAllAccountsEnabled);
+                        System.exit(0);
+                    }
+                });
             } else if (position == verifiedRow) {
                 if (LocaleController.isRTL && x > AndroidUtilities.dp(76) || !LocaleController.isRTL && x < view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
                     List<VerificationStorage> storages = VerificationRepository.getInstance().getStorages();
@@ -348,11 +386,11 @@ public class PartisanSettingsActivity extends BaseFragment {
         return fragmentView;
     }
 
-    private static void foreachActivatedConfig(Consumer<UserConfig> action) {
+    private static void foreachActivatedAccountInstance(Consumer<AccountInstance> action) {
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             UserConfig config = UserConfig.getInstance(a);
             if (config.isClientActivated()) {
-                action.accept(config);
+                action.accept(AccountInstance.getInstance(a));
             }
         }
     }
@@ -362,6 +400,33 @@ public class PartisanSettingsActivity extends BaseFragment {
         super.onResume();
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.onDatabaseReset) {
+            if (enablingFileProtectionDialog != null) {
+                MessagesStorage.getInstance(account).finishFileProtectionEnabling();
+            }
+        } else if (id == NotificationCenter.onFileProtectionEnabled) {
+            if (enablingFileProtectionDialog != null) {
+                accountsWithEnabledFileProtection.add(account);
+                boolean fileProtectionEnabledForAllAccounts = true;
+                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                    UserConfig config = UserConfig.getInstance(a);
+                    if (config.isClientActivated() && !accountsWithEnabledFileProtection.contains(a)) {
+                        fileProtectionEnabledForAllAccounts = false;
+                        break;
+                    }
+                }
+                if (fileProtectionEnabledForAllAccounts) {
+                    if (!SharedConfig.fileProtectionForAllAccountsEnabled) {
+                        SharedConfig.toggleFileProtectionForAllAccountsEnabled();
+                    }
+                    System.exit(0);
+                }
+            }
         }
     }
 
@@ -405,6 +470,8 @@ public class PartisanSettingsActivity extends BaseFragment {
         verifiedDetailRow = rowCount++;
         confirmDangerousActionRow = rowCount++;
         confirmDangerousActionDetailRow = rowCount++;
+        fileProtectionRow = rowCount++;
+        fileProtectionDetailRow = rowCount++;
         if (AppMigrator.isNewerPtgInstalled(ApplicationLoader.applicationContext, false)
                 || AppMigratorPreferences.isMigrationToMaskedPtg()) {
             transferDataToOtherPtgRow = rowCount++;
@@ -452,6 +519,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     && position != onScreenLockActionDetailRow && position != isClearAllDraftsOnScreenLockDetailRow
                     && position != showCallButtonDetailRow && position != isDeleteMessagesForAllByDefaultDetailRow
                     && position != marketIconsDetailRow && position!= confirmDangerousActionDetailRow
+                    && position != fileProtectionDetailRow
                     && position != transferDataToOtherPtgDetailRow && position != experimentalHeaderRow
                     && (position != enableSecretGroupsRow || !SharedConfig.encryptedGroupsEnabled)
                     && position != enableSecretGroupsDetailRow;
@@ -540,6 +608,9 @@ public class PartisanSettingsActivity extends BaseFragment {
                     } else if (position == confirmDangerousActionRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ConfirmDangerousAction", R.string.ConfirmDangerousAction),
                                 SharedConfig.confirmDangerousActions, false);
+                    } else if (position == fileProtectionRow) {
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.FileProtection),
+                                SharedConfig.fileProtectionForAllAccountsEnabled, false);
                     }
                     break;
                 }
@@ -591,7 +662,10 @@ public class PartisanSettingsActivity extends BaseFragment {
                         cell.setText(LocaleController.getString(R.string.AdditionalVerifiedSettingInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == confirmDangerousActionDetailRow) {
-                        cell.setText(LocaleController.getString( R.string.ConfirmDangerousActionInfo));
+                        cell.setText(LocaleController.getString(R.string.ConfirmDangerousActionInfo));
+                        cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else if (position == fileProtectionDetailRow) {
+                        cell.setText(LocaleController.getString(R.string.FileProtectionInfo));
                         cell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
                     } else if (position == transferDataToOtherPtgDetailRow) {
                         cell.setText(LocaleController.getString(R.string.TransferDataToOtherPtgInfo));
@@ -667,7 +741,7 @@ public class PartisanSettingsActivity extends BaseFragment {
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
                     || position == isClearAllDraftsOnScreenLockRow || position == showCallButtonRow
                     || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow
-                    || position == confirmDangerousActionRow) {
+                    || position == confirmDangerousActionRow || position == fileProtectionRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow
@@ -676,8 +750,8 @@ public class PartisanSettingsActivity extends BaseFragment {
                     || position == onScreenLockActionDetailRow || position == isClearAllDraftsOnScreenLockDetailRow
                     || position == showCallButtonDetailRow || position == isDeleteMessagesForAllByDefaultDetailRow
                     || position == marketIconsDetailRow || position == verifiedDetailRow
-                    || position == confirmDangerousActionDetailRow || position == transferDataToOtherPtgDetailRow
-                    || position == enableSecretGroupsDetailRow) {
+                    || position == confirmDangerousActionDetailRow || position == fileProtectionDetailRow
+                    || position == transferDataToOtherPtgDetailRow || position == enableSecretGroupsDetailRow) {
                 return 1;
             } else if (position == onScreenLockActionRow || position == transferDataToOtherPtgRow
                     || position == enableSecretGroupsRow) {

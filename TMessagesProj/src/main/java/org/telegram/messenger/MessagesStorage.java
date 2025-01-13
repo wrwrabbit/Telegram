@@ -321,7 +321,11 @@ public class MessagesStorage extends BaseController {
             createTable = true;
         }
         try {
-            database = new SQLiteDatabaseWrapper(cacheFile.getPath());
+            if (fileProtectionEnabled()) {
+                database = new SQLiteDatabaseWrapper(cacheFile.getPath());
+            } else {
+                database = new SQLiteDatabase(cacheFile.getPath());
+            }
             database.executeFast("PRAGMA secure_delete = ON").stepThis().dispose();
             database.executeFast("PRAGMA temp_store = MEMORY").stepThis().dispose();
             database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
@@ -435,7 +439,11 @@ public class MessagesStorage extends BaseController {
         FileLog.e("Database restored = " + restored);
         if (restored) {
             try {
-                database = new SQLiteDatabaseWrapper(cacheFile.getPath());
+                if (fileProtectionEnabled()) {
+                    database = new SQLiteDatabaseWrapper(cacheFile.getPath());
+                } else {
+                    database = new SQLiteDatabase(cacheFile.getPath());
+                }
                 database.executeFast("PRAGMA secure_delete = ON").stepThis().dispose();
                 database.executeFast("PRAGMA temp_store = MEMORY").stepThis().dispose();
                 database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
@@ -10703,10 +10711,33 @@ public class MessagesStorage extends BaseController {
 
     private SQLitePreparedStatement executeFastForBothDbIfNeeded(String sql) throws SQLiteException {
         if (database instanceof SQLiteDatabaseWrapper) {
-            return ((SQLiteDatabaseWrapper)database).executeFastForBothDb("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+            return ((SQLiteDatabaseWrapper)database).executeFastForBothDb(sql);
         } else {
-            return database.executeFast("REPLACE INTO messages_v2 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)");
+            return database.executeFast(sql);
         }
+    }
+
+    public boolean fileProtectionEnabled() {
+        return SharedConfig.fileProtectionForAllAccountsEnabled;
+    }
+
+    public void finishFileProtectionEnabling() {
+        storageQueue.postRunnable(() -> {
+            try {
+                database.executeFast("DELETE FROM messages_v2").stepThis().dispose();
+                database.executeFast("DELETE FROM chats").stepThis().dispose();
+                database.executeFast("DELETE FROM contacts").stepThis().dispose();
+                database.executeFast("DELETE FROM dialogs").stepThis().dispose();
+                database.executeFast("DELETE FROM messages_holes").stepThis().dispose();
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (database != null) {
+                    database.commitTransaction();
+                }
+                AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.onFileProtectionEnabled));
+            }
+        });
     }
 
     private void putUsersAndChatsInternal(List<TLRPC.User> users, List<TLRPC.Chat> chats, boolean withTransaction) {

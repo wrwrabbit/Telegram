@@ -717,7 +717,7 @@ public class UserConfig extends BaseController {
     }
 
     public long[] getDialogLoadOffsets(int folderId) {
-        if (true) {
+        if (getMessagesStorage().fileProtectionEnabled()) {
             return new long[]{-1, -1, -1, -1, -1, -1};
         }
         SharedPreferences preferences = getPreferences();
