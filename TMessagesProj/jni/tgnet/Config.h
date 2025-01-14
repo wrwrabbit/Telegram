@@ -21,6 +21,8 @@ public:
     void writeConfig(NativeByteBuffer *buffer);
 
 private:
+    friend class EncryptedConfig;
+
     int32_t instanceNum;
     std::string configPath;
     std::string backupPath;

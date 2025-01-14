@@ -438,7 +438,7 @@ void *ConnectionsManager::ThreadProc(void *data) {
 
 void ConnectionsManager::loadConfig() {
     if (config == nullptr) {
-        config = new Config(instanceNum, "tgnet.dat");
+        config = new EncryptedConfig(instanceNum, "tgnet.dat");
     }
     NativeByteBuffer *buffer = config->readConfig();
     if (buffer != nullptr) {
@@ -552,7 +552,7 @@ void ConnectionsManager::saveConfigInternal(NativeByteBuffer *buffer) {
 
 void ConnectionsManager::saveConfig() {
     if (config == nullptr) {
-        config = new Config(instanceNum, "tgnet.dat");
+        config = new EncryptedConfig(instanceNum, "tgnet.dat");
     }
     sizeCalculator->clearCapacity();
     saveConfigInternal(sizeCalculator);
@@ -3665,6 +3665,17 @@ void ConnectionsManager::applyDnsConfig(NativeByteBuffer *buffer, std::string ph
         }
         buffer->reuse();
     });
+}
+
+void ConnectionsManager::setConfigEncryptionKey(std::string encryptionKey) {
+    configEncryptionKey = encryptionKey;
+    if (config != nullptr) {
+        saveConfig();
+    }
+}
+
+const std::string &ConnectionsManager::getConfigEncryptionKey() {
+    return configEncryptionKey;
 }
 
 void ConnectionsManager::init(uint32_t version, int32_t layer, int32_t apiId, std::string deviceModel, std::string systemVersion, std::string appVersion, std::string langCode, std::string systemLangCode, std::string configPath, std::string logPath, std::string regId, std::string cFingerpting, std::string installerId, std::string packageId, int32_t timezoneOffset, int64_t userId, bool userPremium, bool isPaused, bool enablePushConnection, bool hasNetwork, int32_t networkType, int32_t performanceClass) {

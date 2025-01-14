@@ -35,6 +35,7 @@ import org.telegram.messenger.partisan.appmigration.AppMigratorPreferences;
 import org.telegram.messenger.partisan.verification.VerificationRepository;
 import org.telegram.messenger.partisan.verification.VerificationStorage;
 import org.telegram.messenger.partisan.verification.VerificationUpdatesChecker;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -329,7 +330,12 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
             } else if (position == fileProtectionRow) {
 
                 AlertsCreator.showConfirmationDialog(this, getContext(), LocaleController.getString(R.string.Continue), () -> {
-                    if (!SharedConfig.fileProtectionForAllAccountsEnabled) {
+                    boolean enable = !SharedConfig.fileProtectionForAllAccountsEnabled;
+                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                        String encryptionKey = enable ? "iwSSI/inMq5iYsD8Y6yvCHeYmyaOEggjxghXCzmTNs6si3DsvPPouTgCBjBnob7k" : "";
+                        ConnectionsManager.native_setConfigEncryptionKey(a, encryptionKey);
+                    };
+                    if (enable) {
                         accountsWithEnabledFileProtection.clear();
                         foreachActivatedAccountInstance(accountInstance -> {
                             accountInstance.getMessagesStorage().clearLocalDatabase();

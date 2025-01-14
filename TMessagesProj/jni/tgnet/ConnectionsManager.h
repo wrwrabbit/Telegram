@@ -17,6 +17,7 @@
 #include <atomic>
 #include <unordered_set>
 #include "Defines.h"
+#include "EncryptedConfig.h"
 
 #ifdef ANDROID
 #include <jni.h>
@@ -66,6 +67,8 @@ public:
     void pauseNetwork();
     void setNetworkAvailable(bool value, int32_t type, bool slow);
     void setIpStrategy(uint8_t value);
+    void setConfigEncryptionKey(std::string encryptionKey);
+    const std::string &getConfigEncryptionKey();
     void init(uint32_t version, int32_t layer, int32_t apiId, std::string deviceModel, std::string systemVersion, std::string appVersion, std::string langCode, std::string systemLangCode, std::string configPath, std::string logPath, std::string regId, std::string cFingerprint, std::string installerId, std::string packageId, int32_t timezoneOffset, int64_t userId, bool userPremium, bool isPaused, bool enablePushConnection, bool hasNetwork, int32_t networkType, int32_t performanceClass);
     void setProxySettings(std::string address, uint16_t port, std::string username, std::string password, std::string secret);
     void setLangCode(std::string langCode);
@@ -136,7 +139,7 @@ private:
 
     int32_t instanceNum = 0;
     uint32_t configVersion = 5;
-    Config *config = nullptr;
+    EncryptedConfig *config = nullptr;
 
     std::list<EventObject *> events;
 
@@ -221,6 +224,7 @@ private:
     int64_t lastInvokeAfterMessageId = 0;
 
     int32_t currentNetworkType = NETWORK_TYPE_WIFI;
+    std::string configEncryptionKey;
     uint32_t currentVersion = 1;
     int32_t currentLayer = 34;
     int32_t currentApiId = 6;
@@ -261,6 +265,7 @@ private:
     friend class Datacenter;
     friend class TL_message;
     friend class TL_rpc_result;
+    friend class EncryptedConfig;
     friend class Config;
     friend class FileLog;
     friend class Handshake;
