@@ -10724,11 +10724,23 @@ public class MessagesStorage extends BaseController {
     public void finishFileProtectionEnabling() {
         storageQueue.postRunnable(() -> {
             try {
-                database.executeFast("DELETE FROM messages_v2").stepThis().dispose();
+                ArrayList<Long> dialogsToCleanup = new ArrayList<>();
+                SQLiteCursor cursor = database.queryFinalized("SELECT did FROM dialogs WHERE 1");
+                while (cursor.next()) {
+                    long did = cursor.longValue(0);
+                    if (!DialogObject.isEncryptedDialog(did)) {
+                        dialogsToCleanup.add(did);
+                    }
+                }
+
                 database.executeFast("DELETE FROM chats").stepThis().dispose();
                 database.executeFast("DELETE FROM contacts").stepThis().dispose();
-                database.executeFast("DELETE FROM dialogs").stepThis().dispose();
-                database.executeFast("DELETE FROM messages_holes").stepThis().dispose();
+
+                for (long dialogId : dialogsToCleanup) {
+                    database.executeFast("DELETE FROM messages_v2 WHERE uid = " + dialogId).stepThis().dispose();
+                    database.executeFast("DELETE FROM dialogs WHERE did = " + dialogId).stepThis().dispose();
+                    database.executeFast("DELETE FROM messages_holes WHERE uid = " + dialogId).stepThis().dispose();
+                }
             } catch (Exception e) {
                 checkSQLException(e);
             } finally {
