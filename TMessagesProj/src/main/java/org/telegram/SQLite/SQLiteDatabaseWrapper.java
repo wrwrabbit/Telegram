@@ -11,7 +11,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     private final Set<String> sqlPrefixesForBothDB = new HashSet<>(Arrays.asList(
             "PRAGMA", "CREATE TABLE", "CREATE INDEX", "VACUUM", "DROP TABLE", "DELETE FROM", "UPDATE"
     ));
-    private final Set<String> queryStartsForSpecificDB = new HashSet<>(Arrays.asList(
+    private final Set<String> sqlPrefixesForSpecificDB = new HashSet<>(Arrays.asList(
             "INSERT INTO", "REPLACE INTO", "SELECT"
     ));
     private final Set<String> onlyMemoryTables = new HashSet<>(Arrays.asList(
@@ -39,7 +39,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
     private DbSelector getDbSelectorBySqlQuery(String sql) {
         if (sqlPrefixesForBothDB.stream().anyMatch(sql::startsWith)) {
             return DbSelector.BOTH_DB;
-        } else if (queryStartsForSpecificDB.stream().anyMatch(sql::startsWith)) {
+        } else if (sqlPrefixesForSpecificDB.stream().anyMatch(sql::startsWith)) {
             if (sql.startsWith("SELECT")) {
                 return DbSelector.MEMORY_DB;
             } else {
