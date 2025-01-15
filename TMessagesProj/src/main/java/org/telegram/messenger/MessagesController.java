@@ -16173,7 +16173,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         if (dialog instanceof TLRPC.TL_dialogFolder) {
                             continue;
                         }
-                        if (DialogObject.isEncryptedDialog(dialog.id)) {
+                        if (DialogObject.isEncryptedDialog(dialog.id) && (FakePasscodeUtils.isFakePasscodeActivated() || dialog.pinned)) {
                             if (pinnedNum < newPinnedDialogs.size()) {
                                 newPinnedDialogs.add(pinnedNum, dialog);
                             } else {
