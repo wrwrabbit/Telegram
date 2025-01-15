@@ -28,6 +28,10 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
         fileDatabase.backup(memoryDatabase); // copy file database to memory
     }
 
+    public SQLiteDatabase getFileDatabase() {
+        return fileDatabase;
+    }
+
     @Override
     public long getSQLiteHandle() {
         return fileDatabase.getSQLiteHandle();

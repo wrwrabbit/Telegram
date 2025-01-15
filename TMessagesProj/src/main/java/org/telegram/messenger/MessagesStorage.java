@@ -323,6 +323,7 @@ public class MessagesStorage extends BaseController {
         try {
             if (fileProtectionEnabled()) {
                 database = new SQLiteDatabaseWrapper(cacheFile.getPath());
+                storageQueue.postRunnable(this::clearFileProtectedDb, 1000);
             } else {
                 database = new SQLiteDatabase(cacheFile.getPath());
             }
@@ -10721,33 +10722,23 @@ public class MessagesStorage extends BaseController {
         return SharedConfig.fileProtectionForAllAccountsEnabled;
     }
 
-    public void finishFileProtectionEnabling() {
+    public void clearFileProtectedDb() {
         storageQueue.postRunnable(() -> {
             try {
-                ArrayList<Long> dialogsToCleanup = new ArrayList<>();
-                SQLiteCursor cursor = database.queryFinalized("SELECT did FROM dialogs WHERE 1");
-                while (cursor.next()) {
-                    long did = cursor.longValue(0);
-                    if (!DialogObject.isEncryptedDialog(did)) {
-                        dialogsToCleanup.add(did);
-                    }
-                }
+                SQLiteDatabase db = database instanceof SQLiteDatabaseWrapper
+                        ? ((SQLiteDatabaseWrapper)database).getFileDatabase()
+                        : database;
 
-                database.executeFast("DELETE FROM chats").stepThis().dispose();
-                database.executeFast("DELETE FROM contacts").stepThis().dispose();
-
-                for (long dialogId : dialogsToCleanup) {
-                    database.executeFast("DELETE FROM messages_v2 WHERE uid = " + dialogId).stepThis().dispose();
-                    database.executeFast("DELETE FROM dialogs WHERE did = " + dialogId).stepThis().dispose();
-                    database.executeFast("DELETE FROM messages_holes WHERE uid = " + dialogId).stepThis().dispose();
-                }
+                String notEncryptedGroupCheck = "did & 0x4000000000000000 = 0 OR did & 0x8000000000000000 <> 0";
+                db.executeFast("DELETE FROM chats").stepThis().dispose();
+                db.executeFast("DELETE FROM contacts").stepThis().dispose();
+                db.executeFast("DELETE FROM messages_v2 WHERE " + notEncryptedGroupCheck.replace("did", "uid")).stepThis().dispose();
+                db.executeFast("DELETE FROM dialogs WHERE " + notEncryptedGroupCheck).stepThis().dispose();
+                db.executeFast("DELETE FROM messages_holes WHERE " + notEncryptedGroupCheck.replace("did", "uid")).stepThis().dispose();
             } catch (Exception e) {
                 checkSQLException(e);
             } finally {
-                if (database != null) {
-                    database.commitTransaction();
-                }
-                AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.onFileProtectionEnabled));
+                AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.onFileProtectedDbCleared));
             }
         });
     }

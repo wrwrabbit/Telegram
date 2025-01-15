@@ -170,7 +170,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
     public boolean onFragmentCreate() {
         foreachActivatedAccountInstance(accountInstance -> {
             accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseReset);
-            accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onFileProtectionEnabled);
+            accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onFileProtectedDbCleared);
         });
         super.onFragmentCreate();
         updateRows();
@@ -182,7 +182,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
         super.onFragmentDestroy();
         foreachActivatedAccountInstance(accountInstance -> {
             accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseReset);
-            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onFileProtectionEnabled);
+            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onFileProtectedDbCleared);
         });
     }
 
@@ -409,9 +409,9 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.onDatabaseReset) {
             if (enablingFileProtectionDialog != null) {
-                MessagesStorage.getInstance(account).finishFileProtectionEnabling();
+                MessagesStorage.getInstance(account).clearFileProtectedDb();
             }
-        } else if (id == NotificationCenter.onFileProtectionEnabled) {
+        } else if (id == NotificationCenter.onFileProtectedDbCleared) {
             if (enablingFileProtectionDialog != null) {
                 accountsWithEnabledFileProtection.add(account);
                 boolean fileProtectionEnabledForAllAccounts = true;
