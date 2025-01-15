@@ -10086,7 +10086,7 @@ public class MessagesStorage extends BaseController {
     public void updateEncryptedGroupDialog(TLRPC.Dialog dialog) {
         SQLitePreparedStatement state = null;
         try {
-            state = database.executeFast("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            state = executeFastForBothDbIfNeeded("REPLACE INTO dialogs VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             state.bindLong(1, dialog.id);
             state.bindInteger(2, dialog.last_message_date);
             state.bindInteger(3, dialog.unread_count);

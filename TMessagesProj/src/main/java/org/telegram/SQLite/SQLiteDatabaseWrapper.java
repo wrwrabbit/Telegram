@@ -28,10 +28,12 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
         fileDatabase.backup(memoryDatabase); // copy file database to memory
     }
 
+    @Override
     public long getSQLiteHandle() {
         return fileDatabase.getSQLiteHandle();
     }
 
+    @Override
     public boolean tableExists(String tableName) throws SQLiteException {
         return fileDatabase.tableExists(tableName);
     }
