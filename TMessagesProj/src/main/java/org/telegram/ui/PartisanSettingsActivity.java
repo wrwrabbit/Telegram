@@ -19,6 +19,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.jakewharton.processphoenix.ProcessPhoenix;
+
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -339,7 +341,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                     } else {
                         SharedConfig.toggleFileProtectionForAllAccountsEnabled();
                         ((TextCheckCell) view).setChecked(SharedConfig.fileProtectionForAllAccountsEnabled);
-                        System.exit(0);
+                        ProcessPhoenix.triggerRebirth(getContext());
                     }
                 });
             } else if (position == verifiedRow) {
@@ -424,7 +426,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                     if (!SharedConfig.fileProtectionForAllAccountsEnabled) {
                         SharedConfig.toggleFileProtectionForAllAccountsEnabled();
                     }
-                    System.exit(0);
+                    ProcessPhoenix.triggerRebirth(getContext());
                 }
             }
         }
