@@ -49,7 +49,8 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
             if (sql.startsWith("SELECT")) {
                 return DbSelector.MEMORY_DB;
             } else {
-                if (onlyMemoryTables.stream().anyMatch(table -> sql.contains(" " + table))) {
+                String prefix = sqlPrefixesForSpecificDB.stream().filter(sql::startsWith).findFirst().orElse("");
+                if (onlyMemoryTables.stream().anyMatch(table -> sql.startsWith(prefix + " " + table))) {
                     return DbSelector.MEMORY_DB;
                 } else {
                     return DbSelector.BOTH_DB;
