@@ -30,6 +30,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.partisan.FileProtectionSwitcher;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.appmigration.AppMigrationActivity;
 import org.telegram.messenger.partisan.appmigration.AppMigrator;
@@ -59,11 +60,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class PartisanSettingsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
+public class PartisanSettingsActivity extends BaseFragment {
 
     private ListAdapter listAdapter;
     private RecyclerListView listView;
@@ -111,9 +112,6 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
     private int enableSecretGroupsRow;
     private int enableSecretGroupsDetailRow;
 
-    private AlertDialog enablingFileProtectionDialog;
-    Set<Integer> accountsWithEnabledFileProtection = new HashSet<>();
-
     private class DangerousSettingSwitcher {
         public Context context;
         public View view;
@@ -145,7 +143,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
             SharedConfig.saveConfig();
             ((TextCheckCell) view).setChecked(!value);
             if (runDangerousAction) {
-                foreachActivatedAccountInstance(dangerousAction);
+                Utils.foreachActivatedAccountInstance(dangerousAction);
             }
         }
 
@@ -168,22 +166,9 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
 
     @Override
     public boolean onFragmentCreate() {
-        foreachActivatedAccountInstance(accountInstance -> {
-            accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onDatabaseReset);
-            accountInstance.getNotificationCenter().addObserver(this, NotificationCenter.onFileProtectedDbCleared);
-        });
         super.onFragmentCreate();
         updateRows();
         return true;
-    }
-
-    @Override
-    public void onFragmentDestroy() {
-        super.onFragmentDestroy();
-        foreachActivatedAccountInstance(accountInstance -> {
-            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onDatabaseReset);
-            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.onFileProtectedDbCleared);
-        });
     }
 
     @Override
@@ -328,22 +313,6 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
             } else if (position == confirmDangerousActionRow) {
                 SharedConfig.toggleIsConfirmDangerousActions();
                 ((TextCheckCell) view).setChecked(SharedConfig.confirmDangerousActions);
-            } else if (position == fileProtectionRow) {
-
-                AlertsCreator.showConfirmationDialog(this, getContext(), LocaleController.getString(R.string.Continue), () -> {
-                    if (!SharedConfig.fileProtectionForAllAccountsEnabled) {
-                        accountsWithEnabledFileProtection.clear();
-                        foreachActivatedAccountInstance(accountInstance -> {
-                            accountInstance.getMessagesStorage().clearLocalDatabase();
-                        });
-                        enablingFileProtectionDialog = new AlertDialog(getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER);
-                        showDialog(enablingFileProtectionDialog);
-                    } else {
-                        SharedConfig.toggleFileProtectionForAllAccountsEnabled();
-                        ((TextCheckCell) view).setChecked(SharedConfig.fileProtectionForAllAccountsEnabled);
-                        ProcessPhoenix.triggerRebirth(getContext());
-                    }
-                });
             } else if (position == verifiedRow) {
                 if (LocaleController.isRTL && x > AndroidUtilities.dp(76) || !LocaleController.isRTL && x < view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
                     List<VerificationStorage> storages = VerificationRepository.getInstance().getStorages();
@@ -374,6 +343,19 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                     SharedConfig.toggleAdditionalVerifiedBadges();
                     ((NotificationsCheckCell) view).setChecked(SharedConfig.additionalVerifiedBadges);
                 }
+            } else if (position == fileProtectionRow) {
+                if (LocaleController.isRTL && x > AndroidUtilities.dp(76) || !LocaleController.isRTL && x < view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
+                    presentFragment(new FileProtectionActivity());
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setMessage(LocaleController.getString(R.string.ApplicationWillBeRestarted));
+                    builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialogInterface, i) -> {
+                        new FileProtectionSwitcher(this).changeForAllAccounts(!fileProtectionEnabledForAnyAccount());
+                    });
+                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                    AlertDialog dialog = builder.create();
+                    showDialog(dialog);
+                }
             } else if (position == transferDataToOtherPtgRow) {
                 presentFragment(new AppMigrationActivity());
             } else if (position == enableSecretGroupsRow) {
@@ -388,47 +370,11 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
         return fragmentView;
     }
 
-    private static void foreachActivatedAccountInstance(Consumer<AccountInstance> action) {
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            UserConfig config = UserConfig.getInstance(a);
-            if (config.isClientActivated()) {
-                action.accept(AccountInstance.getInstance(a));
-            }
-        }
-    }
-
     @Override
     public void onResume() {
         super.onResume();
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
-        }
-    }
-
-    @Override
-    public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.onDatabaseReset) {
-            if (enablingFileProtectionDialog != null) {
-                MessagesStorage.getInstance(account).clearFileProtectedDb();
-            }
-        } else if (id == NotificationCenter.onFileProtectedDbCleared) {
-            if (enablingFileProtectionDialog != null) {
-                accountsWithEnabledFileProtection.add(account);
-                boolean fileProtectionEnabledForAllAccounts = true;
-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-                    UserConfig config = UserConfig.getInstance(a);
-                    if (config.isClientActivated() && !accountsWithEnabledFileProtection.contains(a)) {
-                        fileProtectionEnabledForAllAccounts = false;
-                        break;
-                    }
-                }
-                if (fileProtectionEnabledForAllAccounts) {
-                    if (!SharedConfig.fileProtectionForAllAccountsEnabled) {
-                        SharedConfig.toggleFileProtectionForAllAccountsEnabled();
-                    }
-                    ProcessPhoenix.triggerRebirth(getContext());
-                }
-            }
         }
     }
 
@@ -501,6 +447,24 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                 }
             });
         }
+    }
+
+    private static boolean fileProtectionEnabledForAnyAccount() {
+        return getAccountsWithFileProtectionCount() > 0;
+    }
+
+    private static int getAccountsWithFileProtectionCount() {
+        if (SharedConfig.fileProtectionForAllAccountsEnabled) {
+            return UserConfig.getActivatedAccountsCount();
+        }
+        int count = 0;
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            UserConfig config = UserConfig.getInstance(a);
+            if (config.isClientActivated() && config.fileProtectionEnabled) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -610,9 +574,6 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                     } else if (position == confirmDangerousActionRow) {
                         textCell.setTextAndCheck(LocaleController.getString("ConfirmDangerousAction", R.string.ConfirmDangerousAction),
                                 SharedConfig.confirmDangerousActions, false);
-                    } else if (position == fileProtectionRow) {
-                        textCell.setTextAndCheck(LocaleController.getString(R.string.FileProtection),
-                                SharedConfig.fileProtectionForAllAccountsEnabled, false);
                     }
                     break;
                 }
@@ -714,6 +675,20 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                         String value = storages.size() == 1 ? storages.get(0).chatUsername : "";
                         boolean enabled = SharedConfig.additionalVerifiedBadges;
                         checkCell.setTextAndValueAndCheck(LocaleController.getString(R.string.AdditionalVerifiedSetting), value, enabled, false);
+                    } else if (position == fileProtectionRow) {
+                        String value;
+                        if (SharedConfig.fileProtectionForAllAccountsEnabled) {
+                            value = LocaleController.getString(R.string.PopupEnabled);
+                        } else {
+                            int count = getAccountsWithFileProtectionCount();
+                            if (count > 0) {
+                                value = String.format(Locale.US, "%d/%d", count, UserConfig.getActivatedAccountsCount());
+                            } else {
+                                value = LocaleController.getString(R.string.Disabled);
+                            }
+                        }
+                        checkCell.setTextAndValueAndCheck(LocaleController.getString(R.string.FileProtection), value,
+                                fileProtectionEnabledForAnyAccount(), false);
                     }
                     break;
                 }
@@ -743,7 +718,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
                     || position == savedChannelsRow || position == reactionsRow || position == foreignAgentsRow
                     || position == isClearAllDraftsOnScreenLockRow || position == showCallButtonRow
                     || position == isDeleteMessagesForAllByDefaultRow || position == marketIconsRow
-                    || position == confirmDangerousActionRow || position == fileProtectionRow) {
+                    || position == confirmDangerousActionRow) {
                 return 0;
             } else if (position == versionDetailRow || position == idDetailRow || position == disableAvatarDetailRow
                     || position == renameChatDetailRow || position == deleteMyMessagesDetailRow
@@ -758,7 +733,7 @@ public class PartisanSettingsActivity extends BaseFragment implements Notificati
             } else if (position == onScreenLockActionRow || position == transferDataToOtherPtgRow
                     || position == enableSecretGroupsRow) {
                 return 2;
-            } else if (position == verifiedRow) {
+            } else if (position == verifiedRow || position == fileProtectionRow) {
                 return 3;
             } else if (position == experimentalHeaderRow) {
                 return 4;

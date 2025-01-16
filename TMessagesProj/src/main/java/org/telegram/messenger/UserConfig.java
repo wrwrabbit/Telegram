@@ -118,6 +118,7 @@ public class UserConfig extends BaseController {
     public Set<SecurityIssue> ignoredSecurityIssues = new HashSet<>();
     public boolean showSecuritySuggestions = false;
     public long lastSecuritySuggestionsShow = 0;
+    public boolean fileProtectionEnabled = false;
 
     private static ObjectMapper jsonMapper = null;
 
@@ -295,6 +296,7 @@ public class UserConfig extends BaseController {
                     editor.putString("ignoredSecurityIssues", ignoredSecurityIssuesStr);
                     editor.putBoolean("showSecuritySuggestions", showSecuritySuggestions);
                     editor.putLong("lastSecuritySuggestionsShow", lastSecuritySuggestionsShow);
+                    editor.putBoolean("fileProtectionEnabled", fileProtectionEnabled);
                     String savedChannelsStr = savedChannels.stream().reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
                     editor.putString("savedChannels", savedChannelsStr);
                     String pinnedSavedChannelsStr = pinnedSavedChannels.stream().reduce("", (acc, s) -> acc.isEmpty() ? s : acc + "," + s);
@@ -463,6 +465,7 @@ public class UserConfig extends BaseController {
             ignoredSecurityIssues = Arrays.stream(ignoredSecurityIssuesStr.split(",")).filter(s -> !s.isEmpty()).map(SecurityIssue::valueOf).collect(Collectors.toSet());
             showSecuritySuggestions = preferences.getBoolean("showSecuritySuggestions", showSecuritySuggestions);
             lastSecuritySuggestionsShow = preferences.getLong("lastSecuritySuggestionsShow", 0); // check security next day
+            fileProtectionEnabled = preferences.getBoolean("fileProtectionEnabled", fileProtectionEnabled);
             String savedChannelsStr = preferences.getString("savedChannels", defaultChannels);
             savedChannels = new HashSet<>(Arrays.asList(savedChannelsStr.split(",")));
             savedChannels.remove("");
@@ -642,6 +645,7 @@ public class UserConfig extends BaseController {
         ignoredSecurityIssues = new HashSet<>();
         showSecuritySuggestions = false;
         lastSecuritySuggestionsShow = 0;
+        fileProtectionEnabled = false;
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = -210000;

@@ -10719,7 +10719,14 @@ public class MessagesStorage extends BaseController {
     }
 
     public boolean fileProtectionEnabled() {
-        return SharedConfig.fileProtectionForAllAccountsEnabled;
+        if (SharedConfig.fileProtectionForAllAccountsEnabled) {
+            return true;
+        }
+        if (getUserConfig().isConfigLoaded()) {
+            return getUserConfig().fileProtectionEnabled;
+        } else {
+            return getUserConfig().getPreferences().getBoolean("fileProtectionEnabled", false);
+        }
     }
 
     public void clearFileProtectedDb() {
