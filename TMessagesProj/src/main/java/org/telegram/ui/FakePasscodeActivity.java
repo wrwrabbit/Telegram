@@ -181,14 +181,14 @@ public class FakePasscodeActivity extends BaseFragment {
     private int deletePasscodeRow;
     private int deletePasscodeDetailRow;
 
-    private List<AccountActionsCellInfo> accounts = new ArrayList<>();
+    private final List<AccountActionsCellInfo> accounts = new ArrayList<>();
 
     private boolean creating;
     private FakePasscode fakePasscode;
     private byte[] encryptedPasscode;
 
     private boolean postedHidePasscodesDoNotMatch;
-    private Runnable hidePasscodesDoNotMatch = () -> {
+    private final Runnable hidePasscodesDoNotMatch = () -> {
         postedHidePasscodesDoNotMatch = false;
         AndroidUtilities.updateViewVisibilityAnimated(passcodesErrorTextView, false);
     };
