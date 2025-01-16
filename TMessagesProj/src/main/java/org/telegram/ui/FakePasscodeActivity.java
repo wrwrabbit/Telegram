@@ -1299,7 +1299,7 @@ public class FakePasscodeActivity extends BaseFragment {
         }, isPinCode() ? 150 : 1000));
     }
 
-    private class AccountActionsCellInfo {
+    private static class AccountActionsCellInfo {
         public Integer accountNum;
         public AccountActions actions;
 
