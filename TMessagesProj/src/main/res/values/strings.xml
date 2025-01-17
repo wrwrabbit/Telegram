@@ -8806,6 +8806,6 @@
     <string name="SecretGroupsEnabled">Secret Groups Enabled</string>
     <string name="EnableSecretGroupsInfo">Secret groups allow multiple users to communicate using end-to-end encryption. To create a secret group, enable this feature using the button above, return to the list of conversations, click the pencil icon in the lower right corner and select \"%1$s\".</string>
     <string name="FileProtection">File Protection</string>
-    <string name="FileProtectionInfo">File protection allows you to protect against extraction of application files during phone inspection. Enabling this option may result in incorrect operation of the application. You can enable this option and then disable it if you encounter problems. Enabling this option will clear the message cache. The option will be applied after restarting the application.</string>
+    <string name="FileProtectionInfo">File protection allows you to protect yourself from information extraction during phone inspection. Enabling this option may cause the application to work incorrectly. After enabling file protection, the message cache will be cleared and the application will reboot.</string>
     <string name="ApplicationWillBeRestarted">The application will be restarted.</string>
 </resources>
