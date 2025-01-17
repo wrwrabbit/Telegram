@@ -15,7 +15,7 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
             "INSERT INTO", "REPLACE INTO", "SELECT"
     ));
     private final Set<String> onlyMemoryTables = new HashSet<>(Arrays.asList(
-            "messages_v2", "chats", "contacts", "dialogs", "messages_holes"
+            "messages_v2", "chats", "contacts", "dialogs", "messages_holes", "messages_topics"
     ));
 
     private final SQLiteDatabase fileDatabase;
