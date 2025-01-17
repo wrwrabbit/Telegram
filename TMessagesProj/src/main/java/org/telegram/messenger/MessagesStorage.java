@@ -10743,6 +10743,7 @@ public class MessagesStorage extends BaseController {
                 db.executeFast("DELETE FROM dialogs WHERE " + notEncryptedGroupCheck).stepThis().dispose();
                 db.executeFast("DELETE FROM messages_holes WHERE " + notEncryptedGroupCheck.replace("did", "uid")).stepThis().dispose();
                 db.executeFast("DELETE FROM messages_topics WHERE " + notEncryptedGroupCheck.replace("did", "uid")).stepThis().dispose();
+                db.executeFast("DELETE FROM messages_holes_topics").stepThis().dispose();
             } catch (Exception e) {
                 checkSQLException(e);
             } finally {
