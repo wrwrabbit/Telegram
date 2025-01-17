@@ -1,5 +1,6 @@
 package org.telegram.SQLite;
 
+import org.telegram.messenger.DialogObject;
 import org.telegram.tgnet.NativeByteBuffer;
 
 import java.nio.ByteBuffer;
@@ -14,8 +15,12 @@ public class SQLitePreparedStatementWrapper extends SQLitePreparedStatement {
         this.statements = statements;
     }
 
-    public void setDbSelector(DbSelector dbSelector) {
+    private void setDbSelector(DbSelector dbSelector) {
         this.dbSelector = dbSelector;
+    }
+
+    public void setDbSelectorByDialogId(long dialogId) {
+        setDbSelector(DialogObject.isEncryptedDialog(dialogId) ? DbSelector.BOTH_DB : DbSelector.MEMORY_DB);
     }
 
     private interface StatementFunction<R> {
