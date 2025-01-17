@@ -1066,8 +1066,8 @@ public class SharedConfig {
         editor.commit();
     }
 
-    public static void toggleFileProtectionForAllAccountsEnabled() {
-        fileProtectionForAllAccountsEnabled = !fileProtectionForAllAccountsEnabled;
+    public static void setFileProtectionForAllAccounts(boolean enabled) {
+        fileProtectionForAllAccountsEnabled = enabled;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("fileProtectionForAllAccountsEnabled", fileProtectionForAllAccountsEnabled);

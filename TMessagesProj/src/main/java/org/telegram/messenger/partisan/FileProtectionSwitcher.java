@@ -51,7 +51,7 @@ public class FileProtectionSwitcher implements NotificationCenter.NotificationCe
         fragment.showDialog(enablingFileProtectionDialog);
 
         if (!enableForAllAccounts && valuesPerAccounts.isEmpty()) {
-            SharedConfig.toggleFileProtectionForAllAccountsEnabled();
+            SharedConfig.setFileProtectionForAllAccounts(enableForAllAccounts);
             Utils.foreachActivatedAccountInstance(accountInstance -> {
                 accountInstance.getUserConfig().fileProtectionEnabled = false;
                 accountInstance.getUserConfig().saveConfig(false);
@@ -84,9 +84,7 @@ public class FileProtectionSwitcher implements NotificationCenter.NotificationCe
     }
 
     private void updateConfigs() {
-        if (SharedConfig.fileProtectionForAllAccountsEnabled != enableForAllAccounts) {
-            SharedConfig.toggleFileProtectionForAllAccountsEnabled();
-        }
+        SharedConfig.setFileProtectionForAllAccounts(enableForAllAccounts);
         Utils.foreachActivatedAccountInstance(accountInstance -> {
             boolean enabled = SharedConfig.fileProtectionForAllAccountsEnabled
                     || valuesPerAccounts.getOrDefault(accountInstance.getCurrentAccount(), false);
