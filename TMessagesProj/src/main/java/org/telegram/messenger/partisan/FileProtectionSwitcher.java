@@ -53,8 +53,12 @@ public class FileProtectionSwitcher implements NotificationCenter.NotificationCe
         if (!enableForAllAccounts && valuesPerAccounts.isEmpty()) {
             SharedConfig.setFileProtectionForAllAccounts(enableForAllAccounts);
             Utils.foreachActivatedAccountInstance(accountInstance -> {
-                accountInstance.getUserConfig().fileProtectionEnabled = false;
-                accountInstance.getUserConfig().saveConfig(false);
+                UserConfig userConfig = accountInstance.getUserConfig();
+                if (userConfig.fileProtectionEnabled) {
+                    userConfig.fileProtectionEnabled = false;
+                    userConfig.clearPinnedDialogsLoaded();
+                    accountInstance.getUserConfig().saveConfig(false);
+                }
             });
             ProcessPhoenix.triggerRebirth(getContext());
             return;
@@ -88,8 +92,12 @@ public class FileProtectionSwitcher implements NotificationCenter.NotificationCe
         Utils.foreachActivatedAccountInstance(accountInstance -> {
             boolean enabled = SharedConfig.fileProtectionForAllAccountsEnabled
                     || valuesPerAccounts.getOrDefault(accountInstance.getCurrentAccount(), false);
-            accountInstance.getUserConfig().fileProtectionEnabled = enabled;
-            accountInstance.getUserConfig().saveConfig(false);
+            UserConfig userConfig = accountInstance.getUserConfig();
+            if (userConfig.fileProtectionEnabled != enabled) {
+                userConfig.clearPinnedDialogsLoaded();
+            }
+            userConfig.fileProtectionEnabled = enabled;
+            userConfig.saveConfig(false);
         });
     }
 

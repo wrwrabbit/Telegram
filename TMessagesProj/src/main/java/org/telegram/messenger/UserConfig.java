@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class UserConfig extends BaseController {
@@ -119,6 +120,7 @@ public class UserConfig extends BaseController {
     public boolean showSecuritySuggestions = false;
     public long lastSecuritySuggestionsShow = 0;
     public boolean fileProtectionEnabled = false;
+    private final Map<Integer, Boolean> temporarilyLoadedPinnedDialogs = new ConcurrentHashMap<>();
 
     private static ObjectMapper jsonMapper = null;
 
@@ -688,11 +690,19 @@ public class UserConfig extends BaseController {
     }
 
     public boolean isPinnedDialogsLoaded(int folderId) {
-        return getPreferences().getBoolean("2pinnedDialogsLoaded" + folderId, false);
+        if (getMessagesStorage().fileProtectionEnabled()) {
+            return temporarilyLoadedPinnedDialogs.getOrDefault(folderId, false);
+        } else {
+            return getPreferences().getBoolean("2pinnedDialogsLoaded" + folderId, false);
+        }
     }
 
     public void setPinnedDialogsLoaded(int folderId, boolean loaded) {
-        getPreferences().edit().putBoolean("2pinnedDialogsLoaded" + folderId, loaded).commit();
+        if (getMessagesStorage().fileProtectionEnabled()) {
+            temporarilyLoadedPinnedDialogs.put(folderId, loaded);
+        } else {
+            getPreferences().edit().putBoolean("2pinnedDialogsLoaded" + folderId, loaded).commit();
+        }
     }
 
     public void clearPinnedDialogsLoaded() {
