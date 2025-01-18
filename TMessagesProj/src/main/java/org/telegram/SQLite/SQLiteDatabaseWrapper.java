@@ -1,5 +1,9 @@
 package org.telegram.SQLite;
 
+import android.widget.Toast;
+
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.partisan.PartisanLog;
 
 import java.util.Arrays;
@@ -60,6 +64,9 @@ public class SQLiteDatabaseWrapper extends SQLiteDatabase {
         } else {
             if (PartisanLog.logsAllowed()) {
                 PartisanLog.e("Failed execute sql: " + sql);
+                AndroidUtilities.runOnUIThread(() ->
+                        Toast.makeText(ApplicationLoader.applicationContext, "Wrapped DB error", Toast.LENGTH_SHORT).show()
+                );
                 throw new RuntimeException();
             }
             return DbSelector.BOTH_DB;
