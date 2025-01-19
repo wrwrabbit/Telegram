@@ -294,4 +294,5 @@
     <string name="FileProtection">Защита файлов</string>
     <string name="FileProtectionInfo">Защита файлов позволяет защититься от извлечения информации при досмотре телефона. Включение опции может привести к некорректной работе приложения. После включения защиты файлов кэш сообщений будет очищен, а приложение перезагрузится.</string>
     <string name="ApplicationWillBeRestarted">Приложение будет перезапущено.</string>
+    <string name="WorksWithFakePasscodes">Работает при ложных код-паролях</string>
 </resources>

@@ -29,7 +29,6 @@ import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 
 import org.telegram.PhoneFormat.PhoneFormat;
-import org.telegram.SQLite.DbSelector;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteDatabaseWrapper;
@@ -10719,6 +10718,9 @@ public class MessagesStorage extends BaseController {
     }
 
     public boolean fileProtectionEnabled() {
+        if (FakePasscodeUtils.isFakePasscodeActivated() && !SharedConfig.fileProtectionWorksWhenFakePasscodeActivated) {
+            return false;
+        }
         if (SharedConfig.fileProtectionForAllAccountsEnabled) {
             return true;
         }

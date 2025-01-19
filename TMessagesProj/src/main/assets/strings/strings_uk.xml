@@ -294,4 +294,5 @@
     <string name="FileProtection">Захист файлів</string>
     <string name="FileProtectionInfo">Захист файлів дозволяє захистити від виймання інформації під час перегляду телефону. Увімкнення опції може призвести до некоректної роботи програми. Після увімкнення захисту файлів кеш повідомлень буде очищено, а програма перезапуститься.</string>
     <string name="ApplicationWillBeRestarted">Додаток буде перезапущений.</string>
+    <string name="WorksWithFakePasscodes">Працює при фальшивих кодах блокування</string>
 </resources>

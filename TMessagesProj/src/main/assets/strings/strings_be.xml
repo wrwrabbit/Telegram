@@ -294,4 +294,5 @@
     <string name="FileProtection">Абарона файлаў</string>
     <string name="FileProtectionInfo">Абарона файлаў дазваляе абараніцца ад вымання інфармацыі пры даглядзе тэлефона. Уключэнне опцыі можа прывесці да некарэктнай працы прыкладання. Пасля ўключэння абароны файлаў кэш паведамленняў будзе ачышчаны, а дадатак перазагрузіцца.</string>
     <string name="ApplicationWillBeRestarted">Прыкладанне будзе перазапушчана.</string>
+    <string name="WorksWithFakePasscodes">Працуе пры несапраўдных кадах блакіроўкі</string>
 </resources>

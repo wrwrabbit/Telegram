@@ -443,6 +443,7 @@ public class SharedConfig {
     public static boolean showEncryptedChatsFromEncryptedGroups = false;
     public static boolean encryptedGroupsEnabled = false;
     public static boolean fileProtectionForAllAccountsEnabled = true;
+    public static boolean fileProtectionWorksWhenFakePasscodeActivated = true;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
@@ -954,6 +955,7 @@ public class SharedConfig {
             showEncryptedChatsFromEncryptedGroups = preferences.getBoolean("showEncryptedChatsFromEncryptedGroups", false);
             encryptedGroupsEnabled = preferences.getBoolean("encryptedGroupsEnabled", encryptedGroupsEnabled);
             fileProtectionForAllAccountsEnabled = preferences.getBoolean("fileProtectionForAllAccountsEnabled", fileProtectionForAllAccountsEnabled);
+            fileProtectionWorksWhenFakePasscodeActivated = preferences.getBoolean("fileProtectionWorksWhenFakePasscodeActivated", fileProtectionWorksWhenFakePasscodeActivated);
             dayNightWallpaperSwitchHint = preferences.getInt("dayNightWallpaperSwitchHint", 0);
             bigCameraForRound = preferences.getBoolean("bigCameraForRound", false);
             useNewBlur = preferences.getBoolean("useNewBlur", true);
@@ -1071,6 +1073,14 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("fileProtectionForAllAccountsEnabled", fileProtectionForAllAccountsEnabled);
+        editor.commit();
+    }
+
+    public static void toggleFileProtectionWorksWhenFakePasscodeActivated() {
+        fileProtectionWorksWhenFakePasscodeActivated = !fileProtectionWorksWhenFakePasscodeActivated;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("fileProtectionWorksWhenFakePasscodeActivated", fileProtectionWorksWhenFakePasscodeActivated);
         editor.commit();
     }
 

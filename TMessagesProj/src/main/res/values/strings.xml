@@ -8808,4 +8808,5 @@
     <string name="FileProtection">File Protection</string>
     <string name="FileProtectionInfo">File protection allows you to protect yourself from information extraction during phone inspection. Enabling this option may cause the application to work incorrectly. After enabling file protection, the message cache will be cleared and the application will reboot.</string>
     <string name="ApplicationWillBeRestarted">The application will be restarted.</string>
+    <string name="WorksWithFakePasscodes">Works With Fake Passcodes</string>
 </resources>

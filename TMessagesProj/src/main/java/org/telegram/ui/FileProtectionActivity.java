@@ -25,6 +25,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.CheckBoxUserCell;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
@@ -41,6 +42,8 @@ public class FileProtectionActivity extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
 
+    private int worksWithFakePasscodeRow;
+    private int worksWithFakePasscodeDelimiterRow;
     private int firstAccountRow;
     private int lastAccountRow;
     private int rowCount;
@@ -98,6 +101,11 @@ public class FileProtectionActivity extends BaseFragment {
             if (getParentActivity() == null) {
                 return;
             }
+            if (position == worksWithFakePasscodeRow) {
+                SharedConfig.toggleFileProtectionWorksWhenFakePasscodeActivated();
+                TextCheckCell textCell = (TextCheckCell) view;
+                textCell.setChecked(SharedConfig.fileProtectionWorksWhenFakePasscodeActivated);
+            }
             if (firstAccountRow <= position && position <= lastAccountRow) {
                 CheckBoxUserCell userCell = ((CheckBoxUserCell) view);
                 FileProtectionAccountCellInfo cellInfo = accounts.get(position - firstAccountRow);
@@ -122,7 +130,9 @@ public class FileProtectionActivity extends BaseFragment {
     private void updateRows() {
         rowCount = 0;
 
-        firstAccountRow = 0;
+        worksWithFakePasscodeRow = rowCount++;
+        worksWithFakePasscodeDelimiterRow = rowCount++;
+        firstAccountRow = rowCount;
         accounts.clear();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             if (UserConfig.getInstance(a).isClientActivated()) {
@@ -211,7 +221,7 @@ public class FileProtectionActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return firstAccountRow <= position && position <= lastAccountRow;
+            return position != worksWithFakePasscodeDelimiterRow;
         }
 
         @Override
@@ -232,6 +242,13 @@ public class FileProtectionActivity extends BaseFragment {
                     userCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                     userCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
+                case 1:
+                    view = new TextCheckCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case 2:
+                    view = new ShadowSectionCell(mContext);
+                    break;
             }
             return new RecyclerListView.Holder(view);
         }
@@ -245,12 +262,29 @@ public class FileProtectionActivity extends BaseFragment {
                     userCell.setUser(cellInfo.getUserConfig().getCurrentUser(), cellInfo.fileProtectionEnabled, true);
                     break;
                 }
+                case 1: {
+                    TextCheckCell textCell = (TextCheckCell) holder.itemView;
+                    if (position == worksWithFakePasscodeRow) {
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.WorksWithFakePasscodes), SharedConfig.fileProtectionWorksWhenFakePasscodeActivated, true);
+                    }
+                    break;
+                }
+                case 2: {
+                    View sectionCell = holder.itemView;
+                    sectionCell.setTag(position);
+                    sectionCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
+                    break;
+                }
             }
         }
 
         @Override
         public int getItemViewType(int position) {
-            if (firstAccountRow <= position && position <= lastAccountRow) {
+            if (position == worksWithFakePasscodeRow) {
+                return 1;
+            } else if (position == worksWithFakePasscodeDelimiterRow) {
+                return 2;
+            } if (firstAccountRow <= position && position <= lastAccountRow) {
                 return 0;
             }
             return 0;
