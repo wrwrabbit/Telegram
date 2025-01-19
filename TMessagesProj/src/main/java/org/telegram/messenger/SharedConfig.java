@@ -741,6 +741,7 @@ public class SharedConfig {
         } if (sharedConfigMigrationVersion == 1) {
             if (prevMigrationVersion == 1) { // check if ptg has just been updated
                 FileProtectionNewFeatureDialog.needShowDialog = true;
+                fileProtectionForAllAccountsEnabled = false;
             }
             sharedConfigMigrationVersion++;
         }
