@@ -42,6 +42,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
+import org.telegram.messenger.partisan.FileProtectionNewFeatureDialog;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.update.UpdateApkRemoveRunnable;
@@ -736,6 +737,11 @@ public class SharedConfig {
                 AndroidUtilities.runOnUIThread(() -> Utils.clearWebBrowserCache(ApplicationLoader.applicationContext));
                 BrowserHistory.clearHistory();
             }, 1000);
+            sharedConfigMigrationVersion++;
+        } if (sharedConfigMigrationVersion == 1) {
+            if (prevMigrationVersion == 1) { // check if ptg has just been updated
+                FileProtectionNewFeatureDialog.needShowDialog = true;
+            }
             sharedConfigMigrationVersion++;
         }
         if (prevMigrationVersion != sharedConfigMigrationVersion) {
