@@ -442,7 +442,7 @@ public class SharedConfig {
     public static boolean confirmDangerousActions;
     public static boolean showEncryptedChatsFromEncryptedGroups = false;
     public static boolean encryptedGroupsEnabled = false;
-    public static boolean fileProtectionForAllAccountsEnabled = false;
+    public static boolean fileProtectionForAllAccountsEnabled = true;
 
     private static final int[] LOW_SOC = {
             -1775228513, // EXYNOS 850
