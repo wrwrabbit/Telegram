@@ -16187,7 +16187,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         }
                         if (DialogObject.isEncryptedDialog(dialog.id) && (FakePasscodeUtils.isFakePasscodeActivated() || dialog.pinned)) {
                             int targetPosition = !FakePasscodeUtils.isFakePasscodeActivated()
-                                    ? Math.min(targetCount - dialog.pinnedNum, 0)
+                                    ? Math.max(targetCount - dialog.pinnedNum, 0)
                                     : pinnedNum;
                             if (targetPosition < newPinnedDialogs.size()) {
                                 newPinnedDialogs.add(targetPosition, dialog);
