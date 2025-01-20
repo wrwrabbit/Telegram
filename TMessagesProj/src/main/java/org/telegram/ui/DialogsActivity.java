@@ -7799,7 +7799,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         return !AppMigrationDialogs.needShowNewerPtgDialog(getContext())
                 && !getOlderPtgStatus().needShowDialog()
                 && !needCameraPermission()
-                && !FileProtectionNewFeatureDialog.needShowDialog;
+                && !FileProtectionNewFeatureDialog.needShow();
     }
 
     private boolean needCameraPermission() {

@@ -740,7 +740,11 @@ public class SharedConfig {
             sharedConfigMigrationVersion++;
         } if (sharedConfigMigrationVersion == 1) {
             if (prevMigrationVersion == 1) { // check if ptg has just been updated
-                FileProtectionNewFeatureDialog.needShowDialog = true;
+                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("needShowFileProtectionNewFeatureDialog", true);
+                editor.apply();
+
                 fileProtectionForAllAccountsEnabled = false;
             }
             sharedConfigMigrationVersion++;
