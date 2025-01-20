@@ -42,7 +42,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.fakepasscode.results.ActionsResult;
 import org.telegram.messenger.fakepasscode.FakePasscode;
 import org.telegram.messenger.fakepasscode.FakePasscodeUtils;
-import org.telegram.messenger.partisan.FileProtectionNewFeatureDialog;
+import org.telegram.messenger.partisan.fileprotection.FileProtectionNewFeatureDialog;
 import org.telegram.messenger.partisan.PartisanLog;
 import org.telegram.messenger.partisan.Utils;
 import org.telegram.messenger.partisan.update.UpdateApkRemoveRunnable;

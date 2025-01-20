@@ -1,4 +1,4 @@
-package org.telegram.messenger.partisan;
+package org.telegram.messenger.partisan.fileprotection;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
